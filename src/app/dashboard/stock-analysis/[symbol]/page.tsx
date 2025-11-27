@@ -115,15 +115,30 @@ interface StockDataResult {
   metrics: AllMetrics;
 }
 
+// Get the base URL for API calls
+function getBaseUrl(): string {
+  // In production on Vercel
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  // Custom domain or explicitly set URL
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  // Local development
+  return 'http://localhost:3000';
+}
+
 // Fetch stock metrics from API
 async function fetchStockMetrics(symbol: string): Promise<{
   data: StockDataResult | null;
   error: string | null;
 }> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = getBaseUrl();
     const response = await fetch(`${baseUrl}/api/stock/${symbol}/metrics`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
+      cache: 'force-cache',
     });
 
     if (!response.ok) {
