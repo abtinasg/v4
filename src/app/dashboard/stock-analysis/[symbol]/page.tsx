@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { CompanyHeader } from '@/components/stock/company-header';
 import { PriceChart } from '@/components/stock/price-chart';
 import { MetricsTabs } from '@/components/stock/metrics-tabs';
@@ -11,6 +12,10 @@ import {
 } from '@/components/stock/skeletons';
 import { StockContextUpdater } from '@/components/ai';
 import type { AllMetrics } from '../../../../../lib/metrics/types';
+
+// Force dynamic rendering to allow API calls during request time
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Revalidate every hour
 
 interface PageProps {
   params: Promise<{
@@ -116,7 +121,19 @@ interface StockDataResult {
 }
 
 // Get the base URL for API calls
-function getBaseUrl(): string {
+async function getBaseUrl(): Promise<string> {
+  // Try to get host from headers (works in server components)
+  try {
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol = headersList.get('x-forwarded-proto') || 'https';
+    if (host) {
+      return `${protocol}://${host}`;
+    }
+  } catch {
+    // Headers not available during build time
+  }
+  
   // In production on Vercel
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
@@ -135,7 +152,7 @@ async function fetchStockMetrics(symbol: string): Promise<{
   error: string | null;
 }> {
   try {
-    const baseUrl = getBaseUrl();
+    const baseUrl = await getBaseUrl();
     const response = await fetch(`${baseUrl}/api/stock/${symbol}/metrics`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
       cache: 'force-cache',
