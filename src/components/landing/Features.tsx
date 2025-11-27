@@ -1,196 +1,145 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
-import { useRef } from 'react'
-import { BarChart3, Sparkles, Zap, Star, Terminal, DollarSign } from 'lucide-react'
+import { ShieldCheck, Sparkles, Zap, Radar, CreditCard, Globe2, Server, LineChart } from 'lucide-react'
 
-const features = [
+const featureGrid = [
   {
-    icon: BarChart3,
-    title: '150+ Financial Metrics',
-    description: 'From basic fundamentals to advanced technical indicators',
-    gradient: 'from-blue-500 to-cyan-500',
+    icon: ShieldCheck,
+    title: 'Compliance-first core',
+    description: 'SOC2, PCI-DSS, and per-transaction biometrics built directly into workflows.',
+    accent: 'from-emerald-400/50 to-cyan-400/20',
   },
   {
-    icon: Sparkles,
-    title: 'AI-Powered Analysis',
-    description: 'Get instant insights and explanations from our financial AI assistant',
-    gradient: 'from-purple-500 to-pink-500',
+    icon: Globe2,
+    title: 'Global payout mesh',
+    description: 'Wire, SEPA, Faster Payments, ACH, and on-chain rails available in one control plane.',
+    accent: 'from-blue-400/40 to-indigo-500/20',
   },
   {
-    icon: Zap,
-    title: 'Real-time Market Data',
-    description: 'Live stock prices, indices, and economic indicators',
-    gradient: 'from-yellow-500 to-orange-500',
+    icon: LineChart,
+    title: 'Treasury-grade analytics',
+    description: 'Anomaly detection, VaR snapshots, and FX slippage guardrails for finance leads.',
+    accent: 'from-purple-400/50 to-pink-400/20',
   },
   {
-    icon: Star,
-    title: 'Custom Watchlists',
-    description: 'Track your favorite stocks with personalized alerts',
-    gradient: 'from-green-500 to-emerald-500',
+    icon: CreditCard,
+    title: 'Cards and virtual accounts',
+    description: 'Spin up programmatic cards with spend policies, approvals, and live controls.',
+    accent: 'from-amber-300/60 to-orange-400/20',
   },
   {
-    icon: Terminal,
-    title: 'Terminal Pro Mode',
-    description: 'Advanced charting and analysis tools for professionals',
-    gradient: 'from-indigo-500 to-blue-500',
+    icon: Server,
+    title: 'Developer-ready APIs',
+    description: 'Idempotent APIs, webhook signing, and observability tuned for modern stacks.',
+    accent: 'from-sky-300/60 to-cyan-400/20',
   },
   {
-    icon: DollarSign,
-    title: 'Affordable Pricing',
-    description: "Professional tools at 1% of Bloomberg's cost",
-    gradient: 'from-teal-500 to-cyan-500',
+    icon: Radar,
+    title: 'Risk intelligence',
+    description: 'Real-time sanctions, velocity thresholds, and device fingerprinting baked in.',
+    accent: 'from-rose-400/60 to-purple-400/20',
   },
 ]
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
+const proofPoints = [
+  {
+    title: '2.3 Million',
+    subtitle: 'secure transfers/month',
+    tag: 'Scale with confidence',
   },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: 'easeOut',
-    },
+  {
+    title: '12 Regions',
+    subtitle: 'active liquidity hubs',
+    tag: 'Always-on coverage',
   },
-}
+  {
+    title: 'N+1',
+    subtitle: 'redundant providers',
+    tag: 'Zero downtime routing',
+  },
+]
 
 export function Features() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-100px' })
-
   return (
-    <section className="relative py-24 overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-[#0a0a0a]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/5 to-transparent" />
-      
-      {/* Subtle grid */}
-      <div 
-        className="absolute inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '60px 60px',
-        }}
-      />
+    <section id="features" className="relative overflow-hidden bg-[#05070a] py-24 text-white">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent" />
+      <div className="absolute inset-x-0 top-10 h-40 bg-gradient-to-r from-transparent via-white/5 to-transparent blur-3xl" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-6"
-          >
-            <Sparkles className="w-4 h-4 text-blue-400" />
-            <span className="text-sm text-gray-300">Powerful Features</span>
-          </motion.div>
-          
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            <span className="text-white">Everything you need to</span>
-            <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-              trade smarter
-            </span>
-          </h2>
-          
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Professional-grade tools that were once exclusive to Wall Street, now accessible to everyone.
-          </p>
-        </motion.div>
+      <div className="relative z-10 mx-auto max-w-7xl px-6">
+        <div className="flex flex-col items-center justify-between gap-8 text-center lg:flex-row lg:text-left">
+          <div className="space-y-4 max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-blue-200">
+              Crafted for modern CFOs
+            </div>
+            <h2 className="text-3xl font-bold md:text-4xl lg:text-5xl">
+              Everything you need to orchestrate
+              <span className="block bg-gradient-to-r from-blue-300 via-purple-300 to-cyan-200 bg-clip-text text-transparent">
+                global money movement.
+              </span>
+            </h2>
+            <p className="text-lg text-gray-300">
+              Replace a patchwork of legacy portals with a single command center for payments, cards, and treasury intelligence. Designed to feel premium and built to ship fast.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <div className="h-11 w-11 rounded-2xl border border-white/10 bg-white/5" />
+            <div className="h-11 w-11 rounded-2xl border border-white/10 bg-white/5" />
+            <div className="h-11 w-11 rounded-2xl border border-white/10 bg-white/5" />
+          </div>
+        </div>
 
-        {/* Features Grid */}
-        <motion.div
-          ref={ref}
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {features.map((feature, index) => (
+        <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {featureGrid.map((feature) => (
             <motion.div
               key={feature.title}
-              variants={itemVariants}
-              className="group relative"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur"
             >
-              {/* Card */}
-              <div className="relative h-full p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm transition-all duration-300 hover:bg-white/[0.06] hover:border-white/[0.15] hover:shadow-2xl hover:shadow-blue-500/5">
-                {/* Gradient glow on hover */}
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-300 blur-xl`} />
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  {/* Icon */}
-                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} mb-4 shadow-lg`}>
-                    <feature.icon className="w-6 h-6 text-white" />
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-white transition-colors">
-                    {feature.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors">
-                    {feature.description}
-                  </p>
-                </div>
-
-                {/* Corner accent */}
-                <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 rounded-tr-2xl rounded-bl-[100px] transition-opacity duration-300`} />
+              <div className={`absolute inset-0 opacity-0 blur-3xl transition duration-500 group-hover:opacity-60 bg-gradient-to-br ${feature.accent}`} />
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-blue-100">
+                <feature.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 text-xl font-semibold">{feature.title}</h3>
+              <p className="mt-2 text-gray-300 leading-relaxed">{feature.description}</p>
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-blue-100">
+                <Zap className="h-3.5 w-3.5" />
+                Ready for production teams
               </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Bottom CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-center mt-16"
-        >
-          <p className="text-gray-400 mb-4">
-            And many more features to help you succeed
-          </p>
-          <a
-            href="/pricing"
-            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-medium"
-          >
-            View all features
-            <svg
-              className="w-4 h-4 group-hover:translate-x-1 transition-transform"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </motion.div>
+        <div className="mt-16 grid gap-4 rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-[#0b0d12] to-black/70 p-8 shadow-2xl shadow-blue-500/5 backdrop-blur lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-blue-100">
+              <Sparkles className="h-4 w-4" /> Proof you can trust
+            </div>
+            <h3 className="text-2xl font-semibold md:text-3xl">Numbers that back a premium experience</h3>
+            <p className="text-gray-300">
+              Our customers rely on Deep Terminal to move capital instantly while maintaining uncompromising governance. Every metric below is monitored in real-time with automated playbooks.
+            </p>
+            <div className="flex flex-wrap gap-3 text-sm text-gray-300">
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Dedicated CSM + 24/7 support</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Segregated funds & multi-sig</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Tier-1 banking partners</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-3">
+            {proofPoints.map((item) => (
+              <div key={item.title} className="flex flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.08em] text-blue-200">{item.tag}</p>
+                  <h4 className="mt-2 text-3xl font-bold lg:text-4xl">{item.title}</h4>
+                </div>
+                <p className="mt-6 text-sm text-gray-300">{item.subtitle}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   )

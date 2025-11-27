@@ -2,342 +2,213 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowRight, Play, TrendingUp, Zap, BarChart3, Activity, DollarSign, PieChart } from 'lucide-react'
-import { AnimatedBackground } from './AnimatedBackground'
+import {
+  Activity,
+  ArrowRight,
+  BarChart3,
+  Globe2,
+  Lock,
+  Play,
+  ShieldCheck,
+  Sparkles,
+  Zap,
+} from 'lucide-react'
+
+const statPills = [
+  {
+    label: 'Processed in 2024',
+    value: '$18.4B',
+    change: '+142%',
+  },
+  {
+    label: 'Avg. settlement',
+    value: '2.3s',
+    change: 'real-time rails',
+  },
+  {
+    label: 'Global coverage',
+    value: '120+',
+    change: 'markets live',
+  },
+]
+
+const assurance = [
+  {
+    icon: ShieldCheck,
+    title: 'Bank-grade security',
+    description: '256-bit encryption, SOC2, and biometric approvals on every release.',
+  },
+  {
+    icon: Globe2,
+    title: 'Borderless liquidity',
+    description: 'Instant corridors for USD, EUR, GBP, SGD, and 30+ local rails.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Command dashboard',
+    description: 'Curated KPIs, anomaly alerts, and streaming FX to keep your treasury calm.',
+  },
+]
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <AnimatedBackground />
-      
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* Left Content */}
+    <section className="relative overflow-hidden bg-[#05070a] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(88,108,255,0.15),_transparent_40%),_radial-gradient(circle_at_70%_20%,_rgba(120,80,255,0.18),_transparent_35%)]" />
+      <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '140px 140px', maskImage: 'radial-gradient(circle at center, black 40%, transparent 70%)' }} />
+
+      <div className="relative max-w-7xl mx-auto px-6 pt-28 pb-20 lg:pb-28">
+        <div className="flex flex-col gap-12 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center">
+          {/* Left */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center lg:text-left"
+            transition={{ duration: 0.7 }}
+            className="space-y-8"
           >
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-8"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-              <span className="text-sm text-gray-300">Now with AI-Powered Analysis</span>
-            </motion.div>
+            <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur">
+              <Sparkles className="h-4 w-4 text-blue-400" />
+              <span className="text-sm text-gray-200">Premium fintech OS for global money movement</span>
+            </div>
 
-            {/* Main Headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
-            >
-              <span className="text-white">Professional Financial Analysis,</span>
-              <br />
-              <span className="bg-gradient-to-r from-blue-400 via-blue-500 to-cyan-400 bg-clip-text text-transparent">
-                Without the Professional Price Tag
-              </span>
-            </motion.h1>
+            <div className="space-y-4">
+              <h1 className="text-4xl leading-tight font-bold md:text-5xl lg:text-[56px] lg:leading-[1.05]">
+                Make your global payments feel
+                <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-300 bg-clip-text text-transparent">
+                  effortless, safe, and instant.
+                </span>
+              </h1>
+              <p className="text-lg text-gray-300 max-w-2xl">
+                Deep Terminal weaves treasury controls, FX, and analytics into a single dashboard so you can clear funds, track exposure, and impress auditors—all in one view.
+              </p>
+            </div>
 
-            {/* Subheadline */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-lg md:text-xl text-gray-400 mb-8 max-w-xl mx-auto lg:mx-0"
-            >
-              Get Bloomberg Terminal-level insights for{' '}
-              <span className="text-white font-semibold">$29/month</span> instead of{' '}
-              <span className="line-through text-gray-500">$24,000/year</span>
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10"
-            >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/sign-up"
-                className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02]"
+                className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 px-7 py-3 text-base font-semibold shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02]"
               >
-                Start Free Trial
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                Start free trial
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
-              
-              <button className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl border border-white/10 hover:border-white/20 transition-all duration-300 backdrop-blur-sm">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                  <Play className="w-4 h-4 ml-0.5" />
+              <button className="group inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-6 py-3 text-base font-semibold text-white transition hover:border-white/30 hover:bg-white/10">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 group-hover:bg-white/20">
+                  <Play className="h-4 w-4" />
                 </div>
-                See Live Demo
+                Watch product tour
               </button>
-            </motion.div>
+            </div>
 
-            {/* Trust Indicators */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm text-gray-400"
-            >
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-blue-400" />
-                <span>150+ Metrics</span>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {statPills.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-blue-500/10 backdrop-blur"
+                >
+                  <div className="text-sm text-gray-400">{stat.label}</div>
+                  <div className="mt-2 text-2xl font-semibold">{stat.value}</div>
+                  <div className="text-xs uppercase tracking-wide text-blue-300">{stat.change}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                <Lock className="h-4 w-4 text-green-400" /> SOC2 Type II
               </div>
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-yellow-400" />
-                <span>Real-time Data</span>
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                <ShieldCheck className="h-4 w-4 text-blue-300" /> PCI-DSS ready
               </div>
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-purple-400" />
-                <span>AI-Powered Analysis</span>
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                <Activity className="h-4 w-4 text-purple-300" /> Live risk scoring
               </div>
-            </motion.div>
+            </div>
           </motion.div>
 
-          {/* Right Content - Dashboard Preview */}
+          {/* Right */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
             className="relative"
           >
-            {/* Glow effect behind dashboard */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-cyan-500/20 blur-3xl" />
-            
-            {/* Main Dashboard Card */}
-            <motion.div
-              initial={{ y: 20 }}
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative"
-            >
-              <div className="relative bg-[#0f0f0f]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                {/* Window Controls */}
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                  <div className="flex-1 text-center">
-                    <span className="text-xs text-gray-500">Deep Terminal Pro</span>
-                  </div>
-                </div>
+            <div className="absolute -left-10 -top-16 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
+            <div className="absolute -right-16 bottom-10 h-36 w-36 rounded-full bg-purple-500/25 blur-3xl" />
 
-                {/* Stats Row */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <StatCard
-                    icon={<DollarSign className="w-4 h-4" />}
-                    label="Portfolio"
-                    value="$847,293"
-                    change="+12.4%"
-                    positive
-                  />
-                  <StatCard
-                    icon={<TrendingUp className="w-4 h-4" />}
-                    label="Day P&L"
-                    value="+$4,392"
-                    change="+2.31%"
-                    positive
-                  />
-                  <StatCard
-                    icon={<PieChart className="w-4 h-4" />}
-                    label="Win Rate"
-                    value="73.2%"
-                    change="+5.1%"
-                    positive
-                  />
-                </div>
-
-                {/* Chart Placeholder */}
-                <div className="relative h-48 bg-gradient-to-b from-blue-500/5 to-transparent rounded-xl border border-white/5 overflow-hidden">
-                  <ChartVisualization />
-                </div>
-
-                {/* Bottom Row */}
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-                    <div className="text-xs text-gray-500 mb-1">Top Performer</div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white">NVDA</span>
-                      <span className="text-green-400 text-sm">+8.42%</span>
-                    </div>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-                    <div className="text-xs text-gray-500 mb-1">Active Alerts</div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white">12</span>
-                      <span className="text-blue-400 text-sm">3 triggered</span>
-                    </div>
-                  </div>
+            <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-black/60 p-6 shadow-2xl shadow-blue-500/10 backdrop-blur">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500" />
+                <div className="text-sm text-gray-300">Deep Terminal Control Center</div>
+                <div className="ml-auto flex gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
                 </div>
               </div>
-            </motion.div>
 
-            {/* Floating Cards */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="absolute -left-8 top-1/4 hidden lg:block"
-            >
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-                className="bg-[#0f0f0f]/90 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-xl"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-green-400" />
+              <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+                <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+                  <div className="flex items-center justify-between text-sm text-gray-400">
+                    <span>Liquidity health</span>
+                    <span className="flex items-center gap-1 text-green-400">
+                      <Zap className="h-3.5 w-3.5" /> Live
+                    </span>
                   </div>
-                  <div>
-                    <div className="text-xs text-gray-500">AAPL Alert</div>
-                    <div className="text-sm font-semibold text-white">Target hit: $198</div>
+                  <div className="mt-3 h-36 rounded-xl bg-gradient-to-b from-blue-500/20 to-transparent" />
+                  <div className="mt-4 grid grid-cols-3 gap-3 text-xs text-gray-300">
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-gray-400">FX desk</div>
+                      <div className="text-lg font-semibold">$12.7M</div>
+                      <div className="text-emerald-400">+4.2%</div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-gray-400">Escrow</div>
+                      <div className="text-lg font-semibold">$4.9M</div>
+                      <div className="text-amber-300">Stable</div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="text-gray-400">On-chain</div>
+                      <div className="text-lg font-semibold">$2.1M</div>
+                      <div className="text-blue-300">Synced</div>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-            </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-              className="absolute -right-4 bottom-1/4 hidden lg:block"
-            >
-              <motion.div
-                animate={{ y: [0, 8, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-                className="bg-[#0f0f0f]/90 backdrop-blur-xl rounded-xl border border-white/10 p-4 shadow-xl"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500">AI Insight</div>
-                    <div className="text-sm font-semibold text-white">Bullish pattern detected</div>
-                  </div>
+                <div className="space-y-3">
+                  {assurance.map((item) => (
+                    <div
+                      key={item.title}
+                      className="flex gap-3 rounded-2xl border border-white/10 bg-white/5 p-4"
+                    >
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-white/10 to-transparent">
+                        <item.icon className="h-5 w-5 text-blue-200" />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="font-semibold text-white">{item.title}</div>
+                        <p className="text-sm text-gray-400 leading-relaxed">{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-gray-300">
+                <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1">
+                  <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                  Continuous monitoring
+                </div>
+                <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1">
+                  <Globe2 className="h-4 w-4 text-cyan-300" />
+                  38 corridors live
+                </div>
+                <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1">
+                  <BarChart3 className="h-4 w-4 text-purple-300" />
+                  Treasury-ready exports
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 0.6 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-2"
-        >
-          <motion.div
-            animate={{ opacity: [0.5, 1, 0.5], y: [0, 4, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-            className="w-1 h-2 bg-white/50 rounded-full"
-          />
-        </motion.div>
-      </motion.div>
     </section>
-  )
-}
-
-function StatCard({
-  icon,
-  label,
-  value,
-  change,
-  positive,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  change: string
-  positive: boolean
-}) {
-  return (
-    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="text-gray-400">{icon}</div>
-        <span className="text-xs text-gray-500">{label}</span>
-      </div>
-      <div className="text-lg font-bold text-white">{value}</div>
-      <div className={`text-xs ${positive ? 'text-green-400' : 'text-red-400'}`}>
-        {change}
-      </div>
-    </div>
-  )
-}
-
-function ChartVisualization() {
-  return (
-    <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="rgba(59, 130, 246, 0.3)" />
-          <stop offset="100%" stopColor="rgba(59, 130, 246, 0)" />
-        </linearGradient>
-        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#3b82f6" />
-          <stop offset="50%" stopColor="#8b5cf6" />
-          <stop offset="100%" stopColor="#06b6d4" />
-        </linearGradient>
-      </defs>
-      
-      {/* Chart area fill */}
-      <motion.path
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 0.5 }}
-        d="M 0 150 Q 50 120, 100 100 T 200 80 T 300 90 T 400 60 T 500 70 T 600 40 L 600 200 L 0 200 Z"
-        fill="url(#chartGradient)"
-      />
-      
-      {/* Chart line */}
-      <motion.path
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 2, delay: 0.3, ease: 'easeInOut' }}
-        d="M 0 150 Q 50 120, 100 100 T 200 80 T 300 90 T 400 60 T 500 70 T 600 40"
-        fill="none"
-        stroke="url(#lineGradient)"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      
-      {/* Animated dots */}
-      {[
-        { cx: 100, cy: 100 },
-        { cx: 200, cy: 80 },
-        { cx: 300, cy: 90 },
-        { cx: 400, cy: 60 },
-        { cx: 500, cy: 70 },
-      ].map((point, i) => (
-        <motion.circle
-          key={i}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.5 + i * 0.1 }}
-          cx={point.cx}
-          cy={point.cy}
-          r="4"
-          fill="#3b82f6"
-          className="drop-shadow-lg"
-        />
-      ))}
-    </svg>
   )
 }
