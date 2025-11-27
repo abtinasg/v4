@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Terminal } from 'lucide-react'
 
 const navLinks = [
-  { href: '#features', label: 'Features' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/docs', label: 'Docs' },
-  { href: '/blog', label: 'Blog' },
+  { href: '#vision', label: 'Vision' },
+  { href: '#terminal', label: 'Pro Terminal' },
+  { href: '#ai', label: 'AI Orchestrator' },
+  { href: '#metrics', label: '150+ Metrics' },
 ]
 
 export function Navigation() {

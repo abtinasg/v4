@@ -5,208 +5,139 @@ import Link from 'next/link'
 import {
   Activity,
   ArrowRight,
-  BarChart3,
-  Globe2,
-  Lock,
-  Play,
-  ShieldCheck,
+  BrainCircuit,
+  GaugeCircle,
+  Layers3,
+  LineChart,
+  Radio,
   Sparkles,
-  Zap,
 } from 'lucide-react'
 
-const statPills = [
+const heroStats = [
   {
-    label: 'Processed in 2024',
-    value: '$18.4B',
-    change: '+142%',
+    label: 'Signals orchestrated / day',
+    value: '1.8M+',
+    detail: 'AI + quant models blended in real-time',
   },
   {
-    label: 'Avg. settlement',
-    value: '2.3s',
-    change: 'real-time rails',
+    label: 'Fundamental metrics tracked',
+    value: '150+',
+    detail: 'Across valuation, quality, growth & risk',
   },
   {
-    label: 'Global coverage',
-    value: '120+',
-    change: 'markets live',
+    label: 'Retail investors served',
+    value: '42k',
+    detail: 'From first trade to full-time pro',
   },
 ]
 
-const assurance = [
+const heroHighlights = [
   {
-    icon: ShieldCheck,
-    title: 'Bank-grade security',
-    description: '256-bit encryption, SOC2, and biometric approvals on every release.',
+    icon: GaugeCircle,
+    title: 'Pro Terminal',
+    copy: 'Depth-of-market, execution-ready watchlists, and session-level journaling in one canvas.',
   },
   {
-    icon: Globe2,
-    title: 'Borderless liquidity',
-    description: 'Instant corridors for USD, EUR, GBP, SGD, and 30+ local rails.',
+    icon: Radio,
+    title: 'Realtime Watchlists',
+    copy: 'Stream live quotes, options IV, and macro triggers with millisecond diffing.',
   },
   {
-    icon: BarChart3,
-    title: 'Command dashboard',
-    description: 'Curated KPIs, anomaly alerts, and streaming FX to keep your treasury calm.',
+    icon: BrainCircuit,
+    title: 'AI Orchestrator',
+    copy: 'Layer GPT-4, Claude, and internal alpha models into a single co-pilot that reasons about context.',
+  },
+  {
+    icon: Layers3,
+    title: 'Stock Analyst',
+    copy: '150+ DuPont, factor, and technical metrics composed into explainable dossiers.',
   },
 ]
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-[#05070a] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(88,108,255,0.15),_transparent_40%),_radial-gradient(circle_at_70%_20%,_rgba(120,80,255,0.18),_transparent_35%)]" />
-      <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '140px 140px', maskImage: 'radial-gradient(circle at center, black 40%, transparent 70%)' }} />
+    <section className="relative isolate overflow-hidden bg-[#010308] pt-28 pb-20 text-white">
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_45%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent" />
+      </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 pt-28 pb-20 lg:pb-28">
-        <div className="flex flex-col gap-12 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center">
-          {/* Left */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="space-y-8"
-          >
-            <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur">
-              <Sparkles className="h-4 w-4 text-blue-400" />
-              <span className="text-sm text-gray-200">Premium fintech OS for global money movement</span>
+      <div className="relative z-10 mx-auto max-w-6xl px-6">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-blue-200">
+              <Sparkles className="h-4 w-4" /> Premium intelligence for retail investors
             </div>
-
-            <div className="space-y-4">
-              <h1 className="text-4xl leading-tight font-bold md:text-5xl lg:text-[56px] lg:leading-[1.05]">
-                Make your global payments feel
-                <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-300 bg-clip-text text-transparent">
-                  effortless, safe, and instant.
-                </span>
+            <div className="space-y-6">
+              <h1 className="text-4xl font-bold leading-tight md:text-5xl lg:text-6xl">
+                A cinematic <span className="text-blue-200">AI terminal</span> designed to make
+                <span className="bg-gradient-to-r from-blue-300 via-purple-300 to-cyan-200 bg-clip-text text-transparent"> everyday investors feel institutional.</span>
               </h1>
-              <p className="text-lg text-gray-300 max-w-2xl">
-                Deep Terminal weaves treasury controls, FX, and analytics into a single dashboard so you can clear funds, track exposure, and impress auditors—all in one view.
+              <p className="text-lg text-gray-300 md:text-xl">
+                Deep Terminal blends our pro execution workspace, real-time watchlists, and AI orchestrator so retail investors can scout, validate, and act with conviction.
               </p>
+              <div className="flex flex-wrap gap-3 text-sm text-blue-100">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  <Activity className="h-3.5 w-3.5" /> Streaming market data
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  <LineChart className="h-3.5 w-3.5" /> Factor-aware scoring
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  <BrainCircuit className="h-3.5 w-3.5" /> Multi-model AI co-pilot
+                </span>
+              </div>
             </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-wrap gap-4">
               <Link
                 href="/sign-up"
-                className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 px-7 py-3 text-base font-semibold shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-black transition hover:scale-[1.01]"
               >
-                Start free trial
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Launch the pro terminal
+                <ArrowRight className="h-4 w-4" />
               </Link>
-              <button className="group inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-6 py-3 text-base font-semibold text-white transition hover:border-white/30 hover:bg-white/10">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 group-hover:bg-white/20">
-                  <Play className="h-4 w-4" />
-                </div>
-                Watch product tour
-              </button>
+              <Link
+                href="/demo"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
+              >
+                Watch orchestrator tour
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {statPills.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-blue-500/10 backdrop-blur"
-                >
-                  <div className="text-sm text-gray-400">{stat.label}</div>
-                  <div className="mt-2 text-2xl font-semibold">{stat.value}</div>
-                  <div className="text-xs uppercase tracking-wide text-blue-300">{stat.change}</div>
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 via-transparent to-purple-500/40 blur-3xl" />
+            <div className="relative space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-blue-500/20 backdrop-blur">
+              {heroStats.map((stat) => (
+                <div key={stat.label} className="rounded-2xl border border-white/10 bg-gradient-to-r from-white/10 to-transparent px-5 py-4">
+                  <p className="text-xs uppercase tracking-[0.25em] text-blue-200">{stat.label}</p>
+                  <p className="mt-2 text-3xl font-semibold">{stat.value}</p>
+                  <p className="mt-1 text-sm text-gray-300">{stat.detail}</p>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
-              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                <Lock className="h-4 w-4 text-green-400" /> SOC2 Type II
+        <div className="mt-16 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {heroHighlights.map((item) => (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+              className="group relative flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-5"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-blue-100">
+                <item.icon className="h-5 w-5" />
               </div>
-              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                <ShieldCheck className="h-4 w-4 text-blue-300" /> PCI-DSS ready
-              </div>
-              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                <Activity className="h-4 w-4 text-purple-300" /> Live risk scoring
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Right */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="relative"
-          >
-            <div className="absolute -left-10 -top-16 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
-            <div className="absolute -right-16 bottom-10 h-36 w-36 rounded-full bg-purple-500/25 blur-3xl" />
-
-            <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-black/60 p-6 shadow-2xl shadow-blue-500/10 backdrop-blur">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500" />
-                <div className="text-sm text-gray-300">Deep Terminal Control Center</div>
-                <div className="ml-auto flex gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-                </div>
-              </div>
-
-              <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-                <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-                  <div className="flex items-center justify-between text-sm text-gray-400">
-                    <span>Liquidity health</span>
-                    <span className="flex items-center gap-1 text-green-400">
-                      <Zap className="h-3.5 w-3.5" /> Live
-                    </span>
-                  </div>
-                  <div className="mt-3 h-36 rounded-xl bg-gradient-to-b from-blue-500/20 to-transparent" />
-                  <div className="mt-4 grid grid-cols-3 gap-3 text-xs text-gray-300">
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-gray-400">FX desk</div>
-                      <div className="text-lg font-semibold">$12.7M</div>
-                      <div className="text-emerald-400">+4.2%</div>
-                    </div>
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-gray-400">Escrow</div>
-                      <div className="text-lg font-semibold">$4.9M</div>
-                      <div className="text-amber-300">Stable</div>
-                    </div>
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <div className="text-gray-400">On-chain</div>
-                      <div className="text-lg font-semibold">$2.1M</div>
-                      <div className="text-blue-300">Synced</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {assurance.map((item) => (
-                    <div
-                      key={item.title}
-                      className="flex gap-3 rounded-2xl border border-white/10 bg-white/5 p-4"
-                    >
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-white/10 to-transparent">
-                        <item.icon className="h-5 w-5 text-blue-200" />
-                      </div>
-                      <div className="space-y-1">
-                        <div className="font-semibold text-white">{item.title}</div>
-                        <p className="text-sm text-gray-400 leading-relaxed">{item.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-gray-300">
-                <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1">
-                  <ShieldCheck className="h-4 w-4 text-emerald-300" />
-                  Continuous monitoring
-                </div>
-                <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1">
-                  <Globe2 className="h-4 w-4 text-cyan-300" />
-                  38 corridors live
-                </div>
-                <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1">
-                  <BarChart3 className="h-4 w-4 text-purple-300" />
-                  Treasury-ready exports
-                </div>
-              </div>
-            </div>
-          </motion.div>
+              <h3 className="text-lg font-semibold">{item.title}</h3>
+              <p className="text-sm text-gray-300 leading-relaxed">{item.copy}</p>
+              <div className="text-xs text-blue-200 opacity-0 transition group-hover:opacity-100">Designed for deep focus</div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

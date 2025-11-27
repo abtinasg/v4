@@ -2,27 +2,27 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight, Check, Crown, Sparkles, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Check, Crown, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 
 const plans = [
   {
-    name: 'Growth',
-    description: 'Everything teams need to launch premium payment experiences.',
-    monthlyPrice: 49,
-    yearlyPrice: 490,
-    perks: ['All payment rails', 'AI anomaly guard', 'Dedicated CSM', 'Treasury dashboards'],
+    name: 'Studio',
+    description: 'For investors who want pro workflows, realtime watchlists, and AI copilots on day one.',
+    monthlyPrice: 39,
+    yearlyPrice: 390,
+    perks: ['Realtime multi-watchlists', '50 AI orchestrations / day', 'Stock Analyst 150+ library', 'Mobile + desktop sync'],
     accent: 'from-blue-500 to-purple-500',
-    highlight: 'Most loved',
+    highlight: 'Most popular',
   },
   {
-    name: 'Enterprise',
-    description: 'Security, compliance, and custom throughput for global fintechs.',
+    name: 'Terminal+',
+    description: 'For power users and communities that need advanced routing, custom data, and white-glove support.',
     monthlyPrice: 0,
     yearlyPrice: 0,
-    perks: ['Custom corridors', 'Premium SLAs', 'On-site onboarding', 'Security reviews'],
+    perks: ['Unlimited AI orchestration', 'Pro terminal add-ons', 'Research desk concierge', 'Team workspaces & audit trails'],
     accent: 'from-emerald-500 to-cyan-500',
-    highlight: 'White-glove',
+    highlight: 'Premium',
     custom: true,
   },
 ]
@@ -38,16 +38,16 @@ export function Pricing() {
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-12 px-6 text-center">
         <div className="space-y-4">
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-blue-200">
-            <Crown className="h-4 w-4" /> Transparent, premium pricing
+            <Crown className="h-4 w-4" /> Flexible access for every journey
           </div>
           <h2 className="text-3xl font-bold md:text-4xl lg:text-5xl">
-            Choose a plan built for
+            Unlock premium tools the moment
             <span className="block bg-gradient-to-r from-blue-300 via-purple-300 to-cyan-200 bg-clip-text text-transparent">
-              world-class money teams.
+              you decide to invest seriously.
             </span>
           </h2>
           <p className="text-lg text-gray-300">
-            Start with Growth to launch in days, or partner with us for enterprise-grade corridors and controls.
+            Studio upgrades your solo workflow. Terminal+ surrounds you with concierge research, advanced data feeds, and collaborative desks.
           </p>
           <div className="mx-auto flex items-center justify-center gap-4 rounded-full border border-white/10 bg-white/5 p-1.5 text-sm text-gray-200 w-fit">
             <button
