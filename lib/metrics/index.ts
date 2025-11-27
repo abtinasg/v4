@@ -158,6 +158,119 @@ export {
   getLeverageHealthRating,
 } from './leverage';
 
+// Efficiency Metrics
+export {
+  // Calculation Functions
+  calculateEfficiency,
+  calculateTotalAssetTurnover,
+  calculateFixedAssetTurnover,
+  calculateInventoryTurnover,
+  calculateReceivablesTurnover,
+  calculatePayablesTurnover,
+  calculateWorkingCapitalTurnover,
+
+  // Interpretation Functions
+  interpretTotalAssetTurnover,
+  interpretFixedAssetTurnover,
+  interpretInventoryTurnover,
+  interpretReceivablesTurnover,
+  interpretPayablesTurnover,
+  interpretWorkingCapitalTurnover,
+  interpretAllEfficiencyMetrics,
+
+  // Utility Functions
+  getEfficiencyScore,
+} from './efficiency';
+
+// Profitability Metrics
+export {
+  // Calculation Functions
+  calculateProfitability,
+  calculateGrossProfitMargin,
+  calculateOperatingProfitMargin,
+  calculateEBITDAMargin,
+  calculateNetProfitMargin,
+  calculateROA,
+  calculateROE,
+  calculateROIC,
+  calculateNOPLAT,
+
+  // Interpretation Functions
+  interpretGrossProfitMargin,
+  interpretOperatingProfitMargin,
+  interpretEBITDAMargin,
+  interpretNetProfitMargin,
+  interpretROA,
+  interpretROE,
+  interpretROIC,
+  interpretNOPLAT,
+  interpretAllProfitabilityMetrics,
+
+  // Utility Functions
+  calculateEffectiveTaxRate,
+  getProfitabilityScore,
+  isProfitable,
+  compareToBenchmark,
+} from './profitability';
+
+// Growth Metrics
+export {
+  // Calculation Functions
+  calculateGrowth,
+  calculateRevenueGrowthYoY,
+  calculateEPSGrowthYoY,
+  calculateDPSGrowth,
+  calculateFCFGrowth,
+  calculateRevenue3YearCAGR,
+  calculateRevenue5YearCAGR,
+  calculateSustainableGrowthRate,
+  calculateRetentionRatio,
+  calculatePayoutRatio,
+
+  // Interpretation Functions
+  interpretRevenueGrowthYoY,
+  interpretEPSGrowthYoY,
+  interpretSustainableGrowthRate,
+  interpretPayoutRatio,
+  interpretRevenueCAGR,
+  interpretAllGrowthMetrics,
+
+  // Utility Functions
+  getGrowthScore,
+  isGrowing,
+  getGrowthStage,
+} from './growth';
+
+// Cash Flow Metrics
+export {
+  // Calculation Functions
+  calculateCashFlow,
+  getOperatingCashFlow,
+  getInvestingCashFlow,
+  getFinancingCashFlow,
+  calculateFreeCashFlow,
+  calculateFCFF,
+  calculateFCFE,
+  calculateCashFlowAdequacy,
+  calculateCashReinvestmentRatio,
+
+  // Interpretation Functions
+  interpretOperatingCashFlow,
+  interpretFreeCashFlow,
+  interpretCashFlowAdequacy,
+  interpretCashReinvestmentRatio,
+  interpretFCFF,
+  interpretFCFE,
+  interpretAllCashFlowMetrics,
+
+  // Utility Functions
+  getCashFlowScore,
+  hasHealthyCashFlow,
+  calculateFCFMargin,
+  calculateFCFPerShare,
+  assessCashFlowQuality,
+} from './cashflow';
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
