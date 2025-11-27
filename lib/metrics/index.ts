@@ -129,6 +129,35 @@ export {
 // Liquidity Types
 export type { InterpretationLevel, MetricInterpretation } from './liquidity';
 
+// Leverage Metrics
+export {
+  // Calculation Functions
+  calculateLeverage,
+  calculateDebtToAssets,
+  calculateDebtToEquity,
+  calculateFinancialDebtToEquity,
+  calculateInterestCoverage,
+  calculateDebtServiceCoverage,
+  calculateEquityMultiplier,
+  calculateDebtToEBITDA,
+
+  // Interpretation Functions
+  interpretDebtToAssets,
+  interpretDebtToEquity,
+  interpretFinancialDebtToEquity,
+  interpretInterestCoverage,
+  interpretDebtServiceCoverage,
+  interpretEquityMultiplier,
+  interpretDebtToEBITDA,
+  interpretAllLeverageMetrics,
+
+  // Utility Functions
+  isDebtFree,
+  getLeverageScore,
+  isOverLeveraged,
+  getLeverageHealthRating,
+} from './leverage';
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
