@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getStockQuote } from '@/lib/api/yahoo-finance'
 
+// Force Node.js runtime for yahoo-finance2 compatibility
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 // Get stock quotes - supports single symbol or multiple (comma-separated)
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams

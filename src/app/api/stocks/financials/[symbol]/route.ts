@@ -3,6 +3,10 @@ import YahooFinance from 'yahoo-finance2';
 
 const yahooFinance = new YahooFinance();
 
+// Force Node.js runtime for yahoo-finance2 compatibility
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Cache for 24 hours
 export const revalidate = 86400;
 

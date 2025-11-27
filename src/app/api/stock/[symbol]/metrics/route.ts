@@ -24,6 +24,10 @@ import { fetchAllMacroData } from '../../../../../../lib/metrics/macro';
 // Initialize Yahoo Finance (v3 requires instantiation)
 const yahooFinance = new YahooFinance();
 
+// Force Node.js runtime for yahoo-finance2 compatibility
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Cache configuration
 export const revalidate = 3600; // Cache for 1 hour
 

@@ -92,10 +92,18 @@ export default function WatchlistPage() {
     try {
       const symbols = activeWatchlist.stocks.map((s) => s.symbol).join(',')
       const response = await fetch(`/api/stocks/quote?symbols=${symbols}`)
+      
+      if (!response.ok) {
+        console.error('API returned error:', response.status, response.statusText)
+        return
+      }
+      
       const data = await response.json()
 
       if (data.quotes) {
         updateQuotes(data.quotes)
+      } else {
+        console.warn('No quotes data in response:', data)
       }
     } catch (error) {
       console.error('Failed to fetch quotes:', error)
