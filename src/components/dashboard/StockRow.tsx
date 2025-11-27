@@ -70,7 +70,7 @@ export function StockRow({ stock, index }: StockRowProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
       onClick={handleClick}
-      className="group border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-colors"
+      className="group border-b border-white/[0.06] hover:bg-white/[0.02] hover-neon-outline cursor-pointer transition-all"
     >
       {/* Symbol & Logo */}
       <TableCell className="py-4">

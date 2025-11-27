@@ -1,144 +1,185 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight, Check, Crown, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
+import { Check, Zap, Crown, Building2 } from 'lucide-react'
 
 const plans = [
   {
-    name: 'Studio',
-    description: 'For investors who want pro workflows, realtime watchlists, and AI copilots on day one.',
-    monthlyPrice: 39,
-    yearlyPrice: 390,
-    perks: ['Realtime multi-watchlists', '50 AI orchestrations / day', 'Stock Analyst 150+ library', 'Mobile + desktop sync'],
-    accent: 'from-blue-500 to-purple-500',
-    highlight: 'Most popular',
+    name: 'Free',
+    price: '$0',
+    description: 'Perfect for exploring the platform',
+    icon: Zap,
+    color: '#00D4FF',
+    features: [
+      'Basic market overview',
+      '5 watchlist symbols',
+      'Limited AI queries (10/day)',
+      'Core metrics access',
+      'Community support'
+    ],
+    cta: 'Get Started',
+    href: '/sign-up',
+    popular: false
+  },
+  {
+    name: 'Pro',
+    price: '$29',
+    period: '/month',
+    description: 'For serious retail traders',
+    icon: Crown,
+    color: '#8B5CF6',
+    features: [
+      'Full terminal access',
+      'Unlimited watchlist symbols',
+      'Unlimited AI queries',
+      'All 150+ metrics',
+      'Real-time alerts',
+      'Priority support',
+      'Custom dashboards'
+    ],
+    cta: 'Start Pro Trial',
+    href: '/sign-up?plan=pro',
+    popular: true
   },
   {
     name: 'Terminal+',
-    description: 'For power users and communities that need advanced routing, custom data, and white-glove support.',
-    monthlyPrice: 0,
-    yearlyPrice: 0,
-    perks: ['Unlimited AI orchestration', 'Pro terminal add-ons', 'Research desk concierge', 'Team workspaces & audit trails'],
-    accent: 'from-emerald-500 to-cyan-500',
-    highlight: 'Premium',
-    custom: true,
-  },
+    price: '$99',
+    period: '/month',
+    description: 'Institutional-grade power',
+    icon: Building2,
+    color: '#2DD4BF',
+    features: [
+      'Everything in Pro',
+      'Multi-model AI orchestration',
+      'Advanced technical analysis',
+      'API access',
+      'Custom model training',
+      'Dedicated account manager',
+      'SLA guarantee'
+    ],
+    cta: 'Contact Sales',
+    href: '/contact',
+    popular: false
+  }
 ]
 
 export function Pricing() {
-  const [isYearly, setIsYearly] = useState(true)
-
   return (
-    <section className="relative overflow-hidden bg-[#05070a] py-24 text-white">
-      <div className="absolute inset-0 bg-gradient-to-t from-purple-500/10 via-transparent to-transparent" />
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+    <section className="relative py-24 md:py-32 bg-[#05070B] overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[600px] bg-[radial-gradient(ellipse_50%_50%_at_50%_50%,rgba(139,92,246,0.05),transparent)]" />
+      </div>
 
-      <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-12 px-6 text-center">
-        <div className="space-y-4">
-          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-blue-200">
-            <Crown className="h-4 w-4" /> Flexible access for every journey
+      <div className="relative mx-auto max-w-7xl px-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-100px' }}
+          className="text-center mb-16"
+        >
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.06] px-4 py-1.5 text-xs font-medium text-[#8B5CF6] mb-6">
+            <Crown className="h-3.5 w-3.5" />
+            Pricing
           </div>
-          <h2 className="text-3xl font-bold md:text-4xl lg:text-5xl">
-            Unlock premium tools the moment
-            <span className="block bg-gradient-to-r from-blue-300 via-purple-300 to-cyan-200 bg-clip-text text-transparent">
-              you decide to invest seriously.
+
+          <h2 className="text-display text-3xl md:text-4xl lg:text-5xl text-white mb-4">
+            Choose Your{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4FF] via-[#3B82F6] to-[#8B5CF6]">
+              Edge
             </span>
           </h2>
-          <p className="text-lg text-gray-300">
-            Studio upgrades your solo workflow. Terminal+ surrounds you with concierge research, advanced data feeds, and collaborative desks.
-          </p>
-          <div className="mx-auto flex items-center justify-center gap-4 rounded-full border border-white/10 bg-white/5 p-1.5 text-sm text-gray-200 w-fit">
-            <button
-              onClick={() => setIsYearly(false)}
-              className={`rounded-full px-6 py-2 transition ${!isYearly ? 'bg-white text-black shadow' : 'hover:text-white/80'}`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setIsYearly(true)}
-              className={`rounded-full px-6 py-2 transition ${isYearly ? 'bg-white text-black shadow' : 'hover:text-white/80'}`}
-            >
-              Yearly <span className="ml-2 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-300">Save 2 months</span>
-            </button>
-          </div>
-        </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {plans.map((plan, index) => (
+          <p className="text-subhead text-gray-400 max-w-xl mx-auto">
+            From casual exploration to institutional power—pick the plan that matches your ambition.
+          </p>
+        </motion.div>
+
+        {/* Pricing Cards */}
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+          {plans.map((plan, i) => (
             <motion.div
               key={plan.name}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 via-black/40 to-black/80 p-8 text-left shadow-2xl backdrop-blur"
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className={`relative rounded-2xl border ${plan.popular ? 'border-[#8B5CF6]/40' : 'border-white/[0.05]'} bg-[#0A0D12]/80 backdrop-blur-xl overflow-hidden`}
             >
-              <div className={`absolute inset-0 opacity-60 bg-gradient-to-br ${plan.accent} blur-3xl`} />
-              <div className="relative flex items-start justify-between">
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-[0.16em] text-blue-100">{plan.highlight}</p>
-                  <h3 className="text-2xl font-semibold">{plan.name}</h3>
-                  <p className="text-gray-300">{plan.description}</p>
-                </div>
-                <div className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white">Premium</div>
-              </div>
+              {/* Popular badge */}
+              {plan.popular && (
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#8B5CF6] via-[#00D4FF] to-[#8B5CF6]" />
+              )}
 
-              <div className="relative mt-6 flex items-baseline gap-2 text-4xl font-bold">
-                {plan.custom ? (
-                  <span className="text-3xl text-gray-100">Custom</span>
-                ) : (
-                  <>
-                    <span>${isYearly ? plan.yearlyPrice : plan.monthlyPrice}</span>
-                    <span className="text-sm font-medium text-gray-400">/{isYearly ? 'year' : 'month'}</span>
-                  </>
-                )}
-              </div>
+              {/* Glow for popular */}
+              {plan.popular && (
+                <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6]/[0.08] via-transparent to-[#00D4FF]/[0.05] pointer-events-none" />
+              )}
 
-              <div className="relative mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {plan.perks.map((perk) => (
-                  <div key={perk} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-gray-100">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10">
-                      <Check className="h-4 w-4 text-emerald-300" />
-                    </span>
-                    <span>{perk}</span>
+              <div className="relative p-8">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <div 
+                      className="h-11 w-11 rounded-xl flex items-center justify-center mb-4"
+                      style={{ background: `linear-gradient(135deg, ${plan.color}20, ${plan.color}08)` }}
+                    >
+                      <plan.icon className="h-5 w-5" style={{ color: plan.color }} />
+                    </div>
+                    <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
                   </div>
-                ))}
-              </div>
-
-              <div className="relative mt-6 flex flex-wrap gap-2 text-xs text-blue-100">
-                <span className="rounded-full bg-white/10 px-3 py-1">SOC2 + PCI-DSS</span>
-                <span className="rounded-full bg-white/10 px-3 py-1">Settlement SLAs</span>
-                <span className="rounded-full bg-white/10 px-3 py-1">Audit-ready exports</span>
-              </div>
-
-              <div className="relative mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                {plan.custom ? (
-                  <Link
-                    href="/contact"
-                    className="group inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
-                  >
-                    Talk to sales
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                ) : (
-                  <Link
-                    href="/sign-up"
-                    className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-black transition hover:scale-[1.01]"
-                  >
-                    Start now
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                )}
-                <div className="flex items-center gap-2 text-sm text-gray-300">
-                  <ShieldCheck className="h-4 w-4 text-emerald-300" />
-                  14-day risk-free onboarding
+                  {plan.popular && (
+                    <span className="text-xs font-medium text-[#8B5CF6] bg-[#8B5CF6]/10 px-2.5 py-1 rounded-full">
+                      Popular
+                    </span>
+                  )}
                 </div>
+
+                {/* Price */}
+                <div className="mb-6">
+                  <span className="text-4xl font-semibold text-white">{plan.price}</span>
+                  {plan.period && <span className="text-gray-500">{plan.period}</span>}
+                </div>
+
+                {/* Features */}
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-3">
+                      <Check className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: plan.color }} />
+                      <span className="text-sm text-gray-400">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* CTA */}
+                <Link
+                  href={plan.href}
+                  className={`block w-full text-center rounded-xl py-3.5 text-sm font-semibold transition-all duration-300 ${
+                    plan.popular
+                      ? 'bg-gradient-to-r from-[#8B5CF6] to-[#00D4FF] text-white hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:scale-[1.02]'
+                      : 'border border-white/[0.08] bg-white/[0.02] text-white hover:border-white/[0.15] hover:bg-white/[0.05]'
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
               </div>
             </motion.div>
           ))}
         </div>
+
+        {/* Bottom note */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.5 }}
+          className="text-center text-sm text-gray-600 mt-10"
+        >
+          All plans include 14-day free trial. No credit card required.
+        </motion.p>
       </div>
     </section>
   )

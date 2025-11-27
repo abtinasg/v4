@@ -23,6 +23,9 @@ export type MetricFormat =
 
 // Stock financial data input
 export interface StockData {
+  // Identification
+  symbol?: string
+  
   // Price data
   currentPrice: number
   previousClose?: number
@@ -151,22 +154,36 @@ export interface MetricCalculator {
 export interface MetricResult {
   id: string
   name: string
+  shortName?: string
   category: MetricCategory
   value: number | null
   formatted: string
   interpretation: MetricInterpretation
   description: string
+  benchmark?: {
+    good: number
+    bad: number
+    higherIsBetter: boolean
+  }
   error?: string
 }
 
 // Batch calculation result
 export interface BatchMetricResult {
   symbol: string
-  timestamp: Date
+  timestamp: number | Date
   metrics: Record<string, MetricResult>
-  errors: string[]
-  calculatedCount: number
-  totalCount: number
+  errors?: string[]
+  calculatedCount?: number
+  totalCount?: number
+  calculatedAt?: string
+  meta?: {
+    totalMetrics: number
+    calculated: number
+    failed: number
+    errors?: Record<string, string>
+    calculationTimeMs: number
+  }
 }
 
 // Cache entry

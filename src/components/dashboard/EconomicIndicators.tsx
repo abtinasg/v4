@@ -13,6 +13,8 @@ import {
   Building2,
   BarChart3,
   RefreshCw,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -22,6 +24,7 @@ import {
   Tooltip,
   XAxis,
 } from 'recharts'
+import { DataTile, Sparkline } from '@/components/ui/cinematic'
 
 interface EconomicIndicator {
   seriesId: string
@@ -214,35 +217,26 @@ function IndicatorCard({
   const change = data?.change ?? null
   const isInverse = config.key === 'unemployment'
 
+  // Map config color to DataTile color
+  const colorMap: Record<string, 'emerald' | 'blue' | 'amber' | 'purple' | 'rose'> = {
+    'text-emerald-500': 'emerald',
+    'text-blue-500': 'blue',
+    'text-amber-500': 'amber',
+    'text-purple-500': 'purple',
+    'text-rose-500': 'rose',
+  }
+
   return (
-    <motion.button
+    <DataTile
+      label={config.name}
+      value={config.format(value)}
+      change={change ?? undefined}
+      icon={<Icon className="w-5 h-5" />}
+      color={colorMap[config.color] || 'blue'}
+      trend={config.mockTrend}
       onClick={onClick}
-      className={cn(
-        'group relative flex w-full items-center justify-between rounded-lg border bg-card p-3 text-left transition-all',
-        'hover:border-primary/50 hover:shadow-md',
-        'focus:outline-none focus:ring-2 focus:ring-primary/20'
-      )}
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
-    >
-      <div className="flex items-center gap-3">
-        <div className={cn('rounded-lg p-2', config.bgColor)}>
-          <Icon className={cn('h-4 w-4', config.color)} />
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">
-            {config.name}
-          </p>
-          <p className="text-lg font-semibold tabular-nums">
-            {config.format(value)}
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-col items-end gap-1">
-        <ChangeIndicator change={change} inverse={isInverse} />
-        <MiniTrendChart data={config.mockTrend} color={config.color} />
-      </div>
-    </motion.button>
+      className="cursor-pointer hover:scale-[1.02] transition-transform"
+    />
   )
 }
 

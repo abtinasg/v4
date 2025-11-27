@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { GlassPill, GradientHeader, GlassCard } from '@/components/ui/cinematic'
 
 interface MarketIndex {
   symbol: string
@@ -66,27 +67,18 @@ export function MarketOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Market Status Banner */}
-      <div className="flex items-center justify-between">
+      {/* Market Status Header */}
+      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
         <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium',
-              isMarketOpen
-                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                : 'bg-red-500/10 text-red-400 border border-red-500/20'
-            )}
+          <GradientHeader title="Market Overview" />
+          <GlassPill
+            pulse={isMarketOpen}
+            color={isMarketOpen ? 'green' : 'red'}
           >
-            <span
-              className={cn(
-                'w-2 h-2 rounded-full',
-                isMarketOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-              )}
-            />
             Market {isMarketOpen ? 'Open' : 'Closed'}
-          </div>
+          </GlassPill>
           {data?.marketStatus?.nextChange && (
-            <span className="text-sm text-gray-500 flex items-center gap-1">
+            <span className="text-sm text-gray-500 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5" />
               {data.marketStatus.nextChange}
             </span>
@@ -95,7 +87,7 @@ export function MarketOverview() {
         <button
           onClick={fetchData}
           disabled={isLoading}
-          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+          className="p-2 rounded-lg glass-panel hover:bg-white/[0.05] text-gray-400 hover:text-cyan-400 transition-all disabled:opacity-50 hover:shadow-[0_0_12px_rgba(0,212,255,0.15)]"
         >
           <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
         </button>
@@ -113,15 +105,13 @@ export function MarketOverview() {
         {isLoading ? (
           // Loading skeletons
           Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i} className="bg-[#0d0d0f] border-white/5">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div className="h-4 w-20 bg-white/5 rounded animate-pulse" />
-                  <div className="h-8 w-28 bg-white/5 rounded animate-pulse" />
-                  <div className="h-4 w-16 bg-white/5 rounded animate-pulse" />
-                </div>
-              </CardContent>
-            </Card>
+            <GlassCard key={i}>
+              <div className="space-y-3">
+                <div className="h-4 w-20 bg-white/[0.05] rounded animate-pulse" />
+                <div className="h-8 w-28 bg-white/[0.05] rounded animate-pulse" />
+                <div className="h-4 w-16 bg-white/[0.05] rounded animate-pulse" />
+              </div>
+            </GlassCard>
           ))
         ) : (
           data?.indices.map((index, i) => (
@@ -144,52 +134,54 @@ function IndexCard({ index }: { index: MarketIndex }) {
   const isPositive = index.changePercent >= 0
 
   return (
-    <Card className="bg-[#0d0d0f] border-white/5 hover:border-white/10 transition-colors">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{index.name}</p>
-            <p className="text-2xl font-bold text-white font-mono mt-1">
-              {index.price.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </p>
-          </div>
-          <div
-            className={cn(
-              'p-2 rounded-lg',
-              isPositive ? 'bg-green-500/10' : 'bg-red-500/10'
-            )}
-          >
-            {isPositive ? (
-              <TrendingUp className="w-4 h-4 text-green-400" />
-            ) : (
-              <TrendingDown className="w-4 h-4 text-red-400" />
-            )}
-          </div>
+    <GlassCard className="hover-neon-outline group cursor-pointer">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">{index.name}</p>
+          <p className="text-2xl font-bold text-white font-mono mt-1.5">
+            {index.price.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              'text-sm font-medium',
-              isPositive ? 'text-green-400' : 'text-red-400'
-            )}
-          >
-            {isPositive ? '+' : ''}
-            {index.change.toFixed(2)}
-          </span>
-          <span
-            className={cn(
-              'text-sm font-medium px-1.5 py-0.5 rounded',
-              isPositive ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
-            )}
-          >
-            {isPositive ? '+' : ''}
-            {index.changePercent.toFixed(2)}%
-          </span>
+        <div
+          className={cn(
+            'p-2 rounded-lg transition-all',
+            isPositive 
+              ? 'bg-emerald-500/10 group-hover:bg-emerald-500/15' 
+              : 'bg-red-500/10 group-hover:bg-red-500/15'
+          )}
+        >
+          {isPositive ? (
+            <TrendingUp className="w-4 h-4 text-emerald-400" />
+          ) : (
+            <TrendingDown className="w-4 h-4 text-red-400" />
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            'text-sm font-semibold',
+            isPositive ? 'text-emerald-400' : 'text-red-400'
+          )}
+        >
+          {isPositive ? '+' : ''}
+          {index.change.toFixed(2)}
+        </span>
+        <span
+          className={cn(
+            'text-sm font-semibold px-2 py-0.5 rounded-md border',
+            isPositive 
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+              : 'bg-red-500/10 text-red-400 border-red-500/20'
+          )}
+        >
+          {isPositive ? '+' : ''}
+          {index.changePercent.toFixed(2)}%
+        </span>
+      </div>
+    </GlassCard>
   )
 }

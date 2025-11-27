@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { StockRow, type StockData } from './StockRow'
+import { GradientHeader, NeonBadge, GlassCard } from '@/components/ui/cinematic'
 
 type SortField = 'symbol' | 'price' | 'change' | 'changePercent' | 'volume' | 'marketCap'
 type SortDirection = 'asc' | 'desc'
@@ -153,13 +154,13 @@ export function TopMovers({ className }: TopMoversProps) {
   }
 
   return (
-    <div className={cn('bg-[#0d0d0f] border border-white/5 rounded-xl overflow-hidden', className)}>
+    <GlassCard className={cn('overflow-hidden p-0', className)}>
       {/* Header */}
-      <div className="p-4 border-b border-white/5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-white">Top Movers</h2>
-            <p className="text-sm text-gray-500">Real-time market activity</p>
+      <div className="p-5 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <GradientHeader title="Top Movers" />
+            <NeonBadge variant="positive">Live</NeonBadge>
           </div>
           <div className="flex items-center gap-3">
             {lastUpdated && (
@@ -171,7 +172,7 @@ export function TopMovers({ className }: TopMoversProps) {
             <button
               onClick={fetchData}
               disabled={isLoading}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+              className="p-2 rounded-lg glass-panel hover:bg-white/[0.05] text-gray-400 hover:text-cyan-400 transition-all disabled:opacity-50 hover:shadow-[0_0_12px_rgba(0,212,255,0.15)]"
             >
               <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
             </button>
@@ -180,24 +181,24 @@ export function TopMovers({ className }: TopMoversProps) {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
-          <TabsList className="bg-white/5 border border-white/10 p-1">
+          <TabsList className="glass-panel border border-white/[0.08] p-1">
             <TabsTrigger
               value="gainers"
-              className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400 text-gray-400"
+              className="data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 data-[state=active]:border-emerald-500/30 data-[state=active]:shadow-[0_0_12px_rgba(52,211,153,0.2)] text-gray-400 border border-transparent transition-all"
             >
               <TrendingUp className="w-4 h-4 mr-2" />
               Gainers
             </TabsTrigger>
             <TabsTrigger
               value="losers"
-              className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400 text-gray-400"
+              className="data-[state=active]:bg-red-500/15 data-[state=active]:text-red-400 data-[state=active]:border-red-500/30 data-[state=active]:shadow-[0_0_12px_rgba(239,68,68,0.2)] text-gray-400 border border-transparent transition-all"
             >
               <TrendingDown className="w-4 h-4 mr-2" />
               Losers
             </TabsTrigger>
             <TabsTrigger
               value="active"
-              className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 text-gray-400"
+              className="data-[state=active]:bg-cyan-500/15 data-[state=active]:text-cyan-400 data-[state=active]:border-cyan-500/30 data-[state=active]:shadow-[0_0_12px_rgba(0,212,255,0.2)] text-gray-400 border border-transparent transition-all"
             >
               <Activity className="w-4 h-4 mr-2" />
               Most Active
@@ -301,11 +302,11 @@ export function TopMovers({ className }: TopMoversProps) {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-white/5 bg-white/[0.02]">
+      <div className="px-5 py-3 border-t border-white/[0.06] bg-white/[0.01]">
         <p className="text-xs text-gray-600 text-center">
           Showing top {currentData.length} {activeTab === 'gainers' ? 'gainers' : activeTab === 'losers' ? 'losers' : 'most active stocks'} • Data updates every 30 seconds
         </p>
       </div>
-    </div>
+    </GlassCard>
   )
 }

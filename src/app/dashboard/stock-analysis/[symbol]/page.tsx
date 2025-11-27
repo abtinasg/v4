@@ -1,0 +1,267 @@
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
+import { CompanyHeader } from '@/components/stock/company-header';
+import { PriceChart } from '@/components/stock/price-chart';
+import { MetricsTabs } from '@/components/stock/metrics-tabs';
+import {
+  CompanyHeaderSkeleton,
+  ChartSkeleton,
+  MetricsSkeleton,
+} from '@/components/stock/skeletons';
+import { StockContextUpdater } from '@/components/ai';
+import type { AllMetrics } from '../../../../../lib/metrics/types';
+
+interface PageProps {
+  params: Promise<{
+    symbol: string;
+  }>;
+}
+
+// Metadata generation
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { symbol } = await params;
+  const upperSymbol = symbol.toUpperCase();
+
+  return {
+    title: `${upperSymbol} Stock Analysis | Deep Terminal`,
+    description: `Comprehensive analysis of ${upperSymbol} with 170+ financial metrics, AI insights, and real-time data.`,
+    openGraph: {
+      title: `${upperSymbol} Stock Analysis | Deep Terminal`,
+      description: `Comprehensive analysis of ${upperSymbol} with 170+ financial metrics.`,
+    },
+  };
+}
+
+// Get company domain for logo
+function getCompanyDomain(companyName: string): string {
+  // Common company domain mappings
+  const domainMap: Record<string, string> = {
+    apple: 'apple.com',
+    microsoft: 'microsoft.com',
+    google: 'google.com',
+    alphabet: 'google.com',
+    amazon: 'amazon.com',
+    meta: 'meta.com',
+    facebook: 'meta.com',
+    tesla: 'tesla.com',
+    nvidia: 'nvidia.com',
+    netflix: 'netflix.com',
+    adobe: 'adobe.com',
+    salesforce: 'salesforce.com',
+    oracle: 'oracle.com',
+    intel: 'intel.com',
+    amd: 'amd.com',
+    cisco: 'cisco.com',
+    ibm: 'ibm.com',
+    paypal: 'paypal.com',
+    visa: 'visa.com',
+    mastercard: 'mastercard.com',
+    jpmorgan: 'jpmorganchase.com',
+    'bank of america': 'bankofamerica.com',
+    'wells fargo': 'wellsfargo.com',
+    goldman: 'goldmansachs.com',
+    morgan: 'morganstanley.com',
+    disney: 'disney.com',
+    nike: 'nike.com',
+    starbucks: 'starbucks.com',
+    walmart: 'walmart.com',
+    'home depot': 'homedepot.com',
+    costco: 'costco.com',
+    target: 'target.com',
+    'coca-cola': 'coca-cola.com',
+    pepsi: 'pepsico.com',
+    'procter': 'pg.com',
+    johnson: 'jnj.com',
+    pfizer: 'pfizer.com',
+    moderna: 'modernatx.com',
+    merck: 'merck.com',
+    abbvie: 'abbvie.com',
+    unitedhealth: 'uhc.com',
+    boeing: 'boeing.com',
+    lockheed: 'lockheedmartin.com',
+    caterpillar: 'cat.com',
+    '3m': '3m.com',
+    general: 'ge.com',
+    honeywell: 'honeywell.com',
+    exxon: 'exxonmobil.com',
+    chevron: 'chevron.com',
+  };
+
+  const lowerName = companyName.toLowerCase();
+
+  for (const [key, domain] of Object.entries(domainMap)) {
+    if (lowerName.includes(key)) {
+      return domain;
+    }
+  }
+
+  // Fallback: try to create domain from company name
+  const cleanName = lowerName
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(' ')[0];
+
+  return `${cleanName}.com`;
+}
+
+// Stock data result type
+interface StockDataResult {
+  symbol: string;
+  companyName: string;
+  sector: string;
+  industry: string;
+  currentPrice: number;
+  marketCap: number;
+  metrics: AllMetrics;
+}
+
+// Fetch stock metrics from API
+async function fetchStockMetrics(symbol: string): Promise<{
+  data: StockDataResult | null;
+  error: string | null;
+}> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/stock/${symbol}/metrics`, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) return { data: null, error: 'Stock not found' };
+      return { data: null, error: `API error: ${response.status}` };
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error fetching stock metrics:', error);
+    return { data: null, error: 'Failed to fetch stock data' };
+  }
+}
+
+// Error State Component
+function ErrorState({ symbol, message }: { symbol: string; message: string }) {
+  return (
+    <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+        <svg
+          className="h-6 w-6 text-destructive"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-foreground mb-2">
+        Unable to load data for {symbol}
+      </h3>
+      <p className="text-muted-foreground mb-4">
+        {message}
+      </p>
+      <p className="text-sm text-muted-foreground">
+        This may be due to API rate limits or the stock symbol not being found.
+        Please try again later.
+      </p>
+    </div>
+  );
+}
+
+// Server Component for Company Header
+async function CompanyHeaderServer({ symbol }: { symbol: string }) {
+  const { data, error } = await fetchStockMetrics(symbol);
+
+  if (!data || error) {
+    return <ErrorState symbol={symbol} message={error || 'Data unavailable'} />;
+  }
+
+  const logo = `https://logo.clearbit.com/${getCompanyDomain(data.companyName)}`;
+  const change = data.metrics.valuation?.peRatio
+    ? (data.currentPrice * 0.01) // Placeholder - would come from real data
+    : 0;
+  const changePercent = change / data.currentPrice;
+
+  return (
+    <CompanyHeader
+      symbol={data.symbol}
+      companyName={data.companyName}
+      price={data.currentPrice}
+      change={change}
+      changePercent={changePercent * 100}
+      marketCap={data.marketCap}
+      peRatio={data.metrics.valuation?.peRatio ?? null}
+      dividendYield={data.metrics.valuation?.dividendYield ?? null}
+      logo={logo}
+      sector={data.sector}
+      industry={data.industry}
+    />
+  );
+}
+
+// Server Component for Price Chart
+async function PriceChartServer({ symbol }: { symbol: string }) {
+  // Chart will load its own data client-side
+  return <PriceChart symbol={symbol} />;
+}
+
+// Server Component for Metrics Tabs
+async function MetricsTabsServer({ symbol }: { symbol: string }) {
+  const { data, error } = await fetchStockMetrics(symbol);
+
+  if (!data || error) {
+    return null; // Error already shown by CompanyHeaderServer
+  }
+
+  return (
+    <MetricsTabs
+      symbol={data.symbol}
+      metrics={data.metrics}
+      sector={data.sector}
+      industry={data.industry}
+    />
+  );
+}
+
+// Main Page Component
+export default async function StockAnalysisPage({ params }: PageProps) {
+  const { symbol } = await params;
+  const upperSymbol = symbol.toUpperCase();
+
+  return (
+    <div className="relative min-h-screen">
+      {/* AI Context Updater - Fetches full stock data for AI */}
+      <StockContextUpdater symbol={upperSymbol} />
+      
+      {/* Cinematic Background */}
+      <div className="fixed inset-0 -z-10 bg-cinematic" />
+      
+      {/* Radial glow accents */}
+      <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+      <div className="fixed top-1/3 right-0 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[100px] -z-10" />
+      <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[80px] -z-10" />
+
+      {/* Content */}
+      <div className="relative space-y-7 pb-12 px-1">
+        {/* Company Header with error handling */}
+        <Suspense fallback={<CompanyHeaderSkeleton />}>
+          <CompanyHeaderServer symbol={upperSymbol} />
+        </Suspense>
+
+        {/* Price Chart */}
+        <Suspense fallback={<ChartSkeleton />}>
+          <PriceChartServer symbol={upperSymbol} />
+        </Suspense>
+
+        {/* Metrics Tabs */}
+        <Suspense fallback={<MetricsSkeleton />}>
+          <MetricsTabsServer symbol={upperSymbol} />
+        </Suspense>
+      </div>
+    </div>
+  );
+}

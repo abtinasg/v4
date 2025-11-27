@@ -47,6 +47,15 @@ export type {
   MetricMetadata,
 } from './types';
 
+// Import types for internal use
+import type {
+  RawFinancialData,
+  CalculatorOptions,
+  AllMetrics,
+  MetricMetadata,
+} from './types';
+import { MetricsCalculator } from './calculator';
+
 // Helper Functions
 export {
   // Math Operations
@@ -270,6 +279,300 @@ export {
   calculateFCFPerShare,
   assessCashFlowQuality,
 } from './cashflow';
+
+// Technical Indicators
+export {
+  // Main Calculation Function
+  calculateTechnical,
+
+  // Moving Averages
+  calculateSMA as calculateSMAIndicator,
+  calculateEMA as calculateEMAIndicator,
+  calculateEMASeries,
+
+  // RSI (Relative Strength Index)
+  calculateRSI as calculateRSIIndicator,
+  calculateRSI14,
+
+  // MACD (Moving Average Convergence Divergence)
+  calculateMACD as calculateMACDIndicator,
+  calculateMACDFull,
+
+  // Bollinger Bands
+  calculateBollingerBandsFull,
+  calculateBollingerBandWidth,
+  calculateBollingerPercentB,
+
+  // Volume Indicators
+  calculateRelativeVolume,
+  calculateVolumeMA,
+  calculateOBV,
+
+  // Additional Technical Indicators
+  calculateATR,
+  calculateStochastic,
+  calculateWilliamsR,
+  calculateMFI,
+
+  // Interpretation Functions
+  interpretRSI,
+  interpretMACD,
+  interpretBollingerPosition,
+  interpretRelativeVolume,
+
+  // Technical Indicators Bundle
+  technicalIndicators,
+} from './technical';
+
+// Quality/Scoring Metrics
+export {
+  // Main Calculation Function
+  calculateScores,
+  getScoreBreakdown,
+
+  // Individual Score Calculations
+  calculateProfitabilityScore,
+  calculateGrowthScore,
+  calculateValuationScore,
+  calculateRiskScore,
+  calculateHealthScore,
+  calculateTotalScore,
+
+  // Interpretation Functions
+  interpretScore,
+  getScoreColor,
+
+  // Scoring System Bundle
+  scoringSystem,
+} from './scores';
+
+// Scoring Types
+export type { SectorMedians, ScoreBreakdown } from './scores';
+
+// ============================================================================
+// VALUATION METRICS (14 metrics)
+// ============================================================================
+
+export {
+  // Calculator Class
+  ValuationCalculator,
+
+  // Standalone Functions
+  calculatePERatio,
+  calculateForwardPE,
+  calculateJustifiedPE,
+  calculatePBRatio,
+  calculateJustifiedPB,
+  calculatePSRatio,
+  calculatePCFRatio,
+  calculateEnterpriseValue,
+  calculateEVToEBITDA,
+  calculateEVToSales,
+  calculateEVToEBIT,
+  calculateDividendYield,
+  calculatePEGRatio,
+  calculateEarningsYield,
+
+  // Analysis Functions
+  analyzeValuation,
+  calculateValuationScore as calculateValuationMetricsScore,
+} from './valuation';
+
+// Valuation Types
+export type {
+  ValuationInput,
+  ValuationOptions,
+  ValuationMetricsResult,
+  ValuationComparison,
+} from './valuation';
+
+// ============================================================================
+// DCF / INTRINSIC VALUE METRICS (10 metrics)
+// ============================================================================
+
+export {
+  // Calculator Class
+  DCFCalculator,
+
+  // Standalone Functions
+  calculateBeta as calculateBetaFromReturns,
+  calculateCostOfEquity,
+  calculateCostOfDebt,
+  calculateWACC,
+  calculateTerminalValue,
+  calculatePresentValue,
+  calculateSimpleDCF,
+
+  // Sensitivity Analysis
+  dcfSensitivityAnalysis,
+
+  // Interpretation
+  interpretDCFResults,
+} from './dcf';
+
+// DCF Types
+export type {
+  DCFInput,
+  DCFOptions,
+  DCFMetricsResult,
+  ProjectedFCF,
+  DCFSensitivityResult,
+  DCFInterpretation,
+} from './dcf';
+
+// ============================================================================
+// RISK METRICS (7 metrics)
+// ============================================================================
+
+export {
+  // Calculator Class
+  RiskCalculator,
+
+  // Standalone Functions
+  calculateBeta as calculateBetaRisk,
+  calculateSharpeRatio as calculateSharpeRatioRisk,
+  calculateSortinoRatio as calculateSortinoRatioRisk,
+  calculateAlpha,
+  calculateVaR,
+  calculateCVaR,
+  calculateReturns,
+  calculateAnnualizedVolatility,
+
+  // Scoring & Interpretation
+  calculateRiskScore as calculateRiskMetricsScore,
+  interpretRiskMetrics,
+} from './risk';
+
+// Risk Types
+export type {
+  PricePoint,
+  RiskInput,
+  RiskOptions,
+  RiskMetricsResult,
+  RiskInterpretation,
+} from './risk';
+
+// ============================================================================
+// OTHER KEY METRICS (10 metrics)
+// ============================================================================
+
+export {
+  // Main Calculation Function
+  calculateOther,
+
+  // Individual Metric Calculations
+  calculateEffectiveTaxRate as calculateEffectiveTaxRateOther,
+  calculateWorkingCapital,
+  calculateBookValuePerShare,
+  calculateSalesPerShare,
+  calculateCashFlowPerShare,
+  calculateOperatingLeverage,
+  calculateFinancialLeverage,
+  calculateAltmanZScore,
+  calculatePiotroskiFScore,
+  calculateExcessROIC,
+
+  // Zone/Strength Classifications
+  getZScoreZone,
+  getFScoreStrength,
+
+  // Interpretation Functions
+  interpretEffectiveTaxRate,
+  interpretWorkingCapital,
+  interpretAltmanZScore,
+  interpretPiotroskiFScore,
+  interpretOperatingLeverage,
+  interpretFinancialLeverage,
+  interpretExcessROIC,
+  interpretAllOtherMetrics,
+
+  // Utility Functions
+  getOtherMetricsScore,
+  isInFinancialDistress,
+  getTotalLeverage,
+} from './other';
+
+// Other Metrics Types
+export type {
+  ZScoreZone,
+  FScoreStrength,
+  ZScoreInterpretation,
+  FScoreInterpretation,
+} from './other';
+
+// ============================================================================
+// MACRO METRICS (15 FRED indicators)
+// ============================================================================
+
+export {
+  // FRED Series Configuration
+  FRED_MACRO_SERIES,
+  SERIES_METADATA,
+
+  // Cache Management
+  clearMacroCache,
+  getMacroCacheStats,
+
+  // FRED API Functions
+  getFredSeries,
+  getFredSeriesWithHistory,
+  fetchAllMacroData,
+
+  // Macro Metrics Calculation
+  calculateMacro,
+  fetchMacroMetrics,
+
+  // Interpretation Functions
+  interpretGDPGrowth,
+  interpretUnemployment,
+  interpretInflation,
+  interpretFedFundsRate,
+  interpretTreasury10Y,
+  interpretConsumerConfidence,
+  interpretAllMacroMetrics,
+
+  // Utility Functions
+  getEconomicHealthScore,
+  isRecession,
+  getYieldCurveStatus,
+  getRealInterestRate,
+  formatMacroValue,
+  getSeriesMetadata,
+} from './macro';
+
+// Macro Types
+export type { MacroInterpretation, FREDSeriesId } from './macro';
+
+// Industry Metrics
+export {
+  // API Functions
+  getCompanyProfile as getIndustryCompanyProfile,
+  getIndustryPeers,
+  getIncomeStatement as getIndustryIncomeStatement,
+  getSectorPerformance,
+  fetchIndustryData,
+
+  // Calculation Functions
+  calculateMarketShare,
+  calculateHHI,
+  calculateCR4,
+  calculateIndustryMetrics,
+  calculateIndustryMetricsFromData,
+
+  // Interpretation Functions
+  getHHIInterpretation,
+  getCR4Interpretation,
+  getIndustryAnalysis,
+  getCompetitivePosition,
+} from './industry';
+
+// Industry Types
+export type {
+  FMPStockScreenerResult,
+  FMPCompanyProfile,
+  FMPIncomeStatement,
+  FMPSectorPerformance,
+} from './industry';
 
 // ============================================================================
 // CONSTANTS

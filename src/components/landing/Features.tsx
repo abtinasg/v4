@@ -10,22 +10,58 @@ import {
   ScanEye,
   Sparkles,
   Target,
+  TrendingUp,
+  Shield,
+  Zap,
+  Database,
 } from 'lucide-react'
 
-const visionStatements = [
-  {
-    title: 'Give retail investors institutional armor',
-    detail: 'Latency-optimized data feeds, explainable AI, and risk guardrails packaged in an elegant UI.',
-  },
-  {
-    title: 'Make discovery, diligence, and execution continuous',
-    detail: 'From macro signals to trade journaling, everything stays in sync so conviction compounds.',
-  },
-  {
-    title: 'Blend human instinct with orchestrated AI',
-    detail: 'We chain together GPT-4, Claude, internal factor models, and your prompts to co-create decisions.',
-  },
-]
+// Mini chart for visual mockups
+function MiniAreaChart({ color, delay = 0 }: { color: string; delay?: number }) {
+  return (
+    <motion.svg
+      viewBox="0 0 100 40"
+      className="w-full h-full"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+    >
+      <defs>
+        <linearGradient id={`areaGrad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M0,35 Q10,30 20,32 T40,25 T60,28 T80,15 T100,20 L100,40 L0,40 Z"
+        fill={`url(#areaGrad-${color})`}
+      />
+      <path
+        d="M0,35 Q10,30 20,32 T40,25 T60,28 T80,15 T100,20"
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+      />
+    </motion.svg>
+  )
+}
+
+// Metric counter with glow
+function MetricCounter({ value, label, color }: { value: string; label: string; color: string }) {
+  return (
+    <div className="text-center">
+      <div 
+        className="text-4xl md:text-5xl font-bold tracking-tight"
+        style={{ color, textShadow: `0 0 30px ${color}50` }}
+      >
+        {value}
+      </div>
+      <div className="label-caps text-gray-500 mt-2">{label}</div>
+    </div>
+  )
+}
 
 const productPillars = [
   {
@@ -33,227 +69,394 @@ const productPillars = [
     title: 'Pro Terminal',
     description: 'Multi-monitor workspace with depth-of-market, execution routes, and journaling replay.',
     bullets: ['Detachable watch panes', 'Playbook automation', 'Dark & light studio themes'],
+    color: '#5BB9F7',
+    large: true,
   },
   {
     icon: Radio,
     title: 'Realtime Watchlist',
-    description: 'Millisecond-level quote diffing, options IV, economic triggers, and sentiment scanners.',
-    bullets: ['Smart alerts + SMS', 'Basket risk scoring', 'Chain-aware options surface'],
+    description: 'Millisecond-level quote diffing, options IV, economic triggers.',
+    bullets: ['Smart alerts + SMS', 'Basket risk scoring'],
+    color: '#3FE3C2',
+    large: false,
   },
   {
     icon: BrainCircuit,
     title: 'AI Orchestrator',
-    description: 'Chain-of-thought AI that routes prompts across Claude, GPT-4, custom factor bots, and retrieval.',
-    bullets: ['Explains outputs', 'Links to data lineage', 'Operates in your bias profile'],
+    description: 'Chain-of-thought AI that routes prompts across Claude, GPT-4, and custom models.',
+    bullets: ['Explains outputs', 'Links to data lineage'],
+    color: '#9A7BFF',
+    large: false,
   },
   {
     icon: Layers3,
     title: 'Stock Analyst 150+',
-    description: 'DuPont, valuation, quality, growth, efficiency, and technical metrics in one narrative dossier.',
+    description: 'DuPont, valuation, quality, growth, efficiency, and technical metrics in one dossier.',
     bullets: ['Auto-grade each metric', 'Highlight anomalies', 'Surface comparable peers'],
+    color: '#5BB9F7',
+    large: true,
   },
 ]
 
 const aiTimeline = [
-  {
-    label: 'Signal Graph',
-    copy: 'Scrapes macro + micro data, streams market structure, and normalizes fundamentals.',
-  },
-  {
-    label: 'Model Orchestra',
-    copy: 'Routes tasks across GPT-4, Claude, Mistral, and proprietary quant stacks to compare reasoning.',
-  },
-  {
-    label: 'Investor Context',
-    copy: 'Understands your holdings, risk tolerance, and journaled theses to personalize playbooks.',
-  },
-  {
-    label: 'Action Layer',
-    copy: 'Outputs watchlist automations, trade tickets, or long-form research you can audit line-by-line.',
-  },
+  { label: 'Signal Graph', copy: 'Scrapes macro + micro data, streams market structure.', icon: Database },
+  { label: 'Model Orchestra', copy: 'Routes tasks across GPT-4, Claude, and quant stacks.', icon: BrainCircuit },
+  { label: 'Investor Context', copy: 'Understands your holdings and risk tolerance.', icon: Target },
+  { label: 'Action Layer', copy: 'Outputs watchlist automations and trade tickets.', icon: Zap },
 ]
 
 const metricHighlights = [
-  {
-    stat: '150+',
-    label: 'Fundamental + technical metrics',
-    detail: 'DuPont, efficiency, valuation, growth, liquidity, leverage',
-  },
-  {
-    stat: '18',
-    label: 'Curated metric collections',
-    detail: 'Income quality, capital discipline, AI momentum, macro exposure',
-  },
-  {
-    stat: '7',
-    label: 'DuPont dimensions',
-    detail: 'Net profit margin to equity multiplier with live interpretations',
-  },
+  { stat: '150+', label: 'Fundamental metrics', color: '#5BB9F7' },
+  { stat: '18', label: 'Curated collections', color: '#9A7BFF' },
+  { stat: '7', label: 'DuPont dimensions', color: '#3FE3C2' },
 ]
 
 export function Features() {
   return (
-    <section id="vision" className="relative overflow-hidden bg-[#05070a] py-24 text-white">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent" />
-      <div className="absolute inset-x-0 top-10 h-40 bg-gradient-to-r from-transparent via-white/5 to-transparent blur-3xl" />
+    <section className="relative overflow-hidden bg-[#080A0E]">
+      {/* Section 1: Vision - Light weight */}
+      <div className="relative py-32" id="vision">
+        {/* Ambient glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-[#9A7BFF]/10 blur-[150px]" />
+        
+        <div className="relative z-10 mx-auto max-w-5xl px-6 text-center space-y-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="space-y-6"
+          >
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-[#9A7BFF]/30 bg-[#9A7BFF]/10 px-5 py-2 text-sm font-medium text-[#9A7BFF] glow-violet">
+              <Sparkles className="h-4 w-4" />
+              <span className="label-caps">Our Vision</span>
+            </div>
+            
+            <h2 className="heading-display text-4xl md:text-5xl lg:text-6xl text-white">
+              Institutional grade.{' '}
+              <span className="text-glow-violet text-transparent bg-clip-text bg-gradient-to-r from-[#9A7BFF] to-[#5BB9F7]">
+                Retail accessible.
+              </span>
+            </h2>
+            
+            <p className="subhead-light text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+              We've deconstructed the professional trading desk and rebuilt it for the individual investor. No bloat, just signal.
+            </p>
+          </motion.div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 space-y-20">
-        <div className="space-y-6 text-center lg:text-left" id="vision-manifesto">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-blue-200">
-            <Sparkles className="h-4 w-4" /> Our vision
-          </div>
-          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div className="space-y-5">
-              <h2 className="text-3xl font-bold md:text-4xl lg:text-5xl">
-                Designed to feel premium,
-                <span className="block bg-gradient-to-r from-blue-300 via-purple-300 to-cyan-200 bg-clip-text text-transparent">
-                  built to close the edge gap for retail investors.
-                </span>
-              </h2>
-              <p className="text-lg text-gray-300">
-                Everything inside Deep Terminal is engineered so individuals can think like multi-monitor desk traders without the overhead.
-              </p>
-            </div>
-            <div className="grid gap-4">
-              {visionStatements.map((item) => (
-                <motion.div
-                  key={item.title}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4 }}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5 text-left"
-                >
-                  <p className="text-sm uppercase tracking-[0.2em] text-blue-200">Manifesto</p>
-                  <h3 className="mt-2 text-xl font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-sm text-gray-300 leading-relaxed">{item.detail}</p>
-                </motion.div>
-              ))}
-            </div>
+          {/* Vision Cards */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { title: 'Give retail investors institutional armor', detail: 'Latency-optimized data feeds, explainable AI, and risk guardrails.' },
+              { title: 'Make discovery continuous', detail: 'From macro signals to trade journaling, everything stays in sync.' },
+              { title: 'Blend human instinct with AI', detail: 'Chain together GPT-4, Claude, and your prompts to co-create.' },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group relative rounded-2xl border border-white/5 bg-white/[0.02] p-8 backdrop-blur-sm hover:border-[#9A7BFF]/30 hover:bg-[#9A7BFF]/5 transition-all duration-500"
+              >
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity gradient-border" />
+                <h3 className="text-lg font-semibold text-white mb-3 relative z-10">{item.title}</h3>
+                <p className="text-sm text-gray-400 leading-relaxed relative z-10">{item.detail}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
+      </div>
 
-        <div className="space-y-10" id="terminal">
-          <div className="flex flex-col gap-4 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-blue-200">Platform pillars</p>
-              <h3 className="text-3xl font-semibold md:text-4xl">Everything retail investors need to run a desk.</h3>
+      {/* Section 2: Product Pillars - Heavy weight with Bento grid */}
+      <div className="relative py-40 border-t border-white/5" id="terminal">
+        {/* Multiple ambient glows */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#5BB9F7]/10 blur-[150px]" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-[#3FE3C2]/10 blur-[120px]" />
+        
+        <div className="relative z-10 mx-auto max-w-7xl px-6 space-y-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/5"
+          >
+            <div className="space-y-3">
+              <div className="label-caps text-[#5BB9F7]">System Architecture</div>
+              <h3 className="heading-display text-3xl md:text-4xl text-white">The Complete Stack</h3>
             </div>
-            <p className="text-gray-300 max-w-xl">
-              Four product pillars sync together: the pro terminal, realtime watchlist, AI orchestrator, and Stock Analyst 150+ library.
+            <p className="subhead-light text-gray-400 max-w-md">
+              Four integrated modules that work in concert to provide a complete operating system for your portfolio.
             </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {productPillars.map((pillar) => (
+          </motion.div>
+
+          {/* Bento Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[minmax(280px,auto)]">
+            {productPillars.map((pillar, i) => (
               <motion.div
                 key={pillar.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4 }}
-                className="flex h-full flex-col gap-4 rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 via-[#0a0d14] to-black/60 p-5"
+                transition={{ delay: i * 0.1 }}
+                className={`group relative rounded-3xl border border-white/5 bg-[#0C0E14]/80 backdrop-blur-xl overflow-hidden transition-all duration-500 hover:border-white/20 ${
+                  pillar.large ? 'lg:col-span-2' : ''
+                }`}
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-blue-100">
-                  <pillar.icon className="h-5 w-5" />
+                {/* Gradient stroke */}
+                <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 gradient-border" />
+                
+                {/* Neon edge glow */}
+                <div 
+                  className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ boxShadow: `inset 0 1px 0 0 ${pillar.color}40, 0 0 30px ${pillar.color}15` }}
+                />
+                
+                {/* Icon glow background */}
+                <div 
+                  className="absolute top-6 left-6 w-16 h-16 rounded-full blur-2xl opacity-30 group-hover:opacity-50 transition-opacity"
+                  style={{ backgroundColor: pillar.color }}
+                />
+                
+                <div className="relative z-10 p-8 h-full flex flex-col">
+                  {/* Icon */}
+                  <div 
+                    className="h-14 w-14 rounded-2xl flex items-center justify-center mb-6 border transition-all duration-300"
+                    style={{ 
+                      backgroundColor: `${pillar.color}15`,
+                      borderColor: `${pillar.color}30`,
+                    }}
+                  >
+                    <pillar.icon className="h-7 w-7" style={{ color: pillar.color }} />
+                  </div>
+                  
+                  <h4 className="text-2xl font-semibold text-white mb-3">{pillar.title}</h4>
+                  <p className="text-gray-400 leading-relaxed mb-6">{pillar.description}</p>
+                  
+                  {/* Bullets */}
+                  <div className="mt-auto pt-6 border-t border-white/5">
+                    <ul className="space-y-3">
+                      {pillar.bullets.map((bullet) => (
+                        <li key={bullet} className="flex items-center gap-3 text-sm text-gray-300">
+                          <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: pillar.color, boxShadow: `0 0 8px ${pillar.color}` }} />
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  {/* Mini chart mockup for large cards */}
+                  {pillar.large && (
+                    <div className="absolute bottom-0 right-0 w-48 h-24 opacity-40 group-hover:opacity-60 transition-opacity">
+                      <MiniAreaChart color={pillar.color} delay={0.3} />
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <h4 className="text-xl font-semibold">{pillar.title}</h4>
-                  <p className="mt-2 text-sm text-gray-300 leading-relaxed">{pillar.description}</p>
-                </div>
-                <ul className="mt-auto space-y-2 text-xs text-gray-300">
-                  {pillar.bullets.map((bullet) => (
-                    <li key={bullet} className="flex items-center gap-2">
-                      <span className="h-1 w-1 rounded-full bg-blue-300" />
-                      {bullet}
-                    </li>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Section 3: AI Orchestrator - Feature Split */}
+      <div className="relative py-40" id="ai">
+        {/* Ambient lighting */}
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[800px] rounded-full bg-[#9A7BFF]/10 blur-[150px]" />
+        
+        <div className="relative z-10 mx-auto max-w-7xl px-6">
+          <div className="rounded-[3rem] border border-white/5 bg-[#0C0E14]/60 backdrop-blur-xl overflow-hidden">
+            {/* Glass reflection */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent pointer-events-none" />
+            
+            <div className="grid lg:grid-cols-2 gap-12 p-10 md:p-16 relative z-10">
+              {/* Left - Copy */}
+              <div className="space-y-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="inline-flex items-center gap-2 text-[#9A7BFF] label-caps mb-4">
+                    <BrainCircuit className="h-4 w-4" />
+                    AI ORCHESTRATOR
+                  </div>
+                  
+                  <h3 className="heading-display text-4xl md:text-5xl text-white mb-6">
+                    Not just a chatbot.{' '}
+                    <span className="text-glow-violet text-transparent bg-clip-text bg-gradient-to-r from-[#9A7BFF] to-[#5BB9F7]">
+                      A reasoning engine.
+                    </span>
+                  </h3>
+                  
+                  <p className="subhead-light text-lg text-gray-400 leading-relaxed">
+                    We chain together specialized models—GPT-4 for reasoning, Claude for context, and proprietary quant models for math—to give you answers you can trust.
+                  </p>
+                </motion.div>
+
+                {/* Feature cards */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {[
+                    { icon: ChartCandlestick, title: 'Quant Verification', desc: 'Every claim cross-referenced with live data.', color: '#9A7BFF' },
+                    { icon: ScanEye, title: 'Full Audit Trail', desc: 'See which model contributed to each part.', color: '#5BB9F7' },
+                  ].map((item, i) => (
+                    <motion.div
+                      key={item.title}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.2 + i * 0.1 }}
+                      className="rounded-2xl border border-white/5 bg-white/[0.02] p-5 hover:border-white/10 transition-colors"
+                    >
+                      <div 
+                        className="h-10 w-10 rounded-xl flex items-center justify-center mb-4"
+                        style={{ backgroundColor: `${item.color}15` }}
+                      >
+                        <item.icon className="h-5 w-5" style={{ color: item.color }} />
+                      </div>
+                      <div className="font-semibold text-white mb-1">{item.title}</div>
+                      <div className="text-sm text-gray-400">{item.desc}</div>
+                    </motion.div>
                   ))}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center" id="ai">
-          <div className="space-y-5">
-            <p className="text-sm uppercase tracking-[0.3em] text-purple-200">AI Orchestrator</p>
-            <h3 className="text-3xl font-semibold md:text-4xl">
-              A conductor that blends multiple AI models with your investor DNA.
-            </h3>
-            <p className="text-gray-300">
-              No single LLM understands the entire market. We run prompts through a signal graph, evaluate multiple models, and reason over the results with your personal guardrails before surfacing an answer.
-            </p>
-            <div className="grid gap-3 text-sm text-blue-100 md:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <ChartCandlestick className="h-5 w-5 text-blue-200" />
-                <p className="mt-2 font-semibold text-white">Quant + narrative fusion</p>
-                <p className="text-gray-300 text-xs">Factor models explain what the LLM recommends.</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <ScanEye className="h-5 w-5 text-blue-200" />
-                <p className="mt-2 font-semibold text-white">Audit every recommendation</p>
-                <p className="text-gray-300 text-xs">Line-by-line citations link back to data lineage.</p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-[#0b0f16] to-black/60 p-6 shadow-2xl shadow-blue-500/10">
-            <div className="text-sm uppercase tracking-[0.2em] text-blue-200">How the orchestra flows</div>
-            <div className="mt-6 space-y-5">
-              {aiTimeline.map((stage, index) => (
-                <div key={stage.label} className="relative rounded-2xl border border-white/10 bg-white/5 p-5">
-                  <div className="text-xs text-blue-100">Stage {index + 1}</div>
-                  <h4 className="text-lg font-semibold">{stage.label}</h4>
-                  <p className="text-sm text-gray-300 leading-relaxed">{stage.copy}</p>
                 </div>
-              ))}
+              </div>
+
+              {/* Right - Timeline Visual */}
+              <div className="relative">
+                <div className="absolute left-8 top-8 bottom-8 w-px bg-gradient-to-b from-[#9A7BFF]/50 via-[#5BB9F7]/30 to-transparent" />
+                
+                <div className="space-y-10 py-8">
+                  {aiTimeline.map((step, i) => (
+                    <motion.div
+                      key={step.label}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.15 }}
+                      className="relative pl-20 group"
+                    >
+                      {/* Timeline node */}
+                      <div className="absolute left-[21px] top-1 h-6 w-6 rounded-full border-2 border-[#9A7BFF] bg-[#080A0E] flex items-center justify-center group-hover:border-[#5BB9F7] group-hover:shadow-[0_0_15px_rgba(91,185,247,0.5)] transition-all duration-300">
+                        <step.icon className="h-3 w-3 text-[#9A7BFF] group-hover:text-[#5BB9F7] transition-colors" />
+                      </div>
+                      
+                      <h4 className="text-lg font-semibold text-white mb-2 group-hover:text-[#5BB9F7] transition-colors">{step.label}</h4>
+                      <p className="text-sm text-gray-400">{step.copy}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="space-y-10" id="metrics">
-          <div className="flex flex-col gap-4 text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-cyan-200">Stock Analyst 150+</p>
-              <h3 className="text-3xl font-semibold md:text-4xl">A complete library of metrics with context.</h3>
-            </div>
-            <p className="text-gray-300 max-w-2xl">
-              Our DuPont analysis, factor grades, macro overlays, and efficiency metrics interpret themselves with natural language so you can focus on the trade, not the spreadsheets.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
+      {/* Section 4: Metrics - Visual Mockup */}
+      <div className="relative py-40 border-t border-white/5" id="metrics">
+        {/* Teal ambient glow */}
+        <div className="absolute bottom-0 right-0 w-[700px] h-[500px] rounded-full bg-[#3FE3C2]/10 blur-[150px]" />
+        
+        <div className="relative z-10 mx-auto max-w-7xl px-6 space-y-20">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center space-y-6"
+          >
+            <div className="label-caps text-[#3FE3C2]">Stock Analyst 150+</div>
+            <h3 className="heading-display text-3xl md:text-4xl lg:text-5xl text-white max-w-3xl mx-auto">
+              A complete library of metrics{' '}
+              <span className="text-glow-teal text-transparent bg-clip-text bg-gradient-to-r from-[#3FE3C2] to-[#5BB9F7]">
+                with context.
+              </span>
+            </h3>
+          </motion.div>
+
+          {/* Metric Counters */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-3 gap-8 max-w-2xl mx-auto"
+          >
             {metricHighlights.map((metric) => (
-              <motion.div
-                key={metric.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4 }}
-                className="rounded-3xl border border-white/10 bg-white/5 p-6"
-              >
-                <div className="text-4xl font-bold text-white">{metric.stat}</div>
-                <p className="mt-2 text-sm uppercase tracking-[0.2em] text-blue-200">{metric.label}</p>
-                <p className="mt-3 text-sm text-gray-300">{metric.detail}</p>
-              </motion.div>
+              <MetricCounter key={metric.label} value={metric.stat} label={metric.label} color={metric.color} />
             ))}
-          </div>
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-r from-white/10 via-[#0a0d16] to-black/70 p-6 text-center lg:text-left">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-2">
-                <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-blue-100">
-                  <Target className="h-4 w-4" /> Set your own playbooks
-                </p>
-                <h4 className="text-2xl font-semibold">Align the metrics with your investing style.</h4>
-                <p className="text-gray-300">
-                  Pin any metric, assign custom weightings, and let the orchestrator coach you when signals drift.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 text-sm text-blue-100">
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Momentum blends</span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Income stability</span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Capital efficiency</span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">AI exposure</span>
+          </motion.div>
+
+          {/* UI Mockup Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="rounded-3xl border border-white/5 bg-[#0C0E14]/80 backdrop-blur-xl overflow-hidden"
+          >
+            {/* Glass reflection */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent pointer-events-none" />
+            
+            <div className="p-8 md:p-12">
+              <div className="grid md:grid-cols-3 gap-8">
+                {/* Valuation */}
+                <div className="space-y-4">
+                  <div className="label-caps text-[#5BB9F7]">Valuation</div>
+                  {['P/E Ratio', 'EV/EBITDA', 'P/B Ratio'].map((metric, i) => (
+                    <div key={metric} className="flex items-center justify-between py-3 border-b border-white/5">
+                      <span className="text-sm text-gray-400">{metric}</span>
+                      <span className="text-white font-medium">{(18.5 + i * 2.3).toFixed(1)}x</span>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Quality */}
+                <div className="space-y-4">
+                  <div className="label-caps text-[#9A7BFF]">Quality</div>
+                  {['ROE', 'ROIC', 'Gross Margin'].map((metric, i) => (
+                    <div key={metric} className="flex items-center justify-between py-3 border-b border-white/5">
+                      <span className="text-sm text-gray-400">{metric}</span>
+                      <span className="text-[#3FE3C2] font-medium">{(24.5 + i * 4.2).toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Growth */}
+                <div className="space-y-4">
+                  <div className="label-caps text-[#3FE3C2]">Growth</div>
+                  {['Revenue YoY', 'EPS Growth', 'FCF Growth'].map((metric, i) => (
+                    <div key={metric} className="flex items-center justify-between py-3 border-b border-white/5">
+                      <span className="text-sm text-gray-400">{metric}</span>
+                      <span className="text-[#3FE3C2] font-medium">+{(12.3 + i * 3.1).toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
+
+          {/* CTA Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="rounded-3xl border border-white/5 bg-gradient-to-r from-[#3FE3C2]/10 via-[#080A0E] to-[#9A7BFF]/10 p-8 md:p-12"
+          >
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+              <div className="space-y-4 max-w-xl">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-sm text-[#3FE3C2]">
+                  <Target className="h-4 w-4" />
+                  Customize your playbooks
+                </div>
+                <h4 className="text-2xl font-semibold text-white">Align the metrics with your investing style.</h4>
+                <p className="text-gray-400">Pin any metric, assign custom weightings, and let the orchestrator coach you when signals drift.</p>
+              </div>
+              
+              <div className="flex flex-wrap gap-3">
+                {['Momentum blends', 'Income stability', 'Capital efficiency', 'AI exposure'].map((tag) => (
+                  <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-gray-300 hover:border-[#3FE3C2]/30 hover:bg-[#3FE3C2]/5 transition-colors cursor-pointer">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

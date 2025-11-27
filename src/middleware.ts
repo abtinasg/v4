@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 
 // Define protected routes that require authentication
 const isProtectedRoute = createRouteMatcher([
@@ -10,7 +11,30 @@ const isProtectedRoute = createRouteMatcher([
   '/settings(.*)',
 ])
 
+// Redirect routes - shortcuts to dashboard pages
+const redirectRoutes: Record<string, string> = {
+  '/stock-analysis': '/dashboard/stock-analysis',
+  '/terminal-pro': '/dashboard/terminal-pro',
+  '/ai-assistant': '/dashboard/ai-assistant',
+  '/watchlist': '/dashboard/watchlist',
+}
+
 export default clerkMiddleware(async (auth, request) => {
+  const { pathname } = request.nextUrl
+
+  // Handle stock-analysis dynamic routes (e.g., /stock-analysis/AAPL -> /dashboard/stock-analysis/AAPL)
+  if (pathname.startsWith('/stock-analysis/')) {
+    const symbol = pathname.replace('/stock-analysis/', '')
+    return NextResponse.redirect(new URL(`/dashboard/stock-analysis/${symbol}`, request.url))
+  }
+
+  // Handle static redirects
+  for (const [from, to] of Object.entries(redirectRoutes)) {
+    if (pathname === from) {
+      return NextResponse.redirect(new URL(to, request.url))
+    }
+  }
+
   // Protect routes that require authentication
   if (isProtectedRoute(request)) {
     const { userId } = await auth()

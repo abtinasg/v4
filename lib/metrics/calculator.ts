@@ -68,7 +68,7 @@ export class MetricsCalculator {
       symbol: yahoo.symbol,
       companyName: yahoo.symbol, // Would come from API
       sector: this.rawData.industry.sectorName,
-      industry: this.rawData.industry.industryName,
+      industryName: this.rawData.industry.industryName,
       timestamp: this.rawData.timestamp,
 
       macro: this.calculateMacroMetrics(),
@@ -178,12 +178,13 @@ export class MetricsCalculator {
     const bs = this.rawData.yahoo;
     const is = this.rawData.yahoo;
 
-    const currentRatio = safeDivide(bs.currentAssets, bs.currentLiabilities);
+    // Try to calculate, fall back to Yahoo's pre-calculated values
+    const currentRatio = safeDivide(bs.currentAssets, bs.currentLiabilities) ?? bs.currentRatio;
 
     const quickRatio = safeDivide(
       bs.currentAssets - bs.inventory,
       bs.currentLiabilities
-    );
+    ) ?? bs.quickRatio;
 
     const cashRatio = safeDivide(bs.cash, bs.currentLiabilities);
 
@@ -229,7 +230,8 @@ export class MetricsCalculator {
     const is = this.rawData.yahoo;
 
     const debtToAssets = safeDivide(bs.totalDebt, bs.totalAssets);
-    const debtToEquity = safeDivide(bs.totalDebt, bs.totalEquity);
+    // Fall back to Yahoo's pre-calculated value
+    const debtToEquity = safeDivide(bs.totalDebt, bs.totalEquity) ?? bs.debtToEquity;
 
     const financialDebtToEquity = safeDivide(
       bs.longTermDebt + bs.shortTermDebt,
@@ -301,17 +303,18 @@ export class MetricsCalculator {
     const is = this.rawData.yahoo;
     const bs = this.rawData.yahoo;
 
-    const grossProfitMargin = safeDivide(is.grossProfit, is.revenue);
+    // Try to calculate, fall back to Yahoo's pre-calculated values
+    const grossProfitMargin = safeDivide(is.grossProfit, is.revenue) ?? is.grossMargin;
 
-    const operatingProfitMargin = safeDivide(is.operatingIncome, is.revenue);
+    const operatingProfitMargin = safeDivide(is.operatingIncome, is.revenue) ?? is.operatingMargin;
 
     const ebitdaMargin = safeDivide(is.ebitda, is.revenue);
 
-    const netProfitMargin = safeDivide(is.netIncome, is.revenue);
+    const netProfitMargin = safeDivide(is.netIncome, is.revenue) ?? is.profitMargin;
 
-    const roa = safeDivide(is.netIncome, bs.totalAssets);
+    const roa = safeDivide(is.netIncome, bs.totalAssets) ?? is.returnOnAssets;
 
-    const roe = safeDivide(is.netIncome, bs.totalEquity);
+    const roe = safeDivide(is.netIncome, bs.totalEquity) ?? is.returnOnEquity;
 
     // NOPLAT = EBIT × (1 - Tax Rate)
     const noplat = this.calculateNOPLAT();
@@ -385,14 +388,14 @@ export class MetricsCalculator {
   private calculateGrowthMetrics(): GrowthMetrics {
     const yahoo = this.rawData.yahoo;
 
-    // YoY Growth (current vs previous year)
+    // YoY Growth (current vs previous year) - fall back to Yahoo's pre-calculated values
     const revenueGrowthYoY =
       yahoo.historicalRevenue.length >= 2
         ? percentageChange(
             yahoo.historicalRevenue[yahoo.historicalRevenue.length - 1],
             yahoo.historicalRevenue[yahoo.historicalRevenue.length - 2]
           )
-        : null;
+        : yahoo.revenueGrowth;  // Fall back to Yahoo's value
 
     const epsGrowthYoY =
       yahoo.historicalEPS.length >= 2
@@ -400,7 +403,7 @@ export class MetricsCalculator {
             yahoo.historicalEPS[yahoo.historicalEPS.length - 1],
             yahoo.historicalEPS[yahoo.historicalEPS.length - 2]
           )
-        : null;
+        : yahoo.earningsGrowth;  // Fall back to Yahoo's value
 
     const dpsGrowth =
       yahoo.historicalDividends.length >= 2

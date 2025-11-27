@@ -1,7 +1,18 @@
 export { Sidebar, SidebarProvider, useSidebar } from './Sidebar'
+export { MainContent } from './MainContent'
 export { Topbar } from './Topbar'
 export { TopMovers } from './TopMovers'
 export { StockRow } from './StockRow'
 export type { StockData } from './StockRow'
 export { EconomicIndicators } from './EconomicIndicators'
 export { MarketOverview } from './MarketOverview'
+
+// New Premium Dashboard Components
+export { MarketIndexCard } from './MarketIndexCard'
+export { MarketOverviewSection } from './MarketOverviewSection'
+export { AIInsightBox } from './AIInsightBox'
+export { TopMoversSection } from './TopMoversSection'
+export { EconomicIndicatorsSection } from './EconomicIndicatorsSection'
+export { SectorHeatmap } from './SectorHeatmap'
+export { WatchlistSnapshot } from './WatchlistSnapshot'
+export { MarketNewsFeed } from './MarketNewsFeed'

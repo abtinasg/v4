@@ -1,4 +1,4 @@
-import yahooFinance from 'yahoo-finance2'
+import YahooFinance from 'yahoo-finance2'
 import type {
   StockQuote,
   HistoricalData,
@@ -9,6 +9,9 @@ import type {
   KeyStatistics,
   ApiResponse,
 } from '@/lib/types/stock'
+
+// Initialize Yahoo Finance v3
+const yahooFinance = new YahooFinance()
 
 // Cache implementation
 interface CacheEntry<T> {
@@ -99,11 +102,6 @@ class RateLimiter {
 }
 
 const rateLimiter = new RateLimiter(100, 60000) // 100 requests per minute
-
-// Suppress Yahoo Finance validation warnings in development
-if (process.env.NODE_ENV === 'development') {
-  yahooFinance.suppressNotices(['yahooSurvey', 'rippieSurvey'])
-}
 
 /**
  * Get real-time stock quote
@@ -245,10 +243,13 @@ export async function getHistoricalData(
       }
     }
 
+    // Map interval to supported values for yahoo-finance2 v3
+    const supportedInterval = ['5m', '15m', '30m', '1h'].includes(interval) ? '1d' : interval
+    
     const result = await yahooFinance.historical(symbol, {
       period1,
       period2,
-      interval,
+      interval: supportedInterval as '1d' | '1wk' | '1mo',
     })
 
     if (!result || result.length === 0) {
@@ -259,7 +260,8 @@ export async function getHistoricalData(
       }
     }
 
-    const data: HistoricalDataPoint[] = result.map((item) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: HistoricalDataPoint[] = result.map((item: any) => ({
       date: item.date.toISOString().split('T')[0],
       open: item.open || 0,
       high: item.high || 0,
@@ -343,7 +345,8 @@ export async function getStockProfile(symbol: string): Promise<ApiResponse<Stock
       address: profile?.address1 || '',
       zip: profile?.zip || '',
       phone: profile?.phone || '',
-      ceo: profile?.companyOfficers?.[0]?.name || null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ceo: (profile?.companyOfficers?.[0] as any)?.name || null,
     }
 
     profileCache.set(cacheKey, stockProfile, CACHE_TTL.PROFILE)
@@ -405,10 +408,11 @@ export async function searchStocks(query: string): Promise<ApiResponse<StockSear
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const searchResults: StockSearchResult[] = results.quotes
-      .filter((item) => item.symbol && (item.quoteType === 'EQUITY' || item.quoteType === 'ETF'))
-      .map((item, index) => ({
-        symbol: item.symbol,
+      .filter((item: any) => item.symbol && (item.quoteType === 'EQUITY' || item.quoteType === 'ETF'))
+      .map((item: any, index: number) => ({
+        symbol: item.symbol as string,
         shortName: item.shortname || item.symbol,
         longName: item.longname || item.shortname || item.symbol,
         exchange: item.exchange || 'UNKNOWN',

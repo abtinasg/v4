@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
-import yahooFinance from 'yahoo-finance2'
+import YahooFinance from 'yahoo-finance2'
+
+const yahooFinance = new YahooFinance()
 
 // Expanded list of popular stocks to track for movers
 const ALL_SYMBOLS = [
@@ -48,6 +50,11 @@ async function fetchStockData(symbols: string[]): Promise<StockData[]> {
     symbols.map(async (symbol) => {
       try {
         const quote = await yahooFinance.quote(symbol)
+        // Check if quote exists and has required data
+        if (!quote || typeof quote.regularMarketPrice !== 'number') {
+          console.error(`Invalid quote data for ${symbol}`)
+          return null
+        }
         return {
           symbol: quote.symbol || symbol,
           name: quote.shortName || quote.longName || symbol,

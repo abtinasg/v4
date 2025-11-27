@@ -16,6 +16,7 @@ import {
 import type {
   RawFinancialData,
   LiquidityMetrics,
+  LeverageMetrics,
   ProfitabilityMetrics,
   ScoreMetrics,
 } from './types';
@@ -209,7 +210,7 @@ export function example7_healthCheck() {
     rawData,
     'liquidity'
   );
-  const leverage = calculateMetricCategory(rawData, 'leverage');
+  const leverage = calculateMetricCategory<LeverageMetrics>(rawData, 'leverage');
 
   console.log('Liquidity Analysis:');
   console.log(`  Current Ratio: ${formatNumber(liquidity.currentRatio)}`);
@@ -381,6 +382,20 @@ function getMockData(): RawFinancialData {
       dividendsPaid: 15000000000,
       sharesOutstanding: 16670000000,
       floatShares: 16600000000,
+      // Financial Ratios from Yahoo financialData
+      currentRatio: 0.9,
+      quickRatio: 0.8,
+      debtToEquity: 190,
+      returnOnEquity: 1.5,
+      returnOnAssets: 0.28,
+      grossMargin: 0.43,
+      operatingMargin: 0.30,
+      profitMargin: 0.25,
+      revenueGrowth: 0.08,
+      earningsGrowth: 0.10,
+      // Company Info
+      sector: 'Technology',
+      industry: 'Consumer Electronics',
       historicalRevenue: [265000000000, 274000000000, 365000000000, 394000000000, 383000000000, 394000000000],
       historicalNetIncome: [55000000000, 59000000000, 99000000000, 94000000000, 95000000000, 98000000000],
       historicalEPS: [3.28, 3.57, 5.99, 5.67, 5.72, 5.88],

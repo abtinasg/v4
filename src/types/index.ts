@@ -104,7 +104,16 @@ export interface PortfolioMetrics {
   }
 }
 
-export interface HoldingWithMetrics extends PortfolioHolding {
+export interface HoldingWithMetrics {
+  id: string
+  userId: string
+  symbol: string
+  quantity: string
+  avgBuyPrice: string
+  currentValue?: string | null
+  lastUpdated: Date
+  createdAt: Date
+  updatedAt: Date
   currentPrice: number
   totalValue: number
   totalCost: number
@@ -128,14 +137,49 @@ export interface PaginatedResponse<T> {
 }
 
 // Watchlist with Items
-export interface WatchlistWithItems extends Watchlist {
-  items: WatchlistItem[]
+export interface WatchlistWithItems {
+  id: string
+  userId: string
+  name: string
+  description?: string | null
+  isPublic: boolean
+  createdAt: Date
+  updatedAt: Date
+  items: {
+    id: string
+    watchlistId: string
+    symbol: string
+    notes?: string | null
+    addedAt: Date
+  }[]
   itemCount: number
 }
 
 // User with Relations
-export interface UserWithRelations extends User {
-  preferences?: UserPreferences
+export interface UserWithRelations {
+  id: string
+  clerkId: string
+  email: string
+  subscriptionTier: string
+  createdAt: Date
+  updatedAt: Date
+  preferences?: {
+    id: string
+    userId: string
+    theme: string
+    defaultChartType: string
+    favoriteMetrics: string[]
+    settings: {
+      notifications?: boolean
+      emailAlerts?: boolean
+      autoRefresh?: boolean
+      refreshInterval?: number
+      displayCurrency?: string
+      timezone?: string
+    }
+    createdAt: Date
+    updatedAt: Date
+  }
   watchlistCount?: number
   alertCount?: number
   portfolioValue?: number

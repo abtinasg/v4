@@ -17,6 +17,7 @@ import {
   Zap,
   Settings,
   LogOut,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -25,6 +26,9 @@ interface SidebarContextType {
   isCollapsed: boolean
   setIsCollapsed: (value: boolean) => void
   toggleSidebar: () => void
+  isMobileOpen: boolean
+  setIsMobileOpen: (value: boolean) => void
+  toggleMobileSidebar: () => void
 }
 
 const SidebarContext = createContext<SidebarContextType | null>(null)
@@ -39,8 +43,10 @@ export function useSidebar() {
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   const toggleSidebar = () => setIsCollapsed((prev) => !prev)
+  const toggleMobileSidebar = () => setIsMobileOpen((prev) => !prev)
 
   // Keyboard shortcut: Cmd/Ctrl + B to toggle sidebar
   useEffect(() => {
@@ -55,8 +61,32 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  // Close mobile sidebar when pressing Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileOpen) {
+        setIsMobileOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isMobileOpen])
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileOpen])
+
   return (
-    <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed, toggleSidebar }}>
+    <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed, toggleSidebar, isMobileOpen, setIsMobileOpen, toggleMobileSidebar }}>
       {children}
     </SidebarContext.Provider>
   )
@@ -102,24 +132,65 @@ interface SidebarProps {
 }
 
 export function Sidebar({ subscriptionTier }: SidebarProps) {
-  const { isCollapsed, toggleSidebar } = useSidebar()
+  const { isCollapsed, toggleSidebar, isMobileOpen, setIsMobileOpen } = useSidebar()
   const pathname = usePathname()
   const { user } = useUser()
+  const [isMounted, setIsMounted] = useState(false)
 
   const isPro = subscriptionTier === 'pro' || subscriptionTier === 'enterprise'
 
+  // Track if component is mounted (for SSR safety)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    setIsMobileOpen(false)
+  }, [pathname, setIsMobileOpen])
+
+  // Calculate sidebar width - on mobile always 280, on desktop depends on collapsed state
+  const sidebarWidth = isMounted && typeof window !== 'undefined' && window.innerWidth >= 1024 && isCollapsed ? 80 : 280
+
   return (
-    <motion.aside
-      initial={false}
-      animate={{ width: isCollapsed ? 80 : 280 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="fixed left-0 top-0 bottom-0 z-50 bg-[#0d0d0f] border-r border-white/5 flex flex-col"
-    >
+    <>
+      {/* Mobile Overlay Backdrop */}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setIsMobileOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
+      <motion.aside
+        initial={false}
+        animate={{ width: sidebarWidth }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className={cn(
+          'fixed left-0 top-0 bottom-0 z-50 glass-panel flex flex-col',
+          'transition-transform duration-300 ease-in-out',
+          // Mobile: hidden by default, shown when isMobileOpen
+          // Desktop: always visible
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        )}
+      >
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/[0.02] via-transparent to-violet-500/[0.02] pointer-events-none" />
+
       {/* Logo Section */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-white/5">
+      <div className="relative h-16 flex items-center justify-between px-4 border-b border-white/[0.06]">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
             <Terminal className="w-5 h-5 text-white" />
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 blur-md opacity-40" />
           </div>
           <AnimatePresence>
             {!isCollapsed && (
@@ -135,12 +206,20 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
             )}
           </AnimatePresence>
         </Link>
+        {/* Mobile close button */}
+        <button
+          onClick={() => setIsMobileOpen(false)}
+          className="lg:hidden p-2 rounded-lg hover:bg-white/[0.05] text-gray-400 hover:text-white transition-colors"
+          aria-label="Close sidebar"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* Toggle Button */}
+      {/* Toggle Button - Hidden on mobile */}
       <button
         onClick={toggleSidebar}
-        className="absolute -right-3 top-20 z-10 w-6 h-6 rounded-full bg-[#1a1a1f] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#252529] transition-colors"
+        className="hidden lg:flex absolute -right-3 top-20 z-10 w-6 h-6 rounded-full bg-[#0C1017] border border-white/[0.1] items-center justify-center text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30 hover:shadow-[0_0_10px_rgba(0,212,255,0.2)] transition-all"
         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {isCollapsed ? (
@@ -151,7 +230,7 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
       </button>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto relative">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           const Icon = item.icon
@@ -163,20 +242,28 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
               className={cn(
                 'group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
                 isActive
-                  ? 'bg-blue-500/10 text-blue-400'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-transparent text-cyan-400'
+                  : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
               )}
             >
-              {/* Active indicator */}
+              {/* Neon active indicator line */}
               {isActive && (
                 <motion.div
                   layoutId="activeNav"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-blue-500"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-6 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,212,255,0.6)]"
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 />
               )}
 
-              <Icon className={cn('w-5 h-5 flex-shrink-0', isActive && 'text-blue-400')} />
+              {/* Icon with glow effect on active */}
+              <div className="relative">
+                <Icon 
+                  className={cn(
+                    'w-5 h-5 flex-shrink-0 transition-all duration-200',
+                    isActive && 'text-cyan-400 drop-shadow-[0_0_6px_rgba(0,212,255,0.5)]'
+                  )} 
+                />
+              </div>
 
               <AnimatePresence>
                 {!isCollapsed && (
@@ -187,21 +274,24 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
                     transition={{ duration: 0.2 }}
                     className="flex items-center justify-between flex-1 min-w-0"
                   >
-                    <span className="text-sm font-medium truncate">{item.label}</span>
+                    <span className={cn(
+                      "text-sm font-medium truncate",
+                      isActive && "text-cyan-400"
+                    )}>{item.label}</span>
                     <div className="flex items-center gap-2">
                       {item.badge && (
                         <span
                           className={cn(
-                            'px-1.5 py-0.5 text-[10px] font-semibold rounded',
+                            'px-1.5 py-0.5 text-[10px] font-semibold rounded-md border',
                             item.badge === 'Pro'
-                              ? 'bg-amber-500/20 text-amber-400'
-                              : 'bg-green-500/20 text-green-400'
+                              ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                           )}
                         >
                           {item.badge}
                         </span>
                       )}
-                      <span className="text-[10px] text-gray-600 font-mono">⌘{item.shortcut}</span>
+                      <span className="text-[10px] text-gray-600 font-mono opacity-0 group-hover:opacity-100 transition-opacity">⌘{item.shortcut}</span>
                     </div>
                   </motion.div>
                 )}
@@ -209,7 +299,7 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
 
               {/* Tooltip for collapsed state */}
               {isCollapsed && (
-                <div className="absolute left-full ml-2 px-2 py-1 bg-[#1a1a1f] border border-white/10 rounded-md text-sm text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                <div className="absolute left-full ml-2 px-3 py-1.5 glass-panel rounded-lg text-sm text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 border border-white/[0.08]">
                   {item.label}
                 </div>
               )}
@@ -219,7 +309,7 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
       </nav>
 
       {/* Subscription Badge */}
-      <div className="px-3 py-4 border-t border-white/5">
+      <div className="px-3 py-4 border-t border-white/[0.06]">
         <AnimatePresence>
           {!isCollapsed ? (
             <motion.div
@@ -227,15 +317,19 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className={cn(
-                'p-3 rounded-xl',
+                'p-3 rounded-xl relative overflow-hidden',
                 isPro
-                  ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20'
-                  : 'bg-white/5 border border-white/10'
+                  ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20'
+                  : 'glass-panel border border-white/[0.08]'
               )}
             >
-              <div className="flex items-center gap-2 mb-2">
+              {/* Subtle glow for pro users */}
+              {isPro && (
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent animate-pulse-slow" />
+              )}
+              <div className="relative flex items-center gap-2 mb-2">
                 {isPro ? (
-                  <Crown className="w-4 h-4 text-amber-400" />
+                  <Crown className="w-4 h-4 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
                 ) : (
                   <Zap className="w-4 h-4 text-gray-400" />
                 )}
@@ -246,13 +340,13 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
               {!isPro && (
                 <Link
                   href="/pricing"
-                  className="block w-full px-3 py-2 text-xs font-semibold text-center text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                  className="relative block w-full px-3 py-2 text-xs font-semibold text-center text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
                 >
                   Upgrade to Pro
                 </Link>
               )}
               {isPro && (
-                <p className="text-xs text-gray-400">Full access to all features</p>
+                <p className="relative text-xs text-gray-400">Full access to all features</p>
               )}
             </motion.div>
           ) : (
@@ -263,11 +357,11 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
               className="flex justify-center"
             >
               {isPro ? (
-                <Crown className="w-5 h-5 text-amber-400" />
+                <Crown className="w-5 h-5 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
               ) : (
                 <Link
                   href="/pricing"
-                  className="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition-colors"
+                  className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-500/20"
                 >
                   <Zap className="w-4 h-4 text-white" />
                 </Link>
@@ -278,10 +372,10 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
       </div>
 
       {/* User Profile */}
-      <div className="px-3 py-4 border-t border-white/5">
+      <div className="px-3 py-4 border-t border-white/[0.06]">
         <div
           className={cn(
-            'flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer',
+            'flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors cursor-pointer',
             isCollapsed && 'justify-center'
           )}
         >
@@ -290,16 +384,16 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
               <img
                 src={user.imageUrl}
                 alt={user.fullName || 'User'}
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-white/10"
+                className="w-9 h-9 rounded-full object-cover ring-2 ring-white/[0.1] ring-offset-2 ring-offset-[#0C1017]"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
                 <span className="text-sm font-semibold text-white">
                   {user?.firstName?.charAt(0) || 'U'}
                 </span>
               </div>
             )}
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#0d0d0f]" />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#0C1017] shadow-[0_0_6px_rgba(52,211,153,0.5)]" />
           </div>
 
           <AnimatePresence>
@@ -323,5 +417,6 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
         </div>
       </div>
     </motion.aside>
+    </>
   )
 }

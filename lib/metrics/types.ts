@@ -71,6 +71,22 @@ export interface YahooFinanceData {
   freeCashFlow: number;
   dividendsPaid: number;
 
+  // Financial Ratios (from financialData module - still works!)
+  currentRatio: number | null;
+  quickRatio: number | null;
+  debtToEquity: number | null;
+  returnOnEquity: number | null;
+  returnOnAssets: number | null;
+  grossMargin: number | null;
+  operatingMargin: number | null;
+  profitMargin: number | null;
+  revenueGrowth: number | null;
+  earningsGrowth: number | null;
+
+  // Company Info (from assetProfile)
+  sector: string;
+  industry: string;
+
   // Share Data
   sharesOutstanding: number;
   floatShares: number;
@@ -368,7 +384,7 @@ export interface AllMetrics {
   symbol: string;
   companyName: string;
   sector: string;
-  industry: string;
+  industryName: string;
   timestamp: Date;
 
   // Metric Categories

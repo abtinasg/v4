@@ -1,16 +1,34 @@
-import { Hero } from '@/components/landing/Hero'
-import { Features } from '@/components/landing/Features'
-import { Pricing } from '@/components/landing/Pricing'
-import { Navigation } from '@/components/landing/Navigation'
-import { Footer } from '@/components/landing/Footer'
+import {
+  Navigation,
+  Hero,
+  TrustBar,
+  Vision,
+  LiveData,
+  UIPreview,
+  Architecture,
+  AIOrchestrator,
+  MetricsLibrary,
+  Pricing,
+  Testimonials,
+  FinalCTA,
+  Footer
+} from '@/components/landing'
 
-export default function HomePage() {
+export default function Home() {
   return (
-    <main className="bg-[#0a0a0a] min-h-screen">
+    <main className="bg-[#05070B] min-h-screen">
       <Navigation />
       <Hero />
-      <Features />
+      <TrustBar />
+      <Vision />
+      <LiveData />
+      <UIPreview />
+      <Architecture />
+      <AIOrchestrator />
+      <MetricsLibrary />
       <Pricing />
+      <Testimonials />
+      <FinalCTA />
       <Footer />
     </main>
   )

@@ -19,14 +19,14 @@ import { dupontMetrics } from './dupont'
 // Re-export types
 export * from './types'
 
-// Re-export individual metrics for direct access
-export * from './fundamental'
-export * from './valuation'
-export * from './quality'
-export * from './growth'
-export * from './efficiency'
-export * from './technical'
-export * from './dupont'
+// Re-export metrics arrays for direct access
+export { fundamentalMetrics } from './fundamental'
+export { valuationMetrics } from './valuation'
+export { qualityMetrics } from './quality'
+export { growthMetrics } from './growth'
+export { efficiencyMetrics } from './efficiency'
+export { technicalMetrics } from './technical'
+export { dupontMetrics } from './dupont'
 
 /**
  * Metrics Registry
@@ -134,9 +134,11 @@ class MetricsRegistry {
       return {
         id: metricId,
         name: 'Unknown Metric',
+        category: 'fundamental',
         value: null,
         formatted: 'N/A',
         interpretation: 'neutral',
+        description: `Metric "${metricId}" not found`,
         error: `Metric "${metricId}" not found`,
       }
     }
@@ -175,6 +177,7 @@ class MetricsRegistry {
         value: null,
         formatted: 'Error',
         interpretation: 'neutral',
+        description: metric.description,
         error: error instanceof Error ? error.message : 'Calculation error',
       }
     }
@@ -203,7 +206,7 @@ class MetricsRegistry {
     }
 
     return {
-      symbol: data.symbol,
+      symbol: data.symbol || 'UNKNOWN',
       timestamp: Date.now(),
       metrics: results,
       calculatedAt: new Date().toISOString(),
@@ -276,7 +279,7 @@ class MetricsRegistry {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      ttl: this.CACHE_TTL,
+      expiresAt: Date.now() + this.CACHE_TTL,
     })
   }
 
@@ -301,7 +304,7 @@ class MetricsRegistry {
     this.batchCache.set(key, {
       data,
       timestamp: Date.now(),
-      ttl: this.CACHE_TTL,
+      expiresAt: Date.now() + this.CACHE_TTL,
     })
   }
 

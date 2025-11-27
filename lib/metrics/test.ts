@@ -76,6 +76,22 @@ const mockRawData: RawFinancialData = {
     sharesOutstanding: 16670000000,
     floatShares: 16600000000,
 
+    // Financial Ratios from Yahoo financialData
+    currentRatio: 0.9,
+    quickRatio: 0.8,
+    debtToEquity: 190,
+    returnOnEquity: 1.5,
+    returnOnAssets: 0.28,
+    grossMargin: 0.43,
+    operatingMargin: 0.30,
+    profitMargin: 0.25,
+    revenueGrowth: 0.08,
+    earningsGrowth: 0.10,
+
+    // Company Info
+    sector: 'Technology',
+    industry: 'Consumer Electronics',
+
     // Historical Data
     historicalRevenue: [
       265000000000, 274000000000, 365000000000, 394000000000, 383000000000,

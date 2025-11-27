@@ -105,30 +105,6 @@ export const pegRatio: MetricCalculator = {
   dependencies: ['peRatio', 'earningsGrowthYoY'],
 }
 
-// 5. EV/EBITDA
-export const evToEbitda: MetricCalculator = {
-  id: 'ev_ebitda',
-  name: 'EV/EBITDA',
-  shortName: 'EV/EBITDA',
-  category: 'fundamental',
-  calculate: (data: StockData) => {
-    if (data.evToEbitda !== undefined) return data.evToEbitda
-    if (!data.enterpriseValue || !data.ebitda || data.ebitda === 0) return null
-    return data.enterpriseValue / data.ebitda
-  },
-  format: (value: number) => `${value.toFixed(2)}x`,
-  formatType: 'multiple',
-  description: 'Enterprise value relative to EBITDA. Lower indicates better value.',
-  interpretation: (value: number): MetricInterpretation => {
-    if (value < 0) return 'bad'
-    if (value < 10) return 'good'
-    if (value > 15) return 'bad'
-    return 'neutral'
-  },
-  benchmark: { good: 10, bad: 15, higherIsBetter: false },
-  dependencies: ['enterpriseValue', 'ebitda'],
-}
-
 // 6. Price to Cash Flow
 export const priceToCashFlow: MetricCalculator = {
   id: 'price_to_cash_flow',
@@ -265,11 +241,12 @@ export const payoutRatioMetric: MetricCalculator = {
 // Export all fundamental metrics
 export const fundamentalMetrics: MetricCalculator[] = [
   peRatio,
-  forwardPE,
   pbRatio,
   psRatio,
-  earningsPerShare,
-  marketCapMetric,
+  pegRatio,
+  priceToCashFlow,
+  priceToFreeCashFlow,
+  enterpriseValueMetric,
   dividendYieldMetric,
   payoutRatioMetric,
 ]

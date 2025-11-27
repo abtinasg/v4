@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
@@ -13,16 +13,25 @@ import {
   ChevronRight,
   Command,
   X,
-  TrendingUp,
-  TrendingDown,
-  Clock,
   ArrowRight,
   LayoutDashboard,
   LineChart,
   Star,
   Terminal,
+  Loader2,
+  Menu,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSidebar } from './Sidebar'
+
+// Search result type
+interface StockSearchResult {
+  symbol: string
+  shortName: string
+  longName: string
+  exchange: string
+  type: string
+}
 
 // Breadcrumb mapping
 const breadcrumbMap: Record<string, string> = {
@@ -44,7 +53,11 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [hasNotifications, setHasNotifications] = useState(true)
+  const [searchResults, setSearchResults] = useState<StockSearchResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<NodeJS.Timeout>()
+  const { toggleMobileSidebar } = useSidebar()
 
   // Generate breadcrumbs from pathname
   const breadcrumbs = pathname
@@ -79,6 +92,53 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
     }
   }, [isSearchOpen])
 
+  // Search stocks API call
+  const searchStocks = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([])
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}`)
+      const data = await response.json()
+      
+      if (data.success && data.data) {
+        setSearchResults(data.data)
+      } else {
+        setSearchResults([])
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [])
+
+  // Handle search query change with debounce
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
+    
+    debounceRef.current = setTimeout(() => {
+      searchStocks(value)
+    }, 300)
+  }
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+    }
+  }, [])
+
   // Toggle theme
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode)
@@ -88,9 +148,20 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
 
   return (
     <>
-      <header className="h-16 bg-[#0d0d0f] border-b border-white/5 flex items-center justify-between px-6">
-        {/* Left: Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-sm">
+      <header className="h-14 sm:h-16 bg-[#0d0d0f] border-b border-white/5 flex items-center justify-between px-3 sm:px-6">
+        {/* Left: Hamburger Menu + Breadcrumbs */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={toggleMobileSidebar}
+            className="lg:hidden p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
+          {/* Breadcrumbs - Hidden on small mobile */}
+          <nav className="hidden sm:flex items-center gap-2 text-sm">
           {breadcrumbs.map((crumb, index) => (
             <div key={crumb.href} className="flex items-center gap-2">
               {index > 0 && <ChevronRight className="w-4 h-4 text-gray-600" />}
@@ -107,17 +178,18 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
             </div>
           ))}
         </nav>
+        </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Search Button */}
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
           >
             <Search className="w-4 h-4" />
-            <span className="text-sm hidden sm:inline">Search stocks...</span>
-            <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-gray-500">
+            <span className="text-sm hidden md:inline">Search stocks...</span>
+            <kbd className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-gray-500">
               <Command className="w-3 h-3" />K
             </kbd>
           </button>
@@ -143,7 +215,7 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
           </button>
 
           {/* User Button */}
-          <div className="ml-2 pl-4 border-l border-white/10">
+          <div className="ml-1 sm:ml-2 pl-2 sm:pl-4 border-l border-white/10">
             <UserButton
               afterSignOutUrl="/"
               appearance={{
@@ -194,7 +266,7 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
               transition={{ duration: 0.2 }}
-              className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-2xl z-50"
+              className="fixed top-[10%] sm:top-[15%] left-1/2 -translate-x-1/2 w-[95%] sm:w-full max-w-2xl z-50"
             >
               <div className="bg-[#0d0d0f] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
                 {/* Search Input */}
@@ -204,10 +276,11 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
                     ref={searchInputRef}
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="Search for stocks, ETFs, or crypto..."
                     className="flex-1 bg-transparent text-white placeholder-gray-500 outline-none text-lg"
                   />
+                  {isSearching && <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />}
                   <button
                     onClick={() => setIsSearchOpen(false)}
                     className="p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
@@ -261,14 +334,83 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
                   </div>
                 )}
 
-                {/* Recent Searches */}
+                {/* Popular Stocks - show when no search query */}
                 {!searchQuery && (
                   <div className="p-4 border-t border-white/5">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Recent</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Popular Stocks</p>
                     <div className="space-y-1">
-                      <RecentItem symbol="AAPL" name="Apple Inc." change={2.34} />
-                      <RecentItem symbol="TSLA" name="Tesla Inc." change={-1.28} />
-                      <RecentItem symbol="NVDA" name="NVIDIA Corporation" change={5.67} />
+                      <PopularStockItem 
+                        symbol="AAPL" 
+                        name="Apple Inc." 
+                        exchange="NASDAQ"
+                        onClick={() => {
+                          router.push('/dashboard/stock-analysis?symbol=AAPL')
+                          setIsSearchOpen(false)
+                        }}
+                      />
+                      <PopularStockItem 
+                        symbol="GOOGL" 
+                        name="Alphabet Inc." 
+                        exchange="NASDAQ"
+                        onClick={() => {
+                          router.push('/dashboard/stock-analysis?symbol=GOOGL')
+                          setIsSearchOpen(false)
+                        }}
+                      />
+                      <PopularStockItem 
+                        symbol="MSFT" 
+                        name="Microsoft Corporation" 
+                        exchange="NASDAQ"
+                        onClick={() => {
+                          router.push('/dashboard/stock-analysis?symbol=MSFT')
+                          setIsSearchOpen(false)
+                        }}
+                      />
+                      <PopularStockItem 
+                        symbol="AMZN" 
+                        name="Amazon.com Inc." 
+                        exchange="NASDAQ"
+                        onClick={() => {
+                          router.push('/dashboard/stock-analysis?symbol=AMZN')
+                          setIsSearchOpen(false)
+                        }}
+                      />
+                      <PopularStockItem 
+                        symbol="NVDA" 
+                        name="NVIDIA Corporation" 
+                        exchange="NASDAQ"
+                        onClick={() => {
+                          router.push('/dashboard/stock-analysis?symbol=NVDA')
+                          setIsSearchOpen(false)
+                        }}
+                      />
+                      <PopularStockItem 
+                        symbol="TSLA" 
+                        name="Tesla Inc." 
+                        exchange="NASDAQ"
+                        onClick={() => {
+                          router.push('/dashboard/stock-analysis?symbol=TSLA')
+                          setIsSearchOpen(false)
+                        }}
+                      />
+                      <PopularStockItem 
+                        symbol="META" 
+                        name="Meta Platforms Inc." 
+                        exchange="NASDAQ"
+                        onClick={() => {
+                          router.push('/dashboard/stock-analysis?symbol=META')
+                          setIsSearchOpen(false)
+                        }}
+                      />
+                      <PopularStockItem 
+                        symbol="JPM" 
+                        name="JPMorgan Chase & Co." 
+                        exchange="NYSE"
+                        onClick={() => {
+                          router.push('/dashboard/stock-analysis?symbol=JPM')
+                          setIsSearchOpen(false)
+                        }}
+                      />
                     </div>
                   </div>
                 )}
@@ -276,29 +418,37 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
                 {/* Search Results */}
                 {searchQuery && (
                   <div className="p-4 max-h-80 overflow-y-auto">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">
-                      Results for "{searchQuery}"
-                    </p>
-                    <div className="space-y-1">
-                      <SearchResult
-                        symbol="AAPL"
-                        name="Apple Inc."
-                        exchange="NASDAQ"
-                        onClick={() => setIsSearchOpen(false)}
-                      />
-                      <SearchResult
-                        symbol="AMZN"
-                        name="Amazon.com Inc."
-                        exchange="NASDAQ"
-                        onClick={() => setIsSearchOpen(false)}
-                      />
-                      <SearchResult
-                        symbol="AMD"
-                        name="Advanced Micro Devices"
-                        exchange="NASDAQ"
-                        onClick={() => setIsSearchOpen(false)}
-                      />
-                    </div>
+                    {isSearching ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <>
+                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">
+                          Results for "{searchQuery}"
+                        </p>
+                        <div className="space-y-1">
+                          {searchResults.map((stock) => (
+                            <SearchResult
+                              key={stock.symbol}
+                              symbol={stock.symbol}
+                              name={stock.longName || stock.shortName}
+                              exchange={stock.exchange}
+                              onClick={() => {
+                                router.push(`/dashboard/stock-analysis?symbol=${stock.symbol}`)
+                                setIsSearchOpen(false)
+                                setSearchQuery('')
+                                setSearchResults([])
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-gray-400">
+                        No stocks found for "{searchQuery}"
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -353,36 +503,31 @@ function QuickAction({
   )
 }
 
-function RecentItem({
+function PopularStockItem({
   symbol,
   name,
-  change,
+  exchange,
+  onClick,
 }: {
   symbol: string
   name: string
-  change: number
+  exchange: string
+  onClick: () => void
 }) {
-  const isPositive = change >= 0
-
   return (
-    <button className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors text-left group">
+    <button 
+      onClick={onClick}
+      className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors text-left group"
+    >
       <div className="flex items-center gap-3">
-        <Clock className="w-4 h-4 text-gray-500" />
+        <Star className="w-4 h-4 text-yellow-500" />
         <div>
           <span className="text-sm font-medium text-white">{symbol}</span>
           <span className="text-sm text-gray-500 ml-2">{name}</span>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            'text-sm font-medium flex items-center gap-1',
-            isPositive ? 'text-green-400' : 'text-red-400'
-          )}
-        >
-          {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-          {isPositive ? '+' : ''}{change}%
-        </span>
+        <span className="text-xs text-gray-500 px-2 py-1 bg-white/5 rounded">{exchange}</span>
         <ArrowRight className="w-4 h-4 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </button>

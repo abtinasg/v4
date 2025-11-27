@@ -1,5 +1,6 @@
 'use client'
 
+import { useId } from 'react'
 import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 
 interface SparklineProps {
@@ -9,6 +10,8 @@ interface SparklineProps {
 }
 
 export function Sparkline({ data, positive, height = 40 }: SparklineProps) {
+  const id = useId()
+  
   // Transform data for Recharts
   const chartData = data.map((value, index) => ({
     index,
@@ -16,7 +19,7 @@ export function Sparkline({ data, positive, height = 40 }: SparklineProps) {
   }))
 
   const color = positive ? '#22c55e' : '#ef4444'
-  const gradientId = `sparkline-gradient-${positive ? 'green' : 'red'}-${Math.random().toString(36).slice(2)}`
+  const gradientId = `sparkline-gradient-${positive ? 'green' : 'red'}-${id}`
 
   return (
     <ResponsiveContainer width="100%" height={height}>
