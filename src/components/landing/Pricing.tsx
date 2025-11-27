@@ -2,311 +2,143 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Check, X, Sparkles, ArrowRight } from 'lucide-react'
+import { ArrowRight, Check, Crown, Sparkles, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 
 const plans = [
   {
-    name: 'Free Trial',
-    description: 'Perfect for getting started',
+    name: 'Growth',
+    description: 'Everything teams need to launch premium payment experiences.',
+    monthlyPrice: 49,
+    yearlyPrice: 490,
+    perks: ['All payment rails', 'AI anomaly guard', 'Dedicated CSM', 'Treasury dashboards'],
+    accent: 'from-blue-500 to-purple-500',
+    highlight: 'Most loved',
+  },
+  {
+    name: 'Enterprise',
+    description: 'Security, compliance, and custom throughput for global fintechs.',
     monthlyPrice: 0,
     yearlyPrice: 0,
-    period: '14 days',
-    features: [
-      { name: 'Access to 50 metrics', included: true },
-      { name: '5 watchlist items', included: true },
-      { name: 'Basic charts', included: true },
-      { name: 'AI chat (limited)', included: true },
-      { name: 'Real-time data', included: false },
-      { name: 'Price alerts', included: false },
-      { name: 'Advanced charts', included: false },
-    ],
-    cta: 'Start Free Trial',
-    href: '/sign-up',
-    popular: false,
-    gradient: 'from-gray-500 to-gray-600',
-  },
-  {
-    name: 'Professional',
-    description: 'For serious traders',
-    monthlyPrice: 29,
-    yearlyPrice: 290,
-    period: 'month',
-    features: [
-      { name: '150+ financial metrics', included: true },
-      { name: 'Unlimited watchlists', included: true },
-      { name: 'Advanced charts', included: true },
-      { name: 'Unlimited AI chat', included: true },
-      { name: 'Real-time data', included: true },
-      { name: 'Price alerts', included: true },
-      { name: 'Priority support', included: true },
-    ],
-    cta: 'Get Started',
-    href: '/sign-up',
-    popular: true,
-    gradient: 'from-blue-500 to-cyan-500',
-  },
-  {
-    name: 'Bloomberg Terminal',
-    description: 'The traditional choice',
-    monthlyPrice: 2000,
-    yearlyPrice: 24000,
-    period: 'year',
-    features: [
-      { name: 'Professional metrics', included: true },
-      { name: 'Watchlists', included: true },
-      { name: 'Advanced charts', included: true },
-      { name: 'Real-time data', included: true },
-      { name: 'Dedicated hardware required', included: false, negative: true },
-      { name: '2-year minimum contract', included: false, negative: true },
-      { name: 'Complex interface', included: false, negative: true },
-    ],
-    cta: 'Not Recommended',
-    href: '#',
-    popular: false,
-    notRecommended: true,
-    gradient: 'from-red-500 to-orange-500',
+    perks: ['Custom corridors', 'Premium SLAs', 'On-site onboarding', 'Security reviews'],
+    accent: 'from-emerald-500 to-cyan-500',
+    highlight: 'White-glove',
+    custom: true,
   },
 ]
 
 export function Pricing() {
-  const [isYearly, setIsYearly] = useState(false)
+  const [isYearly, setIsYearly] = useState(true)
 
   return (
-    <section className="relative py-24 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-[#0a0a0a]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 via-transparent to-transparent" />
-      
-      {/* Radial gradient */}
-      <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)',
-        }}
-      />
+    <section className="relative overflow-hidden bg-[#05070a] py-24 text-white">
+      <div className="absolute inset-0 bg-gradient-to-t from-purple-500/10 via-transparent to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-6"
-          >
-            <Sparkles className="w-4 h-4 text-blue-400" />
-            <span className="text-sm text-gray-300">Simple Pricing</span>
-          </motion.div>
-
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            <span className="text-white">Save </span>
-            <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-              99.9%
+      <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-12 px-6 text-center">
+        <div className="space-y-4">
+          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-blue-200">
+            <Crown className="h-4 w-4" /> Transparent, premium pricing
+          </div>
+          <h2 className="text-3xl font-bold md:text-4xl lg:text-5xl">
+            Choose a plan built for
+            <span className="block bg-gradient-to-r from-blue-300 via-purple-300 to-cyan-200 bg-clip-text text-transparent">
+              world-class money teams.
             </span>
-            <span className="text-white"> vs Bloomberg</span>
           </h2>
-
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
-            Get the same professional tools Wall Street uses, without the Wall Street price tag.
+          <p className="text-lg text-gray-300">
+            Start with Growth to launch in days, or partner with us for enterprise-grade corridors and controls.
           </p>
-
-          {/* Billing Toggle */}
-          <div className="inline-flex items-center gap-4 p-1.5 rounded-full bg-white/5 border border-white/10">
+          <div className="mx-auto flex items-center justify-center gap-4 rounded-full border border-white/10 bg-white/5 p-1.5 text-sm text-gray-200 w-fit">
             <button
               onClick={() => setIsYearly(false)}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                !isYearly
-                  ? 'bg-white text-black'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              className={`rounded-full px-6 py-2 transition ${!isYearly ? 'bg-white text-black shadow' : 'hover:text-white/80'}`}
             >
               Monthly
             </button>
             <button
               onClick={() => setIsYearly(true)}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
-                isYearly
-                  ? 'bg-white text-black'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              className={`rounded-full px-6 py-2 transition ${isYearly ? 'bg-white text-black shadow' : 'hover:text-white/80'}`}
             >
-              Yearly
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                isYearly ? 'bg-green-500 text-white' : 'bg-green-500/20 text-green-400'
-              }`}>
-                Save 17%
-              </span>
+              Yearly <span className="ml-2 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-300">Save 2 months</span>
             </button>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-4 items-start">
+        <div className="grid gap-6 md:grid-cols-2">
           {plans.map((plan, index) => (
             <motion.div
               key={plan.name}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className={`relative ${plan.popular ? 'lg:-mt-4 lg:mb-4' : ''}`}
+              className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 via-black/40 to-black/80 p-8 text-left shadow-2xl backdrop-blur"
             >
-              {/* Popular Badge */}
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-                  <div className="px-4 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full text-sm font-semibold text-white shadow-lg shadow-blue-500/25">
-                    Most Popular
+              <div className={`absolute inset-0 opacity-60 bg-gradient-to-br ${plan.accent} blur-3xl`} />
+              <div className="relative flex items-start justify-between">
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.16em] text-blue-100">{plan.highlight}</p>
+                  <h3 className="text-2xl font-semibold">{plan.name}</h3>
+                  <p className="text-gray-300">{plan.description}</p>
+                </div>
+                <div className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white">Premium</div>
+              </div>
+
+              <div className="relative mt-6 flex items-baseline gap-2 text-4xl font-bold">
+                {plan.custom ? (
+                  <span className="text-3xl text-gray-100">Custom</span>
+                ) : (
+                  <>
+                    <span>${isYearly ? plan.yearlyPrice : plan.monthlyPrice}</span>
+                    <span className="text-sm font-medium text-gray-400">/{isYearly ? 'year' : 'month'}</span>
+                  </>
+                )}
+              </div>
+
+              <div className="relative mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {plan.perks.map((perk) => (
+                  <div key={perk} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-gray-100">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10">
+                      <Check className="h-4 w-4 text-emerald-300" />
+                    </span>
+                    <span>{perk}</span>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
 
-              {/* Not Recommended Badge */}
-              {plan.notRecommended && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-                  <div className="px-4 py-1.5 bg-gradient-to-r from-red-500 to-orange-500 rounded-full text-sm font-semibold text-white shadow-lg shadow-red-500/25">
-                    Not Recommended
-                  </div>
-                </div>
-              )}
+              <div className="relative mt-6 flex flex-wrap gap-2 text-xs text-blue-100">
+                <span className="rounded-full bg-white/10 px-3 py-1">SOC2 + PCI-DSS</span>
+                <span className="rounded-full bg-white/10 px-3 py-1">Settlement SLAs</span>
+                <span className="rounded-full bg-white/10 px-3 py-1">Audit-ready exports</span>
+              </div>
 
-              {/* Card */}
-              <div
-                className={`relative h-full p-6 lg:p-8 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${
-                  plan.popular
-                    ? 'bg-white/[0.08] border-blue-500/30 shadow-2xl shadow-blue-500/10'
-                    : plan.notRecommended
-                    ? 'bg-white/[0.03] border-red-500/20 opacity-75'
-                    : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.05] hover:border-white/[0.15]'
-                }`}
-              >
-                {/* Plan Name */}
-                <div className="mb-6">
-                  <h3 className={`text-xl font-semibold mb-2 ${
-                    plan.notRecommended ? 'text-gray-400' : 'text-white'
-                  }`}>
-                    {plan.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">{plan.description}</p>
-                </div>
-
-                {/* Price */}
-                <div className="mb-6">
-                  {plan.notRecommended ? (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold text-gray-500 line-through">
-                        ${plan.yearlyPrice.toLocaleString()}
-                      </span>
-                      <span className="text-gray-600">/year</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold text-white">
-                        ${isYearly && plan.yearlyPrice > 0 ? plan.yearlyPrice : plan.monthlyPrice}
-                      </span>
-                      <span className="text-gray-400">
-                        /{plan.monthlyPrice === 0 ? plan.period : isYearly ? 'year' : 'month'}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Savings badge for Professional */}
-                  {plan.popular && (
-                    <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-                      <span className="text-xs font-medium text-green-400">
-                        Save $23,710/year vs Bloomberg
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Features */}
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature) => (
-                    <li key={feature.name} className="flex items-start gap-3">
-                      {feature.included ? (
-                        <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${
-                          plan.popular ? 'bg-blue-500/20' : 'bg-white/10'
-                        }`}>
-                          <Check className={`w-3 h-3 ${
-                            plan.popular ? 'text-blue-400' : 'text-gray-400'
-                          }`} />
-                        </div>
-                      ) : (
-                        <div className="mt-0.5 w-5 h-5 rounded-full bg-red-500/10 flex items-center justify-center">
-                          <X className="w-3 h-3 text-red-400" />
-                        </div>
-                      )}
-                      <span className={`text-sm ${
-                        feature.included 
-                          ? plan.notRecommended ? 'text-gray-500' : 'text-gray-300'
-                          : 'text-gray-500'
-                      } ${feature.negative ? 'line-through' : ''}`}>
-                        {feature.name}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* CTA Button */}
-                {plan.notRecommended ? (
-                  <button
-                    disabled
-                    className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-gray-500 font-medium cursor-not-allowed"
+              <div className="relative mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                {plan.custom ? (
+                  <Link
+                    href="/contact"
+                    className="group inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
                   >
-                    {plan.cta}
-                  </button>
+                    Talk to sales
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
                 ) : (
                   <Link
-                    href={plan.href}
-                    className={`group w-full py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
-                      plan.popular
-                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02]'
-                        : 'bg-white/10 text-white hover:bg-white/15 border border-white/10'
-                    }`}
+                    href="/sign-up"
+                    className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-black transition hover:scale-[1.01]"
                   >
-                    {plan.cta}
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    Start now
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 )}
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                  14-day risk-free onboarding
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
-
-        {/* Bottom Note */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center mt-12"
-        >
-          <p className="text-gray-500 text-sm">
-            All plans include a 14-day money-back guarantee. No questions asked.
-          </p>
-          <div className="flex items-center justify-center gap-6 mt-4 text-xs text-gray-600">
-            <span className="flex items-center gap-1">
-              <Check className="w-3 h-3 text-green-500" />
-              No credit card required
-            </span>
-            <span className="flex items-center gap-1">
-              <Check className="w-3 h-3 text-green-500" />
-              Cancel anytime
-            </span>
-            <span className="flex items-center gap-1">
-              <Check className="w-3 h-3 text-green-500" />
-              Instant access
-            </span>
-          </div>
-        </motion.div>
       </div>
     </section>
   )
