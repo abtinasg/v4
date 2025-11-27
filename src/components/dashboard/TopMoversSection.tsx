@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GlassCard, PulsingDot } from '@/components/ui/cinematic'
+import { useHaptic } from '@/lib/hooks'
 
 type SortField = 'symbol' | 'price' | 'change' | 'changePercent' | 'volume' | 'marketCap'
 type SortDirection = 'asc' | 'desc'
@@ -51,6 +52,7 @@ const formatMarketCap = (cap: number) => {
 }
 
 export function TopMoversSection({ className }: TopMoversSectionProps) {
+  const { triggerHaptic } = useHaptic()
   const [activeTab, setActiveTab] = useState<TabValue>('gainers')
   const [sortField, setSortField] = useState<SortField>('changePercent')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
@@ -124,6 +126,7 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
   }, [activeTab, data, sortField, sortDirection])
 
   const handleSort = (field: SortField) => {
+    triggerHaptic('light')
     if (sortField === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
     } else {
@@ -147,6 +150,7 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
   }
 
   const handleRefresh = () => {
+    triggerHaptic('light')
     fetchData()
   }
 
@@ -192,7 +196,10 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
           </div>
 
           {/* Tabs - Scrollable on mobile */}
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
+          <Tabs value={activeTab} onValueChange={(v) => {
+            triggerHaptic('light')
+            setActiveTab(v as TabValue)
+          }}>
             <TabsList className="bg-white/[0.03] border border-white/[0.06] p-1 h-auto overflow-x-auto flex-nowrap">
               <TabsTrigger
                 value="gainers"
@@ -285,6 +292,10 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
                     transition={{ duration: 0.2, delay: index * 0.05 }}
+                    onClick={() => {
+                      triggerHaptic('light')
+                      window.location.href = `/dashboard/stock-analysis?symbol=${stock.symbol}`
+                    }}
                     className={cn(
                       'border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors',
                       'cursor-pointer group'

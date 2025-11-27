@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Eye, TrendingUp, TrendingDown, Plus, RefreshCw, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GlassCard, PulsingDot } from '@/components/ui/cinematic'
+import { useHaptic } from '@/lib/hooks'
 
 interface WatchlistStock {
   symbol: string
@@ -70,6 +71,7 @@ interface WatchlistSnapshotProps {
 }
 
 export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
+  const { triggerHaptic } = useHaptic()
   const [watchlist, setWatchlist] = useState<WatchlistStock[]>(defaultWatchlist)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -135,47 +137,50 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
       transition={{ duration: 0.6, delay: 0.6 }}
       className={className}
     >
-      <GlassCard className="h-full p-3 sm:p-5">
+      <GlassCard className="h-full p-2.5 sm:p-3 md:p-5">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
-              <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+        <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+            <div className="p-1 sm:p-1.5 md:p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+              <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-cyan-400" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-semibold text-white">Watchlist</h3>
-              <p className="text-[10px] text-gray-500">{watchlist.length} symbols</p>
+              <h3 className="text-xs sm:text-sm md:text-base font-semibold text-white">Watchlist</h3>
+              <p className="text-[9px] sm:text-[10px] text-gray-500">{watchlist.length} symbols</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             <button
-              onClick={fetchWatchlist}
+              onClick={() => {
+                triggerHaptic('light')
+                fetchWatchlist()
+              }}
               disabled={isLoading}
               className={cn(
-                'p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]',
+                'p-1 sm:p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]',
                 'hover:bg-white/[0.06] hover:border-cyan-500/30',
                 'text-gray-400 hover:text-cyan-400 transition-all duration-300',
                 'disabled:opacity-50'
               )}
             >
               {isLoading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
               ) : (
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               )}
             </button>
             <button className={cn(
-              'p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]',
+              'p-1 sm:p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]',
               'hover:bg-cyan-500/10 hover:border-cyan-500/30 hover:text-cyan-400',
               'text-gray-400 transition-all duration-300'
             )}>
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
 
         {/* Watchlist Items */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 sm:space-y-2">
           {watchlist.map((stock, index) => {
             const isPositive = stock.changePercent >= 0
             
@@ -185,40 +190,44 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                onClick={() => {
+                  triggerHaptic('light')
+                  window.location.href = `/dashboard/stock-analysis?symbol=${stock.symbol}`
+                }}
                 className={cn(
-                  'flex items-center justify-between p-3 rounded-xl',
+                  'flex items-center justify-between p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl',
                   'bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] hover:border-white/[0.08]',
                   'transition-all duration-300 cursor-pointer group'
                 )}
               >
                 {/* Symbol & Name */}
-                <div className="flex-1 min-w-0 mr-3">
-                  <p className="text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors">
+                <div className="flex-1 min-w-0 mr-2 sm:mr-3">
+                  <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors">
                     {stock.symbol}
                   </p>
-                  <p className="text-[10px] text-gray-500 truncate">
+                  <p className="text-[9px] sm:text-[10px] text-gray-500 truncate">
                     {stock.name}
                   </p>
                 </div>
 
                 {/* Sparkline */}
-                <div className="mr-3 opacity-60 group-hover:opacity-100 transition-opacity">
+                <div className="mr-2 sm:mr-3 opacity-60 group-hover:opacity-100 transition-opacity hidden sm:block">
                   <MiniSparkline data={stock.sparklineData} positive={isPositive} />
                 </div>
 
                 {/* Price & Change */}
                 <div className="text-right">
-                  <p className="text-sm font-medium text-white tabular-nums">
+                  <p className="text-xs sm:text-sm font-medium text-white tabular-nums">
                     ${stock.price.toFixed(2)}
                   </p>
-                  <div className="flex items-center justify-end gap-1">
+                  <div className="flex items-center justify-end gap-0.5 sm:gap-1">
                     {isPositive ? (
-                      <TrendingUp className="w-3 h-3 text-emerald-400" />
+                      <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400" />
                     ) : (
-                      <TrendingDown className="w-3 h-3 text-red-400" />
+                      <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
                     )}
                     <span className={cn(
-                      'text-[10px] font-semibold tabular-nums',
+                      'text-[9px] sm:text-[10px] font-semibold tabular-nums',
                       isPositive ? 'text-emerald-400' : 'text-red-400'
                     )}>
                       {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
@@ -231,8 +240,8 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
         </div>
 
         {/* View All Link */}
-        <div className="mt-4 pt-4 border-t border-white/[0.06]">
-          <button className="w-full py-2 text-xs font-medium text-gray-400 hover:text-cyan-400 transition-colors">
+        <div className="mt-2.5 sm:mt-3 md:mt-4 pt-2.5 sm:pt-3 md:pt-4 border-t border-white/[0.06]">
+          <button className="w-full py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-gray-400 hover:text-cyan-400 transition-colors">
             View Full Watchlist →
           </button>
         </div>

@@ -121,11 +121,19 @@ export function CompanyHeader({
 
   const handleWatchlistToggle = () => {
     setIsWatched(!isWatched);
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(!isWatched ? [10, 50, 10] : 10);
+    }
     // TODO: Implement watchlist API integration
   };
 
   const handleAlertToggle = () => {
     setHasAlert(!hasAlert);
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(!hasAlert ? [10, 50, 10] : 10);
+    }
     // TODO: Implement price alerts
   };
 
@@ -189,22 +197,22 @@ export function CompanyHeader({
         )} />
 
         <div className={cn(
-          'relative p-6 transition-all duration-300',
-          isScrolled && 'py-4'
+          'relative p-3 sm:p-4 md:p-5 lg:p-6 transition-all duration-300',
+          isScrolled && 'py-2 sm:py-3 md:py-4'
         )}>
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4 md:gap-5 lg:gap-6">
             {/* Left Section - Company Info */}
             <motion.div 
-              className="flex items-center gap-5"
+              className="flex items-center gap-2.5 sm:gap-3 md:gap-4 lg:gap-5"
               layout
             >
               {/* Logo with glow effect */}
               <motion.div 
                 className={cn(
-                  'relative rounded-2xl overflow-hidden flex items-center justify-center',
+                  'relative rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center',
                   'bg-gradient-to-br from-white/10 to-white/5 border border-white/10',
                   'transition-all duration-300',
-                  isScrolled ? 'h-12 w-12' : 'h-16 w-16'
+                  isScrolled ? 'h-10 w-10 sm:h-12 sm:w-12' : 'h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16'
                 )}
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -214,24 +222,24 @@ export function CompanyHeader({
                     src={logo}
                     alt={`${companyName} logo`}
                     fill
-                    className="object-contain p-2"
+                    className="object-contain p-1.5 sm:p-2"
                     onError={() => setLogoError(true)}
                   />
                 ) : (
                   <Building2 className={cn(
                     'text-gray-500 transition-all',
-                    isScrolled ? 'h-6 w-6' : 'h-8 w-8'
+                    isScrolled ? 'h-5 w-5 sm:h-6 sm:w-6' : 'h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8'
                   )} />
                 )}
               </motion.div>
 
               {/* Company Details */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-3">
+              <div className="space-y-0.5 sm:space-y-1">
+                <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
                   <motion.h1 
                     className={cn(
                       'font-semibold text-white transition-all duration-300',
-                      isScrolled ? 'text-xl' : 'text-2xl'
+                      isScrolled ? 'text-base sm:text-lg md:text-xl' : 'text-lg sm:text-xl md:text-2xl'
                     )}
                     layout
                   >
@@ -239,11 +247,11 @@ export function CompanyHeader({
                   </motion.h1>
                   <motion.button
                     onClick={handleCopySymbol}
-                    className="group flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5BB9F7]/10 border border-[#5BB9F7]/30 hover:bg-[#5BB9F7]/20 transition-all duration-200"
+                    className="group flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 md:px-3 py-0.5 sm:py-1 rounded-full bg-[#5BB9F7]/10 border border-[#5BB9F7]/30 hover:bg-[#5BB9F7]/20 transition-all duration-200"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <span className="text-[#5BB9F7] text-sm font-medium">{symbol}</span>
+                    <span className="text-[#5BB9F7] text-xs sm:text-sm font-medium">{symbol}</span>
                     <AnimatePresence mode="wait">
                       {copied ? (
                         <motion.div
@@ -262,7 +270,7 @@ export function CompanyHeader({
                           exit={{ opacity: 0, scale: 0.5 }}
                           className="opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <Copy className="h-3 w-3 text-[#5BB9F7]" />
+                          <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#5BB9F7]" />
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -272,7 +280,7 @@ export function CompanyHeader({
                 <AnimatePresence>
                   {!isScrolled && (sector || industry) && (
                     <motion.div 
-                      className="flex items-center gap-2 text-sm text-gray-400"
+                      className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-400"
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
@@ -288,15 +296,15 @@ export function CompanyHeader({
 
             {/* Center Section - Price Display */}
             <motion.div 
-              className="flex flex-col items-start lg:items-center gap-1"
+              className="flex flex-col items-start lg:items-center gap-0.5 sm:gap-1"
               layout
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <AnimatedPrice 
                   value={price} 
                   className={cn(
                     'font-light tracking-tight text-white metric-thin transition-all duration-300',
-                    isScrolled ? 'text-3xl lg:text-4xl' : 'text-4xl lg:text-5xl'
+                    isScrolled ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-3xl sm:text-4xl lg:text-5xl'
                   )}
                 />
                 <LiveIndicator />
@@ -304,7 +312,7 @@ export function CompanyHeader({
               
               <motion.div
                 className={cn(
-                  'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium',
+                  'flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium',
                   isPositive
                     ? 'bg-[#3FE3C2]/10 text-[#3FE3C2] border border-[#3FE3C2]/20'
                     : 'bg-red-500/10 text-red-400 border border-red-500/20'
@@ -319,9 +327,9 @@ export function CompanyHeader({
                   transition={{ repeat: Infinity, repeatType: 'reverse', duration: 1.5 }}
                 >
                   {isPositive ? (
-                    <TrendingUp className="h-4 w-4" />
+                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                   ) : (
-                    <TrendingDown className="h-4 w-4" />
+                    <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />
                   )}
                 </motion.div>
                 <span>{isPositive ? '+' : ''}{formatPrice(change)}</span>
@@ -331,7 +339,7 @@ export function CompanyHeader({
 
             {/* Right Section - Key Stats & Actions */}
             <motion.div 
-              className="flex flex-wrap items-center gap-4 lg:gap-6"
+              className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6"
               layout
             >
               {/* Stats - hide on compact mode */}
@@ -345,8 +353,8 @@ export function CompanyHeader({
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
                     >
-                      <span className="text-[10px] uppercase tracking-wider text-gray-500 mb-1">Market Cap</span>
-                      <span className="text-lg font-medium text-white">
+                      <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 mb-0.5 sm:mb-1">Market Cap</span>
+                      <span className="text-sm sm:text-base md:text-lg font-medium text-white">
                         {formatLargeNumber(marketCap)}
                       </span>
                     </motion.div>
@@ -360,8 +368,8 @@ export function CompanyHeader({
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: 0.1 }}
                       >
-                        <span className="text-[10px] uppercase tracking-wider text-gray-500 mb-1">P/E</span>
-                        <span className="text-lg font-medium text-white">
+                        <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 mb-0.5 sm:mb-1">P/E</span>
+                        <span className="text-sm sm:text-base md:text-lg font-medium text-white">
                           {peRatio.toFixed(2)}
                         </span>
                       </motion.div>
@@ -376,8 +384,8 @@ export function CompanyHeader({
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: 0.2 }}
                       >
-                        <span className="text-[10px] uppercase tracking-wider text-gray-500 mb-1">Div Yield</span>
-                        <span className="text-lg font-medium text-[#3FE3C2]">
+                        <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 mb-0.5 sm:mb-1">Div Yield</span>
+                        <span className="text-sm sm:text-base md:text-lg font-medium text-[#3FE3C2]">
                           {(dividendYield * 100).toFixed(2)}%
                         </span>
                       </motion.div>
@@ -387,12 +395,12 @@ export function CompanyHeader({
               </AnimatePresence>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {/* Alert Button */}
                 <motion.button
                   onClick={handleAlertToggle}
                   className={cn(
-                    'h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-200',
+                    'h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200',
                     hasAlert
                       ? 'bg-[#F59E0B] text-white shadow-lg shadow-[#F59E0B]/25'
                       : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
@@ -402,9 +410,9 @@ export function CompanyHeader({
                   title={hasAlert ? 'Remove alert' : 'Set price alert'}
                 >
                   {hasAlert ? (
-                    <BellRing className="h-5 w-5" />
+                    <BellRing className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
                   ) : (
-                    <Bell className="h-5 w-5" />
+                    <Bell className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
                   )}
                 </motion.button>
 
@@ -412,7 +420,7 @@ export function CompanyHeader({
                 <motion.button
                   onClick={handleWatchlistToggle}
                   className={cn(
-                    'h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-200',
+                    'h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200',
                     isWatched
                       ? 'bg-[#5BB9F7] text-white shadow-lg shadow-[#5BB9F7]/25'
                       : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
@@ -421,18 +429,18 @@ export function CompanyHeader({
                   whileTap={{ scale: 0.95 }}
                   title={isWatched ? 'Remove from watchlist' : 'Add to watchlist'}
                 >
-                  <Star className={cn('h-5 w-5', isWatched && 'fill-current')} />
+                  <Star className={cn('h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5', isWatched && 'fill-current')} />
                 </motion.button>
 
                 {/* Share Button */}
                 <motion.button
                   onClick={handleShare}
-                  className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200"
+                  className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-lg sm:rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   title="Share"
                 >
-                  <Share2 className="h-5 w-5" />
+                  <Share2 className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
                 </motion.button>
               </div>
             </motion.div>

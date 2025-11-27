@@ -21,7 +21,7 @@ interface TerminalPanelProps {
   onRefresh?: () => void
   onClose?: () => void
   badge?: string
-  badgeColor?: 'green' | 'red' | 'amber' | 'cyan'
+  badgeColor?: 'green' | 'red' | 'amber' | 'cyan' | 'blue' | 'violet'
   headerRight?: ReactNode
   noPadding?: boolean
 }
@@ -46,6 +46,8 @@ export function TerminalPanel({
     red: 'bg-red-500/20 text-red-400 border-red-500/30',
     amber: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
     cyan: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+    blue: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    violet: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
   }
 
   return (

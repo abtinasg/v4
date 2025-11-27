@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GlassCard, PulsingDot } from '@/components/ui/cinematic'
+import { useHaptic } from '@/lib/hooks'
 
 interface MarketIndexCardProps {
   symbol: string
@@ -24,7 +25,13 @@ export function MarketIndexCard({
   sparklineData = [],
   index = 0,
 }: MarketIndexCardProps) {
+  const { triggerHaptic } = useHaptic()
   const isPositive = changePercent >= 0
+
+  const handleClick = () => {
+    triggerHaptic('light')
+    window.location.href = `/dashboard/stock-analysis?symbol=${symbol}`
+  }
   
   // Generate sparkline path
   const generateSparklinePath = (data: number[]) => {
@@ -60,9 +67,10 @@ export function MarketIndexCard({
     >
       <GlassCard 
         hover
+        onClick={handleClick}
         className={cn(
-          'relative p-4 h-[110px] overflow-hidden group cursor-pointer',
-          'transition-all duration-300',
+          'relative p-2.5 sm:p-3 md:p-4 h-[85px] sm:h-[95px] md:h-[110px] overflow-hidden group cursor-pointer',
+          'transition-all duration-300 rounded-lg sm:rounded-xl',
           'hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(0,212,255,0.1)]'
         )}
       >
@@ -75,15 +83,15 @@ export function MarketIndexCard({
         )} />
         
         {/* Top row: Name + LIVE indicator */}
-        <div className="relative flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+        <div className="relative flex items-center justify-between mb-1 sm:mb-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-gray-500">
               {name}
             </span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <PulsingDot color="green" size="sm" />
-            <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400/80">
+            <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-emerald-400/80">
               LIVE
             </span>
           </div>
@@ -100,20 +108,20 @@ export function MarketIndexCard({
             </p>
             
             {/* Change */}
-            <div className="flex items-center gap-2 mt-1.5">
+            <div className="flex items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5">
               <span className={cn(
-                'flex items-center gap-0.5 text-xs font-semibold',
+                'flex items-center gap-0.5 text-[10px] sm:text-xs font-semibold',
                 isPositive ? 'text-emerald-400' : 'text-red-400'
               )}>
                 {isPositive ? (
-                  <TrendingUp className="w-3 h-3" />
+                  <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 ) : (
-                  <TrendingDown className="w-3 h-3" />
+                  <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 )}
                 {isPositive ? '+' : ''}{change.toFixed(2)}
               </span>
               <span className={cn(
-                'text-[10px] font-bold px-1.5 py-0.5 rounded',
+                'text-[9px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded',
                 isPositive 
                   ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' 
                   : 'bg-red-500/15 text-red-400 border border-red-500/20'

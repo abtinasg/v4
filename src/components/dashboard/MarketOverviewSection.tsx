@@ -78,14 +78,14 @@ export function MarketOverviewSection() {
   const isMarketOpen = marketStatus?.status === 'open'
 
   return (
-    <section className="space-y-4 sm:space-y-5">
+    <section className="space-y-2.5 sm:space-y-4 md:space-y-5">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-        <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           <div className="relative">
             {/* Glow behind title */}
             <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500/20 via-transparent to-violet-500/20 blur-xl opacity-50" />
-            <h2 className="relative text-base sm:text-lg font-semibold text-white tracking-tight">
+            <h2 className="relative text-sm sm:text-base md:text-lg font-semibold text-white tracking-tight">
               Market Overview
             </h2>
           </div>
@@ -97,7 +97,7 @@ export function MarketOverviewSection() {
             {isMarketOpen ? 'Market Open' : 'Market Closed'}
           </GlassPill>
           {marketStatus?.nextChange && (
-            <span className="hidden sm:flex text-xs text-gray-500 items-center gap-1.5">
+            <span className="hidden md:flex text-xs text-gray-500 items-center gap-1.5">
               <Clock className="w-3 h-3" />
               {marketStatus.nextChange}
             </span>
@@ -107,14 +107,14 @@ export function MarketOverviewSection() {
           onClick={fetchData}
           disabled={isLoading}
           className={cn(
-            'p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]',
+            'p-1.5 sm:p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]',
             'hover:bg-white/[0.06] hover:border-cyan-500/30',
             'text-gray-400 hover:text-cyan-400 transition-all duration-300',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'hover:shadow-[0_0_20px_rgba(0,212,255,0.15)]'
           )}
         >
-          <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
+          <RefreshCw className={cn('w-3.5 h-3.5 sm:w-4 sm:h-4', isLoading && 'animate-spin')} />
         </button>
       </div>
 
@@ -126,7 +126,7 @@ export function MarketOverviewSection() {
       )}
 
       {/* Responsive Grid - 2 cols on mobile, 3 on tablet, 5 on desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
         {isLoading ? (
           // Loading skeletons
           Array.from({ length: 5 }).map((_, i) => (
@@ -135,7 +135,7 @@ export function MarketOverviewSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.1 }}
-              className="h-[110px] rounded-xl bg-[#0C1017]/60 backdrop-blur-xl border border-white/[0.06] p-4"
+              className="h-[85px] sm:h-[95px] md:h-[110px] rounded-lg sm:rounded-xl bg-[#0C1017]/60 backdrop-blur-xl border border-white/[0.06] p-2.5 sm:p-3 md:p-4"
             >
               <div className="space-y-3">
                 <div className="h-3 w-16 bg-white/[0.05] rounded animate-pulse" />

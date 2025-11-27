@@ -60,11 +60,11 @@ function MetricRow({ metric, index }: { metric: MetricItem; index: number }) {
 
   return (
     <div 
-      className="metric-row-hover flex items-center justify-between py-3 matte-separator last:after:hidden group"
+      className="metric-row-hover flex items-center justify-between py-2 sm:py-2.5 md:py-3 matte-separator last:after:hidden group"
       style={{ animationDelay: `${index * 30}ms` }}
     >
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors duration-200">
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <span className="text-xs sm:text-sm text-gray-400 group-hover:text-gray-200 transition-colors duration-200">
           {metric.label}
         </span>
         {metric.tooltip && (
@@ -74,7 +74,7 @@ function MetricRow({ metric, index }: { metric: MetricItem; index: number }) {
               onMouseLeave={() => setShowTooltip(false)}
               className="text-gray-600 hover:text-cyan-400 transition-colors duration-200"
             >
-              <Info className="h-3.5 w-3.5" />
+              <Info className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
             {showTooltip && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 glass-premium rounded-lg text-xs text-gray-300 w-52 z-50 shadow-2xl">
@@ -86,23 +86,23 @@ function MetricRow({ metric, index }: { metric: MetricItem; index: number }) {
         )}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* Change indicator */}
         {metric.change !== undefined && (
           <span
             className={cn(
-              'flex items-center gap-1 text-xs font-medium',
+              'flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-medium',
               metric.change > 0 ? 'text-[#3FE3C2] drop-shadow-[0_0_4px_rgba(63,227,194,0.4)]' : 
               metric.change < 0 ? 'text-red-400 drop-shadow-[0_0_4px_rgba(248,113,113,0.4)]' : 
               'text-gray-500'
             )}
           >
             {metric.change > 0 ? (
-              <TrendingUp className="h-3 w-3" />
+              <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             ) : metric.change < 0 ? (
-              <TrendingDown className="h-3 w-3" />
+              <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             ) : (
-              <Minus className="h-3 w-3" />
+              <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             )}
             {metric.change > 0 ? '+' : ''}
             {(metric.change * 100).toFixed(1)}%
@@ -112,7 +112,7 @@ function MetricRow({ metric, index }: { metric: MetricItem; index: number }) {
         {/* Value with dynamic glow */}
         <span
           className={cn(
-            'text-sm font-semibold min-w-[80px] text-right transition-all duration-200',
+            'text-xs sm:text-sm font-semibold min-w-[70px] sm:min-w-[80px] text-right transition-all duration-200',
             metric.status ? `${statusClasses.text} ${statusClasses.glow}` : 'text-white'
           )}
         >
@@ -123,15 +123,24 @@ function MetricRow({ metric, index }: { metric: MetricItem; index: number }) {
   );
 }
 
-// Premium Glassmorphic Metric Card
+// Premium Glassmorphic Metric Card with Progressive Disclosure
 export function MetricCard({ title, description, metrics, icon, className }: MetricCardProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
   const scoreMetric = metrics.find((m) => m.format === 'score');
   const regularMetrics = metrics.filter((m) => m.format !== 'score');
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  };
 
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl p-6 animate-fade-up',
+        'relative overflow-hidden rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 animate-fade-up',
         'glass-premium corner-gradient',
         'hover:border-white/15 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
         'transition-all duration-300 group',
@@ -142,37 +151,61 @@ export function MetricCard({ title, description, metrics, icon, className }: Met
       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
       
       {/* Header */}
-      <div className="relative flex items-start justify-between mb-5">
-        <div className="flex items-center gap-3">
+      <div className="relative flex items-start justify-between mb-3 sm:mb-4 md:mb-5">
+        <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3 flex-1">
           {icon && (
-            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center text-cyan-400 group-hover:text-cyan-300 group-hover:border-cyan-500/30 transition-all duration-300 shadow-lg">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 rounded-lg sm:rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center text-cyan-400 group-hover:text-cyan-300 group-hover:border-cyan-500/30 transition-all duration-300 shadow-lg shrink-0">
               {icon}
             </div>
           )}
-          <div>
-            <h3 className="text-base font-semibold text-white neon-underline pb-1">{title}</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm sm:text-base font-semibold text-white neon-underline pb-0.5 sm:pb-1">{title}</h3>
             {description && (
-              <p className="text-xs text-gray-500 mt-1.5">{description}</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-1.5">{description}</p>
             )}
           </div>
         </div>
+        
+        {/* Collapse/Expand Button - Mobile Only */}
+        <button
+          onClick={toggleExpand}
+          className="sm:hidden ml-2 p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors touch-manipulation"
+          aria-label={isExpanded ? 'Collapse' : 'Expand'}
+        >
+          <svg 
+            className={cn('w-4 h-4 transition-transform duration-300', !isExpanded && 'rotate-180')}
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
       </div>
 
-      {/* Metrics List */}
-      <div className="relative space-y-0">
-        {regularMetrics.map((metric, index) => (
-          <MetricRow key={`${metric.label}-${index}`} metric={metric} index={index} />
-        ))}
+      {/* Metrics List with Collapse Animation */}
+      <div 
+        className={cn(
+          'relative overflow-hidden transition-all duration-300',
+          !isExpanded && 'max-h-0 opacity-0 sm:max-h-full sm:opacity-100',
+          isExpanded && 'max-h-[2000px] opacity-100'
+        )}
+      >
+        <div className="space-y-0">
+          {regularMetrics.map((metric, index) => (
+            <MetricRow key={`${metric.label}-${index}`} metric={metric} index={index} />
+          ))}
+        </div>
       </div>
 
       {/* Score Bar (if applicable) */}
       {scoreMetric && (
-        <div className="relative mt-4 pt-4 border-t border-white/5">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wider">Score</span>
-            <span className="text-sm font-bold text-white">{Math.round(scoreMetric.value as number)}/100</span>
+        <div className="relative mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/5">
+          <div className="flex justify-between items-center mb-1.5 sm:mb-2">
+            <span className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">Score</span>
+            <span className="text-xs sm:text-sm font-bold text-white">{Math.round(scoreMetric.value as number)}/100</span>
           </div>
-          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+          <div className="h-1.5 sm:h-2 bg-white/5 rounded-full overflow-hidden">
             <div
               className={cn(
                 'h-full rounded-full transition-all duration-1000 ease-out',

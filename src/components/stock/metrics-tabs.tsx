@@ -60,12 +60,12 @@ function OverviewTab({ metrics }: { metrics: AllMetrics }) {
   return (
     <div className="space-y-7">
       {/* Score Cards Row - with stagger animation */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
         <div style={{ animationDelay: '0ms' }} className="animate-fade-up">
           <ScoreCard
             title="Overall"
             score={scores.totalScore}
-            icon={<Target className="h-4 w-4" />}
+            icon={<Target className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             description="Composite score"
           />
         </div>
@@ -73,41 +73,41 @@ function OverviewTab({ metrics }: { metrics: AllMetrics }) {
           <ScoreCard
             title="Profitability"
             score={scores.profitabilityScore}
-            icon={<PiggyBank className="h-4 w-4" />}
+            icon={<PiggyBank className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           />
         </div>
         <div style={{ animationDelay: '100ms' }} className="animate-fade-up">
           <ScoreCard
             title="Growth"
             score={scores.growthScore}
-            icon={<Sprout className="h-4 w-4" />}
+            icon={<Sprout className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           />
         </div>
         <div style={{ animationDelay: '150ms' }} className="animate-fade-up">
           <ScoreCard
             title="Valuation"
             score={scores.valuationScore}
-            icon={<Calculator className="h-4 w-4" />}
+            icon={<Calculator className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           />
         </div>
         <div style={{ animationDelay: '200ms' }} className="animate-fade-up">
           <ScoreCard
             title="Risk"
             score={scores.riskScore}
-            icon={<Shield className="h-4 w-4" />}
+            icon={<Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           />
         </div>
         <div style={{ animationDelay: '250ms' }} className="animate-fade-up">
           <ScoreCard
             title="Health"
             score={scores.healthScore}
-            icon={<Activity className="h-4 w-4" />}
+            icon={<Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           />
         </div>
       </div>
 
       {/* Key Metrics Grid - with stagger animation */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
         {/* Valuation Snapshot */}
         <MetricCard
           title="Valuation"
@@ -882,12 +882,44 @@ function generateInsights(metrics: AllMetrics): Array<{ title: string; descripti
 
 export function MetricsTabs({ symbol, metrics, sector, industry }: MetricsTabsProps) {
   const [activeTab, setActiveTab] = useState<MetricsTabValue>('overview');
+  const [isSticky, setIsSticky] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  // Detect when tabs should become sticky
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsSticky(!entry.isIntersecting);
+      },
+      { threshold: [1], rootMargin: '-1px 0px 0px 0px' }
+    );
+
+    if (tabsRef.current) {
+      observer.observe(tabsRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="space-y-7">
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as MetricsTabValue)} className="w-full">
-        {/* Premium Tab List */}
-        <TabsList className="w-full justify-start glass-premium rounded-2xl p-1.5 h-auto flex-wrap gap-1">
+        {/* Sticky Tabs Wrapper */}
+        <div 
+          ref={tabsRef}
+          className={cn(
+            'sticky top-14 sm:top-16 z-30 transition-all duration-300',
+            isSticky && 'shadow-lg shadow-black/20 backdrop-blur-xl'
+          )}
+          style={{
+            backgroundColor: isSticky ? 'rgba(10, 13, 18, 0.95)' : 'transparent',
+          }}
+        >
+          {/* Premium Tab List */}
+          <TabsList className={cn(
+            'w-full justify-start glass-premium rounded-2xl p-1.5 h-auto flex-wrap gap-1',
+            isSticky && 'rounded-none border-b border-white/10'
+          )}>
           {TABS.map((tab, index) => (
             <TabsTrigger
               key={tab.value}
@@ -906,6 +938,7 @@ export function MetricsTabs({ symbol, metrics, sector, industry }: MetricsTabsPr
             </TabsTrigger>
           ))}
         </TabsList>
+        </div>
 
         {/* Tab Content with fade animation */}
         <TabsContent value="overview" className="mt-7 animate-fade-up">
