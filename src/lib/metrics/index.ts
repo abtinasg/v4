@@ -14,6 +14,7 @@ import { qualityMetrics } from './quality'
 import { growthMetrics } from './growth'
 import { efficiencyMetrics } from './efficiency'
 import { technicalMetrics } from './technical'
+import { dupontMetrics } from './dupont'
 
 // Re-export types
 export * from './types'
@@ -25,6 +26,7 @@ export * from './quality'
 export * from './growth'
 export * from './efficiency'
 export * from './technical'
+export * from './dupont'
 
 /**
  * Metrics Registry
@@ -48,6 +50,7 @@ class MetricsRegistry {
     this.registerMetrics(growthMetrics)
     this.registerMetrics(efficiencyMetrics)
     this.registerMetrics(technicalMetrics)
+    this.registerMetrics(dupontMetrics)
   }
 
   /**
