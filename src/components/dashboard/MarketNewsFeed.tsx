@@ -109,33 +109,20 @@ export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
   const fetchNews = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/market/news')
+      const response = await fetch('/api/market/news?limit=5')
       if (!response.ok) throw new Error('Failed to fetch')
       const result = await response.json()
 
-      // API returns { success, news } or { success, data }
-      const newsData = result.news || result.data
-      if (result.success && newsData && newsData.length > 0) {
-        const mapped: NewsItem[] = newsData.slice(0, 5).map((item: {
-          id?: string
-          headline: string
-          summary: string
-          timeAgo?: string
-          time?: string
-          source: string
-          sentiment?: 'bullish' | 'bearish' | 'neutral'
-          category?: string
-          symbol?: string
-          url?: string
-        }, index: number) => ({
-          id: item.id || String(index + 1),
+      if (result.success && result.news && result.news.length > 0) {
+        const mapped: NewsItem[] = result.news.map((item: any) => ({
+          id: item.id || String(Math.random()),
           headline: item.headline,
           summary: item.summary || 'No summary available',
-          timeAgo: item.timeAgo || (item.time ? formatTimeAgo(item.time) : 'Recently'),
+          timeAgo: item.timeAgo || 'Recently',
           source: item.source || 'Financial News',
-          sentiment: item.sentiment || detectSentiment(item.headline, item.summary || ''),
-          category: item.category || detectCategory(item.headline, item.symbol),
-          url: item.url,
+          sentiment: item.sentiment || 'neutral',
+          category: item.category || 'Market',
+          url: item.url || '#',
         }))
         setNews(mapped)
       }
@@ -242,10 +229,13 @@ export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
 
         {/* View All Link */}
         <div className="mt-4 pt-4 border-t border-white/[0.06]">
-          <button className="w-full flex items-center justify-center gap-2 py-2 text-xs font-medium text-gray-400 hover:text-cyan-400 transition-colors group">
+          <a 
+            href="/dashboard/news"
+            className="w-full flex items-center justify-center gap-2 py-2 text-xs font-medium text-gray-400 hover:text-cyan-400 transition-colors group"
+          >
             View All News
             <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-          </button>
+          </a>
         </div>
       </GlassCard>
     </motion.div>

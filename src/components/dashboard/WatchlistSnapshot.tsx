@@ -78,31 +78,60 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
   const fetchWatchlist = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/market/watchlist')
-      if (!response.ok) throw new Error('Failed to fetch')
+      // Get user's watchlists
+      const response = await fetch('/api/watchlists')
+      
+      // If unauthorized or error, use default watchlist
+      if (!response.ok) {
+        console.log('Failed to fetch watchlists, using default')
+        setWatchlist(defaultWatchlist)
+        setIsLoading(false)
+        return
+      }
+      
       const result = await response.json()
 
-      if (result.success && result.data && result.data.length > 0) {
-        const mapped = result.data.map((item: {
-          symbol: string
-          name: string
-          price: number
-          change: number
-          changePercent: number
-        }) => ({
-          symbol: item.symbol,
-          name: item.name,
-          price: item.price,
-          change: item.change,
-          changePercent: item.changePercent,
+      // Get the first watchlist (or default watchlist) with items
+      const userWatchlist = result.watchlists?.[0]
+      
+      if (!userWatchlist || !userWatchlist.items || userWatchlist.items.length === 0) {
+        // No watchlist items found, use default mock data
+        console.log('No watchlist items found, using default')
+        setWatchlist(defaultWatchlist)
+        setIsLoading(false)
+        return
+      }
+
+      // Get symbols from watchlist items (limit to 5 for dashboard)
+      const symbols = userWatchlist.items.slice(0, 5).map((item: any) => item.symbol)
+      
+      // Fetch quotes for all symbols
+      const quotesResponse = await fetch(`/api/stocks/quote?symbols=${symbols.join(',')}`)
+      if (!quotesResponse.ok) throw new Error('Failed to fetch quotes')
+      const quotesResult = await quotesResponse.json()
+
+      if (quotesResult.success && quotesResult.quotes && quotesResult.quotes.length > 0) {
+        const mapped = quotesResult.quotes.map((quote: any) => ({
+          symbol: quote.symbol,
+          name: quote.name || quote.shortName || quote.longName || quote.symbol,
+          price: quote.price || quote.regularMarketPrice || 0,
+          change: quote.change || quote.regularMarketChange || 0,
+          changePercent: quote.changePercent || quote.regularMarketChangePercent || 0,
           // Generate synthetic sparkline from current price
-          sparklineData: generateSparkline(item.price, item.changePercent),
+          sparklineData: generateSparkline(
+            quote.price || quote.regularMarketPrice || 0, 
+            quote.changePercent || quote.regularMarketChangePercent || 0
+          ),
         }))
         setWatchlist(mapped)
+      } else {
+        // If quotes failed, use default watchlist
+        setWatchlist(defaultWatchlist)
       }
     } catch (error) {
       console.error('Error fetching watchlist:', error)
       // Keep default watchlist on error
+      setWatchlist(defaultWatchlist)
     } finally {
       setIsLoading(false)
     }

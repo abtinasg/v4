@@ -9,26 +9,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { watchlistQueries, userQueries } from '@/lib/db/queries'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 // GET - Get user's watchlists
 export async function GET() {
   try {
     const { userId: clerkId } = await auth()
     
     if (!clerkId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      // Return empty watchlists for unauthenticated users instead of error
+      return NextResponse.json({ watchlists: [] })
     }
 
     // Get user from database
     const user = await userQueries.getByClerkId(clerkId)
     
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
+      // User not in database yet, return empty watchlists
+      return NextResponse.json({ watchlists: [] })
     }
 
     // Get all watchlists with items

@@ -20,11 +20,22 @@ interface FMPNews {
   url: string
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const limit = searchParams.get('limit') || '20'
+    const symbol = searchParams.get('symbol')
+    const page = parseInt(searchParams.get('page') || '0')
+    
     const apiKey = getApiKey()
-    // Get general stock news
-    const url = `${FMP_BASE_URL}/stock_news?limit=10&apikey=${apiKey}`
+    
+    // Get stock-specific news or general stock news
+    let url: string
+    if (symbol) {
+      url = `${FMP_BASE_URL}/stock_news?tickers=${symbol}&limit=${limit}&apikey=${apiKey}`
+    } else {
+      url = `${FMP_BASE_URL}/stock_news?limit=${limit}&page=${page}&apikey=${apiKey}`
+    }
     
     const response = await fetch(url, {
       next: { revalidate: 300 }, // Cache for 5 minutes
@@ -36,8 +47,8 @@ export async function GET() {
 
     const data: FMPNews[] = await response.json()
 
-    // Map to our format and take top 5
-    const news = data.slice(0, 5).map((item) => {
+    // Map to our format
+    const news = data.map((item) => {
       const publishedDate = new Date(item.publishedDate)
       const now = new Date()
       const diffMs = now.getTime() - publishedDate.getTime()
@@ -80,18 +91,23 @@ export async function GET() {
         id: item.publishedDate + item.title.slice(0, 20),
         headline: item.title,
         summary: item.text.slice(0, 200) + (item.text.length > 200 ? '...' : ''),
+        fullText: item.text,
         timeAgo,
+        publishedDate: item.publishedDate,
         source: item.site,
         sentiment,
         category,
         url: item.url,
         symbol: item.symbol || null,
+        image: item.image || null,
       }
     })
 
     return NextResponse.json({
       success: true,
       news,
+      total: data.length,
+      page: page,
       lastUpdated: new Date().toISOString(),
     })
   } catch (error) {
