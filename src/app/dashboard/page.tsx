@@ -9,7 +9,6 @@ import {
   AIInsightBox,
   EconomicIndicatorsSection,
   SectorHeatmap,
-  WatchlistSnapshot,
   MarketNewsFeed,
 } from "@/components/dashboard"
 import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh'
@@ -132,17 +131,9 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* SECTION 4 — WATCHLIST SNAPSHOT + NEWS FEED (60/40 split) */}
-        <section className="grid grid-cols-1 xl:grid-cols-12 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-          {/* Left: Watchlist Snapshot (60% = ~7 cols) */}
-          <div className="xl:col-span-7">
-            <WatchlistSnapshot />
-          </div>
-          
-          {/* Right: Market News (40% = ~5 cols) */}
-          <div className="xl:col-span-5">
-            <MarketNewsFeed />
-          </div>
+        {/* SECTION 4 — NEWS FEED (full width) */}
+        <section>
+          <MarketNewsFeed />
         </section>
 
         {/* Footer spacing */}
