@@ -159,6 +159,37 @@ export const watchlistQueries = {
       .returning()
     return updated
   },
+
+  // Get or create default watchlist for user with popular stocks
+  getOrCreateDefault: async (userId: string) => {
+    // Check if user already has watchlists
+    const existingWatchlists = await watchlistQueries.getByUserId(userId)
+    
+    if (existingWatchlists && existingWatchlists.length > 0) {
+      return existingWatchlists[0]
+    }
+
+    // Create default watchlist with popular stocks
+    const watchlist = await watchlistQueries.create({
+      userId,
+      name: 'My Watchlist',
+      isDefault: true,
+    })
+
+    // Add popular stocks
+    const defaultSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']
+    for (const symbol of defaultSymbols) {
+      await watchlistQueries.addItem({
+        watchlistId: watchlist.id,
+        symbol,
+        notes: null,
+      })
+    }
+
+    // Fetch and return the complete watchlist with items
+    const completeWatchlist = await watchlistQueries.getById(watchlist.id)
+    return completeWatchlist
+  },
 }
 
 // ==================== STOCK ALERT QUERIES ====================

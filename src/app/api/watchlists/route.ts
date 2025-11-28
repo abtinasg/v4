@@ -23,15 +23,35 @@ export async function GET() {
     }
 
     // Get user from database
-    const user = await userQueries.getByClerkId(clerkId)
+    let user = await userQueries.getByClerkId(clerkId)
     
     if (!user) {
-      // User not in database yet, return empty watchlists
-      return NextResponse.json({ watchlists: [] })
+      // User not in database yet, create them
+      console.log('📝 Creating new user in database for clerkId:', clerkId)
+      const newUser = await userQueries.create({
+        clerkId,
+        email: '', // Will be updated by webhook
+        subscriptionTier: 'free',
+      })
+      // Re-fetch to get the full user with preferences relation
+      user = await userQueries.getByClerkId(clerkId)
+      if (!user) {
+        console.error('Failed to create user')
+        return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
+      }
+      console.log('✅ User created with id:', newUser.id)
     }
 
     // Get all watchlists with items
-    const watchlists = await watchlistQueries.getByUserId(user.id)
+    let watchlists = await watchlistQueries.getByUserId(user.id)
+
+    // If user has no watchlists, create a default one with popular stocks
+    if (!watchlists || watchlists.length === 0) {
+      console.log('📋 Creating default watchlist for user:', user.id)
+      const defaultWatchlist = await watchlistQueries.getOrCreateDefault(user.id)
+      watchlists = defaultWatchlist ? [defaultWatchlist] : []
+      console.log('✅ Default watchlist created with', defaultWatchlist?.items?.length || 0, 'items')
+    }
 
     return NextResponse.json({ watchlists })
   } catch (error) {

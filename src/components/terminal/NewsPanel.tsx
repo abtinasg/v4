@@ -107,15 +107,45 @@ export function NewsPanel({ className }: NewsPanelProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [activeCategory, setActiveCategory] = useState<'all' | NewsItem['category']>('all')
 
+  const mapCategory = (apiCategory: string): NewsItem['category'] => {
+    const lower = apiCategory.toLowerCase()
+    if (lower.includes('macro') || lower.includes('fed')) return 'fed'
+    if (lower.includes('earning')) return 'earnings'
+    if (lower.includes('econom')) return 'economy'
+    return 'market'
+  }
+
   const fetchData = async () => {
     setIsLoading(true)
-    // In production, fetch real news
-    setTimeout(() => setIsLoading(false), 500)
+    try {
+      const response = await fetch('/api/market/news?limit=15')
+      if (!response.ok) throw new Error('Failed to fetch')
+      const result = await response.json()
+
+      if (result.success && result.news) {
+        const mapped: NewsItem[] = result.news.map((item: any) => ({
+          id: item.id || String(Math.random()),
+          headline: item.headline,
+          source: item.source || 'Financial News',
+          time: item.timeAgo || 'Recently',
+          timestamp: new Date(item.publishedDate || Date.now()),
+          sentiment: item.sentiment === 'bullish' ? 'positive' : item.sentiment === 'bearish' ? 'negative' : 'neutral',
+          category: mapCategory(item.category || 'market'),
+          symbols: item.symbol ? [item.symbol] : undefined,
+        }))
+        setNews(mapped)
+      }
+    } catch (error) {
+      console.error('Error fetching news:', error)
+      // Keep default news on error
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {
     fetchData()
-    const interval = setInterval(fetchData, 60000)
+    const interval = setInterval(fetchData, 120000) // Refresh every 2 minutes
     return () => clearInterval(interval)
   }, [])
 
@@ -214,9 +244,9 @@ export function NewsPanel({ className }: NewsPanelProps) {
       <div className="px-3 py-2 border-t border-white/[0.04] bg-black/20">
         <div className="flex items-center justify-between text-[10px] text-gray-500">
           <span>Showing {filteredNews.length} headlines</span>
-          <button className="text-cyan-400 hover:text-cyan-300 transition-colors">
+          <a href="/dashboard/news" className="text-cyan-400 hover:text-cyan-300 transition-colors">
             View All News →
-          </button>
+          </a>
         </div>
       </div>
     </TerminalPanel>

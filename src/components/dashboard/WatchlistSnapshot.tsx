@@ -79,24 +79,28 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
     setIsLoading(true)
     try {
       // Get user's watchlists
+      console.log('🔍 WatchlistSnapshot: Fetching user watchlists...')
       const response = await fetch('/api/watchlists')
       
       // If unauthorized or error, use default watchlist
       if (!response.ok) {
-        console.log('Failed to fetch watchlists, using default')
+        console.log('❌ WatchlistSnapshot: Failed to fetch watchlists (status:', response.status, '), using default mock data')
         setWatchlist(defaultWatchlist)
         setIsLoading(false)
         return
       }
       
       const result = await response.json()
+      console.log('✅ WatchlistSnapshot: Received watchlists:', result.watchlists?.length || 0, 'watchlist(s)')
+      console.log('📋 WatchlistSnapshot: Full response:', JSON.stringify(result, null, 2))
 
       // Get the first watchlist (or default watchlist) with items
       const userWatchlist = result.watchlists?.[0]
       
       if (!userWatchlist || !userWatchlist.items || userWatchlist.items.length === 0) {
         // No watchlist items found, use default mock data
-        console.log('No watchlist items found, using default')
+        console.log('⚠️ WatchlistSnapshot: No watchlist items found, using default mock data')
+        console.log('   userWatchlist:', userWatchlist)
         setWatchlist(defaultWatchlist)
         setIsLoading(false)
         return
@@ -104,11 +108,19 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
 
       // Get symbols from watchlist items (limit to 5 for dashboard)
       const symbols = userWatchlist.items.slice(0, 5).map((item: any) => item.symbol)
+      console.log('📊 WatchlistSnapshot: Fetching quotes for symbols:', symbols.join(', '))
       
       // Fetch quotes for all symbols
       const quotesResponse = await fetch(`/api/stocks/quote?symbols=${symbols.join(',')}`)
-      if (!quotesResponse.ok) throw new Error('Failed to fetch quotes')
+      if (!quotesResponse.ok) {
+        console.log('❌ WatchlistSnapshot: Failed to fetch quotes (status:', quotesResponse.status, ')')
+        const errorText = await quotesResponse.text()
+        console.log('   Error details:', errorText)
+        throw new Error('Failed to fetch quotes')
+      }
       const quotesResult = await quotesResponse.json()
+      console.log('✅ WatchlistSnapshot: Received', quotesResult.quotes?.length || 0, 'quote(s)')
+      console.log('📊 WatchlistSnapshot: Quotes data:', JSON.stringify(quotesResult, null, 2))
 
       if (quotesResult.success && quotesResult.quotes && quotesResult.quotes.length > 0) {
         const mapped = quotesResult.quotes.map((quote: any) => ({
@@ -123,13 +135,16 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
             quote.changePercent || quote.regularMarketChangePercent || 0
           ),
         }))
+        console.log('🎉 WatchlistSnapshot: Successfully loaded real user data for', mapped.length, 'stocks')
+        console.log('📈 WatchlistSnapshot: Mapped data:', JSON.stringify(mapped, null, 2))
         setWatchlist(mapped)
       } else {
         // If quotes failed, use default watchlist
+        console.log('⚠️ WatchlistSnapshot: Quotes result invalid, using default mock data')
         setWatchlist(defaultWatchlist)
       }
     } catch (error) {
-      console.error('Error fetching watchlist:', error)
+      console.error('❌ WatchlistSnapshot: Error fetching watchlist:', error)
       // Keep default watchlist on error
       setWatchlist(defaultWatchlist)
     } finally {

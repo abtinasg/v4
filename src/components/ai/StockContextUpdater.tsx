@@ -33,17 +33,27 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
       try {
         // Fetch quote data
         const quoteRes = await fetch(`/api/stocks/quote/${symbol}`)
+        if (!quoteRes.ok) {
+          console.error(`❌ Quote API failed for ${symbol}:`, quoteRes.status, await quoteRes.text())
+        }
         const quoteJson = quoteRes.ok ? await quoteRes.json() : null
         const quoteData = quoteJson?.data?.quote || quoteJson?.quote || null
 
         // Fetch metrics data  
         const metricsRes = await fetch(`/api/stock/${symbol}/metrics`)
+        if (!metricsRes.ok) {
+          console.error(`❌ Metrics API failed for ${symbol}:`, metricsRes.status, await metricsRes.text())
+        }
         const metricsJson = metricsRes.ok ? await metricsRes.json() : null
 
         console.log('📊 Fetched data for AI context:', { 
           symbol, 
-          quoteData,
-          metricsJson,
+          quoteSuccess: quoteRes.ok,
+          metricsSuccess: metricsRes.ok,
+          hasQuoteData: !!quoteData,
+          hasMetricsData: !!metricsJson,
+          quotePrice: quoteData?.price,
+          metricsCount: metricsJson?.metrics ? Object.keys(metricsJson.metrics).length : 0,
         })
 
         // Build full stock context
@@ -104,6 +114,17 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
             fiftyDayMA: m.technical?.sma50,
             twoHundredDayMA: m.technical?.sma200,
           }
+          
+          console.log('📈 Metrics extracted for AI:', {
+            symbol,
+            valuationMetrics: Object.keys(m.valuation || {}).length,
+            profitabilityMetrics: Object.keys(m.profitability || {}).length,
+            growthMetrics: Object.keys(m.growth || {}).length,
+            liquidityMetrics: Object.keys(m.liquidity || {}).length,
+            leverageMetrics: Object.keys(m.leverage || {}).length,
+            technicalMetrics: Object.keys(m.technical || {}).length,
+            totalMetricsCategories: Object.keys(m).length,
+          })
         }
 
         // Update the chat context

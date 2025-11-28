@@ -11,6 +11,7 @@ import {
   Star,
   Terminal,
   MessageSquare,
+  Newspaper,
   ChevronLeft,
   ChevronRight,
   Crown,
@@ -112,17 +113,23 @@ const navItems = [
     shortcut: '3',
   },
   {
+    href: '/dashboard/news',
+    icon: Newspaper,
+    label: 'Market News',
+    shortcut: '4',
+  },
+  {
     href: '/dashboard/terminal-pro',
     icon: Terminal,
     label: 'Terminal Pro',
-    shortcut: '4',
+    shortcut: '5',
     badge: 'Pro',
   },
   {
     href: '/dashboard/ai-assistant',
     icon: MessageSquare,
     label: 'AI Assistant',
-    shortcut: '5',
+    shortcut: '6',
     badge: 'New',
   },
 ]
