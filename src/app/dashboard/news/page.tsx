@@ -52,13 +52,13 @@ export default function NewsPage() {
   const fetchNews = async (pageNum: number = 0) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/market/news?limit=20&page=${pageNum}`)
+      const response = await fetch(`/api/market/news?limit=50&page=${pageNum}`)
       if (!response.ok) throw new Error('Failed to fetch')
       const result = await response.json()
 
       if (result.success && result.news) {
         setNews(result.news)
-        setTotalPages(Math.ceil((result.total || result.news.length) / 20))
+        setTotalPages(Math.ceil((result.total || result.news.length) / 50))
         setPage(pageNum)
       }
     } catch (error) {

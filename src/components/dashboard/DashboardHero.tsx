@@ -12,8 +12,13 @@ import {
   LayoutDashboard,
   Clock,
   RefreshCw,
+  Sun,
+  Moon,
+  Sunrise,
+  Sunset,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useUser } from '@clerk/nextjs'
 import { cn } from '@/lib/utils'
 import { GlassCard, GlassPill, PulsingDot } from '@/components/ui/cinematic'
 
@@ -46,6 +51,7 @@ const QUICK_ACTIONS = [
 
 export function DashboardHero({ className }: DashboardHeroProps) {
   const router = useRouter()
+  const { user } = useUser()
   const [now, setNow] = useState(() => new Date())
   const [marketData, setMarketData] = useState<MarketData[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -80,10 +86,24 @@ export function DashboardHero({ className }: DashboardHeroProps) {
 
   const greeting = useMemo(() => {
     const hour = now.getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 18) return 'Good afternoon'
-    return 'Good evening'
+    if (hour >= 5 && hour < 12) return 'Good morning'
+    if (hour >= 12 && hour < 17) return 'Good afternoon'
+    if (hour >= 17 && hour < 21) return 'Good evening'
+    return 'Good night'
   }, [now])
+
+  const greetingIcon = useMemo(() => {
+    const hour = now.getHours()
+    if (hour >= 5 && hour < 12) return <Sunrise className="h-5 w-5 text-amber-400" />
+    if (hour >= 12 && hour < 17) return <Sun className="h-5 w-5 text-yellow-400" />
+    if (hour >= 17 && hour < 21) return <Sunset className="h-5 w-5 text-orange-400" />
+    return <Moon className="h-5 w-5 text-blue-300" />
+  }, [now])
+
+  const userName = useMemo(() => {
+    if (!user) return ''
+    return user.firstName || user.username || ''
+  }, [user])
 
   const formattedDate = useMemo(() => {
     return new Intl.DateTimeFormat('en-US', {
@@ -130,8 +150,12 @@ export function DashboardHero({ className }: DashboardHeroProps) {
                   <PulsingDot color="cyan" />
                   <span>Live Market Data</span>
                 </div>
-                <h1 className="mt-2 text-2xl sm:text-3xl font-semibold text-white">
-                  {greeting}
+                <h1 className="mt-2 text-2xl sm:text-3xl font-semibold text-white flex items-center gap-3">
+                  {greetingIcon}
+                  <span>
+                    {greeting}
+                    {userName && <span className="text-cyan-400">, {userName}</span>}
+                  </span>
                 </h1>
                 <p className="mt-1 text-sm text-gray-400">
                   {formattedDate}

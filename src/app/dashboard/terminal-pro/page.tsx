@@ -315,61 +315,60 @@ F11 - Fullscreen`)
             ))}
           </aside>
 
-          <main className="flex-1 p-1 overflow-hidden">
+          <main className="flex-1 p-1 overflow-auto">
             {/* Market Overview View */}
             {activeView === 'MRKT' && (
-              <div className="h-full grid grid-cols-12 grid-rows-6 gap-1">
-                <MarketIndicesPanel className="col-span-3 row-span-3" />
-                <SectorHeatmapPanel className="col-span-3 row-span-3" />
-                <TopMoversPanel className="col-span-3 row-span-3" />
-                <MarketBreadthPanel className="col-span-3 row-span-2" />
-                <WorldClockPanel className="col-span-3 row-span-1" />
-                <CurrenciesPanel className="col-span-3 row-span-3" />
-                <CommoditiesPanel className="col-span-3 row-span-3" />
-                <CryptoPanel className="col-span-3 row-span-3" />
-                <NewsFeedPanel className="col-span-3 row-span-3" />
+              <div className="grid grid-cols-4 gap-1 auto-rows-min">
+                <MarketIndicesPanel />
+                <SectorHeatmapPanel />
+                <TopMoversPanel />
+                <NewsFeedPanel />
+                <CurrenciesPanel />
+                <CommoditiesPanel />
+                <CryptoPanel />
+                <MarketBreadthPanel />
               </div>
             )}
 
             {/* Equity View */}
             {activeView === 'EQ' && (
-              <div className="h-full grid grid-cols-12 grid-rows-6 gap-1">
-                <MarketIndicesPanel className="col-span-4 row-span-3" />
-                <TopMoversPanel className="col-span-4 row-span-3" />
-                <SectorHeatmapPanel className="col-span-4 row-span-3" />
-                <MarketBreadthPanel className="col-span-6 row-span-3" />
-                <MostActivePanel className="col-span-6 row-span-3" />
+              <div className="grid grid-cols-3 gap-1 auto-rows-min">
+                <MarketIndicesPanel />
+                <TopMoversPanel />
+                <SectorHeatmapPanel />
+                <MarketBreadthPanel />
+                <MostActivePanel />
               </div>
             )}
 
             {/* Forex View */}
             {activeView === 'FX' && (
-              <div className="h-full grid grid-cols-12 grid-rows-6 gap-1">
-                <CurrenciesPanel className="col-span-6 row-span-6" />
-                <ForexCrossPanel className="col-span-6 row-span-6" />
+              <div className="grid grid-cols-2 gap-1 auto-rows-min">
+                <CurrenciesPanel />
+                <ForexCrossPanel />
               </div>
             )}
 
             {/* Bonds/Government View */}
             {activeView === 'GOVT' && (
-              <div className="h-full grid grid-cols-12 grid-rows-6 gap-1">
-                <BondsPanel className="col-span-6 row-span-6" />
-                <EconomicCalendarPanel className="col-span-6 row-span-6" />
+              <div className="grid grid-cols-2 gap-1 auto-rows-min">
+                <BondsPanel />
+                <EconomicCalendarPanel />
               </div>
             )}
 
             {/* Commodities View */}
             {activeView === 'CMDTY' && (
-              <div className="h-full grid grid-cols-12 grid-rows-6 gap-1">
-                <CommoditiesPanel className="col-span-6 row-span-6" />
-                <CryptoPanel className="col-span-6 row-span-6" />
+              <div className="grid grid-cols-2 gap-1 auto-rows-min">
+                <CommoditiesPanel />
+                <CryptoPanel />
               </div>
             )}
 
             {/* News View */}
             {activeView === 'NEWS' && (
-              <div className="h-full grid grid-cols-12 grid-rows-6 gap-1">
-                <NewsFeedPanel className="col-span-12 row-span-6" />
+              <div className="grid grid-cols-1 gap-1 auto-rows-min">
+                <NewsFeedPanel />
               </div>
             )}
 
@@ -457,11 +456,16 @@ interface PanelProps {
 }
 
 function Panel({ className, title, children, color = '#FF6600' }: PanelProps) {
+  const [isMinimized, setIsMinimized] = useState(false)
+  const [isMaximized, setIsMaximized] = useState(false)
+
   return (
     <div
       className={cn(
-        'bg-[#0a0a0a] border border-[#222] rounded-sm overflow-hidden flex flex-col',
-        className
+        'bg-[#0a0a0a] border border-[#222] rounded-sm overflow-hidden flex flex-col transition-all duration-200',
+        isMaximized && 'fixed inset-4 z-50',
+        isMinimized && 'h-5',
+        !isMinimized && !isMaximized && className
       )}
     >
       <div
@@ -472,15 +476,31 @@ function Panel({ className, title, children, color = '#FF6600' }: PanelProps) {
           {title}
         </span>
         <div className="flex items-center gap-1">
-          <button className="w-3 h-3 rounded-sm bg-[#333] hover:bg-[#444] flex items-center justify-center text-[8px] text-gray-400">
+          <button 
+            onClick={() => {
+              setIsMinimized(!isMinimized)
+              if (isMaximized) setIsMaximized(false)
+            }}
+            className="w-3 h-3 rounded-sm bg-[#333] hover:bg-[#444] flex items-center justify-center text-[8px] text-gray-400 hover:text-white transition-colors"
+            title={isMinimized ? 'Restore' : 'Minimize'}
+          >
             −
           </button>
-          <button className="w-3 h-3 rounded-sm bg-[#333] hover:bg-[#444] flex items-center justify-center text-[8px] text-gray-400">
-            □
+          <button 
+            onClick={() => {
+              setIsMaximized(!isMaximized)
+              if (isMinimized) setIsMinimized(false)
+            }}
+            className="w-3 h-3 rounded-sm bg-[#333] hover:bg-[#444] flex items-center justify-center text-[8px] text-gray-400 hover:text-white transition-colors"
+            title={isMaximized ? 'Restore' : 'Maximize'}
+          >
+            {isMaximized ? '❐' : '□'}
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-auto min-h-0">{children}</div>
+      {!isMinimized && (
+        <div className="flex-1 overflow-auto min-h-0">{children}</div>
+      )}
     </div>
   )
 }
@@ -618,21 +638,20 @@ function SectorHeatmapPanel({ className }: { className?: string }) {
 
   return (
     <Panel className={className} title="S&P 500 SECTORS" color="#FFD700">
-      <div className="p-2 grid grid-cols-3 gap-1 h-full">
+      <div className="p-1.5 grid grid-cols-4 gap-1">
         {loading ? (
-          <div className="col-span-3 flex items-center justify-center text-gray-500">Loading...</div>
+          <div className="col-span-4 flex items-center justify-center text-gray-500 py-4">Loading...</div>
         ) : (
           sectors.map((sector) => (
             <div
               key={sector.name}
               className={cn(
-                'rounded-sm p-1.5 flex flex-col justify-between cursor-pointer hover:opacity-80 transition-opacity',
+                'rounded-sm p-1 flex flex-col justify-center cursor-pointer hover:opacity-80 transition-opacity h-8',
                 getHeatColor(sector.change)
               )}
-              style={{ minHeight: `${Math.max((weights[sector.name] || 5) * 2, 30)}px` }}
             >
-              <span className="text-[8px] text-white/80 truncate">{sector.name}</span>
-              <span className="text-[11px] font-bold text-white">
+              <span className="text-[6px] text-white/80 truncate leading-tight">{sector.name}</span>
+              <span className="text-[9px] font-bold text-white leading-tight">
                 {sector.change >= 0 ? '+' : ''}
                 {sector.change.toFixed(2)}%
               </span>
@@ -1372,15 +1391,17 @@ function BondsPanel({ className }: { className?: string }) {
           '^IRX': '13-Week Treasury',
         }
         
-        if (data.quotes) {
+        if (data.quotes && data.quotes.length > 0) {
           const formatted = data.quotes.map((q: any) => ({
             symbol: q.symbol,
-            name: bondInfo[q.symbol] || q.symbol,
-            yield: q.regularMarketPrice,
-            change: q.regularMarketChange,
-            changePercent: q.regularMarketChangePercent,
+            name: bondInfo[q.symbol] || q.name || q.symbol,
+            yield: q.price,
+            change: q.change,
+            changePercent: q.changePercent,
           }))
           setBonds(formatted)
+        } else {
+          throw new Error('No quotes data')
         }
       } catch (error) {
         console.error('Error fetching bonds:', error)
@@ -1463,9 +1484,12 @@ function EconomicCalendarPanel({ className }: { className?: string }) {
     const fetchEvents = async () => {
       try {
         const res = await fetch('/api/economic/calendar')
+        if (!res.ok) throw new Error('API error')
         const data = await res.json()
-        if (data.events) {
+        if (data.success && data.events && data.events.length > 0) {
           setEvents(data.events.slice(0, 15))
+        } else {
+          throw new Error('No events data')
         }
       } catch (error) {
         console.error('Error fetching economic calendar:', error)
@@ -1506,10 +1530,11 @@ function EconomicCalendarPanel({ className }: { className?: string }) {
       <div className="text-[10px]">
         <div className="grid grid-cols-12 gap-1 px-2 py-1 bg-[#111] text-gray-500 border-b border-[#222] sticky top-0">
           <span className="col-span-2">DATE</span>
-          <span className="col-span-5">EVENT</span>
+          <span className="col-span-1">TIME</span>
+          <span className="col-span-3">EVENT</span>
           <span className="col-span-2 text-right">ACTUAL</span>
           <span className="col-span-2 text-right">FCST</span>
-          <span className="col-span-1 text-center">IMP</span>
+          <span className="col-span-2 text-right">PREV</span>
         </div>
         {loading ? (
           <div className="px-2 py-4 text-center text-gray-500">Loading...</div>
@@ -1520,10 +1545,14 @@ function EconomicCalendarPanel({ className }: { className?: string }) {
               className="grid grid-cols-12 gap-1 px-2 py-1.5 hover:bg-[#1a1a1a] border-b border-[#111]"
             >
               <span className="col-span-2 text-gray-500">{formatDate(event.date)}</span>
-              <span className="col-span-5 text-gray-300 truncate">{event.event}</span>
-              <span className="col-span-2 text-right text-white font-bold">{event.actual || '--'}</span>
-              <span className="col-span-2 text-right text-gray-500">{event.forecast || '--'}</span>
-              <span className={cn('col-span-1 text-center', getImpactColor(event.impact))}>●</span>
+              <span className="col-span-1 text-gray-400">{event.time || '--'}</span>
+              <span className="col-span-3 text-gray-300 truncate flex items-center gap-1">
+                <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', getImpactColor(event.impact).replace('text-', 'bg-'))}></span>
+                <span className="truncate">{event.event}</span>
+              </span>
+              <span className={cn('col-span-2 text-right font-bold', event.actual ? 'text-white' : 'text-gray-600')}>{event.actual || '--'}</span>
+              <span className="col-span-2 text-right text-cyan-400">{event.forecast || '--'}</span>
+              <span className="col-span-2 text-right text-gray-500">{event.previous || '--'}</span>
             </div>
           ))
         )}

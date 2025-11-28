@@ -6,6 +6,7 @@ export const runtime = 'nodejs'
 
 interface EconomicEvent {
   date: string
+  time: string
   event: string
   impact: 'high' | 'medium' | 'low'
   actual: string | null
@@ -14,33 +15,59 @@ interface EconomicEvent {
   country: string
 }
 
+// Simple seeded random for consistent results
+function seededRandom(seed: number): () => number {
+  return function() {
+    seed = (seed * 9301 + 49297) % 233280
+    return seed / 233280
+  }
+}
+
+// Cache for economic calendar (refresh every 6 hours)
+let cachedEvents: EconomicEvent[] | null = null
+let cacheTimestamp: number = 0
+const CACHE_DURATION = 6 * 60 * 60 * 1000 // 6 hours
+
 // Get upcoming and recent economic events
 function generateEconomicCalendar(): EconomicEvent[] {
   const now = new Date()
+  
+  // Check cache - refresh at start of each day or every 6 hours
+  const currentDay = now.toDateString()
+  const cacheAge = Date.now() - cacheTimestamp
+  
+  if (cachedEvents && cacheAge < CACHE_DURATION) {
+    return cachedEvents
+  }
+  
+  // Use date as seed for consistent random values per day
+  const dateSeed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate()
+  const random = seededRandom(dateSeed)
+  
   const events: EconomicEvent[] = []
   
   // Generate events for the past few days and upcoming days
   const eventTemplates = [
-    { event: 'Initial Jobless Claims', impact: 'high' as const, typical: '220K' },
-    { event: 'Nonfarm Payrolls', impact: 'high' as const, typical: '180K' },
-    { event: 'GDP Growth Rate QoQ', impact: 'high' as const, typical: '2.5%' },
-    { event: 'Inflation Rate YoY', impact: 'high' as const, typical: '3.2%' },
-    { event: 'Core PCE Price Index MoM', impact: 'high' as const, typical: '0.2%' },
-    { event: 'Fed Interest Rate Decision', impact: 'high' as const, typical: '5.25%' },
-    { event: 'Consumer Confidence', impact: 'medium' as const, typical: '102.5' },
-    { event: 'Retail Sales MoM', impact: 'medium' as const, typical: '0.3%' },
-    { event: 'Industrial Production MoM', impact: 'medium' as const, typical: '0.2%' },
-    { event: 'Housing Starts', impact: 'medium' as const, typical: '1.35M' },
-    { event: 'Durable Goods Orders MoM', impact: 'medium' as const, typical: '0.5%' },
-    { event: 'ISM Manufacturing PMI', impact: 'high' as const, typical: '48.5' },
-    { event: 'ISM Services PMI', impact: 'high' as const, typical: '52.0' },
-    { event: 'ADP Employment Change', impact: 'medium' as const, typical: '150K' },
-    { event: 'Trade Balance', impact: 'medium' as const, typical: '-$65B' },
-    { event: 'Michigan Consumer Sentiment', impact: 'medium' as const, typical: '68.5' },
-    { event: 'Building Permits', impact: 'low' as const, typical: '1.45M' },
-    { event: 'Existing Home Sales', impact: 'low' as const, typical: '4.0M' },
-    { event: 'New Home Sales', impact: 'low' as const, typical: '680K' },
-    { event: 'Crude Oil Inventories', impact: 'low' as const, typical: '-1.5M' },
+    { event: 'Initial Jobless Claims', impact: 'high' as const, typical: '220K', time: '08:30' },
+    { event: 'Nonfarm Payrolls', impact: 'high' as const, typical: '180K', time: '08:30' },
+    { event: 'GDP Growth Rate QoQ', impact: 'high' as const, typical: '2.5%', time: '08:30' },
+    { event: 'Inflation Rate YoY', impact: 'high' as const, typical: '3.2%', time: '08:30' },
+    { event: 'Core PCE Price Index MoM', impact: 'high' as const, typical: '0.2%', time: '08:30' },
+    { event: 'Fed Interest Rate Decision', impact: 'high' as const, typical: '5.25%', time: '14:00' },
+    { event: 'Consumer Confidence', impact: 'medium' as const, typical: '102.5', time: '10:00' },
+    { event: 'Retail Sales MoM', impact: 'medium' as const, typical: '0.3%', time: '08:30' },
+    { event: 'Industrial Production MoM', impact: 'medium' as const, typical: '0.2%', time: '09:15' },
+    { event: 'Housing Starts', impact: 'medium' as const, typical: '1.35M', time: '08:30' },
+    { event: 'Durable Goods Orders MoM', impact: 'medium' as const, typical: '0.5%', time: '08:30' },
+    { event: 'ISM Manufacturing PMI', impact: 'high' as const, typical: '48.5', time: '10:00' },
+    { event: 'ISM Services PMI', impact: 'high' as const, typical: '52.0', time: '10:00' },
+    { event: 'ADP Employment Change', impact: 'medium' as const, typical: '150K', time: '08:15' },
+    { event: 'Trade Balance', impact: 'medium' as const, typical: '-$65B', time: '08:30' },
+    { event: 'Michigan Consumer Sentiment', impact: 'medium' as const, typical: '68.5', time: '10:00' },
+    { event: 'Building Permits', impact: 'low' as const, typical: '1.45M', time: '08:30' },
+    { event: 'Existing Home Sales', impact: 'low' as const, typical: '4.0M', time: '10:00' },
+    { event: 'New Home Sales', impact: 'low' as const, typical: '680K', time: '10:00' },
+    { event: 'Crude Oil Inventories', impact: 'low' as const, typical: '-1.5M', time: '10:30' },
   ]
 
   // Generate events for past 3 days and next 7 days
@@ -51,14 +78,14 @@ function generateEconomicCalendar(): EconomicEvent[] {
     // Skip weekends
     if (date.getDay() === 0 || date.getDay() === 6) continue
     
-    // Add 1-3 random events per day
-    const numEvents = Math.floor(Math.random() * 3) + 1
+    // Add 1-3 events per day (consistent based on seed)
+    const numEvents = Math.floor(random() * 3) + 1
     const usedIndices = new Set<number>()
     
     for (let j = 0; j < numEvents; j++) {
       let index: number
       do {
-        index = Math.floor(Math.random() * eventTemplates.length)
+        index = Math.floor(random() * eventTemplates.length)
       } while (usedIndices.has(index))
       usedIndices.add(index)
       
@@ -67,8 +94,8 @@ function generateEconomicCalendar(): EconomicEvent[] {
       // Parse the typical value to generate realistic actual/forecast
       const baseValue = parseFloat(template.typical.replace(/[^0-9.-]/g, ''))
       const variation = baseValue * 0.1 // 10% variation
-      const actualValue = baseValue + (Math.random() - 0.5) * variation
-      const forecastValue = baseValue + (Math.random() - 0.5) * variation * 0.5
+      const actualValue = baseValue + (random() - 0.5) * variation
+      const forecastValue = baseValue + (random() - 0.5) * variation * 0.5
       
       // Format values to match the template format
       const formatValue = (val: number) => {
@@ -84,6 +111,7 @@ function generateEconomicCalendar(): EconomicEvent[] {
       
       events.push({
         date: date.toISOString(),
+        time: template.time,
         event: template.event,
         impact: template.impact,
         actual: isPast ? formatValue(actualValue) : null,
@@ -96,6 +124,10 @@ function generateEconomicCalendar(): EconomicEvent[] {
   
   // Sort by date
   events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  
+  // Update cache
+  cachedEvents = events
+  cacheTimestamp = Date.now()
   
   return events
 }

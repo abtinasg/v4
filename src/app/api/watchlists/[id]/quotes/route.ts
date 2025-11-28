@@ -91,8 +91,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               period2: new Date(),
               interval: '1d',
             })
-            if (history?.quotes) {
-              sparklineData = history.quotes
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (history && (history as any).quotes) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              sparklineData = ((history as any).quotes as any[])
                 .filter((q: any) => q.close != null)
                 .map((q: any) => q.close as number)
                 .slice(-24)

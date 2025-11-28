@@ -121,7 +121,7 @@ function parseRSSXml(xml: string): Array<{title: string, link: string, pubDate: 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '20')
+    const limit = parseInt(searchParams.get('limit') || '50') // Increased default limit
     const symbol = searchParams.get('symbol')
     const source = searchParams.get('source') // 'yahoo', 'newsapi', 'all' (default)
     
@@ -129,12 +129,22 @@ export async function GET(request: Request) {
     const newsMap = new Map<string, NewsItem>()
     
     const fetchYahooNews = async (): Promise<void> => {
-      // Yahoo Finance RSS feeds
+      // Yahoo Finance RSS feeds - multiple feeds for more variety
       const rssFeeds = symbol 
         ? [`https://feeds.finance.yahoo.com/rss/2.0/headline?s=${symbol}&region=US&lang=en-US`]
         : [
+            // Tech giants
             'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AAPL,MSFT,GOOGL,AMZN,NVDA,TSLA,META&region=US&lang=en-US',
-            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY,QQQ,DIA&region=US&lang=en-US',
+            // Major indices ETFs
+            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY,QQQ,DIA,IWM&region=US&lang=en-US',
+            // Finance sector
+            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=JPM,GS,MS,BAC,V,MA&region=US&lang=en-US',
+            // More tech
+            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AMD,INTC,CRM,ORCL,IBM,NFLX&region=US&lang=en-US',
+            // Healthcare & Consumer
+            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=JNJ,PFE,UNH,WMT,HD,MCD&region=US&lang=en-US',
+            // Energy & Industrial
+            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=XOM,CVX,BA,CAT,GE&region=US&lang=en-US',
           ]
       
       const fetchPromises = rssFeeds.map(async (feedUrl) => {
@@ -239,8 +249,8 @@ export async function GET(request: Request) {
           const searchQuery = companyNames[symbol.toUpperCase()] || symbol
           apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(searchQuery + ' stock')}&language=en&sortBy=publishedAt&pageSize=20&apiKey=${newsApiKey}`
         } else {
-          // General business/finance news
-          apiUrl = `https://newsapi.org/v2/top-headlines?category=business&language=en&country=us&pageSize=30&apiKey=${newsApiKey}`
+          // General business/finance news - increased pageSize
+          apiUrl = `https://newsapi.org/v2/top-headlines?category=business&language=en&country=us&pageSize=50&apiKey=${newsApiKey}`
         }
         
         const response = await fetch(apiUrl, {
@@ -306,7 +316,29 @@ export async function GET(request: Request) {
     
     allNews = Array.from(newsMap.values())
       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime())
-      .slice(0, limit)
+    
+    // Balance sources - don't let one source dominate
+    // If both sources have news, ensure diversity
+    const yahooNews = allNews.filter(n => n.source === 'Yahoo Finance')
+    const otherNews = allNews.filter(n => n.source !== 'Yahoo Finance')
+    
+    let balancedNews: NewsItem[] = []
+    if (yahooNews.length > 0 && otherNews.length > 0) {
+      // Interleave sources for better variety, with slight preference for recency
+      const maxPerSource = Math.ceil(limit / 2)
+      const limitedYahoo = yahooNews.slice(0, maxPerSource)
+      const limitedOther = otherNews.slice(0, maxPerSource)
+      
+      // Merge and sort by date
+      balancedNews = [...limitedYahoo, ...limitedOther]
+        .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime())
+        .slice(0, limit)
+    } else {
+      // If only one source, just use it
+      balancedNews = allNews.slice(0, limit)
+    }
+    
+    allNews = balancedNews
 
     // If no news, try Finnhub as backup
     if (allNews.length === 0) {
