@@ -5,6 +5,26 @@ import { useSidebar } from '@/components/dashboard/Sidebar'
 import { cn } from '@/lib/utils'
 import { TerminalContextUpdater } from '@/components/ai'
 import { useRouter } from 'next/navigation'
+import { Monitor } from 'lucide-react'
+
+// Mobile blocker component
+function MobileBlocker() {
+  return (
+    <div className="md:hidden fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-6 text-center">
+      <Monitor className="w-16 h-16 text-orange-500 mb-6" />
+      <h1 className="text-2xl font-bold text-white mb-3">Desktop Required</h1>
+      <p className="text-gray-400 text-sm max-w-xs">
+        Terminal Pro is designed for desktop use only. Please access this page from a computer with a larger screen for the best experience.
+      </p>
+      <a 
+        href="/dashboard" 
+        className="mt-6 px-6 py-2 bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium rounded transition-colors"
+      >
+        Back to Dashboard
+      </a>
+    </div>
+  )
+}
 
 // View types for sidebar navigation
 type ViewType = 'MRKT' | 'EQ' | 'FX' | 'GOVT' | 'CMDTY' | 'NEWS' | 'SRCH'
@@ -256,10 +276,13 @@ F11 - Fullscreen`)
 
   return (
     <>
+      {/* Mobile blocker */}
+      <MobileBlocker />
+      
       {/* Update AI context with terminal data */}
       <TerminalContextUpdater refreshInterval={30000} />
       
-      <div className="relative w-full min-h-[calc(100vh-6rem)] bg-black text-white font-mono overflow-hidden flex flex-col rounded-2xl border border-white/5 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+      <div className="hidden md:flex relative w-full min-h-[calc(100vh-6rem)] bg-black text-white font-mono overflow-hidden flex-col rounded-2xl border border-white/5 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
         <header className="h-8 bg-[#1a1a1a] border-b border-[#333] flex items-center px-2 gap-4 shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-[#FF6600] font-bold text-sm">DEEP TERMINAL</span>
