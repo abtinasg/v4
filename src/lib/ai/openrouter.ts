@@ -8,6 +8,22 @@
 
 // Available models with their pricing (per million tokens)
 export const OPENROUTER_MODELS = {
+  // Premium: GPT-5.1 - Most advanced reasoning
+  'openai/gpt-5.1': {
+    name: 'GPT-5.1',
+    inputCost: 10,
+    outputCost: 30,
+    contextWindow: 256000,
+    description: 'Most advanced reasoning and analysis'
+  },
+  // Premium: Claude Sonnet 4.5 - Exceptional analysis
+  'anthropic/claude-sonnet-4.5': {
+    name: 'Claude Sonnet 4.5',
+    inputCost: 8,
+    outputCost: 24,
+    contextWindow: 200000,
+    description: 'Exceptional nuanced financial analysis'
+  },
   // Primary: Claude 3 Haiku - fast, cheap, good for most tasks
   'anthropic/claude-3-haiku': {
     name: 'Claude 3 Haiku',
@@ -68,9 +84,9 @@ export const OPENROUTER_MODELS = {
 
 export type OpenRouterModel = keyof typeof OPENROUTER_MODELS
 
-// Default and fallback models
-export const DEFAULT_MODEL: OpenRouterModel = 'anthropic/claude-3-haiku'
-export const FALLBACK_MODEL: OpenRouterModel = 'meta-llama/llama-3.1-8b-instruct'
+// Default and fallback models - using Claude 3.5 Sonnet for better financial analysis
+export const DEFAULT_MODEL: OpenRouterModel = 'anthropic/claude-3.5-sonnet'
+export const FALLBACK_MODEL: OpenRouterModel = 'openai/gpt-4o'
 
 // Message types
 export interface ChatMessage {

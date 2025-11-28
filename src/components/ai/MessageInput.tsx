@@ -21,6 +21,7 @@ import {
   Paperclip,
   X,
   StopCircle,
+  Command,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -30,6 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { QuickActions } from './QuickActions'
 
 // ============================================================
 // TYPES
@@ -43,6 +45,7 @@ export interface MessageInputProps {
   placeholder?: string
   maxLength?: number
   showVoiceInput?: boolean
+  showQuickActions?: boolean
   className?: string
 }
 
@@ -129,9 +132,11 @@ export function MessageInput({
   placeholder = 'Ask anything about stocks, markets, or metrics...',
   maxLength = 4000,
   showVoiceInput = true,
+  showQuickActions = true,
   className,
 }: MessageInputProps) {
   const [value, setValue] = useState('')
+  const [showCommands, setShowCommands] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   
   const { isListening, isSupported, startListening, stopListening } = useVoiceInput(
@@ -152,6 +157,18 @@ export function MessageInput({
   useEffect(() => {
     adjustHeight()
   }, [value, adjustHeight])
+
+  // Show quick actions when typing /
+  useEffect(() => {
+    setShowCommands(value.startsWith('/'))
+  }, [value])
+
+  // Handle quick action selection
+  const handleQuickActionSelect = useCallback((command: string) => {
+    setValue(command)
+    textareaRef.current?.focus()
+    if (navigator.vibrate) navigator.vibrate(10)
+  }, [])
 
   const handleSubmit = useCallback(() => {
     const trimmed = value.trim()
@@ -188,6 +205,14 @@ export function MessageInput({
 
   return (
     <div className={cn('relative', className)}>
+      {/* Quick Actions Popup */}
+      {showQuickActions && showCommands && (
+        <QuickActions
+          input={value}
+          onSelect={handleQuickActionSelect}
+        />
+      )}
+
       {/* Input Container */}
       <div
         className={cn(
@@ -342,9 +367,16 @@ export function MessageInput({
 
       {/* Hint text */}
       <div className="mt-2 flex items-center justify-between px-1">
-        <span className="text-xs text-white/30">
-          Press Enter to send, Shift+Enter for new line
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-white/30">
+            Press Enter to send, Shift+Enter for new line
+          </span>
+          <span className="text-xs text-white/20">•</span>
+          <span className="text-xs text-white/30 flex items-center gap-1">
+            <Command className="w-3 h-3" />
+            Type / for commands
+          </span>
+        </div>
       </div>
     </div>
   )

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/cinematic'
+import { NewsContextUpdater } from '@/components/ai'
 
 interface NewsItem {
   id: string
@@ -108,6 +109,9 @@ export default function NewsPage() {
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+      {/* Update AI context with news data */}
+      <NewsContextUpdater news={news} />
+      
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div

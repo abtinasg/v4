@@ -29,7 +29,9 @@ import {
   type AIContext, 
   type StockContext,
   type MarketContext,
-  type PortfolioContext 
+  type PortfolioContext,
+  type NewsPageContext,
+  type TerminalContext,
 } from '@/lib/ai/context-builder'
 
 // ============================================================
@@ -94,6 +96,8 @@ interface ChatRequest {
     stock?: StockContext
     market?: MarketContext
     portfolio?: PortfolioContext
+    newsContext?: NewsPageContext
+    terminalContext?: TerminalContext
     pageContext?: {
       currentPage: string
       selectedTimeframe?: string
@@ -225,6 +229,8 @@ export async function POST(request: NextRequest) {
       stock: context?.stock || stockData,
       market: context?.market,
       portfolio: context?.portfolio,
+      newsContext: context?.newsContext,
+      terminalContext: context?.terminalContext,
       pageContext: context?.pageContext,
     }
     

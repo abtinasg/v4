@@ -51,6 +51,9 @@ export {
   type PortfolioContext,
   type UserContext,
   type AIContext,
+  type NewsContextItem,
+  type NewsPageContext,
+  type TerminalContext,
 } from './context-builder'
 
 // Context-specific prompts

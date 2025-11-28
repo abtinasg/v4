@@ -91,6 +91,8 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
             pb: m.valuation?.pbRatio,
             ps: m.valuation?.psRatio,
             evToEbitda: m.valuation?.evToEbitda,
+            evToRevenue: m.valuation?.evToRevenue,
+            peg: m.valuation?.pegRatio,
             // Profitability
             grossMargin: m.profitability?.grossMargin,
             operatingMargin: m.profitability?.operatingMargin,
@@ -101,12 +103,24 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
             // Growth
             revenueGrowth: m.growth?.revenueGrowth,
             earningsGrowth: m.growth?.earningsGrowth,
+            revenueGrowth5Y: m.growth?.revenueGrowth5Y || m.growth?.revenue5YCAGR,
+            epsGrowth5Y: m.growth?.epsGrowth5Y || m.growth?.eps5YCAGR,
             // Financial Health
             currentRatio: m.liquidity?.currentRatio,
             quickRatio: m.liquidity?.quickRatio,
             debtToEquity: m.leverage?.debtToEquity,
+            debtToEbitda: m.leverage?.debtToEbitda || m.leverage?.netDebtToEbitda,
+            interestCoverage: m.leverage?.interestCoverage,
+            // Efficiency
+            assetTurnover: m.efficiency?.assetTurnover,
+            inventoryTurnover: m.efficiency?.inventoryTurnover,
+            receivablesTurnover: m.efficiency?.receivablesTurnover,
+            // Cashflow
+            freeCashFlow: m.cashflow?.freeCashFlow,
+            operatingCashFlow: m.cashflow?.operatingCashFlow,
+            fcfPerShare: m.cashflow?.fcfPerShare,
             // Dividend
-            dividendYield: m.valuation?.dividendYield,
+            dividendYield: m.valuation?.dividendYield || m.dividend?.yield,
             payoutRatio: m.dividend?.payoutRatio,
             // Technical
             rsi: m.technical?.rsi14,
@@ -122,6 +136,8 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
             growthMetrics: Object.keys(m.growth || {}).length,
             liquidityMetrics: Object.keys(m.liquidity || {}).length,
             leverageMetrics: Object.keys(m.leverage || {}).length,
+            efficiencyMetrics: Object.keys(m.efficiency || {}).length,
+            cashflowMetrics: Object.keys(m.cashflow || {}).length,
             technicalMetrics: Object.keys(m.technical || {}).length,
             totalMetricsCategories: Object.keys(m).length,
           })

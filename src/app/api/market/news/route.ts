@@ -19,6 +19,17 @@ interface NewsItem {
   image: string | null
 }
 
+interface NewsAPIArticle {
+  source: { id: string | null; name: string }
+  author: string | null
+  title: string
+  description: string | null
+  url: string
+  urlToImage: string | null
+  publishedAt: string
+  content: string | null
+}
+
 function getTimeAgo(date: Date): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
@@ -112,74 +123,192 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '20')
     const symbol = searchParams.get('symbol')
+    const source = searchParams.get('source') // 'yahoo', 'newsapi', 'all' (default)
     
     let allNews: NewsItem[] = []
+    const newsMap = new Map<string, NewsItem>()
     
-    // Yahoo Finance RSS feeds
-    const rssFeeds = symbol 
-      ? [`https://feeds.finance.yahoo.com/rss/2.0/headline?s=${symbol}&region=US&lang=en-US`]
-      : [
-          'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AAPL,MSFT,GOOGL,AMZN,NVDA,TSLA,META&region=US&lang=en-US',
-          'https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY,QQQ,DIA&region=US&lang=en-US',
-        ]
+    const fetchYahooNews = async (): Promise<void> => {
+      // Yahoo Finance RSS feeds
+      const rssFeeds = symbol 
+        ? [`https://feeds.finance.yahoo.com/rss/2.0/headline?s=${symbol}&region=US&lang=en-US`]
+        : [
+            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AAPL,MSFT,GOOGL,AMZN,NVDA,TSLA,META&region=US&lang=en-US',
+            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY,QQQ,DIA&region=US&lang=en-US',
+          ]
+      
+      const fetchPromises = rssFeeds.map(async (feedUrl) => {
+        try {
+          const response = await fetch(feedUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            },
+            next: { revalidate: 300 },
+          })
+          
+          if (!response.ok) {
+            console.error(`RSS fetch failed: ${response.status}`)
+            return []
+          }
+          
+          const xml = await response.text()
+          return parseRSSXml(xml)
+        } catch (err) {
+          console.error('RSS fetch error:', err)
+          return []
+        }
+      })
+      
+      const results = await Promise.all(fetchPromises)
+      
+      results.flat().forEach((item) => {
+        if (!item.title) return
+        
+        const id = `yahoo-${item.link || item.title.slice(0, 50)}`
+        if (newsMap.has(id)) return
+        
+        const publishedDate = item.pubDate ? new Date(item.pubDate) : new Date()
+        const headline = item.title
+        const summary = item.description || item.title
+        const extractedSymbol = symbol?.toUpperCase() || extractSymbolFromText(headline)
+        
+        newsMap.set(id, {
+          id,
+          headline,
+          summary: summary.replace(/<[^>]*>/g, '').slice(0, 300),
+          fullText: summary.replace(/<[^>]*>/g, ''),
+          timeAgo: getTimeAgo(publishedDate),
+          publishedDate: publishedDate.toISOString(),
+          source: item.source || 'Yahoo Finance',
+          sentiment: analyzeSentiment(headline + ' ' + summary),
+          category: extractedSymbol ? 'Stock' : categorizeNews(headline),
+          url: item.link,
+          symbol: extractedSymbol,
+          image: null,
+        })
+      })
+    }
     
-    const fetchPromises = rssFeeds.map(async (feedUrl) => {
+    const fetchNewsAPI = async (): Promise<void> => {
+      const newsApiKey = process.env.NEWS_API_KEY
+      if (!newsApiKey) {
+        console.log('NEWS_API_KEY not configured, skipping NewsAPI')
+        return
+      }
+      
       try {
-        const response = await fetch(feedUrl, {
+        // Build query based on symbol or general business news
+        let apiUrl: string
+        if (symbol) {
+          // Get company name for better search (map common tickers)
+          const companyNames: Record<string, string> = {
+            'AAPL': 'Apple',
+            'MSFT': 'Microsoft',
+            'GOOGL': 'Google Alphabet',
+            'GOOG': 'Google Alphabet',
+            'AMZN': 'Amazon',
+            'NVDA': 'Nvidia',
+            'TSLA': 'Tesla',
+            'META': 'Meta Facebook',
+            'JPM': 'JPMorgan',
+            'V': 'Visa',
+            'MA': 'Mastercard',
+            'NFLX': 'Netflix',
+            'DIS': 'Disney',
+            'AMD': 'AMD semiconductor',
+            'INTC': 'Intel',
+            'CRM': 'Salesforce',
+            'ORCL': 'Oracle',
+            'IBM': 'IBM',
+            'BA': 'Boeing',
+            'WMT': 'Walmart',
+            'XOM': 'ExxonMobil',
+            'CVX': 'Chevron',
+            'PFE': 'Pfizer',
+            'JNJ': 'Johnson Johnson',
+            'UNH': 'UnitedHealth',
+            'GS': 'Goldman Sachs',
+            'MS': 'Morgan Stanley',
+            'BAC': 'Bank of America',
+            'COIN': 'Coinbase',
+            'UBER': 'Uber',
+            'ABNB': 'Airbnb',
+            'PLTR': 'Palantir',
+            'SNOW': 'Snowflake',
+          }
+          const searchQuery = companyNames[symbol.toUpperCase()] || symbol
+          apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(searchQuery + ' stock')}&language=en&sortBy=publishedAt&pageSize=20&apiKey=${newsApiKey}`
+        } else {
+          // General business/finance news
+          apiUrl = `https://newsapi.org/v2/top-headlines?category=business&language=en&country=us&pageSize=30&apiKey=${newsApiKey}`
+        }
+        
+        const response = await fetch(apiUrl, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'User-Agent': 'DeepTerminal/1.0',
           },
           next: { revalidate: 300 },
         })
         
         if (!response.ok) {
-          console.error(`RSS fetch failed: ${response.status}`)
-          return []
+          console.error(`NewsAPI fetch failed: ${response.status}`)
+          return
         }
         
-        const xml = await response.text()
-        return parseRSSXml(xml)
+        const data = await response.json()
+        
+        if (data.status !== 'ok' || !data.articles) {
+          console.error('NewsAPI error:', data.message)
+          return
+        }
+        
+        (data.articles as NewsAPIArticle[]).forEach((article, index) => {
+          if (!article.title || article.title === '[Removed]') return
+          
+          const id = `newsapi-${article.url || index}`
+          if (newsMap.has(id)) return
+          
+          const publishedDate = new Date(article.publishedAt)
+          const headline = article.title
+          const summary = article.description || article.title
+          const extractedSymbol = symbol?.toUpperCase() || extractSymbolFromText(headline + ' ' + summary)
+          
+          newsMap.set(id, {
+            id,
+            headline,
+            summary: summary.slice(0, 300),
+            fullText: article.content || summary,
+            timeAgo: getTimeAgo(publishedDate),
+            publishedDate: publishedDate.toISOString(),
+            source: article.source?.name || 'NewsAPI',
+            sentiment: analyzeSentiment(headline + ' ' + summary),
+            category: extractedSymbol ? 'Stock' : categorizeNews(headline),
+            url: article.url,
+            symbol: extractedSymbol,
+            image: article.urlToImage,
+          })
+        })
+        
+        console.log(`📰 NewsAPI: Fetched ${data.articles.length} articles`)
       } catch (err) {
-        console.error('RSS fetch error:', err)
-        return []
+        console.error('NewsAPI fetch error:', err)
       }
-    })
+    }
     
-    const results = await Promise.all(fetchPromises)
-    const newsMap = new Map<string, NewsItem>()
+    // Fetch from both sources based on query param
+    const shouldFetchYahoo = !source || source === 'yahoo' || source === 'all'
+    const shouldFetchNewsAPI = !source || source === 'newsapi' || source === 'all'
     
-    results.flat().forEach((item) => {
-      if (!item.title) return
-      
-      const id = item.link || item.title.slice(0, 50)
-      if (newsMap.has(id)) return
-      
-      const publishedDate = item.pubDate ? new Date(item.pubDate) : new Date()
-      const headline = item.title
-      const summary = item.description || item.title
-      const extractedSymbol = symbol?.toUpperCase() || extractSymbolFromText(headline)
-      
-      newsMap.set(id, {
-        id,
-        headline,
-        summary: summary.replace(/<[^>]*>/g, '').slice(0, 300),
-        fullText: summary.replace(/<[^>]*>/g, ''),
-        timeAgo: getTimeAgo(publishedDate),
-        publishedDate: publishedDate.toISOString(),
-        source: item.source || 'Yahoo Finance',
-        sentiment: analyzeSentiment(headline + ' ' + summary),
-        category: extractedSymbol ? 'Stock' : categorizeNews(headline),
-        url: item.link,
-        symbol: extractedSymbol,
-        image: null,
-      })
-    })
+    await Promise.all([
+      shouldFetchYahoo ? fetchYahooNews() : Promise.resolve(),
+      shouldFetchNewsAPI ? fetchNewsAPI() : Promise.resolve(),
+    ])
     
     allNews = Array.from(newsMap.values())
       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime())
       .slice(0, limit)
 
-    // If no news from RSS, try Finnhub as backup
+    // If no news, try Finnhub as backup
     if (allNews.length === 0) {
       try {
         const finnhubKey = process.env.FINNHUB_API_KEY
@@ -192,7 +321,7 @@ export async function GET(request: Request) {
           if (response.ok) {
             const data = await response.json()
             allNews = (data as any[]).slice(0, limit).map((item: any, index: number) => ({
-              id: item.id?.toString() || `finnhub-${index}`,
+              id: `finnhub-${item.id?.toString() || index}`,
               headline: item.headline || item.title || '',
               summary: item.summary || item.headline || '',
               fullText: item.summary || '',
@@ -211,11 +340,19 @@ export async function GET(request: Request) {
         console.error('Finnhub backup failed:', err)
       }
     }
+    
+    // Count sources
+    const sourceBreakdown = {
+      yahoo: Array.from(newsMap.values()).filter(n => n.source === 'Yahoo Finance').length,
+      newsapi: Array.from(newsMap.values()).filter(n => n.source !== 'Yahoo Finance' && n.source !== 'Finnhub').length,
+      finnhub: Array.from(newsMap.values()).filter(n => n.source === 'Finnhub').length,
+    }
 
     return NextResponse.json({
       success: true,
       news: allNews,
       total: allNews.length,
+      sources: sourceBreakdown,
       page: 0,
       lastUpdated: new Date().toISOString(),
     })

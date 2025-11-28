@@ -24,6 +24,8 @@ export interface StockMetrics {
   pb?: number
   ps?: number
   evToEbitda?: number
+  evToRevenue?: number
+  peg?: number
   
   // Profitability
   grossMargin?: number
@@ -36,15 +38,25 @@ export interface StockMetrics {
   // Growth
   revenueGrowth?: number
   earningsGrowth?: number
+  revenueGrowth5Y?: number
+  epsGrowth5Y?: number
   
   // Financial Health
   currentRatio?: number
   quickRatio?: number
   debtToEquity?: number
+  debtToEbitda?: number
+  interestCoverage?: number
+  
+  // Efficiency
+  assetTurnover?: number
+  inventoryTurnover?: number
+  receivablesTurnover?: number
   
   // Per Share
   eps?: number
   bookValue?: number
+  fcfPerShare?: number
   
   // Dividend
   dividendYield?: number
@@ -55,6 +67,11 @@ export interface StockMetrics {
   fiftyDayMA?: number
   twoHundredDayMA?: number
   beta?: number
+  
+  // Cashflow
+  freeCashFlow?: number
+  operatingCashFlow?: number
+  capex?: number
 }
 
 export interface StockContext {
@@ -118,12 +135,46 @@ export interface UserContext {
   favoriteMetrics?: string[]
 }
 
+// News item for AI context
+export interface NewsContextItem {
+  headline: string
+  summary: string
+  category: string
+  sentiment: 'bullish' | 'bearish' | 'neutral'
+  source: string
+  timeAgo: string
+  symbol?: string
+}
+
+// Terminal/Market data context
+export interface TerminalContext {
+  indices?: { symbol: string; name: string; price: number; change: number; changePercent: number }[]
+  sectors?: { name: string; change: number }[]
+  topGainers?: { symbol: string; name: string; price: number; changePercent: number }[]
+  topLosers?: { symbol: string; name: string; price: number; changePercent: number }[]
+  currencies?: { symbol: string; price: number; change: number }[]
+  commodities?: { symbol: string; name: string; price: number; change: number }[]
+  crypto?: { symbol: string; price: number; change: number }[]
+  news?: { headline: string; time: string }[]
+}
+
+// News page context
+export interface NewsPageContext {
+  recentNews: NewsContextItem[]
+  newsCount: number
+  sentimentBreakdown?: { bullish: number; bearish: number; neutral: number }
+}
+
 export interface AIContext {
   type: PromptContext
   stock?: StockContext
   market?: MarketContext
   portfolio?: PortfolioContext
   user?: UserContext
+  // News page context
+  newsContext?: NewsPageContext
+  // Terminal Pro page context
+  terminalContext?: TerminalContext
   pageContext?: {
     currentPage: string
     selectedTimeframe?: string
@@ -180,6 +231,8 @@ function formatMetrics(metrics: StockMetrics): string {
   if (metrics.pb !== undefined) valuation.push(`P/B: ${formatNumber(metrics.pb)}`)
   if (metrics.ps !== undefined) valuation.push(`P/S: ${formatNumber(metrics.ps)}`)
   if (metrics.evToEbitda !== undefined) valuation.push(`EV/EBITDA: ${formatNumber(metrics.evToEbitda)}`)
+  if (metrics.evToRevenue !== undefined) valuation.push(`EV/Revenue: ${formatNumber(metrics.evToRevenue)}`)
+  if (metrics.peg !== undefined) valuation.push(`PEG: ${formatNumber(metrics.peg)}`)
   if (valuation.length) sections.push(`**Valuation**: ${valuation.join(' | ')}`)
   
   // Profitability metrics
@@ -196,14 +249,38 @@ function formatMetrics(metrics: StockMetrics): string {
   const growth: string[] = []
   if (metrics.revenueGrowth !== undefined) growth.push(`Revenue Growth: ${formatNumber(metrics.revenueGrowth, { percent: true })}`)
   if (metrics.earningsGrowth !== undefined) growth.push(`Earnings Growth: ${formatNumber(metrics.earningsGrowth, { percent: true })}`)
+  if (metrics.revenueGrowth5Y !== undefined) growth.push(`5Y Revenue CAGR: ${formatNumber(metrics.revenueGrowth5Y, { percent: true })}`)
+  if (metrics.epsGrowth5Y !== undefined) growth.push(`5Y EPS CAGR: ${formatNumber(metrics.epsGrowth5Y, { percent: true })}`)
   if (growth.length) sections.push(`**Growth**: ${growth.join(' | ')}`)
   
   // Financial health
   const health: string[] = []
   if (metrics.currentRatio !== undefined) health.push(`Current Ratio: ${formatNumber(metrics.currentRatio)}`)
   if (metrics.quickRatio !== undefined) health.push(`Quick Ratio: ${formatNumber(metrics.quickRatio)}`)
-  if (metrics.debtToEquity !== undefined) health.push(`D/E: ${formatNumber(metrics.debtToEquity)}`)
+  if (metrics.debtToEquity !== undefined) health.push(`Debt/Equity: ${formatNumber(metrics.debtToEquity)}`)
+  if (metrics.debtToEbitda !== undefined) health.push(`Debt/EBITDA: ${formatNumber(metrics.debtToEbitda)}`)
+  if (metrics.interestCoverage !== undefined) health.push(`Interest Coverage: ${formatNumber(metrics.interestCoverage)}x`)
   if (health.length) sections.push(`**Financial Health**: ${health.join(' | ')}`)
+  
+  // Efficiency metrics
+  const efficiency: string[] = []
+  if (metrics.assetTurnover !== undefined) efficiency.push(`Asset Turnover: ${formatNumber(metrics.assetTurnover)}x`)
+  if (metrics.inventoryTurnover !== undefined) efficiency.push(`Inventory Turnover: ${formatNumber(metrics.inventoryTurnover)}x`)
+  if (metrics.receivablesTurnover !== undefined) efficiency.push(`Receivables Turnover: ${formatNumber(metrics.receivablesTurnover)}x`)
+  if (efficiency.length) sections.push(`**Efficiency**: ${efficiency.join(' | ')}`)
+  
+  // Cashflow
+  const cashflow: string[] = []
+  if (metrics.freeCashFlow !== undefined) cashflow.push(`Free Cash Flow: ${formatNumber(metrics.freeCashFlow, { currency: true })}`)
+  if (metrics.operatingCashFlow !== undefined) cashflow.push(`Operating Cash Flow: ${formatNumber(metrics.operatingCashFlow, { currency: true })}`)
+  if (metrics.fcfPerShare !== undefined) cashflow.push(`FCF/Share: $${formatNumber(metrics.fcfPerShare)}`)
+  if (cashflow.length) sections.push(`**Cash Flow**: ${cashflow.join(' | ')}`)
+  
+  // Dividend
+  const dividend: string[] = []
+  if (metrics.dividendYield !== undefined) dividend.push(`Dividend Yield: ${formatNumber(metrics.dividendYield, { percent: true })}`)
+  if (metrics.payoutRatio !== undefined) dividend.push(`Payout Ratio: ${formatNumber(metrics.payoutRatio, { percent: true })}`)
+  if (dividend.length) sections.push(`**Dividend**: ${dividend.join(' | ')}`)
   
   // Technical
   const technical: string[] = []
@@ -390,6 +467,70 @@ export function buildContextString(context: AIContext): string {
     sections.push(formatPortfolioContext(context.portfolio))
   }
   
+  // Terminal context (Terminal Pro page)
+  if (context.terminalContext) {
+    sections.push('\n---\n## Terminal Pro - Live Market Data')
+    const tc = context.terminalContext
+    
+    if (tc.indices?.length) {
+      sections.push('\n### Market Indices')
+      tc.indices.forEach(idx => {
+        const sign = idx.changePercent >= 0 ? '+' : ''
+        sections.push(`- **${idx.name}** (${idx.symbol.replace('^', '')}): $${idx.price.toLocaleString(undefined, { minimumFractionDigits: 2 })} (${sign}${idx.changePercent.toFixed(2)}%)`)
+      })
+    }
+    
+    if (tc.sectors?.length) {
+      sections.push('\n### Sector Performance')
+      tc.sectors.forEach(s => {
+        const sign = s.change >= 0 ? '+' : ''
+        sections.push(`- **${s.name}**: ${sign}${s.change.toFixed(2)}%`)
+      })
+    }
+    
+    if (tc.topGainers?.length) {
+      sections.push('\n### Top Gainers')
+      tc.topGainers.forEach(g => {
+        sections.push(`- **${g.symbol}** (${g.name}): $${g.price.toFixed(2)} (+${g.changePercent.toFixed(2)}%)`)
+      })
+    }
+    
+    if (tc.topLosers?.length) {
+      sections.push('\n### Top Losers')
+      tc.topLosers.forEach(l => {
+        sections.push(`- **${l.symbol}** (${l.name}): $${l.price.toFixed(2)} (${l.changePercent.toFixed(2)}%)`)
+      })
+    }
+    
+    if (tc.news?.length) {
+      sections.push('\n### Latest Headlines')
+      tc.news.forEach(n => {
+        sections.push(`- ${n.headline} (${n.time})`)
+      })
+    }
+  }
+  
+  // News context (News page)
+  if (context.newsContext) {
+    sections.push('\n---\n## Market News')
+    const nc = context.newsContext
+    
+    if (nc.sentimentBreakdown) {
+      const total = nc.sentimentBreakdown.bullish + nc.sentimentBreakdown.bearish + nc.sentimentBreakdown.neutral
+      sections.push(`**Sentiment Overview**: Bullish: ${nc.sentimentBreakdown.bullish}/${total} | Bearish: ${nc.sentimentBreakdown.bearish}/${total} | Neutral: ${nc.sentimentBreakdown.neutral}/${total}`)
+    }
+    
+    if (nc.recentNews?.length) {
+      sections.push('\n### Recent News Headlines')
+      nc.recentNews.forEach(news => {
+        const sentimentEmoji = news.sentiment === 'bullish' ? '🟢' : news.sentiment === 'bearish' ? '🔴' : '⚪'
+        const symbolTag = news.symbol ? ` [${news.symbol}]` : ''
+        sections.push(`- ${sentimentEmoji} **${news.headline}**${symbolTag} (${news.category}, ${news.timeAgo})`)
+        sections.push(`  ${news.summary.substring(0, 150)}${news.summary.length > 150 ? '...' : ''}`)
+      })
+    }
+  }
+  
   // Page context
   if (context.pageContext) {
     const pageInfo: string[] = []
@@ -449,6 +590,12 @@ export function inferPromptContext(context: AIContext, userMessage?: string): Pr
     return 'portfolio'
   }
   if (context.market && !context.stock) {
+    return 'market'
+  }
+  if (context.newsContext) {
+    return 'news'
+  }
+  if (context.terminalContext) {
     return 'market'
   }
   

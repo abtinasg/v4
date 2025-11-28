@@ -36,6 +36,8 @@ import { Message } from './Message'
 import { MessageInput } from './MessageInput'
 import { SuggestedQuestions } from './SuggestedQuestions'
 import { ContextBadge } from './ContextBadge'
+import { BrainstormToggle } from './BrainstormMode'
+import { QuickActions, parseCommand } from './QuickActions'
 import {
   useChatStore,
   type ChatMessage,
@@ -168,6 +170,13 @@ export const ChatPanel = memo(function ChatPanel({
   const setFeedback = useChatStore((s) => s.setFeedback)
   const clearMessages = useChatStore((s) => s.clearMessages)
   
+  // AI Settings
+  const aiSettings = useChatStore((s) => s.aiSettings)
+  const setBrainstormMode = useChatStore((s) => s.setBrainstormMode)
+  
+  // Input state for quick actions
+  const [inputValue, setInputValue] = React.useState('')
+  
   const { sendMessage, abort } = useChatApi()
   
   // Auto-scroll to bottom
@@ -181,6 +190,27 @@ export const ChatPanel = memo(function ChatPanel({
   
   // Handle sending a message
   const handleSend = useCallback(async (content: string) => {
+    // Parse command if starts with /
+    const parsed = parseCommand(content)
+    
+    // Build actual message content
+    let messageContent = content
+    let enhancedContext = context
+    
+    // Handle special commands
+    if (parsed.type === 'analyze' && parsed.symbols?.length) {
+      messageContent = `Analyze ${parsed.symbols.join(', ')} - provide a comprehensive analysis including valuation, growth prospects, and risks.`
+    } else if (parsed.type === 'compare' && parsed.symbols?.length) {
+      messageContent = `Compare ${parsed.symbols.join(' vs ')} - analyze their valuations, growth, financials, and which one is a better investment.`
+    } else if (parsed.type === 'brainstorm') {
+      messageContent = `🧠 BRAINSTORM MODE: ${parsed.params?.topic || 'Generate investment ideas and perspectives'}`
+    }
+    
+    // Add brainstorm prefix if mode is active
+    if (aiSettings.brainstormMode && parsed.type === 'text') {
+      messageContent = `🧠 BRAINSTORM: ${content}\n\nGenerate multiple perspectives, ideas, and angles on this topic. Be creative and consider contrarian viewpoints.`
+    }
+    
     // Add user message
     addMessage({
       role: 'user',
@@ -412,11 +442,25 @@ export const ChatPanel = memo(function ChatPanel({
                 </div>
                 <div>
                   <h3 className="text-xs sm:text-sm font-semibold text-white">AI Assistant</h3>
-                  <ContextBadge className="mt-0.5" />
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <ContextBadge />
+                    {/* Model badge - auto selected */}
+                    <span className="text-[10px] text-white/40 px-1.5 py-0.5 rounded bg-white/5">
+                      Claude 3.5
+                    </span>
+                  </div>
                 </div>
               </div>
               
               <div className="flex items-center gap-0.5 sm:gap-1">
+                {/* Brainstorm Toggle */}
+                <div className="mr-1">
+                  <BrainstormToggle
+                    isActive={aiSettings.brainstormMode}
+                    onToggle={() => setBrainstormMode(!aiSettings.brainstormMode)}
+                  />
+                </div>
+                
                 {/* Clear chat */}
                 <TooltipProvider delayDuration={300}>
                   <Tooltip>

@@ -1,40 +1,56 @@
 import { NextResponse } from 'next/server'
+import YahooFinance from 'yahoo-finance2'
 
-const FMP_BASE_URL = 'https://financialmodelingprep.com/api/v3'
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
-function getApiKey(): string {
-  const apiKey = process.env.FMP_API_KEY
-  if (!apiKey) {
-    throw new Error('FMP_API_KEY environment variable is not set')
-  }
-  return apiKey
-}
+const yahooFinance = new YahooFinance()
 
-interface SectorPerformance {
-  sector: string
-  changesPercentage: string
-}
+// Sector ETFs with their names
+const SECTOR_ETFS = [
+  { symbol: 'XLK', name: 'Technology' },
+  { symbol: 'XLV', name: 'Healthcare' },
+  { symbol: 'XLF', name: 'Financial Services' },
+  { symbol: 'XLY', name: 'Consumer Cyclical' },
+  { symbol: 'XLI', name: 'Industrials' },
+  { symbol: 'XLE', name: 'Energy' },
+  { symbol: 'XLB', name: 'Basic Materials' },
+  { symbol: 'XLU', name: 'Utilities' },
+  { symbol: 'XLRE', name: 'Real Estate' },
+  { symbol: 'XLC', name: 'Communication Services' },
+  { symbol: 'XLP', name: 'Consumer Defensive' },
+]
 
 export async function GET() {
   try {
-    const apiKey = getApiKey()
-    const url = `${FMP_BASE_URL}/sector-performance?apikey=${apiKey}`
-    
-    const response = await fetch(url, {
-      next: { revalidate: 300 }, // Cache for 5 minutes
-    })
+    // Fetch all sector ETF quotes in parallel
+    const quotes = await Promise.all(
+      SECTOR_ETFS.map(async (sector) => {
+        try {
+          const quote = await yahooFinance.quote(sector.symbol) as any
+          return { 
+            name: sector.name,
+            symbol: sector.symbol,
+            change: quote?.regularMarketChangePercent || 0,
+            price: quote?.regularMarketPrice || 0,
+          }
+        } catch (err) {
+          console.error(`Error fetching ${sector.symbol}:`, err)
+          return { 
+            name: sector.name,
+            symbol: sector.symbol,
+            change: 0,
+            price: 0,
+          }
+        }
+      })
+    )
 
-    if (!response.ok) {
-      throw new Error(`FMP API error: ${response.status}`)
-    }
-
-    const data: SectorPerformance[] = await response.json()
-
-    // Map to a cleaner format
-    const sectors = data.map((item) => ({
-      name: item.sector,
-      change: parseFloat(item.changesPercentage.replace('%', '')),
-    }))
+    // Filter out failed quotes and sort by change
+    const sectors = quotes
+      .filter(s => s.price > 0)
+      .sort((a, b) => b.change - a.change)
 
     return NextResponse.json({
       success: true,
@@ -44,25 +60,11 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching sector performance:', error)
     
-    // Return mock data on error
     return NextResponse.json({
-      success: true,
-      sectors: [
-        { name: 'Technology', change: 1.82 },
-        { name: 'Healthcare', change: 0.45 },
-        { name: 'Financial Services', change: 0.89 },
-        { name: 'Consumer Cyclical', change: 1.23 },
-        { name: 'Industrials', change: 0.67 },
-        { name: 'Energy', change: -1.45 },
-        { name: 'Basic Materials', change: -0.32 },
-        { name: 'Utilities', change: -0.78 },
-        { name: 'Real Estate', change: -0.56 },
-        { name: 'Communication Services', change: 2.15 },
-      ],
+      success: false,
+      error: 'Failed to fetch sector data',
+      sectors: [],
       lastUpdated: new Date().toISOString(),
-      mock: true,
-    })
+    }, { status: 500 })
   }
 }
-
-export const revalidate = 300 // 5 minutes

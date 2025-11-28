@@ -28,6 +28,8 @@ function getContextType(pathname: string): ChatContext['type'] {
   if (pathname.includes('/watchlist')) return 'portfolio'
   if (pathname.includes('/screener')) return 'screener'
   if (pathname.includes('/market')) return 'market'
+  if (pathname.includes('/terminal-pro')) return 'terminal'
+  if (pathname.includes('/news')) return 'news'
   return 'general'
 }
 

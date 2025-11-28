@@ -77,6 +77,20 @@ const contextConfig: Record<ChatContext['type'], {
     borderColor: 'border-teal-500/30',
     label: 'Screener',
   },
+  news: {
+    icon: <BarChart2 className="w-3.5 h-3.5" />,
+    color: 'text-amber-400',
+    bgColor: 'bg-amber-500/10',
+    borderColor: 'border-amber-500/30',
+    label: 'Market News',
+  },
+  terminal: {
+    icon: <BarChart2 className="w-3.5 h-3.5" />,
+    color: 'text-orange-400',
+    bgColor: 'bg-orange-500/10',
+    borderColor: 'border-orange-500/30',
+    label: 'Terminal Pro',
+  },
   general: {
     icon: <Sparkles className="w-3.5 h-3.5" />,
     color: 'text-white/60',

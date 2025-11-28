@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import YahooFinance from 'yahoo-finance2'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 const yahooFinance = new YahooFinance()
 
 export interface MarketIndex {

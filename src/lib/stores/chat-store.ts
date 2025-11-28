@@ -35,8 +35,31 @@ export interface ChatMessage {
   model?: string
 }
 
+// News item for context
+export interface NewsContextItem {
+  headline: string
+  summary: string
+  category: string
+  sentiment: 'bullish' | 'bearish' | 'neutral'
+  source: string
+  timeAgo: string
+  symbol?: string
+}
+
+// Terminal/Market context
+export interface TerminalContext {
+  indices?: { symbol: string; name: string; price: number; change: number; changePercent: number }[]
+  sectors?: { name: string; change: number }[]
+  topGainers?: { symbol: string; name: string; price: number; changePercent: number }[]
+  topLosers?: { symbol: string; name: string; price: number; changePercent: number }[]
+  currencies?: { symbol: string; price: number; change: number }[]
+  commodities?: { symbol: string; name: string; price: number; change: number }[]
+  crypto?: { symbol: string; price: number; change: number }[]
+  news?: { headline: string; time: string }[]
+}
+
 export interface ChatContext {
-  type: 'general' | 'stock' | 'market' | 'portfolio' | 'screener'
+  type: 'general' | 'stock' | 'market' | 'portfolio' | 'screener' | 'news' | 'terminal'
   stock?: StockContext
   market?: MarketContext
   portfolio?: PortfolioContext
@@ -44,10 +67,24 @@ export interface ChatContext {
     count: number
     topResults: { symbol: string; name: string }[]
   }
+  // News page context
+  newsContext?: {
+    recentNews: NewsContextItem[]
+    newsCount: number
+    sentimentBreakdown?: { bullish: number; bearish: number; neutral: number }
+  }
+  // Terminal Pro page context
+  terminalContext?: TerminalContext
   pageContext?: {
     currentPage: string
     selectedTimeframe?: string
   }
+}
+
+// AI Settings
+export interface AISettings {
+  selectedModel: string
+  brainstormMode: boolean
 }
 
 export interface ChatState {
@@ -58,6 +95,9 @@ export interface ChatState {
   
   // Context
   context: ChatContext
+  
+  // AI Settings
+  aiSettings: AISettings
   
   // UI State
   isOpen: boolean
@@ -75,6 +115,10 @@ export interface ChatState {
   
   setContext: (context: Partial<ChatContext>) => void
   clearContext: () => void
+  
+  // AI Settings Actions
+  setSelectedModel: (modelId: string) => void
+  setBrainstormMode: (enabled: boolean) => void
   
   setOpen: (isOpen: boolean) => void
   toggleOpen: () => void
@@ -100,11 +144,17 @@ const initialContext: ChatContext = {
   type: 'general',
 }
 
+const initialAISettings: AISettings = {
+  selectedModel: 'openai/gpt-4o',
+  brainstormMode: false,
+}
+
 const initialState = {
   messages: [],
   isStreaming: false,
   streamingMessageId: null,
   context: initialContext,
+  aiSettings: initialAISettings,
   isOpen: false,
   isMinimized: false,
 }
@@ -181,6 +231,19 @@ export const useChatStore = create<ChatState>()(
 
       clearContext: () => {
         set({ context: initialContext })
+      },
+
+      // AI Settings actions
+      setSelectedModel: (modelId) => {
+        set((state) => ({
+          aiSettings: { ...state.aiSettings, selectedModel: modelId },
+        }))
+      },
+
+      setBrainstormMode: (enabled) => {
+        set((state) => ({
+          aiSettings: { ...state.aiSettings, brainstormMode: enabled },
+        }))
       },
 
       // UI actions

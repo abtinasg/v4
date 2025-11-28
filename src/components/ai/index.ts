@@ -19,6 +19,12 @@ export { PageContextProvider } from './PageContextProvider'
 // Stock context updater - fetches full data for AI
 export { StockContextUpdater } from './StockContextUpdater'
 
+// Terminal context updater - fetches market data for Terminal Pro
+export { TerminalContextUpdater } from './TerminalContextUpdater'
+
+// News context updater - provides news data for News page
+export { NewsContextUpdater } from './NewsContextUpdater'
+
 // Wrapper component for easy integration
 export { AIChatWrapper } from './AIChatWrapper'
 
@@ -37,6 +43,19 @@ export type { SuggestedQuestionsProps, CompactSuggestionsProps } from './Suggest
 
 export { ContextBadge, InlineContextIndicator } from './ContextBadge'
 export type { ContextBadgeProps, InlineContextIndicatorProps } from './ContextBadge'
+
+// New Advanced Features
+export { QuickActions, parseCommand } from './QuickActions'
+export type { QuickAction, ParsedCommand } from './QuickActions'
+
+export { ModelSelector, AI_MODELS } from './ModelSelector'
+export type { AIModel, ModelSelectorProps } from './ModelSelector'
+
+export { BrainstormToggle, BrainstormOutput, buildBrainstormPrompt } from './BrainstormMode'
+export type { BrainstormIdea, BrainstormToggleProps, BrainstormOutputProps } from './BrainstormMode'
+
+export { InteractiveChart, ComparisonChart, MetricBar, parseChartFromResponse } from './InteractiveChart'
+export type { InteractiveChartProps, ComparisonChartProps, ChartData, ParsedChart } from './InteractiveChart'
 
 // Re-export store hooks for convenience
 export {
