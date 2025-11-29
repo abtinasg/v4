@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Newspaper, ExternalLink, Clock, TrendingUp, AlertCircle, RefreshCw, Loader2 } from 'lucide-react'
+import { Newspaper, ExternalLink, Clock, TrendingUp, AlertCircle, RefreshCw, Loader2, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/cinematic'
 
@@ -15,6 +15,14 @@ interface NewsItem {
   sentiment: 'bullish' | 'bearish' | 'neutral'
   category: string
   url?: string
+}
+
+interface MarketIndex {
+  symbol: string
+  name: string
+  price: number
+  change: number
+  changePercent: number
 }
 
 const defaultNews: NewsItem[] = [
@@ -69,7 +77,11 @@ interface MarketNewsFeedProps {
 
 export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
   const [news, setNews] = useState<NewsItem[]>(defaultNews)
+  const [indices, setIndices] = useState<MarketIndex[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingIndices, setIsLoadingIndices] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState('All')
 
   const formatTimeAgo = (publishedDate: string): string => {
     const now = new Date()
@@ -108,6 +120,7 @@ export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
 
   const fetchNews = async () => {
     setIsLoading(true)
+    setFetchError(null)
     try {
       const response = await fetch('/api/market/news?limit=5')
       if (!response.ok) throw new Error('Failed to fetch')
@@ -117,28 +130,68 @@ export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
         const mapped: NewsItem[] = result.news.map((item: any) => ({
           id: item.id || String(Math.random()),
           headline: item.headline,
-          summary: item.summary || 'No summary available',
-          timeAgo: item.timeAgo || 'Recently',
-          source: item.source || 'Financial News',
-          sentiment: item.sentiment || 'neutral',
-          category: item.category || 'Market',
+          summary: item.summary || item.description || 'No summary available',
+          timeAgo: item.timeAgo || (item.publishedAt ? formatTimeAgo(item.publishedAt) : 'Recently'),
+          source: item.source || item.provider || 'Financial News',
+          sentiment: item.sentiment || detectSentiment(item.headline, item.summary || ''),
+          category: item.category || detectCategory(item.headline, item.symbol),
           url: item.url || '#',
         }))
         setNews(mapped)
+      } else {
+        setNews(defaultNews)
       }
     } catch (error) {
       console.error('Error fetching news:', error)
-      // Keep default news on error
+      setFetchError('مشکل در دریافت اخبار بازار رخ داده است. لطفاً دوباره تلاش کنید.')
+      setNews(defaultNews)
     } finally {
       setIsLoading(false)
     }
   }
 
+  const fetchIndices = async () => {
+    setIsLoadingIndices(true)
+    try {
+      const response = await fetch('/api/market/overview')
+      if (!response.ok) throw new Error('Failed to fetch')
+      const result = await response.json()
+      
+      if (result.indices) {
+        // Filter to only show TLT, HYG, and VIX - in specific order
+        const symbolOrder = ['^VIX', 'TLT', 'HYG']
+        const filtered = symbolOrder
+          .map(sym => result.indices.find((idx: MarketIndex) => idx.symbol === sym))
+          .filter(Boolean) as MarketIndex[]
+        setIndices(filtered)
+      }
+    } catch (error) {
+      console.error('Error fetching indices:', error)
+    } finally {
+      setIsLoadingIndices(false)
+    }
+  }
+
   useEffect(() => {
     fetchNews()
-    const interval = setInterval(fetchNews, 120000) // Refresh every 2 minutes
-    return () => clearInterval(interval)
+    fetchIndices()
+    const newsInterval = setInterval(fetchNews, 120000) // Refresh every 2 minutes
+    const indicesInterval = setInterval(fetchIndices, 60000) // Refresh every 1 minute
+    return () => {
+      clearInterval(newsInterval)
+      clearInterval(indicesInterval)
+    }
   }, [])
+
+  const categories = useMemo(() => {
+    const unique = Array.from(new Set(news.map(item => item.category || 'Market')))
+    return ['All', ...unique]
+  }, [news])
+
+  const filteredNews = useMemo(() => {
+    if (selectedCategory === 'All') return news
+    return news.filter(item => item.category === selectedCategory)
+  }, [news, selectedCategory])
 
   return (
     <motion.div
@@ -160,8 +213,11 @@ export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
             </div>
           </div>
           <button
-            onClick={fetchNews}
-            disabled={isLoading}
+            onClick={() => {
+              fetchNews()
+              fetchIndices()
+            }}
+            disabled={isLoading || isLoadingIndices}
             className={cn(
               'p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]',
               'hover:bg-white/[0.06] hover:border-amber-500/30',
@@ -169,7 +225,7 @@ export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
               'disabled:opacity-50'
             )}
           >
-            {isLoading ? (
+            {(isLoading || isLoadingIndices) ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
               <RefreshCw className="w-3.5 h-3.5" />
@@ -177,54 +233,167 @@ export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
           </button>
         </div>
 
-        {/* News Items */}
-        <div className="space-y-3">
-          {news.map((item, index) => {
-            const SentimentIcon = getSentimentIcon(item.sentiment)
-            
+        {/* Key Market Indices */}
+        <div className="mb-4 pb-4 border-b border-white/[0.06]">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {isLoadingIndices ? (
+              // Loading skeletons
+              Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="p-2.5 sm:p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]"
+                >
+                  <div className="h-3 w-12 bg-white/[0.05] rounded animate-pulse mb-2" />
+                  <div className="h-5 w-16 bg-white/[0.05] rounded animate-pulse mb-1" />
+                  <div className="h-3 w-14 bg-white/[0.05] rounded animate-pulse" />
+                </div>
+              ))
+            ) : (
+              indices.map((index, i) => {
+                const isPositive = index.changePercent >= 0
+                return (
+                  <motion.div
+                    key={index.symbol}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: i * 0.1 }}
+                    className={cn(
+                      'p-2.5 sm:p-3 rounded-lg',
+                      'bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] hover:border-white/[0.08]',
+                      'transition-all duration-300 cursor-pointer group'
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                        {index.name}
+                      </p>
+                      {isPositive ? (
+                        <TrendingUp className="w-3 h-3 text-emerald-400" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3 text-red-400" />
+                      )}
+                    </div>
+                    <p className="text-sm sm:text-base font-bold text-white font-mono mb-1">
+                      {index.price.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          'text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded border',
+                          isPositive 
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                            : 'bg-red-500/10 text-red-400 border-red-500/20'
+                        )}
+                      >
+                        {isPositive ? '+' : ''}
+                        {index.changePercent.toFixed(2)}%
+                      </span>
+                    </div>
+                  </motion.div>
+                )
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Category Filter */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-3 border-b border-white/[0.04]">
+          {categories.map(category => {
+            const isActive = category === selectedCategory
             return (
-              <motion.article
-                key={item.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.15 + index * 0.08 }}
-                onClick={() => item.url && window.open(item.url, '_blank')}
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
                 className={cn(
-                  'p-3 rounded-xl',
-                  'bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] hover:border-white/[0.08]',
-                  'transition-all duration-300 cursor-pointer group'
+                  'text-[10px] sm:text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors duration-200 whitespace-nowrap',
+                  isActive
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_8px_rgba(251,191,36,0.25)]'
+                    : 'text-gray-500 border-white/[0.04] hover:text-white hover:border-amber-500/30'
                 )}
               >
-                {/* Top row: Category + Time */}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider border',
-                      getSentimentColor(item.sentiment)
-                    )}>
-                      <SentimentIcon className="w-2.5 h-2.5" />
-                      {item.category}
-                    </span>
-                    <span className="text-[10px] text-gray-600">{item.source}</span>
-                  </div>
-                  <span className="text-[10px] text-gray-500 flex items-center gap-1">
-                    <Clock className="w-2.5 h-2.5" />
-                    {item.timeAgo}
-                  </span>
-                </div>
-
-                {/* Headline */}
-                <h4 className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors leading-snug mb-1.5">
-                  {item.headline}
-                </h4>
-
-                {/* Summary */}
-                <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
-                  {item.summary}
-                </p>
-              </motion.article>
+                {category}
+              </button>
             )
           })}
+        </div>
+
+        {fetchError && (
+          <div className="mb-3 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-[11px] text-amber-200">
+            {fetchError}
+          </div>
+        )}
+
+        {/* News Items */}
+        <div className="space-y-3">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div
+                key={`skeleton-${idx}`}
+                className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.03] animate-pulse space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-20 bg-white/[0.05] rounded" />
+                  <div className="h-3 w-16 bg-white/[0.05] rounded" />
+                </div>
+                <div className="h-4 w-3/4 bg-white/[0.05] rounded" />
+                <div className="h-3 w-full bg-white/[0.05] rounded" />
+              </div>
+            ))
+          ) : filteredNews.length > 0 ? (
+            filteredNews.map((item, index) => {
+              const SentimentIcon = getSentimentIcon(item.sentiment)
+
+              return (
+                <motion.article
+                  key={item.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 + index * 0.06 }}
+                  onClick={() => item.url && item.url !== '#' && window.open(item.url, '_blank', 'noopener,noreferrer')}
+                  className={cn(
+                    'p-3 rounded-xl',
+                    'bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] hover:border-white/[0.08]',
+                    'transition-all duration-300 cursor-pointer group'
+                  )}
+                >
+                  {/* Top row: Category + Time */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider border',
+                        getSentimentColor(item.sentiment)
+                      )}>
+                        <SentimentIcon className="w-2.5 h-2.5" />
+                        {item.category}
+                      </span>
+                      <span className="text-[10px] text-gray-500">{item.source}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                      <Clock className="w-2.5 h-2.5" />
+                      {item.timeAgo}
+                    </span>
+                  </div>
+
+                  {/* Headline */}
+                  <h4 className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors leading-snug mb-1.5">
+                    {item.headline}
+                  </h4>
+
+                  {/* Summary */}
+                  <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
+                    {item.summary}
+                  </p>
+                </motion.article>
+              )
+            })
+          ) : (
+            <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] text-center text-sm text-gray-500">
+              خبری مطابق این دسته‌بندی یافت نشد.
+            </div>
+          )}
         </div>
 
         {/* View All Link */}

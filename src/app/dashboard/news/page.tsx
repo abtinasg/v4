@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/cinematic'
 import { NewsContextUpdater } from '@/components/ai'
+import { AIMarketReport } from '@/components/dashboard/AIMarketReport'
 
 interface NewsItem {
   id: string
@@ -88,6 +89,33 @@ export default function NewsPage() {
     })
   }, [news, searchQuery, categoryFilter, sentimentFilter])
 
+  const sentimentStats = useMemo(() => {
+    const base: Record<NewsItem['sentiment'], number> = {
+      bullish: 0,
+      bearish: 0,
+      neutral: 0,
+    }
+    const categoryCounts: Record<string, number> = {}
+
+    filteredNews.forEach(item => {
+      base[item.sentiment] = (base[item.sentiment] || 0) + 1
+      if (item.category) {
+        categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1
+      }
+    })
+
+    const topCategoryEntry = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]
+
+    return {
+      total: filteredNews.length,
+      sentiments: base,
+      topCategory: topCategoryEntry ? topCategoryEntry[0] : null,
+    }
+  }, [filteredNews])
+
+  const featuredNews = filteredNews[0] || null
+  const remainingNews = featuredNews ? filteredNews.slice(1) : filteredNews
+
   const getSentimentColor = (sentiment: NewsItem['sentiment']) => {
     switch (sentiment) {
       case 'bullish': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
@@ -113,10 +141,20 @@ export default function NewsPage() {
       <NewsContextUpdater news={news} />
       
       <div className="max-w-7xl mx-auto">
+        {/* AI Market Intelligence Report */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <AIMarketReport />
+        </motion.div>
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="mb-6"
         >
           <div className="flex items-center justify-between mb-4">
@@ -246,6 +284,61 @@ export default function NewsPage() {
               </button>
             )}
           </div>
+
+          {filteredNews.length > 0 && (
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {(['bullish', 'neutral', 'bearish'] as NewsItem['sentiment'][]).map(sent => {
+                const percentage = sentimentStats.total
+                  ? Math.round((sentimentStats.sentiments[sent] / sentimentStats.total) * 100)
+                  : 0
+                const isPositive = sent === 'bullish'
+
+                return (
+                  <GlassCard key={sent} className="p-4 border border-white/[0.04] bg-white/[0.02]">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs uppercase tracking-wide text-gray-500">
+                        {sent} sentiment
+                      </span>
+                      <span className={cn(
+                        'text-xs font-semibold px-2 py-0.5 rounded-md border',
+                        sent === 'bullish'
+                          ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+                          : sent === 'bearish'
+                          ? 'text-red-400 border-red-500/30 bg-red-500/10'
+                          : 'text-cyan-300 border-cyan-500/20 bg-cyan-500/10'
+                      )}>
+                        {sentimentStats.sentiments[sent]} stories
+                      </span>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <p className="text-3xl font-semibold text-white">{percentage}%</p>
+                      {sentimentStats.topCategory && isPositive && (
+                        <p className="text-[11px] text-gray-500 text-right">
+                          Top theme
+                          <span className="block text-sm text-white font-semibold">
+                            {sentimentStats.topCategory}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                    <div className="mt-3 h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                      <div
+                        className={cn(
+                          'h-full rounded-full transition-all duration-500',
+                          sent === 'bullish'
+                            ? 'bg-emerald-400'
+                            : sent === 'bearish'
+                            ? 'bg-red-400'
+                            : 'bg-cyan-400'
+                        )}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </GlassCard>
+                )
+              })}
+            </div>
+          )}
         </motion.div>
 
         {/* News Grid */}
@@ -261,24 +354,112 @@ export default function NewsPage() {
           </GlassCard>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <AnimatePresence mode="popLayout">
-                {filteredNews.map((item, index) => {
-                  const SentimentIcon = getSentimentIcon(item.sentiment)
-                  
-                  return (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2, delay: index * 0.02 }}
-                      layout
-                    >
-                      <GlassCard 
-                        className="p-4 h-full cursor-pointer hover:border-cyan-500/30 transition-all group"
-                        onClick={() => setSelectedNews(item)}
+            {featuredNews && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="mb-6"
+              >
+                <GlassCard className="p-6 lg:p-8 border border-cyan-500/20 bg-gradient-to-br from-white/[0.03] to-cyan-500/5">
+                  <div className="grid gap-6 lg:grid-cols-5">
+                    <div className="lg:col-span-3 space-y-4">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={cn(
+                          'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border',
+                          getSentimentColor(featuredNews.sentiment)
+                        )}>
+                          {React.createElement(getSentimentIcon(featuredNews.sentiment), { className: 'w-3 h-3' })}
+                          Featured {featuredNews.category}
+                        </span>
+                        {featuredNews.symbol && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                            {featuredNews.symbol}
+                          </span>
+                        )}
+                      </div>
+
+                      <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">
+                        {featuredNews.headline}
+                      </h2>
+
+                      <p className="text-sm text-gray-400 leading-relaxed line-clamp-4">
+                        {featuredNews.summary}
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                        <span className="font-medium text-white/80">{featuredNews.source}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {featuredNews.timeAgo}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setSelectedNews(featuredNews)}
+                          className="px-4 py-2 rounded-lg bg-white/[0.08] text-white text-sm font-semibold hover:bg-white/[0.12] transition-all"
+                        >
+                          Quick View
+                        </button>
+                        {featuredNews.url && featuredNews.url !== '#' && (
+                          <a
+                            href={featuredNews.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 rounded-lg border border-cyan-500/40 text-cyan-300 text-sm font-semibold hover:bg-cyan-500/10 transition-all inline-flex items-center gap-2"
+                          >
+                            Read Article
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="lg:col-span-2">
+                      <div className="relative h-48 lg:h-full rounded-2xl overflow-hidden bg-gradient-to-br from-cyan-500/20 via-transparent to-transparent">
+                        {featuredNews.image ? (
+                          <img
+                            src={featuredNews.image}
+                            alt={featuredNews.headline}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                            }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">No image</div>
+                        )}
+                        <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-black/40 text-xs text-white border border-white/10">
+                          Top story
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            )}
+
+            {remainingNews.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <AnimatePresence mode="popLayout">
+                  {remainingNews.map((item, index) => {
+                    const SentimentIcon = getSentimentIcon(item.sentiment)
+
+                    return (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.2, delay: index * 0.02 }}
+                        layout
                       >
+                        <GlassCard 
+                          className="p-4 h-full cursor-pointer hover:border-cyan-500/30 transition-all group"
+                          onClick={() => setSelectedNews(item)}
+                        >
                         {/* Image if available */}
                         {item.image && (
                           <div className="relative w-full h-40 mb-3 rounded-lg overflow-hidden bg-white/[0.02]">
@@ -333,12 +514,13 @@ export default function NewsPage() {
                           </div>
                           <ExternalLink className="w-3 h-3 text-gray-600 group-hover:text-cyan-400 transition-colors" />
                         </div>
-                      </GlassCard>
-                    </motion.div>
-                  )
-                })}
+                        </GlassCard>
+                      </motion.div>
+                    )
+                  })}
               </AnimatePresence>
             </div>
+            )}
 
             {/* Pagination */}
             {totalPages > 1 && (

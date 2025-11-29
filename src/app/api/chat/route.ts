@@ -98,6 +98,15 @@ interface ChatRequest {
     portfolio?: PortfolioContext
     newsContext?: NewsPageContext
     terminalContext?: TerminalContext
+    economicIndicators?: {
+      gdp?: { value: number | null; change: number | null }
+      unemployment?: { value: number | null; change: number | null }
+      inflation?: { value: number | null; change: number | null }
+      federalFundsRate?: { value: number | null; change: number | null }
+      consumerConfidence?: { value: number | null; change: number | null }
+      manufacturingPmi?: { value: number | null; change: number | null }
+      servicesPmi?: { value: number | null; change: number | null }
+    }
     pageContext?: {
       currentPage: string
       selectedTimeframe?: string
@@ -231,6 +240,7 @@ export async function POST(request: NextRequest) {
       portfolio: context?.portfolio,
       newsContext: context?.newsContext,
       terminalContext: context?.terminalContext,
+      economicIndicators: (context as any)?.economicIndicators,
       pageContext: context?.pageContext,
     }
     

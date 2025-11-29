@@ -8,6 +8,7 @@ import {
   userPreferences, 
   chatHistory, 
   portfolioHoldings,
+  riskProfiles,
   type NewUser,
   type NewWatchlist,
   type NewWatchlistItem,
@@ -15,6 +16,7 @@ import {
   type NewUserPreferences,
   type NewChatHistory,
   type NewPortfolioHolding,
+  type NewRiskProfile,
 } from './schema'
 
 // ==================== USER QUERIES ====================
@@ -523,6 +525,72 @@ export const analyticsQueries = {
   },
 }
 
+// ==================== RISK PROFILE QUERIES ====================
+
+export const riskProfileQueries = {
+  // Get risk profile by user ID
+  getByUserId: async (userId: string) => {
+    const result = await db.query.riskProfiles.findFirst({
+      where: eq(riskProfiles.userId, userId),
+    })
+    return result
+  },
+
+  // Create risk profile
+  create: async (data: NewRiskProfile) => {
+    const [profile] = await db.insert(riskProfiles).values(data).returning()
+    return profile
+  },
+
+  // Update risk profile
+  update: async (userId: string, data: Partial<NewRiskProfile>) => {
+    const [updated] = await db
+      .update(riskProfiles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(riskProfiles.userId, userId))
+      .returning()
+    return updated
+  },
+
+  // Upsert risk profile (create or update)
+  upsert: async (userId: string, data: Omit<NewRiskProfile, 'userId'>) => {
+    const existing = await db.query.riskProfiles.findFirst({
+      where: eq(riskProfiles.userId, userId),
+    })
+
+    if (existing) {
+      const [updated] = await db
+        .update(riskProfiles)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(riskProfiles.userId, userId))
+        .returning()
+      return updated
+    } else {
+      const [created] = await db
+        .insert(riskProfiles)
+        .values({ ...data, userId })
+        .returning()
+      return created
+    }
+  },
+
+  // Check if user has completed onboarding
+  hasCompletedOnboarding: async (userId: string) => {
+    const result = await db.query.riskProfiles.findFirst({
+      where: and(
+        eq(riskProfiles.userId, userId),
+        eq(riskProfiles.onboardingCompleted, true)
+      ),
+    })
+    return !!result
+  },
+
+  // Delete risk profile
+  delete: async (userId: string) => {
+    await db.delete(riskProfiles).where(eq(riskProfiles.userId, userId))
+  },
+}
+
 // Export all query helpers
 export const queries = {
   user: userQueries,
@@ -532,4 +600,5 @@ export const queries = {
   chatHistory: chatHistoryQueries,
   portfolioHoldings: portfolioHoldingsQueries,
   analytics: analyticsQueries,
+  riskProfile: riskProfileQueries,
 }

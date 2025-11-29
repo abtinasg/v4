@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/cinematic'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface EconomicIndicator {
   id: string
@@ -25,6 +26,7 @@ interface EconomicIndicator {
   trend: 'up' | 'down' | 'neutral'
   icon: React.ComponentType<{ className?: string }>
   color: 'blue' | 'emerald' | 'amber' | 'purple' | 'rose'
+  tooltip?: string
 }
 
 const defaultIndicators: EconomicIndicator[] = [
@@ -36,6 +38,7 @@ const defaultIndicators: EconomicIndicator[] = [
     trend: 'neutral',
     icon: Landmark,
     color: 'purple',
+    tooltip: 'Effective Federal Funds Rate (EFFR)',
   },
   {
     id: 'cpi',
@@ -111,6 +114,7 @@ export function EconomicIndicatorsSection({ className }: EconomicIndicatorsSecti
             trend: (data.federalFundsRate.change || 0) > 0.05 ? 'up' : (data.federalFundsRate.change || 0) < -0.05 ? 'down' : 'neutral',
             icon: Landmark,
             color: 'purple',
+            tooltip: 'Effective Federal Funds Rate (EFFR)',
           })
         }
 
@@ -219,7 +223,7 @@ export function EconomicIndicatorsSection({ className }: EconomicIndicatorsSecti
             const colors = colorMap[indicator.color]
             const Icon = indicator.icon
             
-            return (
+            const indicatorContent = (
               <motion.div
                 key={indicator.id}
                 initial={{ opacity: 0, x: -10 }}
@@ -261,6 +265,24 @@ export function EconomicIndicatorsSection({ className }: EconomicIndicatorsSecti
                 </div>
               </motion.div>
             )
+
+            // Wrap with tooltip if available
+            if (indicator.tooltip) {
+              return (
+                <TooltipProvider key={indicator.id}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {indicatorContent}
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="text-xs">{indicator.tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )
+            }
+
+            return indicatorContent
           })}
         </div>
       </GlassCard>

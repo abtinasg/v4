@@ -18,10 +18,12 @@ export type {
   YahooFinanceData,
   FREDData,
   IndustryData,
+  TradeFXData,
   RawFinancialData,
 
   // Metric Category Types
   MacroMetrics,
+  TradeFXMetrics,
   IndustryMetrics,
   LiquidityMetrics,
   LeverageMetrics,
@@ -542,6 +544,62 @@ export {
 
 // Macro Types
 export type { MacroInterpretation, FREDSeriesId } from './macro';
+
+// ============================================================================
+// TRADE & FX PARITY METRICS (35+ metrics)
+// ============================================================================
+
+export {
+  // Series Configuration
+  TRADE_FX_SERIES,
+
+  // Trade Calculations
+  calculateTermsOfTrade,
+  calculateOpportunityCost,
+  calculateTradeBalance,
+  calculateSavingInvestmentGap,
+  calculateNetExports,
+
+  // Spot FX Calculations
+  calculateSpotSpread,
+  calculateSpotMidpoint,
+
+  // Forward FX Calculations
+  calculateForwardPoints,
+  calculateForwardRate,
+
+  // Cross Rate Calculations
+  calculateCrossRate,
+  calculateTriangularArbitrage,
+  calculateSyntheticCrossRate,
+
+  // Interest Rate Parity Calculations
+  calculateCoveredInterestParity,
+  calculateUncoveredInterestParity,
+  calculateForwardPremiumDiscount,
+  calculateCarryTradeReturn,
+  calculateInterestRateDifferential,
+
+  // Real Exchange Rate Calculations
+  calculateRealExchangeRate,
+  calculatePPPRate,
+  calculatePPPDeviation,
+
+  // FX Volatility Calculations
+  calculateHistoricalVolatility,
+
+  // Main Calculation Function
+  calculateTradeFX,
+
+  // Interpretation Functions
+  interpretTermsOfTrade,
+  interpretCIPDeviation,
+  interpretPPPDeviation,
+  interpretTradeBalance,
+} from './tradefx';
+
+// Trade & FX Types
+export type { TradeFXInterpretation } from './tradefx';
 
 // Industry Metrics
 export {

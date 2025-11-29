@@ -47,6 +47,8 @@ interface StockData {
   changePercent: number
   volume: number
   marketCap: number
+  avgVolume: number // Average 10-day volume
+  volumeRatio: number // Current volume / Average volume (for unusual volume detection)
 }
 
 async function fetchStockData(symbols: string[]): Promise<StockData[]> {
@@ -59,14 +61,22 @@ async function fetchStockData(symbols: string[]): Promise<StockData[]> {
           console.error(`Invalid quote data for ${symbol}`)
           return null
         }
+        
+        const currentVolume = quote.regularMarketVolume || 0
+        const avgVolume = quote.averageDailyVolume10Day || quote.averageDailyVolume3Month || 0
+        // Calculate volume ratio: how many times current volume is vs average
+        const volumeRatio = avgVolume > 0 ? currentVolume / avgVolume : 0
+        
         return {
           symbol: quote.symbol || symbol,
           name: quote.shortName || quote.longName || symbol,
           price: quote.regularMarketPrice || 0,
           change: quote.regularMarketChange || 0,
           changePercent: quote.regularMarketChangePercent || 0,
-          volume: quote.regularMarketVolume || 0,
+          volume: currentVolume,
           marketCap: quote.marketCap || 0,
+          avgVolume,
+          volumeRatio,
         }
       } catch (error) {
         console.error(`Error fetching ${symbol}:`, error)
@@ -100,11 +110,19 @@ export async function GET() {
       .sort((a, b) => b.volume - a.volume)
       .slice(0, 15)
 
+    // Unusual Volume: stocks trading at 1.2x or more their average volume
+    // Sorted by volume ratio (highest unusual activity first)
+    const unusualVolume = [...allStocks]
+      .filter((s) => s.volumeRatio >= 1.2) // At least 20% above average
+      .sort((a, b) => b.volumeRatio - a.volumeRatio)
+      .slice(0, 15)
+
     return NextResponse.json({
       success: true,
       gainers,
       losers,
       mostActive,
+      unusualVolume,
       lastUpdated: new Date().toISOString(),
     })
   } catch (error) {
@@ -116,6 +134,7 @@ export async function GET() {
         gainers: [],
         losers: [],
         mostActive: [],
+        unusualVolume: [],
         lastUpdated: new Date().toISOString(),
       },
       { status: 500 }

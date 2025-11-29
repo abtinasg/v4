@@ -6,6 +6,9 @@ export const subscriptionTierEnum = pgEnum('subscription_tier', ['free', 'premiu
 export const alertConditionEnum = pgEnum('alert_condition', ['above', 'below', 'crosses_above', 'crosses_below', 'percent_change'])
 export const themeEnum = pgEnum('theme', ['light', 'dark', 'system'])
 export const chartTypeEnum = pgEnum('chart_type', ['line', 'candlestick', 'bar', 'area'])
+export const riskToleranceEnum = pgEnum('risk_tolerance', ['conservative', 'moderate', 'aggressive'])
+export const investmentHorizonEnum = pgEnum('investment_horizon', ['short_term', 'medium_term', 'long_term'])
+export const investmentExperienceEnum = pgEnum('investment_experience', ['beginner', 'intermediate', 'advanced'])
 
 // ==================== USERS TABLE ====================
 export const users = pgTable('users', {
@@ -124,6 +127,44 @@ export const portfolioHoldings = pgTable('portfolio_holdings', {
   lastUpdatedIdx: index('portfolio_holdings_last_updated_idx').on(table.lastUpdated),
 }))
 
+// ==================== RISK PROFILE TABLE ====================
+export const riskProfiles = pgTable('risk_profiles', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  
+  // Risk Assessment Results
+  riskTolerance: riskToleranceEnum('risk_tolerance').notNull(),
+  investmentHorizon: investmentHorizonEnum('investment_horizon').notNull(),
+  investmentExperience: investmentExperienceEnum('investment_experience').notNull(),
+  riskScore: decimal('risk_score', { precision: 5, scale: 2 }).notNull(), // 0-100 score
+  
+  // Questionnaire Answers (stored as JSON for flexibility)
+  answers: jsonb('answers').$type<{
+    q1_investment_goal: string
+    q2_time_horizon: string
+    q3_risk_reaction: string
+    q4_loss_tolerance: string
+    q5_investment_experience: string
+    q6_income_stability: string
+    q7_emergency_fund: string
+    q8_investment_knowledge: string
+  }>().notNull(),
+  
+  // Investment Preferences
+  preferredSectors: jsonb('preferred_sectors').$type<string[]>().default([]),
+  avoidSectors: jsonb('avoid_sectors').$type<string[]>().default([]),
+  investmentAmount: decimal('investment_amount', { precision: 15, scale: 2 }),
+  
+  // Onboarding Status
+  onboardingCompleted: boolean('onboarding_completed').default(true).notNull(),
+  
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('risk_profiles_user_id_idx').on(table.userId),
+  riskToleranceIdx: index('risk_profiles_risk_tolerance_idx').on(table.riskTolerance),
+}))
+
 // ==================== RELATIONS ====================
 export const usersRelations = relations(users, ({ many, one }) => ({
   watchlists: many(watchlists),
@@ -131,6 +172,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   preferences: one(userPreferences),
   chatHistory: many(chatHistory),
   portfolioHoldings: many(portfolioHoldings),
+  riskProfile: one(riskProfiles),
 }))
 
 export const watchlistsRelations = relations(watchlists, ({ one, many }) => ({
@@ -176,6 +218,13 @@ export const portfolioHoldingsRelations = relations(portfolioHoldings, ({ one })
   }),
 }))
 
+export const riskProfilesRelations = relations(riskProfiles, ({ one }) => ({
+  user: one(users, {
+    fields: [riskProfiles.userId],
+    references: [users.id],
+  }),
+}))
+
 // ==================== TYPE EXPORTS ====================
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -191,3 +240,5 @@ export type ChatHistory = typeof chatHistory.$inferSelect
 export type NewChatHistory = typeof chatHistory.$inferInsert
 export type PortfolioHolding = typeof portfolioHoldings.$inferSelect
 export type NewPortfolioHolding = typeof portfolioHoldings.$inferInsert
+export type RiskProfile = typeof riskProfiles.$inferSelect
+export type NewRiskProfile = typeof riskProfiles.$inferInsert

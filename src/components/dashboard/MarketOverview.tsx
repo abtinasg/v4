@@ -101,10 +101,10 @@ export function MarketOverview() {
       )}
 
       {/* Major Indices */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {isLoading ? (
           // Loading skeletons
-          Array.from({ length: 5 }).map((_, i) => (
+          Array.from({ length: 7 }).map((_, i) => (
             <GlassCard key={i}>
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-white/[0.05] rounded animate-pulse" />

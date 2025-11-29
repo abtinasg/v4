@@ -58,6 +58,17 @@ export interface TerminalContext {
   news?: { headline: string; time: string }[]
 }
 
+// Economic indicators context
+export interface EconomicIndicatorsContext {
+  gdp?: { value: number | null; change: number | null }
+  unemployment?: { value: number | null; change: number | null }
+  inflation?: { value: number | null; change: number | null }
+  federalFundsRate?: { value: number | null; change: number | null }
+  consumerConfidence?: { value: number | null; change: number | null }
+  manufacturingPmi?: { value: number | null; change: number | null }
+  servicesPmi?: { value: number | null; change: number | null }
+}
+
 export interface ChatContext {
   type: 'general' | 'stock' | 'market' | 'portfolio' | 'screener' | 'news' | 'terminal'
   stock?: StockContext
@@ -75,6 +86,8 @@ export interface ChatContext {
   }
   // Terminal Pro page context
   terminalContext?: TerminalContext
+  // Economic indicators context
+  economicIndicators?: EconomicIndicatorsContext
   pageContext?: {
     currentPage: string
     selectedTimeframe?: string
@@ -145,7 +158,7 @@ const initialContext: ChatContext = {
 }
 
 const initialAISettings: AISettings = {
-  selectedModel: 'openai/gpt-4o',
+  selectedModel: 'anthropic/claude-sonnet-4.5',
   brainstormMode: false,
 }
 

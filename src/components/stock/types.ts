@@ -48,7 +48,7 @@ export interface PriceChartProps {
 // METRICS TABS TYPES
 // ============================================================================
 
-export type MetricsTabValue = 'overview' | 'financials' | 'valuation' | 'economy' | 'technical' | 'ai';
+export type MetricsTabValue = 'overview' | 'financials' | 'valuation' | 'economy' | 'technical' | 'risk' | 'tradefx' | 'fixedincome' | 'ai';
 
 export interface MetricsTabsProps {
   symbol: string;

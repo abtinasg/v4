@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Target, Globe, Sparkles } from 'lucide-react'
 
 const visionCards = [
@@ -29,52 +28,36 @@ export function Vision() {
       
       <div className="relative mx-auto max-w-5xl px-6 text-center">
         {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.5 }}
+        <div
           className="inline-flex items-center gap-2 rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.06] px-4 py-1.5 text-xs font-medium text-[#8B5CF6] mb-8"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-[#8B5CF6]" />
           Our Vision
-        </motion.div>
+        </div>
 
         {/* Headline */}
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+        <h2
           className="text-display text-4xl md:text-5xl lg:text-6xl text-white mb-6"
         >
           Institutional grade.{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4FF] to-[#8B5CF6]">
             Retail accessible.
           </span>
-        </motion.h2>
+        </h2>
 
         {/* Subhead */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+        <p
           className="text-subhead text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-16"
         >
           We believe every trader deserves the tools that move markets. 
           Deep Terminal brings institutional-caliber analytics to those ready to trade with conviction.
-        </motion.p>
+        </p>
 
         {/* Vision Cards */}
         <div className="grid md:grid-cols-3 gap-6">
           {visionCards.map((card, i) => (
-            <motion.div
+            <div
               key={card.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: 0.1 * i }}
               className="group relative rounded-2xl border border-white/[0.05] bg-white/[0.01] p-8 text-left backdrop-blur-sm hover:border-[#8B5CF6]/20 hover:bg-[#8B5CF6]/[0.02] transition-all duration-500"
             >
               {/* Glow on hover */}
@@ -87,7 +70,7 @@ export function Vision() {
                 <h3 className="text-lg font-semibold text-white mb-2">{card.title}</h3>
                 <p className="text-sm text-gray-400 leading-relaxed">{card.description}</p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { BarChart3, TrendingUp, DollarSign, Activity, Gauge, PieChart, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
@@ -63,10 +62,7 @@ export function MetricsLibrary() {
 
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
           className="text-center mb-16"
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-[#2DD4BF]/20 bg-[#2DD4BF]/[0.06] px-4 py-1.5 text-xs font-medium text-[#2DD4BF] mb-6">
@@ -84,17 +80,13 @@ export function MetricsLibrary() {
           <p className="text-subhead text-gray-400 max-w-2xl mx-auto">
             From fundamental analysis to technical indicators—every metric you need to trade with conviction.
           </p>
-        </motion.div>
+        </div>
 
         {/* Categories Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {categories.map((category, i) => (
-            <motion.div
+            <div
               key={category.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
               className="group relative rounded-2xl border border-white/[0.05] bg-[#0A0D12]/60 p-6 backdrop-blur-sm overflow-hidden hover:border-white/[0.1] transition-all duration-500"
             >
               {/* Hover gradient */}
@@ -140,15 +132,12 @@ export function MetricsLibrary() {
                   </span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+        <div
           className="text-center"
         >
           <Link
@@ -158,7 +147,7 @@ export function MetricsLibrary() {
             Explore Full Library
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

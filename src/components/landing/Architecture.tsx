@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Monitor, List, BrainCircuit, LineChart } from 'lucide-react'
 
 const pillars = [
@@ -45,10 +44,7 @@ export function Architecture() {
 
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
           className="text-center mb-16"
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-[#00D4FF]/20 bg-[#00D4FF]/[0.06] px-4 py-1.5 text-xs font-medium text-[#00D4FF] mb-6">
@@ -64,17 +60,13 @@ export function Architecture() {
           <p className="text-subhead text-gray-400 max-w-2xl mx-auto">
             Each component engineered for speed, accuracy, and seamless integration.
           </p>
-        </motion.div>
+        </div>
 
         {/* Pillars Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {pillars.map((pillar, i) => (
-            <motion.div
+            <div
               key={pillar.title}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
               className="group relative"
             >
               {/* Card */}
@@ -117,7 +109,7 @@ export function Architecture() {
                   />
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 

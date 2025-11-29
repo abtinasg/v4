@@ -158,6 +158,17 @@ export interface TerminalContext {
   news?: { headline: string; time: string }[]
 }
 
+// Economic Indicators context
+export interface EconomicIndicatorsContext {
+  gdp?: { value: number | null; change: number | null }
+  unemployment?: { value: number | null; change: number | null }
+  inflation?: { value: number | null; change: number | null }
+  federalFundsRate?: { value: number | null; change: number | null }
+  consumerConfidence?: { value: number | null; change: number | null }
+  manufacturingPmi?: { value: number | null; change: number | null }
+  servicesPmi?: { value: number | null; change: number | null }
+}
+
 // News page context
 export interface NewsPageContext {
   recentNews: NewsContextItem[]
@@ -175,6 +186,8 @@ export interface AIContext {
   newsContext?: NewsPageContext
   // Terminal Pro page context
   terminalContext?: TerminalContext
+  // Economic indicators context
+  economicIndicators?: EconomicIndicatorsContext
   pageContext?: {
     currentPage: string
     selectedTimeframe?: string
@@ -507,6 +520,56 @@ export function buildContextString(context: AIContext): string {
       tc.news.forEach(n => {
         sections.push(`- ${n.headline} (${n.time})`)
       })
+    }
+  }
+  
+  // Economic Indicators context
+  if (context.economicIndicators) {
+    sections.push('\n---\n## Economic Indicators')
+    const econ = context.economicIndicators
+    
+    const indicators: string[] = []
+    
+    if (econ.gdp?.value !== null && econ.gdp?.value !== undefined) {
+      const change = econ.gdp.change ? ` (${econ.gdp.change >= 0 ? '+' : ''}${econ.gdp.change.toFixed(1)} from prev)` : ''
+      indicators.push(`- **GDP Growth**: ${econ.gdp.value.toFixed(1)}%${change}`)
+    }
+    
+    if (econ.unemployment?.value !== null && econ.unemployment?.value !== undefined) {
+      const change = econ.unemployment.change ? ` (${econ.unemployment.change >= 0 ? '+' : ''}${econ.unemployment.change.toFixed(1)} from prev)` : ''
+      indicators.push(`- **Unemployment Rate**: ${econ.unemployment.value.toFixed(1)}%${change}`)
+    }
+    
+    if (econ.inflation?.value !== null && econ.inflation?.value !== undefined) {
+      const change = econ.inflation.change ? ` (${econ.inflation.change >= 0 ? '+' : ''}${econ.inflation.change.toFixed(1)} from prev)` : ''
+      indicators.push(`- **Inflation (CPI YoY)**: ${econ.inflation.value.toFixed(1)}%${change}`)
+    }
+    
+    if (econ.federalFundsRate?.value !== null && econ.federalFundsRate?.value !== undefined) {
+      indicators.push(`- **Federal Funds Rate**: ${econ.federalFundsRate.value.toFixed(2)}%`)
+    }
+    
+    if (econ.consumerConfidence?.value !== null && econ.consumerConfidence?.value !== undefined) {
+      const change = econ.consumerConfidence.change ? ` (${econ.consumerConfidence.change >= 0 ? '+' : ''}${econ.consumerConfidence.change.toFixed(1)} from prev)` : ''
+      indicators.push(`- **Consumer Confidence Index**: ${econ.consumerConfidence.value.toFixed(1)}${change}`)
+    }
+    
+    if (econ.manufacturingPmi?.value !== null && econ.manufacturingPmi?.value !== undefined) {
+      const status = econ.manufacturingPmi.value >= 50 ? 'Expansion' : 'Contraction'
+      const change = econ.manufacturingPmi.change ? ` (${econ.manufacturingPmi.change >= 0 ? '+' : ''}${econ.manufacturingPmi.change.toFixed(1)})` : ''
+      indicators.push(`- **Manufacturing PMI**: ${econ.manufacturingPmi.value.toFixed(1)} [${status}]${change}`)
+    }
+    
+    if (econ.servicesPmi?.value !== null && econ.servicesPmi?.value !== undefined) {
+      const status = econ.servicesPmi.value >= 50 ? 'Expansion' : 'Contraction'
+      const change = econ.servicesPmi.change ? ` (${econ.servicesPmi.change >= 0 ? '+' : ''}${econ.servicesPmi.change.toFixed(1)})` : ''
+      indicators.push(`- **Services PMI**: ${econ.servicesPmi.value.toFixed(1)} [${status}]${change}`)
+    }
+    
+    if (indicators.length > 0) {
+      sections.push(indicators.join('\n'))
+    } else {
+      sections.push('No economic indicator data available')
     }
   }
   

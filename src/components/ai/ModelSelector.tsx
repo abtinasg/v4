@@ -114,7 +114,7 @@ export const ModelSelector = memo(function ModelSelector({
 }: ModelSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const currentModel = AI_MODELS.find((m) => m.id === selectedModel) || AI_MODELS[2] // Default to GPT-4o
+  const currentModel = AI_MODELS.find((m) => m.id === selectedModel) || AI_MODELS[0] // Default to Claude Sonnet 4.5
 
   const getTierColor = (tier: AIModel['tier']) => {
     switch (tier) {
@@ -241,14 +241,6 @@ export const ModelSelector = memo(function ModelSelector({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className="text-sm font-semibold text-white">{model.name}</span>
-                            <span
-                              className={cn(
-                                'text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border',
-                                getTierColor(model.tier)
-                              )}
-                            >
-                              {model.tier}
-                            </span>
                           </div>
                           <p className="text-xs text-white/50 mb-1.5">{model.description}</p>
                           
@@ -281,7 +273,7 @@ export const ModelSelector = memo(function ModelSelector({
               {/* Footer */}
               <div className="px-3 py-2 border-t border-white/10 bg-white/5">
                 <p className="text-[10px] text-white/40 text-center">
-                  Premium models require a Pro subscription
+                  Select the best model for your needs
                 </p>
               </div>
             </motion.div>

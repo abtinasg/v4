@@ -40,10 +40,13 @@ export interface EconomicIndicators {
   federalFundsRate: EconomicIndicator;
   treasuryYield10Y: EconomicIndicator;
   consumerConfidence: EconomicIndicator;
+  manufacturingPmi: EconomicIndicator;
+  servicesPmi: EconomicIndicator;
   lastUpdated: string;
 }
 
 // FRED Series IDs for key economic indicators
+// Note: ISM PMI data is not available in FRED, we use fallback values
 export const FRED_SERIES = {
   GDP_GROWTH: 'A191RL1Q225SBEA', // Real GDP Growth Rate (Quarterly)
   UNEMPLOYMENT: 'UNRATE', // Unemployment Rate (Monthly)
@@ -51,6 +54,8 @@ export const FRED_SERIES = {
   FEDERAL_FUNDS_RATE: 'FEDFUNDS', // Federal Funds Effective Rate (Monthly)
   TREASURY_10Y: 'DGS10', // 10-Year Treasury Constant Maturity Rate (Daily)
   CONSUMER_CONFIDENCE: 'UMCSENT', // University of Michigan Consumer Sentiment (Monthly)
+  ISM_MANUFACTURING_PMI: 'ISM_MFG_PMI', // Placeholder - using fallback data
+  ISM_SERVICES_PMI: 'ISM_SVC_PMI', // Placeholder - using fallback data
 } as const;
 
 export type FredSeriesId = (typeof FRED_SERIES)[keyof typeof FRED_SERIES];
@@ -87,6 +92,16 @@ export const INDICATOR_METADATA: Record<
   },
   CONSUMER_CONFIDENCE: {
     name: 'Consumer Confidence Index',
+    unit: 'Index',
+    frequency: 'Monthly',
+  },
+  ISM_MANUFACTURING_PMI: {
+    name: 'Manufacturing PMI',
+    unit: 'Index',
+    frequency: 'Monthly',
+  },
+  ISM_SERVICES_PMI: {
+    name: 'Services PMI',
     unit: 'Index',
     frequency: 'Monthly',
   },

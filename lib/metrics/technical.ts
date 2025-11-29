@@ -23,7 +23,7 @@ import { mean, standardDeviation, safeDivide } from './helpers';
 // ============================================================================
 
 /**
- * Calculate all 8 technical indicators from Yahoo Finance data
+ * Calculate all technical indicators from Yahoo Finance data
  *
  * @param data - Raw financial data from Yahoo Finance (with price history)
  * @returns TechnicalMetrics object with all indicators
@@ -31,19 +31,63 @@ import { mean, standardDeviation, safeDivide } from './helpers';
 export function calculateTechnical(data: YahooFinanceData): TechnicalMetrics {
   const closePrices = extractClosePrices(data.priceHistory);
   const volumes = extractVolumes(data.priceHistory);
+  const highPrices = extractHighPrices(data.priceHistory);
+  const lowPrices = extractLowPrices(data.priceHistory);
 
   const macdResult = calculateMACDFull(closePrices);
   const bollingerResult = calculateBollingerBandsFull(closePrices);
+  const stochResult = calculateStochasticOscillator(highPrices, lowPrices, closePrices);
+  
+  const currentPrice = closePrices.length > 0 ? closePrices[closePrices.length - 1] : null;
+  const sma50 = calculateSMA(closePrices, 50);
+  const sma200 = calculateSMA(closePrices, 200);
 
   return {
+    // Core Technical
     rsi: calculateRSI14(closePrices),
     macd: macdResult.macd,
     macdSignal: macdResult.signal,
-    fiftyDayMA: calculateSMA(closePrices, 50),
-    twoHundredDayMA: calculateSMA(closePrices, 200),
+    macdHistogram: macdResult.macd != null && macdResult.signal != null 
+      ? macdResult.macd - macdResult.signal : null,
+    fiftyDayMA: sma50,
+    twoHundredDayMA: sma200,
     bollingerUpper: bollingerResult.upper,
     bollingerLower: bollingerResult.lower,
+    bollingerMiddle: bollingerResult.middle ?? null,
+    bollingerWidth: bollingerResult.upper != null && bollingerResult.lower != null && bollingerResult.middle
+      ? (bollingerResult.upper - bollingerResult.lower) / bollingerResult.middle : null,
     relativeVolume: calculateRelativeVolume(data.volume, data.averageVolume),
+    
+    // Extended Technical
+    stochastic_K: stochResult.k,
+    stochastic_D: stochResult.d,
+    williamsR: calculateWilliamsRFromArrays(highPrices, lowPrices, closePrices),
+    cci: calculateCCIFromArrays(highPrices, lowPrices, closePrices),
+    atr: calculateATRFromArrays(highPrices, lowPrices, closePrices),
+    atrPercent: calculateATRPercentFromArrays(highPrices, lowPrices, closePrices, currentPrice),
+    adx: null, // Requires complex calculation
+    plusDI: null,
+    minusDI: null,
+    obv: calculateOBVFromArrays(closePrices, volumes),
+    obvTrend: null, // Requires trend analysis
+    mfi: calculateMFIFromArrays(highPrices, lowPrices, closePrices, volumes),
+    vwap: calculateVWAPFromArrays(highPrices, lowPrices, closePrices, volumes),
+    
+    // Moving Averages
+    ema12: calculateEMA(closePrices, 12),
+    ema26: calculateEMA(closePrices, 26),
+    sma10: calculateSMA(closePrices, 10),
+    sma20: calculateSMA(closePrices, 20),
+    sma100: calculateSMA(closePrices, 100),
+    
+    // Price Action
+    priceToSMA50: currentPrice != null && sma50 != null ? currentPrice / sma50 : null,
+    priceToSMA200: currentPrice != null && sma200 != null ? currentPrice / sma200 : null,
+    goldenCross: sma50 != null && sma200 != null ? sma50 > sma200 : null,
+    deathCross: sma50 != null && sma200 != null ? sma50 < sma200 : null,
+    trendStrength: null, // Requires ADX
+    supportLevel: lowPrices.length > 20 ? Math.min(...lowPrices.slice(-20)) : null,
+    resistanceLevel: highPrices.length > 20 ? Math.max(...highPrices.slice(-20)) : null,
   };
 }
 
@@ -62,6 +106,26 @@ function extractClosePrices(
 }
 
 /**
+ * Extract high prices from price history
+ */
+function extractHighPrices(
+  priceHistory: YahooFinanceData['priceHistory']
+): number[] {
+  if (!priceHistory || priceHistory.length === 0) return [];
+  return priceHistory.map((p) => p.high);
+}
+
+/**
+ * Extract low prices from price history
+ */
+function extractLowPrices(
+  priceHistory: YahooFinanceData['priceHistory']
+): number[] {
+  if (!priceHistory || priceHistory.length === 0) return [];
+  return priceHistory.map((p) => p.low);
+}
+
+/**
  * Extract volumes from price history
  */
 function extractVolumes(
@@ -69,6 +133,172 @@ function extractVolumes(
 ): number[] {
   if (!priceHistory || priceHistory.length === 0) return [];
   return priceHistory.map((p) => p.volume);
+}
+
+// ============================================================================
+// EXTENDED TECHNICAL CALCULATIONS
+// ============================================================================
+
+/**
+ * Stochastic Oscillator
+ */
+function calculateStochasticOscillator(
+  highs: number[], lows: number[], closes: number[], period: number = 14
+): { k: number | null; d: number | null } {
+  if (closes.length < period) return { k: null, d: null };
+  
+  const recentHighs = highs.slice(-period);
+  const recentLows = lows.slice(-period);
+  const currentClose = closes[closes.length - 1];
+  
+  const highestHigh = Math.max(...recentHighs);
+  const lowestLow = Math.min(...recentLows);
+  
+  if (highestHigh === lowestLow) return { k: null, d: null };
+  
+  const k = ((currentClose - lowestLow) / (highestHigh - lowestLow)) * 100;
+  return { k, d: k }; // Simplified - D is SMA of K
+}
+
+/**
+ * Williams %R (from arrays)
+ */
+function calculateWilliamsRFromArrays(
+  highs: number[], lows: number[], closes: number[], period: number = 14
+): number | null {
+  if (closes.length < period) return null;
+  
+  const recentHighs = highs.slice(-period);
+  const recentLows = lows.slice(-period);
+  const currentClose = closes[closes.length - 1];
+  
+  const highestHigh = Math.max(...recentHighs);
+  const lowestLow = Math.min(...recentLows);
+  
+  if (highestHigh === lowestLow) return null;
+  
+  return ((highestHigh - currentClose) / (highestHigh - lowestLow)) * -100;
+}
+
+/**
+ * Commodity Channel Index (CCI) from arrays
+ */
+function calculateCCIFromArrays(
+  highs: number[], lows: number[], closes: number[], period: number = 20
+): number | null {
+  if (closes.length < period) return null;
+  
+  const typicalPrices = closes.slice(-period).map((close, i) => 
+    (highs.slice(-period)[i] + lows.slice(-period)[i] + close) / 3
+  );
+  
+  const smaTP = typicalPrices.reduce((a, b) => a + b, 0) / period;
+  const meanDeviation = typicalPrices.reduce((sum, tp) => sum + Math.abs(tp - smaTP), 0) / period;
+  
+  if (meanDeviation === 0) return null;
+  
+  const currentTP = typicalPrices[typicalPrices.length - 1];
+  return (currentTP - smaTP) / (0.015 * meanDeviation);
+}
+
+/**
+ * Average True Range (ATR) from arrays
+ */
+function calculateATRFromArrays(
+  highs: number[], lows: number[], closes: number[], period: number = 14
+): number | null {
+  if (closes.length < period + 1) return null;
+  
+  const trueRanges: number[] = [];
+  for (let i = 1; i < closes.length; i++) {
+    const tr = Math.max(
+      highs[i] - lows[i],
+      Math.abs(highs[i] - closes[i - 1]),
+      Math.abs(lows[i] - closes[i - 1])
+    );
+    trueRanges.push(tr);
+  }
+  
+  const recentTR = trueRanges.slice(-period);
+  return recentTR.reduce((a, b) => a + b, 0) / period;
+}
+
+/**
+ * ATR as percentage of price (from arrays)
+ */
+function calculateATRPercentFromArrays(
+  highs: number[], lows: number[], closes: number[], currentPrice: number | null
+): number | null {
+  if (currentPrice == null || currentPrice === 0) return null;
+  const atr = calculateATRFromArrays(highs, lows, closes);
+  if (atr == null) return null;
+  return (atr / currentPrice) * 100;
+}
+
+/**
+ * On-Balance Volume (OBV) from arrays
+ */
+function calculateOBVFromArrays(closes: number[], volumes: number[]): number | null {
+  if (closes.length < 2 || volumes.length < 2) return null;
+  
+  let obv = 0;
+  for (let i = 1; i < closes.length; i++) {
+    if (closes[i] > closes[i - 1]) {
+      obv += volumes[i];
+    } else if (closes[i] < closes[i - 1]) {
+      obv -= volumes[i];
+    }
+  }
+  return obv;
+}
+
+/**
+ * Money Flow Index (MFI) from arrays
+ */
+function calculateMFIFromArrays(
+  highs: number[], lows: number[], closes: number[], volumes: number[], period: number = 14
+): number | null {
+  if (closes.length < period + 1) return null;
+  
+  let positiveFlow = 0;
+  let negativeFlow = 0;
+  
+  for (let i = closes.length - period; i < closes.length; i++) {
+    const typicalPrice = (highs[i] + lows[i] + closes[i]) / 3;
+    const prevTypicalPrice = (highs[i - 1] + lows[i - 1] + closes[i - 1]) / 3;
+    const moneyFlow = typicalPrice * volumes[i];
+    
+    if (typicalPrice > prevTypicalPrice) {
+      positiveFlow += moneyFlow;
+    } else {
+      negativeFlow += moneyFlow;
+    }
+  }
+  
+  if (negativeFlow === 0) return 100;
+  const moneyRatio = positiveFlow / negativeFlow;
+  return 100 - (100 / (1 + moneyRatio));
+}
+
+/**
+ * Volume Weighted Average Price (VWAP) from arrays
+ */
+function calculateVWAPFromArrays(
+  highs: number[], lows: number[], closes: number[], volumes: number[]
+): number | null {
+  if (closes.length === 0 || volumes.length === 0) return null;
+  
+  let cumulativeTPV = 0;
+  let cumulativeVolume = 0;
+  
+  for (let i = 0; i < closes.length; i++) {
+    const typicalPrice = (highs[i] + lows[i] + closes[i]) / 3;
+    cumulativeTPV += typicalPrice * volumes[i];
+    cumulativeVolume += volumes[i];
+  }
+  
+  if (cumulativeVolume === 0) return null;
+  return cumulativeTPV / cumulativeVolume;
 }
 
 // ============================================================================

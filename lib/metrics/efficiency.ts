@@ -13,19 +13,46 @@ import { safeDivide, safeSubtract } from './helpers';
 // ============================================================================
 
 /**
- * Calculate all 6 efficiency/activity metrics from Yahoo Finance data
+ * Calculate all efficiency/activity metrics from Yahoo Finance data
  *
  * @param data - Raw financial data from Yahoo Finance
- * @returns EfficiencyMetrics object with all 6 ratios
+ * @returns EfficiencyMetrics object with all ratios
  */
 export function calculateEfficiency(data: YahooFinanceData): EfficiencyMetrics {
+  const inventoryTurnover = calculateInventoryTurnover(data);
+  const receivablesTurnover = calculateReceivablesTurnover(data);
+  const payablesTurnover = calculatePayablesTurnover(data);
+  
+  // Days calculations
+  const daysInventory = inventoryTurnover ? safeDivide(365, inventoryTurnover) : null;
+  const daysSales = receivablesTurnover ? safeDivide(365, receivablesTurnover) : null;
+  const daysPayables = payablesTurnover ? safeDivide(365, payablesTurnover) : null;
+  
+  // Operating Cycle = Days Inventory + Days Sales Outstanding
+  const operatingCycle = (daysInventory !== null && daysSales !== null) 
+    ? daysInventory + daysSales 
+    : null;
+  
+  // Net Trade Cycle = Operating Cycle - Days Payables
+  const netTradeCycle = (operatingCycle !== null && daysPayables !== null)
+    ? operatingCycle - daysPayables
+    : null;
+
   return {
     totalAssetTurnover: calculateTotalAssetTurnover(data),
     fixedAssetTurnover: calculateFixedAssetTurnover(data),
-    inventoryTurnover: calculateInventoryTurnover(data),
-    receivablesTurnover: calculateReceivablesTurnover(data),
-    payablesTurnover: calculatePayablesTurnover(data),
+    inventoryTurnover: inventoryTurnover,
+    receivablesTurnover: receivablesTurnover,
+    payablesTurnover: payablesTurnover,
     workingCapitalTurnover: calculateWorkingCapitalTurnover(data),
+    
+    // Extended Efficiency
+    equityTurnover: safeDivide(data.revenue, data.totalEquity),
+    capitalEmployedTurnover: safeDivide(data.revenue, (data.totalAssets ?? 0) - (data.currentLiabilities ?? 0)),
+    cashTurnover: safeDivide(data.revenue, data.cash),
+    operatingCycle: operatingCycle,
+    netTradeCycle: netTradeCycle,
+    assetUtilization: calculateTotalAssetTurnover(data),
   };
 }
 
@@ -451,6 +478,13 @@ export function interpretAllEfficiencyMetrics(
     receivablesTurnover: interpretReceivablesTurnover(metrics.receivablesTurnover),
     payablesTurnover: interpretPayablesTurnover(metrics.payablesTurnover),
     workingCapitalTurnover: interpretWorkingCapitalTurnover(metrics.workingCapitalTurnover),
+    // Extended metrics - use similar interpretations
+    equityTurnover: interpretTotalAssetTurnover(metrics.equityTurnover),
+    capitalEmployedTurnover: interpretTotalAssetTurnover(metrics.capitalEmployedTurnover),
+    cashTurnover: interpretTotalAssetTurnover(metrics.cashTurnover),
+    operatingCycle: interpretWorkingCapitalTurnover(metrics.operatingCycle),
+    netTradeCycle: interpretWorkingCapitalTurnover(metrics.netTradeCycle),
+    assetUtilization: interpretTotalAssetTurnover(metrics.assetUtilization),
   };
 }
 

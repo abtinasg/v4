@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import {
   BrainCircuit,
   ChartCandlestick,
@@ -19,13 +18,9 @@ import {
 // Mini chart for visual mockups
 function MiniAreaChart({ color, delay = 0 }: { color: string; delay?: number }) {
   return (
-    <motion.svg
+    <svg
       viewBox="0 0 100 40"
       className="w-full h-full"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay }}
     >
       <defs>
         <linearGradient id={`areaGrad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
@@ -44,7 +39,7 @@ function MiniAreaChart({ color, delay = 0 }: { color: string; delay?: number }) 
         strokeWidth="1.5"
         style={{ filter: `drop-shadow(0 0 4px ${color})` }}
       />
-    </motion.svg>
+    </svg>
   )
 }
 
@@ -120,10 +115,7 @@ export function Features() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-[#9A7BFF]/10 blur-[150px]" />
         
         <div className="relative z-10 mx-auto max-w-5xl px-6 text-center space-y-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="space-y-6"
           >
             <div className="inline-flex items-center gap-2.5 rounded-full border border-[#9A7BFF]/30 bg-[#9A7BFF]/10 px-5 py-2 text-sm font-medium text-[#9A7BFF] glow-violet">
@@ -141,7 +133,7 @@ export function Features() {
             <p className="subhead-light text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
               We've deconstructed the professional trading desk and rebuilt it for the individual investor. No bloat, just signal.
             </p>
-          </motion.div>
+          </div>
 
           {/* Vision Cards */}
           <div className="grid md:grid-cols-3 gap-6">
@@ -150,18 +142,14 @@ export function Features() {
               { title: 'Make discovery continuous', detail: 'From macro signals to trade journaling, everything stays in sync.' },
               { title: 'Blend human instinct with AI', detail: 'Chain together GPT-4, Claude, and your prompts to co-create.' },
             ].map((item, i) => (
-              <motion.div
+              <div
                 key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
                 className="group relative rounded-2xl border border-white/5 bg-white/[0.02] p-8 backdrop-blur-sm hover:border-[#9A7BFF]/30 hover:bg-[#9A7BFF]/5 transition-all duration-500"
               >
                 <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity gradient-border" />
                 <h3 className="text-lg font-semibold text-white mb-3 relative z-10">{item.title}</h3>
                 <p className="text-sm text-gray-400 leading-relaxed relative z-10">{item.detail}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -174,10 +162,7 @@ export function Features() {
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-[#3FE3C2]/10 blur-[120px]" />
         
         <div className="relative z-10 mx-auto max-w-7xl px-6 space-y-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/5"
           >
             <div className="space-y-3">
@@ -187,17 +172,13 @@ export function Features() {
             <p className="subhead-light text-gray-400 max-w-md">
               Four integrated modules that work in concert to provide a complete operating system for your portfolio.
             </p>
-          </motion.div>
+          </div>
 
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-[minmax(280px,auto)]">
             {productPillars.map((pillar, i) => (
-              <motion.div
+              <div
                 key={pillar.title}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
                 className={`group relative rounded-3xl border border-white/5 bg-[#0C0E14]/80 backdrop-blur-xl overflow-hidden transition-all duration-500 hover:border-white/20 ${
                   pillar.large ? 'lg:col-span-2' : ''
                 }`}
@@ -251,7 +232,7 @@ export function Features() {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -270,10 +251,7 @@ export function Features() {
             <div className="grid lg:grid-cols-2 gap-12 p-10 md:p-16 relative z-10">
               {/* Left - Copy */}
               <div className="space-y-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
+                <div
                 >
                   <div className="inline-flex items-center gap-2 text-[#9A7BFF] label-caps mb-4">
                     <BrainCircuit className="h-4 w-4" />
@@ -290,7 +268,7 @@ export function Features() {
                   <p className="subhead-light text-lg text-gray-400 leading-relaxed">
                     We chain together specialized models—GPT-4 for reasoning, Claude for context, and proprietary quant models for math—to give you answers you can trust.
                   </p>
-                </motion.div>
+                </div>
 
                 {/* Feature cards */}
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -298,12 +276,8 @@ export function Features() {
                     { icon: ChartCandlestick, title: 'Quant Verification', desc: 'Every claim cross-referenced with live data.', color: '#9A7BFF' },
                     { icon: ScanEye, title: 'Full Audit Trail', desc: 'See which model contributed to each part.', color: '#5BB9F7' },
                   ].map((item, i) => (
-                    <motion.div
+                    <div
                       key={item.title}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.2 + i * 0.1 }}
                       className="rounded-2xl border border-white/5 bg-white/[0.02] p-5 hover:border-white/10 transition-colors"
                     >
                       <div 
@@ -314,7 +288,7 @@ export function Features() {
                       </div>
                       <div className="font-semibold text-white mb-1">{item.title}</div>
                       <div className="text-sm text-gray-400">{item.desc}</div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -325,12 +299,8 @@ export function Features() {
                 
                 <div className="space-y-10 py-8">
                   {aiTimeline.map((step, i) => (
-                    <motion.div
+                    <div
                       key={step.label}
-                      initial={{ opacity: 0, x: 20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.15 }}
                       className="relative pl-20 group"
                     >
                       {/* Timeline node */}
@@ -340,7 +310,7 @@ export function Features() {
                       
                       <h4 className="text-lg font-semibold text-white mb-2 group-hover:text-[#5BB9F7] transition-colors">{step.label}</h4>
                       <p className="text-sm text-gray-400">{step.copy}</p>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -356,10 +326,7 @@ export function Features() {
         
         <div className="relative z-10 mx-auto max-w-7xl px-6 space-y-20">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="text-center space-y-6"
           >
             <div className="label-caps text-[#3FE3C2]">Stock Analyst 150+</div>
@@ -369,25 +336,19 @@ export function Features() {
                 with context.
               </span>
             </h3>
-          </motion.div>
+          </div>
 
           {/* Metric Counters */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="grid grid-cols-3 gap-8 max-w-2xl mx-auto"
           >
             {metricHighlights.map((metric) => (
               <MetricCounter key={metric.label} value={metric.stat} label={metric.label} color={metric.color} />
             ))}
-          </motion.div>
+          </div>
 
           {/* UI Mockup Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="rounded-3xl border border-white/5 bg-[#0C0E14]/80 backdrop-blur-xl overflow-hidden"
           >
             {/* Glass reflection */}
@@ -429,13 +390,10 @@ export function Features() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* CTA Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="rounded-3xl border border-white/5 bg-gradient-to-r from-[#3FE3C2]/10 via-[#080A0E] to-[#9A7BFF]/10 p-8 md:p-12"
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
@@ -456,7 +414,7 @@ export function Features() {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

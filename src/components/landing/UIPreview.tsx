@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Activity, ChevronRight, TrendingUp, BarChart3, BrainCircuit, Layers, Search } from 'lucide-react'
 
 export function UIPreview() {
@@ -14,10 +13,7 @@ export function UIPreview() {
 
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
           className="text-center mb-16"
         >
           <h2 className="text-display text-3xl md:text-4xl lg:text-5xl text-white mb-4">
@@ -29,14 +25,10 @@ export function UIPreview() {
           <p className="text-subhead text-gray-400 max-w-xl mx-auto">
             A cinematic workspace designed for speed, clarity, and conviction.
           </p>
-        </motion.div>
+        </div>
 
         {/* Terminal Preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.8 }}
+        <div
           className="relative"
         >
           {/* Outer glow */}
@@ -174,7 +166,7 @@ export function UIPreview() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

@@ -13,12 +13,16 @@ import { safeDivide, safeMultiply, safeSubtract, calculateCAGR, percentageChange
 // ============================================================================
 
 /**
- * Calculate all 9 growth metrics from Yahoo Finance data
+ * Calculate all growth metrics from Yahoo Finance data
  *
  * @param data - Raw financial data from Yahoo Finance (with historical data)
- * @returns GrowthMetrics object with all 9 metrics
+ * @returns GrowthMetrics object with all metrics
  */
 export function calculateGrowth(data: YahooFinanceData): GrowthMetrics {
+  const retentionRatio = calculateRetentionRatio(data);
+  const roe = data.returnOnEquity ?? null;
+  const roa = data.returnOnAssets ?? null;
+  
   return {
     revenueGrowthYoY: calculateRevenueGrowthYoY(data),
     epsGrowthYoY: calculateEPSGrowthYoY(data),
@@ -27,9 +31,54 @@ export function calculateGrowth(data: YahooFinanceData): GrowthMetrics {
     revenue3YearCAGR: calculateRevenue3YearCAGR(data),
     revenue5YearCAGR: calculateRevenue5YearCAGR(data),
     sustainableGrowthRate: calculateSustainableGrowthRate(data),
-    retentionRatio: calculateRetentionRatio(data),
+    retentionRatio: retentionRatio,
     payoutRatio: calculatePayoutRatio(data),
+    
+    // Extended Growth
+    netIncomeGrowthYoY: calculateNetIncomeGrowthYoY(data),
+    ebitdaGrowthYoY: null, // Requires historical EBITDA
+    operatingIncomeGrowth: null, // Requires historical operating income
+    grossProfitGrowth: null, // Requires historical gross profit
+    assetGrowthRate: null, // Requires historical total assets
+    equityGrowthRate: null, // Requires historical equity
+    bookValueGrowthRate: null, // Requires historical book value
+    eps3YearCAGR: calculateEPS3YearCAGR(data),
+    eps5YearCAGR: calculateEPS5YearCAGR(data),
+    internalGrowthRate: roa !== null && retentionRatio !== null ? roa * retentionRatio : null,
+    plowbackRatio: retentionRatio, // Same as retention ratio
   };
+}
+
+// Helper function for net income growth
+function calculateNetIncomeGrowthYoY(data: YahooFinanceData): number | null {
+  if (!data.historicalNetIncome || data.historicalNetIncome.length < 2) {
+    return null;
+  }
+  const current = data.historicalNetIncome[data.historicalNetIncome.length - 1];
+  const previous = data.historicalNetIncome[data.historicalNetIncome.length - 2];
+  return safeDivide(current - previous, Math.abs(previous));
+}
+
+// Helper for EPS 3Y CAGR
+function calculateEPS3YearCAGR(data: YahooFinanceData): number | null {
+  if (!data.historicalEPS || data.historicalEPS.length < 3) {
+    return null;
+  }
+  const start = data.historicalEPS[0];
+  const end = data.historicalEPS[Math.min(2, data.historicalEPS.length - 1)];
+  if (start <= 0) return null;
+  return Math.pow(end / start, 1 / 3) - 1;
+}
+
+// Helper for EPS 5Y CAGR
+function calculateEPS5YearCAGR(data: YahooFinanceData): number | null {
+  if (!data.historicalEPS || data.historicalEPS.length < 5) {
+    return null;
+  }
+  const start = data.historicalEPS[0];
+  const end = data.historicalEPS[data.historicalEPS.length - 1];
+  if (start <= 0) return null;
+  return Math.pow(end / start, 1 / 5) - 1;
 }
 
 // ============================================================================

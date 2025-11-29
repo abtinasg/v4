@@ -72,8 +72,9 @@ interface WatchlistSnapshotProps {
 
 export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
   const { triggerHaptic } = useHaptic()
-  const [watchlist, setWatchlist] = useState<WatchlistStock[]>(defaultWatchlist)
+  const [watchlist, setWatchlist] = useState<WatchlistStock[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isEmpty, setIsEmpty] = useState(false)
 
   const fetchWatchlist = async () => {
     setIsLoading(true)
@@ -82,30 +83,31 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
       console.log('🔍 WatchlistSnapshot: Fetching user watchlists...')
       const response = await fetch('/api/watchlists')
       
-      // If unauthorized or error, use default watchlist
+      // If unauthorized or error, show empty state
       if (!response.ok) {
-        console.log('❌ WatchlistSnapshot: Failed to fetch watchlists (status:', response.status, '), using default mock data')
-        setWatchlist(defaultWatchlist)
+        console.log('❌ WatchlistSnapshot: Failed to fetch watchlists (status:', response.status, ')')
+        setWatchlist([])
+        setIsEmpty(true)
         setIsLoading(false)
         return
       }
       
       const result = await response.json()
       console.log('✅ WatchlistSnapshot: Received watchlists:', result.watchlists?.length || 0, 'watchlist(s)')
-      console.log('📋 WatchlistSnapshot: Full response:', JSON.stringify(result, null, 2))
 
       // Get the first watchlist (or default watchlist) with items
       const userWatchlist = result.watchlists?.[0]
       
       if (!userWatchlist || !userWatchlist.items || userWatchlist.items.length === 0) {
-        // No watchlist items found, use default mock data
-        console.log('⚠️ WatchlistSnapshot: No watchlist items found, using default mock data')
-        console.log('   userWatchlist:', userWatchlist)
-        setWatchlist(defaultWatchlist)
+        // No watchlist items found, show empty state
+        console.log('⚠️ WatchlistSnapshot: No watchlist items found')
+        setWatchlist([])
+        setIsEmpty(true)
         setIsLoading(false)
         return
       }
 
+      setIsEmpty(false)
       // Get symbols from watchlist items (limit to 5 for dashboard)
       const symbols = userWatchlist.items.slice(0, 5).map((item: any) => item.symbol)
       console.log('📊 WatchlistSnapshot: Fetching quotes for symbols:', symbols.join(', '))
@@ -114,13 +116,10 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
       const quotesResponse = await fetch(`/api/stocks/quote?symbols=${symbols.join(',')}`)
       if (!quotesResponse.ok) {
         console.log('❌ WatchlistSnapshot: Failed to fetch quotes (status:', quotesResponse.status, ')')
-        const errorText = await quotesResponse.text()
-        console.log('   Error details:', errorText)
         throw new Error('Failed to fetch quotes')
       }
       const quotesResult = await quotesResponse.json()
       console.log('✅ WatchlistSnapshot: Received', quotesResult.quotes?.length || 0, 'quote(s)')
-      console.log('📊 WatchlistSnapshot: Quotes data:', JSON.stringify(quotesResult, null, 2))
 
       if (quotesResult.success && quotesResult.quotes && quotesResult.quotes.length > 0) {
         const mapped = quotesResult.quotes.map((quote: any) => ({
@@ -136,17 +135,17 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
           ),
         }))
         console.log('🎉 WatchlistSnapshot: Successfully loaded real user data for', mapped.length, 'stocks')
-        console.log('📈 WatchlistSnapshot: Mapped data:', JSON.stringify(mapped, null, 2))
         setWatchlist(mapped)
       } else {
-        // If quotes failed, use default watchlist
-        console.log('⚠️ WatchlistSnapshot: Quotes result invalid, using default mock data')
-        setWatchlist(defaultWatchlist)
+        // If quotes failed, show empty state
+        console.log('⚠️ WatchlistSnapshot: Quotes result invalid')
+        setWatchlist([])
+        setIsEmpty(true)
       }
     } catch (error) {
       console.error('❌ WatchlistSnapshot: Error fetching watchlist:', error)
-      // Keep default watchlist on error
-      setWatchlist(defaultWatchlist)
+      setWatchlist([])
+      setIsEmpty(true)
     } finally {
       setIsLoading(false)
     }
@@ -225,69 +224,89 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
 
         {/* Watchlist Items */}
         <div className="space-y-1.5 sm:space-y-2">
-          {watchlist.map((stock, index) => {
-            const isPositive = stock.changePercent >= 0
-            
-            return (
-              <motion.div
-                key={stock.symbol}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                onClick={() => {
-                  triggerHaptic('light')
-                  window.location.href = `/dashboard/stock-analysis?symbol=${stock.symbol}`
-                }}
-                className={cn(
-                  'flex items-center justify-between p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl',
-                  'bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] hover:border-white/[0.08]',
-                  'transition-all duration-300 cursor-pointer group'
-                )}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
+            </div>
+          ) : isEmpty || watchlist.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-6 sm:py-8">
+              <div className="p-3 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-3">
+                <Eye className="w-6 h-6 text-cyan-400" />
+              </div>
+              <p className="text-sm text-gray-400 mb-1">No stocks in watchlist</p>
+              <p className="text-xs text-gray-500 mb-3">Add stocks to track them here</p>
+              <a 
+                href="/dashboard/watchlist"
+                className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg hover:bg-cyan-500/20 transition-colors"
               >
-                {/* Symbol & Name */}
-                <div className="flex-1 min-w-0 mr-2 sm:mr-3">
-                  <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors">
-                    {stock.symbol}
-                  </p>
-                  <p className="text-[9px] sm:text-[10px] text-gray-500 truncate">
-                    {stock.name}
-                  </p>
-                </div>
-
-                {/* Sparkline */}
-                <div className="mr-2 sm:mr-3 opacity-60 group-hover:opacity-100 transition-opacity hidden sm:block">
-                  <MiniSparkline data={stock.sparklineData} positive={isPositive} />
-                </div>
-
-                {/* Price & Change */}
-                <div className="text-right">
-                  <p className="text-xs sm:text-sm font-medium text-white tabular-nums">
-                    ${stock.price.toFixed(2)}
-                  </p>
-                  <div className="flex items-center justify-end gap-0.5 sm:gap-1">
-                    {isPositive ? (
-                      <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400" />
-                    ) : (
-                      <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
-                    )}
-                    <span className={cn(
-                      'text-[9px] sm:text-[10px] font-semibold tabular-nums',
-                      isPositive ? 'text-emerald-400' : 'text-red-400'
-                    )}>
-                      {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
-                    </span>
+                Go to Watchlist
+              </a>
+            </div>
+          ) : (
+            watchlist.map((stock, index) => {
+              const isPositive = stock.changePercent >= 0
+              
+              return (
+                <motion.div
+                  key={stock.symbol}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                  onClick={() => {
+                    triggerHaptic('light')
+                    window.location.href = `/dashboard/stock-analysis?symbol=${stock.symbol}`
+                  }}
+                  className={cn(
+                    'flex items-center justify-between p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl',
+                    'bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] hover:border-white/[0.08]',
+                    'transition-all duration-300 cursor-pointer group'
+                  )}
+                >
+                  {/* Symbol & Name */}
+                  <div className="flex-1 min-w-0 mr-2 sm:mr-3">
+                    <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors">
+                      {stock.symbol}
+                    </p>
+                    <p className="text-[9px] sm:text-[10px] text-gray-500 truncate">
+                      {stock.name}
+                    </p>
                   </div>
-                </div>
-              </motion.div>
-            )
-          })}
+
+                  {/* Sparkline */}
+                  <div className="mr-2 sm:mr-3 opacity-60 group-hover:opacity-100 transition-opacity hidden sm:block">
+                    <MiniSparkline data={stock.sparklineData} positive={isPositive} />
+                  </div>
+
+                  {/* Price & Change */}
+                  <div className="text-right">
+                    <p className="text-xs sm:text-sm font-medium text-white tabular-nums">
+                      ${stock.price.toFixed(2)}
+                    </p>
+                    <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+                      {isPositive ? (
+                        <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400" />
+                      ) : (
+                        <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
+                      )}
+                      <span className={cn(
+                        'text-[9px] sm:text-[10px] font-semibold tabular-nums',
+                        isPositive ? 'text-emerald-400' : 'text-red-400'
+                      )}>
+                        {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })
+          )}
         </div>
 
         {/* View All Link */}
         <div className="mt-2.5 sm:mt-3 md:mt-4 pt-2.5 sm:pt-3 md:pt-4 border-t border-white/[0.06]">
-          <button className="w-full py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-gray-400 hover:text-cyan-400 transition-colors">
+          <a href="/dashboard/watchlist" className="w-full block py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-gray-400 hover:text-cyan-400 transition-colors text-center">
             View Full Watchlist →
-          </button>
+          </a>
         </div>
       </GlassCard>
     </motion.div>

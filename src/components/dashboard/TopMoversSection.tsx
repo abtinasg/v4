@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { GlassCard, PulsingDot } from '@/components/ui/cinematic'
 import { useHaptic } from '@/lib/hooks'
 
@@ -30,6 +31,8 @@ interface StockData {
   changePercent: number
   volume: number
   marketCap: number
+  avgVolume?: number // Average 10-day volume
+  volumeRatio?: number // Current volume / Average volume
 }
 
 interface TopMoversSectionProps {
@@ -62,10 +65,12 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
     gainers: StockData[]
     losers: StockData[]
     mostActive: StockData[]
+    unusualVolume: StockData[]
   }>({
     gainers: [],
     losers: [],
     mostActive: [],
+    unusualVolume: [],
   })
 
   // Fetch real data from API
@@ -79,6 +84,7 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
           gainers: result.gainers || [],
           losers: result.losers || [],
           mostActive: result.mostActive || [],
+          unusualVolume: result.unusualVolume || [],
         })
         setLastUpdated(new Date(result.lastUpdated))
       }
@@ -102,7 +108,7 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
       case 'gainers': return data.gainers
       case 'losers': return data.losers
       case 'active': return data.mostActive
-      case 'unusual': return data.mostActive.filter(s => s.volume > 50000000) // High volume = unusual
+      case 'unusual': return data.unusualVolume // Real unusual volume (1.5x+ average)
       default: return data.gainers
     }
   }
@@ -225,30 +231,48 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
                 <TrendingDown className="w-3.5 h-3.5 mr-1.5" />
                 Losers
               </TabsTrigger>
-              <TabsTrigger
-                value="active"
-                className={cn(
-                  'text-xs px-3 py-1.5 rounded-md transition-all',
-                  'data-[state=active]:bg-cyan-500/15 data-[state=active]:text-cyan-400',
-                  'data-[state=active]:border-cyan-500/30 data-[state=active]:shadow-[0_0_12px_rgba(0,212,255,0.2)]',
-                  'text-gray-400 border border-transparent'
-                )}
-              >
-                <Activity className="w-3.5 h-3.5 mr-1.5" />
-                Most Active
-              </TabsTrigger>
-              <TabsTrigger
-                value="unusual"
-                className={cn(
-                  'text-xs px-3 py-1.5 rounded-md transition-all',
-                  'data-[state=active]:bg-amber-500/15 data-[state=active]:text-amber-400',
-                  'data-[state=active]:border-amber-500/30 data-[state=active]:shadow-[0_0_12px_rgba(245,158,11,0.2)]',
-                  'text-gray-400 border border-transparent'
-                )}
-              >
-                <BarChart3 className="w-3.5 h-3.5 mr-1.5" />
-                Unusual Volume
-              </TabsTrigger>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger
+                      value="active"
+                      className={cn(
+                        'text-xs px-3 py-1.5 rounded-md transition-all',
+                        'data-[state=active]:bg-cyan-500/15 data-[state=active]:text-cyan-400',
+                        'data-[state=active]:border-cyan-500/30 data-[state=active]:shadow-[0_0_12px_rgba(0,212,255,0.2)]',
+                        'text-gray-400 border border-transparent'
+                      )}
+                    >
+                      <Activity className="w-3.5 h-3.5 mr-1.5" />
+                      Most Active
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="text-xs">Stocks with the highest trading volume today</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger
+                      value="unusual"
+                      className={cn(
+                        'text-xs px-3 py-1.5 rounded-md transition-all',
+                        'data-[state=active]:bg-amber-500/15 data-[state=active]:text-amber-400',
+                        'data-[state=active]:border-amber-500/30 data-[state=active]:shadow-[0_0_12px_rgba(245,158,11,0.2)]',
+                        'text-gray-400 border border-transparent'
+                      )}
+                    >
+                      <BarChart3 className="w-3.5 h-3.5 mr-1.5" />
+                      Unusual Volume
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="text-xs">Stocks trading at 1.2x or more their 10-day average volume — potential breakout signals</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </TabsList>
           </Tabs>
         </div>

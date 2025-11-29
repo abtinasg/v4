@@ -66,6 +66,13 @@ interface MetricsResponse {
     technical: AllMetrics['technical'];
     scores: AllMetrics['scores'];
     other: AllMetrics['other'];
+    // Extended categories
+    tradeFx: AllMetrics['tradeFx'];
+    bonds: AllMetrics['bonds'];
+    options: AllMetrics['options'];
+    credit: AllMetrics['credit'];
+    esg: AllMetrics['esg'];
+    portfolio: AllMetrics['portfolio'];
   };
   metadata: {
     dataSources: string[];
@@ -287,21 +294,101 @@ async function fetchFREDData(): Promise<FREDData> {
     console.warn('Failed to fetch FRED data, using defaults:', error);
     // Return default values if FRED API fails
     return {
+      // Core GDP Metrics
       gdpGrowthRate: null,
       realGDP: null,
       nominalGDP: null,
       gdpPerCapita: null,
+      realGDPGrowthRate: null,
+      potentialGDP: null,
+      outputGap: null,
+      
+      // Inflation Metrics
       cpi: null,
       ppi: null,
       coreInflation: null,
+      inflationRate: null,
+      pceInflation: null,
+      coreInflationRate: null,
+      breakEvenInflation5Y: null,
+      breakEvenInflation10Y: null,
+      
+      // Interest Rate Metrics
       federalFundsRate: null,
       treasury10Y: 0.04, // Default 4%
+      treasury2Y: null,
+      treasury30Y: null,
+      treasury3M: null,
+      primeRate: null,
+      interbankRate: null,
+      realInterestRate: null,
+      neutralRate: null,
+      yieldCurveSpread: null,
+      
+      // Monetary Metrics
+      m1MoneySupply: null,
+      m2MoneySupply: null,
+      m2Velocity: null,
+      moneyMultiplier: null,
+      monetaryBase: null,
+      excessReserves: null,
+      
+      // Exchange Rate
       usdIndex: null,
+      eurUsd: null,
+      usdJpy: null,
+      gbpUsd: null,
+      
+      // Employment
       unemploymentRate: null,
+      laborForceParticipation: null,
+      employmentPopulationRatio: null,
+      initialClaims: null,
+      continuingClaims: null,
+      nonFarmPayrolls: null,
+      
+      // Wages & Productivity
       wageGrowth: null,
       laborProductivity: null,
+      unitLaborCosts: null,
+      realWageGrowth: null,
+      
+      // Confidence & Sentiment
       consumerConfidence: null,
       businessConfidence: null,
+      nfibOptimism: null,
+      ceoConfidence: null,
+      
+      // Housing
+      housingStarts: null,
+      buildingPermits: null,
+      existingHomeSales: null,
+      caseShillerIndex: null,
+      
+      // Manufacturing & Trade
+      ism_pmi: null,
+      ism_services: null,
+      industrialProduction: null,
+      capacityUtilization: null,
+      retailSales: null,
+      tradeBalance: null,
+      
+      // Credit & Financial Conditions
+      creditSpread: null,
+      tedSpread: null,
+      vix: null,
+      financialStressIndex: null,
+      chicagoFedIndex: null,
+      
+      // Fiscal Indicators
+      federalDebt: null,
+      debtToGDP: null,
+      budgetDeficit: null,
+      
+      // Calculated Macro Formulas
+      fisherEquation: null,
+      nominalRiskFreeRate: null,
+      quantityTheoryOfMoney: null,
     };
   }
 }
@@ -322,6 +409,21 @@ async function fetchFMPIndustryData(symbol: string, yahooSector?: string, yahooI
       industryGrowthRate: null,
       marketSize: null,
       competitorRevenues: [],
+      
+      // Extended Industry Data
+      industryPE: null,
+      industryPB: null,
+      industryROE: null,
+      industryROIC: null,
+      industryGrossMargin: null,
+      industryOperatingMargin: null,
+      industryNetMargin: null,
+      industryDebtToEquity: null,
+      industryCurrentRatio: null,
+      industryBeta: null,
+      industryDividendYield: null,
+      sectorPE: null,
+      sectorGrowthRate: null,
     };
   }
 }
@@ -581,6 +683,13 @@ export async function GET(
         technical: allMetrics.technical,
         scores: allMetrics.scores,
         other: allMetrics.other,
+        // Extended categories
+        tradeFx: allMetrics.tradeFx,
+        bonds: allMetrics.bonds,
+        options: allMetrics.options,
+        credit: allMetrics.credit,
+        esg: allMetrics.esg,
+        portfolio: allMetrics.portfolio,
       },
 
       metadata: {

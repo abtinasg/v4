@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { Menu, X, Terminal, ChevronDown } from 'lucide-react'
 
@@ -25,10 +24,7 @@ export function Navigation() {
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
+      <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
             ? 'bg-[#05070B]/80 backdrop-blur-xl border-b border-white/[0.05]'
@@ -85,16 +81,11 @@ export function Navigation() {
             </button>
           </div>
         </div>
-      </motion.nav>
+      </nav>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+      {mobileOpen && (
+          <div
             className="fixed inset-x-0 top-16 z-40 bg-[#05070B]/95 backdrop-blur-xl border-b border-white/[0.05] md:hidden"
           >
             <div className="px-6 py-6 space-y-4">
@@ -125,9 +116,8 @@ export function Navigation() {
                 </Link>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </>
   )
 }

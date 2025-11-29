@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, Terminal } from 'lucide-react'
 
@@ -25,48 +24,32 @@ export function FinalCTA() {
 
       <div className="relative mx-auto max-w-4xl px-6 text-center">
         {/* Icon */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.5 }}
+        <div
           className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-[#00D4FF]/20 to-[#8B5CF6]/20 mb-8"
         >
           <Terminal className="h-8 w-8 text-[#00D4FF]" />
-        </motion.div>
+        </div>
 
         {/* Headline */}
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+        <h2
           className="text-display text-4xl md:text-5xl lg:text-6xl text-white mb-6"
         >
           Trade with{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4FF] via-[#3B82F6] to-[#8B5CF6]">
             Conviction.
           </span>
-        </motion.h2>
+        </h2>
 
         {/* Subhead */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+        <p
           className="text-subhead text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10"
         >
           Join thousands of traders who've upgraded to institutional-grade intelligence. 
           Your edge is waiting.
-        </motion.p>
+        </p>
 
         {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+        <div
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link
@@ -82,18 +65,14 @@ export function FinalCTA() {
           >
             View Pricing
           </Link>
-        </motion.div>
+        </div>
 
         {/* Trust line */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5 }}
+        <p
           className="text-sm text-gray-600 mt-8"
         >
           No credit card required • 14-day free trial • Cancel anytime
-        </motion.p>
+        </p>
       </div>
     </section>
   )

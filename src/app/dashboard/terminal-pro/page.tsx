@@ -46,6 +46,20 @@ export default function TerminalProPage() {
   const { setIsCollapsed, isCollapsed, setIsMobileOpen } = useSidebar()
   const previousCollapseState = useRef<boolean>(isCollapsed)
   const inputRef = useRef<HTMLInputElement>(null)
+  const notificationSentRef = useRef(false)
+
+  // Send notification email when user visits Terminal Pro
+  useEffect(() => {
+    if (notificationSentRef.current) return
+    notificationSentRef.current = true
+    
+    // Send notification in background (don't await)
+    fetch('/api/notifications/terminal-pro-visit', {
+      method: 'POST',
+    }).catch((err) => {
+      console.error('Failed to send Terminal Pro visit notification:', err)
+    })
+  }, [])
 
   // Fetch real market status
   useEffect(() => {
@@ -1144,10 +1158,10 @@ function NewsFeedPanel({ className }: { className?: string }) {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await fetch('/api/market/news')
+        const res = await fetch('/api/market/news?limit=5')
         const data = await res.json()
         if (data.news) {
-          setNews(data.news.slice(0, 15))
+          setNews(data.news.slice(0, 5))
         }
       } catch (error) {
         console.error('Error fetching news:', error)

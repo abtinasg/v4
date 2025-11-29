@@ -23,6 +23,8 @@ const INDICES = [
   { symbol: '^IXIC', name: 'NASDAQ' },
   { symbol: '^RUT', name: 'Russell 2000' },
   { symbol: '^VIX', name: 'VIX' },
+  { symbol: 'TLT', name: 'TLT' },
+  { symbol: 'HYG', name: 'HYG' },
 ]
 
 export async function GET() {

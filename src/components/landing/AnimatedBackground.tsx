@@ -1,65 +1,33 @@
 'use client'
 
-import { motion } from 'framer-motion'
-
 export function AnimatedBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Base gradient */}
       <div className="absolute inset-0 bg-[#0a0a0a]" />
       
-      {/* Animated gradient orbs */}
-      <motion.div
+      {/* Static gradient orbs */}
+      <div
         className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full"
         style={{
           background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%)',
           filter: 'blur(60px)',
         }}
-        animate={{
-          x: [0, 50, 0],
-          y: [0, 30, 0],
-          scale: [1, 1.1, 1],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
       />
       
-      <motion.div
+      <div
         className="absolute top-[20%] right-[-5%] w-[500px] h-[500px] rounded-full"
         style={{
           background: 'radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)',
           filter: 'blur(60px)',
         }}
-        animate={{
-          x: [0, -40, 0],
-          y: [0, 50, 0],
-          scale: [1, 1.15, 1],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
       />
       
-      <motion.div
+      <div
         className="absolute bottom-[-10%] left-[30%] w-[700px] h-[700px] rounded-full"
         style={{
           background: 'radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%)',
           filter: 'blur(80px)',
-        }}
-        animate={{
-          x: [0, 30, 0],
-          y: [0, -40, 0],
-          scale: [1, 1.05, 1],
-        }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: 'easeInOut',
         }}
       />
 

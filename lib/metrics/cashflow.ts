@@ -19,15 +19,36 @@ import { safeDivide, safeMultiply, safeAdd, safeSubtract } from './helpers';
  * @returns CashFlowMetrics object with all 8 metrics
  */
 export function calculateCashFlow(data: YahooFinanceData): CashFlowMetrics {
+  const ocf = getOperatingCashFlow(data);
+  const fcf = calculateFreeCashFlow(data);
+  const revenue = data.revenue ?? null;
+  const marketCap = data.marketCap ?? null;
+  const totalDebt = data.totalDebt ?? null;
+  const totalEquity = data.totalEquity ?? null;
+  const capex = data.capitalExpenditures ?? null;
+  const netIncome = data.netIncome ?? null;
+  
   return {
-    operatingCashFlow: getOperatingCashFlow(data),
+    operatingCashFlow: ocf,
     investingCashFlow: getInvestingCashFlow(data),
     financingCashFlow: getFinancingCashFlow(data),
-    freeCashFlow: calculateFreeCashFlow(data),
+    freeCashFlow: fcf,
     fcff: calculateFCFF(data),
     fcfe: calculateFCFE(data),
     cashFlowAdequacy: calculateCashFlowAdequacy(data),
     cashReinvestmentRatio: calculateCashReinvestmentRatio(data),
+    
+    // Extended Cash Flow
+    leveredFreeCashFlow: fcf,  // Same as FCF for most purposes
+    unleveredFreeCashFlow: calculateFCFF(data),  // FCFF is unlevered
+    fcfMargin: safeDivide(fcf, revenue),
+    fcfYield: safeDivide(fcf, marketCap),
+    fcfToDebt: safeDivide(fcf, totalDebt),
+    fcfToEquity: safeDivide(fcf, totalEquity),
+    operatingCashFlowMargin: safeDivide(ocf, revenue),
+    capexToRevenue: safeDivide(capex, revenue),
+    capexToDepreciation: null,  // Need depreciation data
+    cashGenerationEfficiency: safeDivide(ocf, netIncome),
   };
 }
 

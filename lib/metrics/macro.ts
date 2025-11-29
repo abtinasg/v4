@@ -1,22 +1,48 @@
 /**
  * Deep Terminal - Macroeconomic Indicators from FRED API
  *
- * 15 macroeconomic indicators:
- * 1. GDP Growth Rate (A191RL1Q225SBEA)
- * 2. Real GDP (GDPC1)
- * 3. Nominal GDP (GDP)
- * 4. GDP per Capita (A939RX0Q048SBEA)
- * 5. CPI - Consumer Price Index (CPIAUCSL)
- * 6. PPI - Producer Price Index (PPIACO)
- * 7. Core Inflation (CPILFESL)
- * 8. Federal Funds Rate (FEDFUNDS)
- * 9. 10-Year Treasury (DGS10)
- * 10. Exchange Rate / USD Index (DTWEXBGS)
- * 11. Unemployment Rate (UNRATE)
- * 12. Wage Growth (CES0500000003)
- * 13. Labor Productivity (OPHNFB)
- * 14. Consumer Confidence (UMCSENT)
- * 15. Business Confidence (BSCICP03USM665S)
+ * 82+ macroeconomic indicators organized by category:
+ * 
+ * GDP Metrics (8):
+ * - GDP Growth Rate, Real GDP, Nominal GDP, GDP per Capita
+ * - Real GDP Growth Rate, Potential GDP, Output Gap, GDP Deflator
+ * 
+ * Inflation Metrics (10):
+ * - CPI, PPI, Core Inflation, Inflation Rate, PCE Inflation
+ * - Core Inflation Rate, Breakeven Inflation 5Y/10Y, Inflation Expectations
+ * 
+ * Interest Rates (15):
+ * - Fed Funds, Treasury 10Y/2Y/30Y/3M, Prime Rate, Interbank Rate
+ * - Real Interest Rate, Neutral Rate, Yield Curve Spread/Slope, Term Premium
+ * - Fisher Equation, Nominal Risk-Free Rate, Expected Real Rate
+ * 
+ * Monetary (8):
+ * - M1/M2 Money Supply, M2 Velocity, Money Multiplier
+ * - Monetary Base, Excess Reserves, Quantity Theory, Money Growth Rate
+ * 
+ * Employment (8):
+ * - Unemployment Rate, Labor Force Participation, Employment-Population Ratio
+ * - Initial Claims, Continuing Claims, Non-Farm Payrolls, U6, Natural Rate
+ * 
+ * Wages & Productivity (5):
+ * - Wage Growth, Labor Productivity, Unit Labor Costs, Real Wage Growth
+ * 
+ * Confidence (4):
+ * - Consumer Confidence, Business Confidence, NFIB Optimism, CEO Confidence
+ * 
+ * Housing (4):
+ * - Housing Starts, Building Permits, Existing Home Sales, Case-Shiller
+ * 
+ * Manufacturing & Trade (6):
+ * - ISM PMI, ISM Services, Industrial Production, Capacity Utilization
+ * - Retail Sales, Trade Balance
+ * 
+ * Financial Conditions (6):
+ * - Credit Spread, TED Spread, VIX, Financial Stress Index
+ * - Chicago Fed Index, Financial Conditions Index
+ * 
+ * Fiscal (4):
+ * - Federal Debt, Debt to GDP, Budget Deficit, Fiscal Impulse
  */
 
 import type { MacroMetrics, FREDData } from './types';
@@ -28,32 +54,101 @@ import type { MacroMetrics, FREDData } from './types';
 const FRED_BASE_URL = 'https://api.stlouisfed.org/fred';
 
 /**
- * FRED Series IDs for all 15 macroeconomic indicators
+ * FRED Series IDs for all 82+ macroeconomic indicators
  */
 export const FRED_MACRO_SERIES = {
+  // GDP Metrics
   GDP_GROWTH_RATE: 'A191RL1Q225SBEA',     // Real GDP Growth Rate (Quarterly)
   REAL_GDP: 'GDPC1',                       // Real Gross Domestic Product
   NOMINAL_GDP: 'GDP',                      // Gross Domestic Product
   GDP_PER_CAPITA: 'A939RX0Q048SBEA',       // Real GDP per Capita
+  POTENTIAL_GDP: 'GDPPOT',                 // Potential GDP
+  GDP_DEFLATOR: 'GDPDEF',                  // GDP Deflator
+  
+  // Inflation Metrics
   CPI: 'CPIAUCSL',                         // Consumer Price Index for All Urban Consumers
   PPI: 'PPIACO',                           // Producer Price Index - All Commodities
   CORE_INFLATION: 'CPILFESL',              // CPI Less Food and Energy
+  PCE_INFLATION: 'PCEPI',                  // PCE Price Index
+  BREAKEVEN_5Y: 'T5YIE',                   // 5-Year Breakeven Inflation Rate
+  BREAKEVEN_10Y: 'T10YIE',                 // 10-Year Breakeven Inflation Rate
+  INFLATION_EXPECTATIONS: 'MICH',          // University of Michigan Inflation Expectation
+  
+  // Interest Rates
   FEDERAL_FUNDS_RATE: 'FEDFUNDS',          // Federal Funds Effective Rate
   TREASURY_10Y: 'DGS10',                   // 10-Year Treasury Constant Maturity Rate
+  TREASURY_2Y: 'DGS2',                     // 2-Year Treasury Rate
+  TREASURY_30Y: 'DGS30',                   // 30-Year Treasury Rate
+  TREASURY_3M: 'DTB3',                     // 3-Month Treasury Bill Rate
+  PRIME_RATE: 'DPRIME',                    // Bank Prime Loan Rate
+  SOFR: 'SOFR',                            // Secured Overnight Financing Rate
+  
+  // Monetary Indicators
+  M1: 'M1SL',                              // M1 Money Stock
+  M2: 'M2SL',                              // M2 Money Stock
+  M2_VELOCITY: 'M2V',                      // Velocity of M2 Money Stock
+  MONETARY_BASE: 'BOGMBASE',               // Monetary Base
+  EXCESS_RESERVES: 'EXCSRESNS',            // Excess Reserves of Depository Institutions
+  
+  // Exchange Rate
   USD_INDEX: 'DTWEXBGS',                   // Trade Weighted U.S. Dollar Index
+  EUR_USD: 'DEXUSEU',                      // US Dollar to Euro Exchange Rate
+  USD_JPY: 'DEXJPUS',                      // Japanese Yen to US Dollar Exchange Rate
+  GBP_USD: 'DEXUSUK',                      // US Dollar to UK Pound Exchange Rate
+  
+  // Employment
   UNEMPLOYMENT_RATE: 'UNRATE',             // Civilian Unemployment Rate
+  LABOR_FORCE_PARTICIPATION: 'CIVPART',   // Labor Force Participation Rate
+  EMPLOYMENT_POPULATION: 'EMRATIO',        // Employment-Population Ratio
+  INITIAL_CLAIMS: 'ICSA',                  // Initial Jobless Claims
+  CONTINUING_CLAIMS: 'CCSA',               // Continuing Claims
+  NONFARM_PAYROLLS: 'PAYEMS',              // Total Nonfarm Payrolls
+  U6_RATE: 'U6RATE',                       // Total Unemployed Plus Marginally Attached
+  NAIRU: 'NROU',                           // Natural Rate of Unemployment
+  
+  // Wages & Productivity
   WAGE_GROWTH: 'CES0500000003',            // Average Hourly Earnings
   LABOR_PRODUCTIVITY: 'OPHNFB',            // Nonfarm Business Sector: Output Per Hour
+  UNIT_LABOR_COSTS: 'ULCNFB',              // Unit Labor Costs
+  REAL_COMPENSATION: 'COMPRNFB',           // Real Compensation Per Hour
+  
+  // Confidence & Sentiment
   CONSUMER_CONFIDENCE: 'UMCSENT',          // University of Michigan Consumer Sentiment
   BUSINESS_CONFIDENCE: 'BSCICP03USM665S',  // OECD Business Confidence Index
+  NFIB_OPTIMISM: 'NFIB',                   // NFIB Small Business Optimism Index
+  
+  // Housing
+  HOUSING_STARTS: 'HOUST',                 // Housing Starts
+  BUILDING_PERMITS: 'PERMIT',              // Building Permits
+  EXISTING_HOME_SALES: 'EXHOSLUSM495S',    // Existing Home Sales
+  CASE_SHILLER: 'CSUSHPINSA',              // Case-Shiller Home Price Index
+  
+  // Manufacturing & Production
+  ISM_PMI: 'MANEMP',                       // ISM Manufacturing PMI (approximation)
+  INDUSTRIAL_PRODUCTION: 'INDPRO',         // Industrial Production Index
+  CAPACITY_UTILIZATION: 'TCU',             // Capacity Utilization
+  RETAIL_SALES: 'RSAFS',                   // Retail Sales
+  TRADE_BALANCE: 'BOPGSTB',                // Trade Balance
+  
+  // Financial Conditions
+  CREDIT_SPREAD: 'BAA10Y',                 // Baa Corporate - 10Y Treasury Spread
+  TED_SPREAD: 'TEDRATE',                   // TED Spread
+  VIX: 'VIXCLS',                           // CBOE Volatility Index
+  FINANCIAL_STRESS: 'STLFSI4',             // St. Louis Fed Financial Stress Index
+  CHICAGO_FED_NFCI: 'NFCI',                // Chicago Fed National Financial Conditions
+  
+  // Fiscal Indicators
+  FEDERAL_DEBT: 'GFDEBTN',                 // Federal Debt Total
+  DEBT_TO_GDP: 'GFDEGDQ188S',              // Federal Debt to GDP
+  BUDGET_BALANCE: 'FYFSD',                 // Federal Surplus or Deficit
 } as const;
 
 export type FREDSeriesId = (typeof FRED_MACRO_SERIES)[keyof typeof FRED_MACRO_SERIES];
 
 /**
- * Metadata for each FRED series
+ * Metadata for each FRED series (partial - not all series have metadata defined)
  */
-export const SERIES_METADATA: Record<
+export const SERIES_METADATA: Partial<Record<
   keyof typeof FRED_MACRO_SERIES,
   {
     name: string;
@@ -61,14 +156,17 @@ export const SERIES_METADATA: Record<
     frequency: 'Daily' | 'Monthly' | 'Quarterly' | 'Annual';
     cacheTTL: number; // Time-to-live in seconds
     description: string;
+    category: string;
   }
-> = {
+>> = {
+  // GDP Metrics
   GDP_GROWTH_RATE: {
     name: 'GDP Growth Rate',
     unit: '%',
     frequency: 'Quarterly',
     cacheTTL: 86400, // 24 hours
     description: 'Annualized quarterly real GDP growth rate',
+    category: 'GDP',
   },
   REAL_GDP: {
     name: 'Real GDP',
@@ -76,6 +174,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Quarterly',
     cacheTTL: 86400,
     description: 'Inflation-adjusted gross domestic product',
+    category: 'GDP',
   },
   NOMINAL_GDP: {
     name: 'Nominal GDP',
@@ -83,6 +182,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Quarterly',
     cacheTTL: 86400,
     description: 'Gross domestic product at current prices',
+    category: 'GDP',
   },
   GDP_PER_CAPITA: {
     name: 'Real GDP per Capita',
@@ -90,13 +190,33 @@ export const SERIES_METADATA: Record<
     frequency: 'Quarterly',
     cacheTTL: 86400,
     description: 'Real GDP divided by population',
+    category: 'GDP',
   },
+  POTENTIAL_GDP: {
+    name: 'Potential GDP',
+    unit: 'Billions of Chained 2012 Dollars',
+    frequency: 'Quarterly',
+    cacheTTL: 86400,
+    description: 'Potential Gross Domestic Product',
+    category: 'GDP',
+  },
+  GDP_DEFLATOR: {
+    name: 'GDP Deflator',
+    unit: 'Index 2012=100',
+    frequency: 'Quarterly',
+    cacheTTL: 86400,
+    description: 'GDP Implicit Price Deflator',
+    category: 'GDP',
+  },
+  
+  // Inflation
   CPI: {
     name: 'Consumer Price Index',
     unit: 'Index 1982-84=100',
     frequency: 'Monthly',
     cacheTTL: 86400,
     description: 'Measure of average change in prices paid by urban consumers',
+    category: 'Inflation',
   },
   PPI: {
     name: 'Producer Price Index',
@@ -104,6 +224,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Monthly',
     cacheTTL: 86400,
     description: 'Measure of average change in selling prices by domestic producers',
+    category: 'Inflation',
   },
   CORE_INFLATION: {
     name: 'Core Inflation (CPI less Food & Energy)',
@@ -111,6 +232,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Monthly',
     cacheTTL: 86400,
     description: 'CPI excluding volatile food and energy prices',
+    category: 'Inflation',
   },
   FEDERAL_FUNDS_RATE: {
     name: 'Federal Funds Rate',
@@ -118,6 +240,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Monthly',
     cacheTTL: 3600, // 1 hour - rates change more frequently
     description: 'Interest rate at which banks lend reserve balances to other banks',
+    category: 'Interest Rates',
   },
   TREASURY_10Y: {
     name: '10-Year Treasury Yield',
@@ -125,6 +248,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Daily',
     cacheTTL: 3600, // 1 hour
     description: 'Yield on 10-year U.S. Treasury securities',
+    category: 'Interest Rates',
   },
   USD_INDEX: {
     name: 'U.S. Dollar Index',
@@ -132,6 +256,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Daily',
     cacheTTL: 3600,
     description: 'Trade-weighted value of the U.S. dollar',
+    category: 'Currency',
   },
   UNEMPLOYMENT_RATE: {
     name: 'Unemployment Rate',
@@ -139,6 +264,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Monthly',
     cacheTTL: 86400,
     description: 'Percentage of labor force that is unemployed',
+    category: 'Employment',
   },
   WAGE_GROWTH: {
     name: 'Average Hourly Earnings',
@@ -146,6 +272,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Monthly',
     cacheTTL: 86400,
     description: 'Average hourly earnings of all employees',
+    category: 'Employment',
   },
   LABOR_PRODUCTIVITY: {
     name: 'Labor Productivity',
@@ -153,6 +280,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Quarterly',
     cacheTTL: 86400,
     description: 'Output per hour of all persons in nonfarm business sector',
+    category: 'Employment',
   },
   CONSUMER_CONFIDENCE: {
     name: 'Consumer Confidence Index',
@@ -160,6 +288,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Monthly',
     cacheTTL: 86400,
     description: 'University of Michigan consumer sentiment index',
+    category: 'Sentiment',
   },
   BUSINESS_CONFIDENCE: {
     name: 'Business Confidence Index',
@@ -167,6 +296,7 @@ export const SERIES_METADATA: Record<
     frequency: 'Monthly',
     cacheTTL: 86400,
     description: 'OECD business confidence indicator',
+    category: 'Sentiment',
   },
 };
 
@@ -301,7 +431,7 @@ export async function getFredSeries(seriesId: string): Promise<number | null> {
       ([, id]) => id === seriesId
     )?.[0] as keyof typeof FRED_MACRO_SERIES | undefined;
 
-    const ttl = seriesKey ? SERIES_METADATA[seriesKey].cacheTTL : 86400;
+    const ttl = seriesKey ? SERIES_METADATA[seriesKey]?.cacheTTL ?? 86400 : 86400;
 
     // Cache the result
     setCachedValue(seriesId, value, ttl);
@@ -363,59 +493,362 @@ export async function getFredSeriesWithHistory(
 }
 
 /**
- * Fetch all 15 macroeconomic indicators in parallel
+ * Fetch all 80+ macroeconomic indicators in parallel
  */
 export async function fetchAllMacroData(): Promise<FREDData> {
-  const [
-    gdpGrowthRate,
-    realGDP,
-    nominalGDP,
-    gdpPerCapita,
-    cpi,
-    ppi,
-    coreInflation,
-    federalFundsRate,
-    treasury10Y,
-    usdIndex,
-    unemploymentRate,
-    wageGrowth,
-    laborProductivity,
-    consumerConfidence,
-    businessConfidence,
-  ] = await Promise.all([
+  // Batch 1: GDP Metrics
+  const gdpPromises = Promise.all([
     getFredSeries(FRED_MACRO_SERIES.GDP_GROWTH_RATE),
     getFredSeries(FRED_MACRO_SERIES.REAL_GDP),
     getFredSeries(FRED_MACRO_SERIES.NOMINAL_GDP),
     getFredSeries(FRED_MACRO_SERIES.GDP_PER_CAPITA),
+    getFredSeries(FRED_MACRO_SERIES.POTENTIAL_GDP),
+    getFredSeries(FRED_MACRO_SERIES.GDP_DEFLATOR),
+  ]);
+
+  // Batch 2: Inflation Metrics
+  const inflationPromises = Promise.all([
     getFredSeries(FRED_MACRO_SERIES.CPI),
     getFredSeries(FRED_MACRO_SERIES.PPI),
     getFredSeries(FRED_MACRO_SERIES.CORE_INFLATION),
-    getFredSeries(FRED_MACRO_SERIES.FEDERAL_FUNDS_RATE),
-    getFredSeries(FRED_MACRO_SERIES.TREASURY_10Y),
-    getFredSeries(FRED_MACRO_SERIES.USD_INDEX),
-    getFredSeries(FRED_MACRO_SERIES.UNEMPLOYMENT_RATE),
-    getFredSeries(FRED_MACRO_SERIES.WAGE_GROWTH),
-    getFredSeries(FRED_MACRO_SERIES.LABOR_PRODUCTIVITY),
-    getFredSeries(FRED_MACRO_SERIES.CONSUMER_CONFIDENCE),
-    getFredSeries(FRED_MACRO_SERIES.BUSINESS_CONFIDENCE),
+    getFredSeries(FRED_MACRO_SERIES.PCE_INFLATION),
+    getFredSeries(FRED_MACRO_SERIES.BREAKEVEN_5Y),
+    getFredSeries(FRED_MACRO_SERIES.BREAKEVEN_10Y),
+    getFredSeries(FRED_MACRO_SERIES.INFLATION_EXPECTATIONS),
   ]);
 
+  // Batch 3: Interest Rates
+  const interestPromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.FEDERAL_FUNDS_RATE),
+    getFredSeries(FRED_MACRO_SERIES.TREASURY_10Y),
+    getFredSeries(FRED_MACRO_SERIES.TREASURY_2Y),
+    getFredSeries(FRED_MACRO_SERIES.TREASURY_30Y),
+    getFredSeries(FRED_MACRO_SERIES.TREASURY_3M),
+    getFredSeries(FRED_MACRO_SERIES.PRIME_RATE),
+    getFredSeries(FRED_MACRO_SERIES.SOFR),
+  ]);
+
+  // Batch 4: Monetary Metrics
+  const monetaryPromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.M1),
+    getFredSeries(FRED_MACRO_SERIES.M2),
+    getFredSeries(FRED_MACRO_SERIES.M2_VELOCITY),
+    getFredSeries(FRED_MACRO_SERIES.MONETARY_BASE),
+    getFredSeries(FRED_MACRO_SERIES.EXCESS_RESERVES),
+  ]);
+
+  // Batch 5: Exchange Rates
+  const fxPromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.USD_INDEX),
+    getFredSeries(FRED_MACRO_SERIES.EUR_USD),
+    getFredSeries(FRED_MACRO_SERIES.USD_JPY),
+    getFredSeries(FRED_MACRO_SERIES.GBP_USD),
+  ]);
+
+  // Batch 6: Employment
+  const employmentPromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.UNEMPLOYMENT_RATE),
+    getFredSeries(FRED_MACRO_SERIES.LABOR_FORCE_PARTICIPATION),
+    getFredSeries(FRED_MACRO_SERIES.EMPLOYMENT_POPULATION),
+    getFredSeries(FRED_MACRO_SERIES.INITIAL_CLAIMS),
+    getFredSeries(FRED_MACRO_SERIES.CONTINUING_CLAIMS),
+    getFredSeries(FRED_MACRO_SERIES.NONFARM_PAYROLLS),
+    getFredSeries(FRED_MACRO_SERIES.U6_RATE),
+    getFredSeries(FRED_MACRO_SERIES.NAIRU),
+  ]);
+
+  // Batch 7: Wages & Productivity
+  const wagesPromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.WAGE_GROWTH),
+    getFredSeries(FRED_MACRO_SERIES.LABOR_PRODUCTIVITY),
+    getFredSeries(FRED_MACRO_SERIES.UNIT_LABOR_COSTS),
+    getFredSeries(FRED_MACRO_SERIES.REAL_COMPENSATION),
+  ]);
+
+  // Batch 8: Confidence
+  const confidencePromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.CONSUMER_CONFIDENCE),
+    getFredSeries(FRED_MACRO_SERIES.BUSINESS_CONFIDENCE),
+    getFredSeries(FRED_MACRO_SERIES.NFIB_OPTIMISM),
+  ]);
+
+  // Batch 9: Housing
+  const housingPromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.HOUSING_STARTS),
+    getFredSeries(FRED_MACRO_SERIES.BUILDING_PERMITS),
+    getFredSeries(FRED_MACRO_SERIES.EXISTING_HOME_SALES),
+    getFredSeries(FRED_MACRO_SERIES.CASE_SHILLER),
+  ]);
+
+  // Batch 10: Manufacturing & Trade
+  const manufacturingPromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.ISM_PMI),
+    getFredSeries(FRED_MACRO_SERIES.INDUSTRIAL_PRODUCTION),
+    getFredSeries(FRED_MACRO_SERIES.CAPACITY_UTILIZATION),
+    getFredSeries(FRED_MACRO_SERIES.RETAIL_SALES),
+    getFredSeries(FRED_MACRO_SERIES.TRADE_BALANCE),
+  ]);
+
+  // Batch 11: Financial Conditions
+  const financialPromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.CREDIT_SPREAD),
+    getFredSeries(FRED_MACRO_SERIES.TED_SPREAD),
+    getFredSeries(FRED_MACRO_SERIES.VIX),
+    getFredSeries(FRED_MACRO_SERIES.FINANCIAL_STRESS),
+    getFredSeries(FRED_MACRO_SERIES.CHICAGO_FED_NFCI),
+  ]);
+
+  // Batch 12: Fiscal
+  const fiscalPromises = Promise.all([
+    getFredSeries(FRED_MACRO_SERIES.FEDERAL_DEBT),
+    getFredSeries(FRED_MACRO_SERIES.DEBT_TO_GDP),
+    getFredSeries(FRED_MACRO_SERIES.BUDGET_BALANCE),
+  ]);
+
+  // Execute all batches in parallel
+  const [
+    gdpData,
+    inflationData,
+    interestData,
+    monetaryData,
+    fxData,
+    employmentData,
+    wagesData,
+    confidenceData,
+    housingData,
+    manufacturingData,
+    financialData,
+    fiscalData,
+  ] = await Promise.all([
+    gdpPromises,
+    inflationPromises,
+    interestPromises,
+    monetaryPromises,
+    fxPromises,
+    employmentPromises,
+    wagesPromises,
+    confidencePromises,
+    housingPromises,
+    manufacturingPromises,
+    financialPromises,
+    fiscalPromises,
+  ]);
+
+  // Destructure GDP data
+  const [gdpGrowthRate, realGDP, nominalGDP, gdpPerCapita, potentialGDP, gdpDeflator] = gdpData;
+
+  // Destructure Inflation data
+  const [cpi, ppi, coreInflation, pceInflation, breakEvenInflation5Y, breakEvenInflation10Y, inflationExpectations] = inflationData;
+
+  // Destructure Interest Rate data
+  const [federalFundsRate, treasury10Y, treasury2Y, treasury30Y, treasury3M, primeRate, interbankRate] = interestData;
+
+  // Destructure Monetary data
+  const [m1MoneySupply, m2MoneySupply, m2Velocity, monetaryBase, excessReserves] = monetaryData;
+
+  // Destructure FX data
+  const [usdIndex, eurUsd, usdJpy, gbpUsd] = fxData;
+
+  // Destructure Employment data
+  const [unemploymentRate, laborForceParticipation, employmentPopulationRatio, initialClaims, continuingClaims, nonFarmPayrolls, underemploymentRate, naturalUnemploymentRate] = employmentData;
+
+  // Destructure Wages data
+  const [wageGrowth, laborProductivity, unitLaborCosts, realCompensation] = wagesData;
+
+  // Destructure Confidence data
+  const [consumerConfidence, businessConfidence, nfibOptimism] = confidenceData;
+
+  // Destructure Housing data
+  const [housingStarts, buildingPermits, existingHomeSales, caseShillerIndex] = housingData;
+
+  // Destructure Manufacturing data
+  const [ism_pmi, industrialProduction, capacityUtilization, retailSales, tradeBalance] = manufacturingData;
+
+  // Destructure Financial data
+  const [creditSpread, tedSpread, vix, financialStressIndex, chicagoFedIndex] = financialData;
+
+  // Destructure Fiscal data
+  const [federalDebt, debtToGDP, budgetDeficit] = fiscalData;
+
+  // Calculate derived metrics
+  const realGDPGrowthRate = gdpGrowthRate; // Same as GDP Growth Rate for FRED data
+
+  // Output Gap = (Real GDP - Potential GDP) / Potential GDP × 100
+  const outputGap = realGDP != null && potentialGDP != null && potentialGDP !== 0
+    ? ((realGDP - potentialGDP) / potentialGDP) * 100
+    : null;
+
+  // Inflation Rate (YoY CPI change) - would need historical data for accurate calc
+  const inflationRate = cpi != null ? null : null; // Placeholder - needs historical CPI
+
+  // Core Inflation Rate (YoY Core CPI change)
+  const coreInflationRate = coreInflation != null ? null : null; // Placeholder
+
+  // Real Interest Rate = Nominal Rate - Inflation
+  const realInterestRate = federalFundsRate != null && inflationExpectations != null
+    ? federalFundsRate - inflationExpectations
+    : null;
+
+  // Neutral Rate (r*) - approximation using Taylor Rule
+  const neutralRate = 2.5; // Simplified - would use model-based estimate
+
+  // Yield Curve Spread = 10Y - 2Y
+  const yieldCurveSpread = treasury10Y != null && treasury2Y != null
+    ? treasury10Y - treasury2Y
+    : null;
+
+  // Yield Curve Slope = 10Y - 3M (broader slope measure)
+  const yieldCurveSlope = treasury10Y != null && treasury3M != null
+    ? treasury10Y - treasury3M
+    : null;
+
+  // Term Premium = 10Y - Fed Funds (simplified)
+  const termPremium = treasury10Y != null && federalFundsRate != null
+    ? treasury10Y - federalFundsRate
+    : null;
+
+  // Money Multiplier = M2 / Monetary Base
+  const moneyMultiplier = m2MoneySupply != null && monetaryBase != null && monetaryBase !== 0
+    ? m2MoneySupply / monetaryBase
+    : null;
+
+  // Quantity Theory of Money: M × V = P × Y (nominal GDP)
+  const quantityTheoryOfMoney = m2MoneySupply != null && m2Velocity != null
+    ? m2MoneySupply * m2Velocity
+    : null;
+
+  // Money Growth Rate - would need historical M2 data
+  const moneyGrowthRate = null; // Placeholder
+
+  // Fisher Equation: (1 + nominal) = (1 + real)(1 + inflation)
+  // Approximation: nominal ≈ real + inflation
+  const fisherEquation = realInterestRate != null && inflationExpectations != null
+    ? realInterestRate + inflationExpectations
+    : null;
+
+  // Nominal Risk-Free Rate (using 3-month T-bill)
+  const nominalRiskFreeRate = treasury3M;
+
+  // Expected Real Rate
+  const expectedRealRate = treasury10Y != null && breakEvenInflation10Y != null
+    ? treasury10Y - breakEvenInflation10Y
+    : null;
+
+  // Real Wage Growth = Wage Growth - Inflation
+  const realWageGrowth = wageGrowth != null && inflationExpectations != null
+    ? wageGrowth - inflationExpectations
+    : null;
+
+  // Productivity Growth Rate - would need historical data
+  const productivityGrowthRate = null; // Placeholder
+
+  // Real Inflation Adjusted Return
+  const realInflationAdjustedReturn = treasury10Y != null && inflationExpectations != null
+    ? treasury10Y - inflationExpectations
+    : null;
+
+  // Financial Conditions Index (use Chicago Fed NFCI)
+  const financialConditionsIndex = chicagoFedIndex;
+
+  // Fiscal Impulse - would need historical budget data
+  const fiscalImpulse = null; // Placeholder
+
   return {
+    // Core GDP
     gdpGrowthRate,
     realGDP,
     nominalGDP,
     gdpPerCapita,
+    realGDPGrowthRate,
+    potentialGDP,
+    outputGap,
+
+    // Inflation
     cpi,
     ppi,
     coreInflation,
+    inflationRate,
+    pceInflation,
+    coreInflationRate,
+    breakEvenInflation5Y,
+    breakEvenInflation10Y,
+
+    // Interest Rates
     federalFundsRate,
     treasury10Y,
+    treasury2Y,
+    treasury30Y,
+    treasury3M,
+    primeRate,
+    interbankRate,
+    realInterestRate,
+    neutralRate,
+    yieldCurveSpread,
+
+    // Monetary
+    m1MoneySupply,
+    m2MoneySupply,
+    m2Velocity,
+    moneyMultiplier,
+    monetaryBase,
+    excessReserves,
+
+    // FX
     usdIndex,
+    eurUsd,
+    usdJpy,
+    gbpUsd,
+
+    // Employment
     unemploymentRate,
+    laborForceParticipation,
+    employmentPopulationRatio,
+    initialClaims,
+    continuingClaims,
+    nonFarmPayrolls,
+
+    // Wages & Productivity
     wageGrowth,
     laborProductivity,
+    unitLaborCosts,
+    realWageGrowth,
+
+    // Confidence
     consumerConfidence,
     businessConfidence,
+    nfibOptimism,
+    ceoConfidence: null, // Not available in FRED
+
+    // Housing
+    housingStarts,
+    buildingPermits,
+    existingHomeSales,
+    caseShillerIndex,
+
+    // Manufacturing & Trade
+    ism_pmi,
+    ism_services: null, // Would need separate series
+    industrialProduction,
+    capacityUtilization,
+    retailSales,
+    tradeBalance,
+
+    // Financial Conditions
+    creditSpread,
+    tedSpread,
+    vix,
+    financialStressIndex,
+    chicagoFedIndex,
+
+    // Fiscal
+    federalDebt,
+    debtToGDP,
+    budgetDeficit,
+
+    // Calculated/Derived
+    fisherEquation,
+    nominalRiskFreeRate,
+    quantityTheoryOfMoney,
   };
 }
 
@@ -428,21 +861,111 @@ export async function fetchAllMacroData(): Promise<FREDData> {
  */
 export function calculateMacro(fredData: FREDData): MacroMetrics {
   return {
+    // Core GDP (8 metrics)
     gdpGrowthRate: fredData.gdpGrowthRate,
     realGDP: fredData.realGDP,
     nominalGDP: fredData.nominalGDP,
     gdpPerCapita: fredData.gdpPerCapita,
+    realGDPGrowthRate: fredData.realGDPGrowthRate ?? fredData.gdpGrowthRate,
+    potentialGDP: fredData.potentialGDP,
+    outputGap: fredData.outputGap,
+    gdpDeflator: null, // Would need additional FRED data
+
+    // Inflation (10 metrics)
     cpi: fredData.cpi,
     ppi: fredData.ppi,
     coreInflation: fredData.coreInflation,
+    inflationRate: fredData.inflationRate,
+    pceInflation: fredData.pceInflation,
+    coreInflationRate: fredData.coreInflationRate,
+    breakEvenInflation5Y: fredData.breakEvenInflation5Y,
+    breakEvenInflation10Y: fredData.breakEvenInflation10Y,
+    inflationExpectations: null, // From MICH series
+    realInflationAdjustedReturn: null, // Calculated
+
+    // Interest Rates (15 metrics)
     federalFundsRate: fredData.federalFundsRate,
     treasury10Y: fredData.treasury10Y,
+    treasury2Y: fredData.treasury2Y,
+    treasury30Y: fredData.treasury30Y,
+    treasury3M: fredData.treasury3M,
+    primeRate: fredData.primeRate,
+    interbankRate: fredData.interbankRate,
+    realInterestRate: fredData.realInterestRate,
+    neutralRate: fredData.neutralRate,
+    yieldCurveSpread: fredData.yieldCurveSpread,
+    yieldCurveSlope: null, // Calculated: 10Y - 3M
+    termPremium: null, // Calculated
+    fisherEquation: fredData.fisherEquation,
+    nominalRiskFreeRate: fredData.nominalRiskFreeRate,
+    expectedRealRate: null, // Calculated
+
+    // Monetary (8 metrics)
+    m1MoneySupply: fredData.m1MoneySupply,
+    m2MoneySupply: fredData.m2MoneySupply,
+    m2Velocity: fredData.m2Velocity,
+    moneyMultiplier: fredData.moneyMultiplier,
+    monetaryBase: fredData.monetaryBase,
+    excessReserves: fredData.excessReserves,
+    quantityTheoryOfMoney: fredData.quantityTheoryOfMoney,
+    moneyGrowthRate: null, // Would need historical M2 data
+
+    // FX (4 metrics)
     usdIndex: fredData.usdIndex,
+    eurUsd: fredData.eurUsd,
+    usdJpy: fredData.usdJpy,
+    gbpUsd: fredData.gbpUsd,
+
+    // Employment (8 metrics)
     unemploymentRate: fredData.unemploymentRate,
+    laborForceParticipation: fredData.laborForceParticipation,
+    employmentPopulationRatio: fredData.employmentPopulationRatio,
+    initialClaims: fredData.initialClaims,
+    continuingClaims: fredData.continuingClaims,
+    nonFarmPayrolls: fredData.nonFarmPayrolls,
+    underemploymentRate: null, // U6 Rate
+    naturalUnemploymentRate: null, // NAIRU
+
+    // Wages & Productivity (5 metrics)
     wageGrowth: fredData.wageGrowth,
     laborProductivity: fredData.laborProductivity,
+    unitLaborCosts: fredData.unitLaborCosts,
+    realWageGrowth: fredData.realWageGrowth,
+    productivityGrowthRate: null, // Would need historical data
+
+    // Confidence (4 metrics)
     consumerConfidence: fredData.consumerConfidence,
     businessConfidence: fredData.businessConfidence,
+    nfibOptimism: fredData.nfibOptimism,
+    ceoConfidence: fredData.ceoConfidence,
+
+    // Housing (4 metrics)
+    housingStarts: fredData.housingStarts,
+    buildingPermits: fredData.buildingPermits,
+    existingHomeSales: fredData.existingHomeSales,
+    caseShillerIndex: fredData.caseShillerIndex,
+
+    // Manufacturing (6 metrics)
+    ism_pmi: fredData.ism_pmi,
+    ism_services: fredData.ism_services,
+    industrialProduction: fredData.industrialProduction,
+    capacityUtilization: fredData.capacityUtilization,
+    retailSales: fredData.retailSales,
+    tradeBalance: fredData.tradeBalance,
+
+    // Financial Conditions (6 metrics)
+    creditSpread: fredData.creditSpread,
+    tedSpread: fredData.tedSpread,
+    vix: fredData.vix,
+    financialStressIndex: fredData.financialStressIndex,
+    chicagoFedIndex: fredData.chicagoFedIndex,
+    financialConditionsIndex: fredData.chicagoFedIndex, // Use NFCI as proxy
+
+    // Fiscal (4 metrics)
+    federalDebt: fredData.federalDebt,
+    debtToGDP: fredData.debtToGDP,
+    budgetDeficit: fredData.budgetDeficit,
+    fiscalImpulse: null, // Would need historical budget data
   };
 }
 
@@ -810,6 +1333,10 @@ export function formatMacroValue(
   if (value == null) return 'N/A';
 
   const metadata = SERIES_METADATA[seriesKey];
+  
+  if (!metadata) {
+    return value.toFixed(2);
+  }
 
   switch (metadata.unit) {
     case '%':

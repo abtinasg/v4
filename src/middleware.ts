@@ -9,6 +9,17 @@ const isProtectedRoute = createRouteMatcher([
   '/terminal(.*)',
   '/alerts(.*)',
   '/settings(.*)',
+  '/onboarding(.*)',
+])
+
+// Routes that require onboarding to be completed
+const requiresOnboarding = createRouteMatcher([
+  '/dashboard(.*)',
+  '/overview(.*)',
+  '/watchlist(.*)',
+  '/terminal(.*)',
+  '/alerts(.*)',
+  '/settings(.*)',
 ])
 
 // Redirect routes - shortcuts to dashboard pages
@@ -42,6 +53,22 @@ export default clerkMiddleware(async (auth, request) => {
       const signInUrl = new URL('/sign-in', request.url)
       signInUrl.searchParams.set('redirect_url', request.url)
       return Response.redirect(signInUrl)
+    }
+
+    // Check if user needs onboarding (only for routes that require it)
+    // Skip this check for onboarding page itself and API routes
+    if (requiresOnboarding(request) && !pathname.startsWith('/api/')) {
+      // Check if user has onboarding_completed cookie
+      const onboardingCookie = request.cookies.get('onboarding_completed')
+      
+      // If cookie exists and matches current user, allow access
+      if (onboardingCookie?.value === userId) {
+        return NextResponse.next()
+      }
+
+      // No cookie = redirect to onboarding
+      // The onboarding page will check if user actually needs it via client-side API call
+      return NextResponse.redirect(new URL('/onboarding', request.url))
     }
   }
 })

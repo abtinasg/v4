@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, Activity, BrainCircuit, AlertCircle } from 'lucide-react'
 
 const topMovers = [
@@ -33,10 +32,7 @@ export function LiveData() {
 
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
           className="text-center mb-12"
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-[#22C55E]/20 bg-[#22C55E]/[0.06] px-4 py-1.5 text-xs font-medium text-[#22C55E] mb-6">
@@ -47,16 +43,12 @@ export function LiveData() {
           <h2 className="text-display text-3xl md:text-4xl text-white">
             Markets at a Glance
           </h2>
-        </motion.div>
+        </div>
 
         {/* Data Grid */}
         <div className="grid md:grid-cols-3 gap-6">
           {/* Top Movers */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+          <div
             className="rounded-2xl border border-white/[0.05] bg-[#0A0D12]/60 p-6 backdrop-blur-sm"
           >
             <h3 className="text-label text-gray-500 mb-4">TOP MOVERS</h3>
@@ -74,14 +66,10 @@ export function LiveData() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Macro Indicator */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+          <div
             className="rounded-2xl border border-white/[0.05] bg-[#0A0D12]/60 p-6 backdrop-blur-sm"
           >
             <h3 className="text-label text-gray-500 mb-4">MACRO INDICATOR</h3>
@@ -98,14 +86,10 @@ export function LiveData() {
                 <div className="text-xs text-gray-600">{macroData.lastUpdate}</div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* AI Insight */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
+          <div
             className="rounded-2xl border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.03] p-6 backdrop-blur-sm"
           >
             <div className="flex items-center gap-2 mb-4">
@@ -117,18 +101,15 @@ export function LiveData() {
               <p className="text-sm text-gray-400 leading-relaxed">{aiInsight.summary}</p>
               <div className="flex items-center gap-3 pt-2">
                 <div className="flex-1 h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${aiInsight.confidence}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1, delay: 0.5 }}
+                  <div
                     className="h-full rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#00D4FF]"
+                    style={{ width: `${aiInsight.confidence}%` }}
                   />
                 </div>
                 <span className="text-xs text-[#8B5CF6] font-medium">{aiInsight.confidence}%</span>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

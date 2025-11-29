@@ -20,6 +20,10 @@ import {
   Target,
   Sparkles,
   Globe,
+  Layers,
+  CreditCard,
+  Banknote,
+  LineChart,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -34,6 +38,9 @@ const TABS: { value: MetricsTabValue; label: string; icon: typeof LayoutGrid }[]
   { value: 'valuation', label: 'Valuation', icon: TrendingUp },
   { value: 'economy', label: 'Economy', icon: Globe },
   { value: 'technical', label: 'Technical', icon: Activity },
+  { value: 'risk', label: 'Risk', icon: Shield },
+  { value: 'tradefx', label: 'Trade & FX', icon: Globe },
+  { value: 'fixedincome', label: 'Fixed Income', icon: Banknote },
   { value: 'ai', label: 'AI Analysis', icon: Brain },
 ];
 
@@ -319,7 +326,7 @@ function OverviewTab({ metrics }: { metrics: AllMetrics }) {
 // ============================================================================
 
 function FinancialsTab({ metrics }: { metrics: AllMetrics }) {
-  const { profitability, efficiency, cashFlow, dupont, other } = metrics;
+  const { profitability, efficiency, cashFlow, dupont, other, growth, leverage, liquidity } = metrics;
 
   return (
     <div className="space-y-7">
@@ -341,6 +348,25 @@ function FinancialsTab({ metrics }: { metrics: AllMetrics }) {
           ]}
         />
 
+        {/* Extended Profitability */}
+        <MetricCard
+          title="Advanced Profitability"
+          description="Extended return metrics"
+          icon={<PiggyBank className="h-5 w-5" />}
+          metrics={[
+            { label: 'ROCE', value: profitability.roce, format: 'percent', tooltip: 'Return on Capital Employed' },
+            { label: 'RONA', value: profitability.rona, format: 'percent', tooltip: 'Return on Net Assets' },
+            { label: 'Cash ROA', value: profitability.cashRoa, format: 'percent' },
+            { label: 'Cash ROE', value: profitability.cashRoe, format: 'percent' },
+            { label: 'Pretax Margin', value: profitability.pretaxMargin, format: 'percent' },
+            { label: 'EBIT Margin', value: profitability.ebitMargin, format: 'percent' },
+            { label: 'Operating ROA', value: profitability.operatingRoa, format: 'percent' },
+            { label: 'Economic Profit', value: profitability.economicProfit, format: 'currency', tooltip: 'EVA' },
+            { label: 'Residual Income', value: profitability.residualIncome, format: 'currency' },
+            { label: 'Spread Above WACC', value: profitability.spreadAboveWacc, format: 'percent', tooltip: 'ROIC - WACC' },
+          ]}
+        />
+
         {/* Efficiency */}
         <MetricCard
           title="Efficiency Ratios"
@@ -353,6 +379,12 @@ function FinancialsTab({ metrics }: { metrics: AllMetrics }) {
             { label: 'Receivables Turnover', value: efficiency.receivablesTurnover, format: 'ratio' },
             { label: 'Payables Turnover', value: efficiency.payablesTurnover, format: 'ratio' },
             { label: 'Working Capital Turnover', value: efficiency.workingCapitalTurnover, format: 'ratio' },
+            { label: 'Equity Turnover', value: efficiency.equityTurnover, format: 'ratio' },
+            { label: 'Capital Employed Turnover', value: efficiency.capitalEmployedTurnover, format: 'ratio' },
+            { label: 'Cash Turnover', value: efficiency.cashTurnover, format: 'ratio' },
+            { label: 'Operating Cycle', value: efficiency.operatingCycle, format: 'number', tooltip: 'Days from inventory to cash' },
+            { label: 'Net Trade Cycle', value: efficiency.netTradeCycle, format: 'number' },
+            { label: 'Asset Utilization', value: efficiency.assetUtilization, format: 'ratio' },
           ]}
         />
 
@@ -363,11 +395,23 @@ function FinancialsTab({ metrics }: { metrics: AllMetrics }) {
           icon={<Wallet className="h-5 w-5" />}
           metrics={[
             { label: 'Operating Cash Flow', value: cashFlow.operatingCashFlow, format: 'currency' },
-            { label: 'Free Cash Flow', value: cashFlow.freeCashFlow, format: 'currency', status: getMetricStatus(cashFlow.freeCashFlow, { good: 0, bad: -1000000 }) },
+            { label: 'Investing Cash Flow', value: cashFlow.investingCashFlow, format: 'currency' },
+            { label: 'Financing Cash Flow', value: cashFlow.financingCashFlow, format: 'currency' },
+            { label: 'Free Cash Flow', value: cashFlow.freeCashFlow, format: 'currency' },
             { label: 'FCFF', value: cashFlow.fcff, format: 'currency', tooltip: 'Free Cash Flow to Firm' },
             { label: 'FCFE', value: cashFlow.fcfe, format: 'currency', tooltip: 'Free Cash Flow to Equity' },
             { label: 'Cash Flow Adequacy', value: cashFlow.cashFlowAdequacy, format: 'ratio' },
             { label: 'Reinvestment Ratio', value: cashFlow.cashReinvestmentRatio, format: 'percent' },
+            { label: 'Levered FCF', value: cashFlow.leveredFreeCashFlow, format: 'currency' },
+            { label: 'Unlevered FCF', value: cashFlow.unleveredFreeCashFlow, format: 'currency' },
+            { label: 'FCF Margin', value: cashFlow.fcfMargin, format: 'percent' },
+            { label: 'FCF Yield', value: cashFlow.fcfYield, format: 'percent' },
+            { label: 'FCF to Debt', value: cashFlow.fcfToDebt, format: 'ratio' },
+            { label: 'FCF to Equity', value: cashFlow.fcfToEquity, format: 'ratio' },
+            { label: 'OCF Margin', value: cashFlow.operatingCashFlowMargin, format: 'percent' },
+            { label: 'CapEx to Revenue', value: cashFlow.capexToRevenue, format: 'percent' },
+            { label: 'CapEx to Depreciation', value: cashFlow.capexToDepreciation, format: 'ratio' },
+            { label: 'Cash Generation', value: cashFlow.cashGenerationEfficiency, format: 'ratio' },
           ]}
         />
 
@@ -380,9 +424,89 @@ function FinancialsTab({ metrics }: { metrics: AllMetrics }) {
             { label: 'Net Profit Margin', value: dupont.netProfitMargin, format: 'percent' },
             { label: 'Asset Turnover', value: dupont.assetTurnover, format: 'ratio' },
             { label: 'Equity Multiplier', value: dupont.equityMultiplier, format: 'ratio' },
-            { label: 'ROE (DuPont)', value: dupont.roeDupont, format: 'percent', tooltip: 'NPM × Asset Turnover × Equity Multiplier' },
-            { label: 'Interest Burden', value: dupont.interestBurden, format: 'percent', tooltip: 'EBT / EBIT' },
-            { label: 'Tax Burden', value: dupont.taxBurden, format: 'percent', tooltip: 'Net Income / EBT' },
+            { label: 'ROE (DuPont)', value: dupont.roeDupont, format: 'percent', tooltip: 'NPM × AT × EM' },
+            { label: 'Operating Margin', value: dupont.operatingMargin, format: 'percent' },
+            { label: 'Interest Burden', value: dupont.interestBurden, format: 'ratio', tooltip: 'EBT / EBIT' },
+            { label: 'Tax Burden', value: dupont.taxBurden, format: 'ratio', tooltip: 'Net Income / EBT' },
+            { label: 'Tax Efficiency', value: dupont.taxEfficiency, format: 'percent' },
+            { label: 'Interest Burden Ratio', value: dupont.interestBurdenRatio, format: 'ratio' },
+            { label: 'Operating Profit Margin', value: dupont.operatingProfitMargin, format: 'percent' },
+            { label: 'Asset Turnover Ratio', value: dupont.assetTurnoverRatio, format: 'ratio' },
+            { label: 'Financial Leverage', value: dupont.financialLeverageRatio, format: 'ratio' },
+          ]}
+        />
+
+        {/* Growth Metrics Full */}
+        <MetricCard
+          title="Growth Metrics"
+          description="Historical performance"
+          icon={<Sprout className="h-5 w-5" />}
+          metrics={[
+            { label: 'Revenue YoY', value: growth.revenueGrowthYoY, format: 'percent', status: getMetricStatus(growth.revenueGrowthYoY, { good: 0.1, bad: -0.05 }) },
+            { label: 'EPS YoY', value: growth.epsGrowthYoY, format: 'percent', status: getMetricStatus(growth.epsGrowthYoY, { good: 0.1, bad: -0.1 }) },
+            { label: 'Net Income YoY', value: growth.netIncomeGrowthYoY, format: 'percent' },
+            { label: 'EBITDA YoY', value: growth.ebitdaGrowthYoY, format: 'percent' },
+            { label: 'Operating Income YoY', value: growth.operatingIncomeGrowth, format: 'percent' },
+            { label: 'Gross Profit YoY', value: growth.grossProfitGrowth, format: 'percent' },
+            { label: 'Dividend Growth', value: growth.dpsGrowth, format: 'percent' },
+            { label: 'FCF Growth', value: growth.fcfGrowth, format: 'percent' },
+            { label: 'Revenue 3Y CAGR', value: growth.revenue3YearCAGR, format: 'percent' },
+            { label: 'Revenue 5Y CAGR', value: growth.revenue5YearCAGR, format: 'percent' },
+            { label: 'EPS 3Y CAGR', value: growth.eps3YearCAGR, format: 'percent' },
+            { label: 'EPS 5Y CAGR', value: growth.eps5YearCAGR, format: 'percent' },
+            { label: 'Asset Growth', value: growth.assetGrowthRate, format: 'percent' },
+            { label: 'Equity Growth', value: growth.equityGrowthRate, format: 'percent' },
+            { label: 'Book Value Growth', value: growth.bookValueGrowthRate, format: 'percent' },
+            { label: 'Sustainable Growth', value: growth.sustainableGrowthRate, format: 'percent', tooltip: 'ROE × Retention' },
+            { label: 'Internal Growth', value: growth.internalGrowthRate, format: 'percent', tooltip: 'ROA × Retention' },
+            { label: 'Retention Ratio', value: growth.retentionRatio, format: 'percent' },
+            { label: 'Payout Ratio', value: growth.payoutRatio, format: 'percent' },
+            { label: 'Plowback Ratio', value: growth.plowbackRatio, format: 'percent' },
+          ]}
+        />
+
+        {/* Leverage Ratios */}
+        <MetricCard
+          title="Leverage Ratios"
+          description="Debt structure"
+          icon={<Scale className="h-5 w-5" />}
+          metrics={[
+            { label: 'Debt to Assets', value: leverage.debtToAssets, format: 'percent' },
+            { label: 'Debt to Equity', value: leverage.debtToEquity, format: 'ratio' },
+            { label: 'Financial D/E', value: leverage.financialDebtToEquity, format: 'ratio' },
+            { label: 'Interest Coverage', value: leverage.interestCoverage, format: 'ratio' },
+            { label: 'Debt Service Coverage', value: leverage.debtServiceCoverage, format: 'ratio' },
+            { label: 'Equity Multiplier', value: leverage.equityMultiplier, format: 'ratio' },
+            { label: 'Debt/EBITDA', value: leverage.debtToEBITDA, format: 'ratio' },
+            { label: 'Net Debt/EBITDA', value: leverage.netDebtToEBITDA, format: 'ratio' },
+            { label: 'Debt to Capital', value: leverage.debtToCapital, format: 'percent' },
+            { label: 'Long Term Debt Ratio', value: leverage.longTermDebtRatio, format: 'percent' },
+            { label: 'Fixed Charge Coverage', value: leverage.fixedChargeCoverage, format: 'ratio' },
+            { label: 'Cash Flow Coverage', value: leverage.cashFlowCoverage, format: 'ratio' },
+            { label: 'Times Interest Earned', value: leverage.timesInterestEarned, format: 'ratio' },
+            { label: 'Capital Gearing', value: leverage.capitalGearing, format: 'ratio' },
+            { label: 'Debt Capacity Util.', value: leverage.debtCapacityUtilization, format: 'percent' },
+          ]}
+        />
+
+        {/* Liquidity Ratios */}
+        <MetricCard
+          title="Liquidity Ratios"
+          description="Short-term health"
+          icon={<Droplets className="h-5 w-5" />}
+          metrics={[
+            { label: 'Current Ratio', value: liquidity.currentRatio, format: 'ratio' },
+            { label: 'Quick Ratio', value: liquidity.quickRatio, format: 'ratio' },
+            { label: 'Cash Ratio', value: liquidity.cashRatio, format: 'ratio' },
+            { label: 'Days Sales Outstanding', value: liquidity.daysSalesOutstanding, format: 'number' },
+            { label: 'Days Inventory', value: liquidity.daysInventoryOutstanding, format: 'number' },
+            { label: 'Days Payables', value: liquidity.daysPayablesOutstanding, format: 'number' },
+            { label: 'Cash Conversion Cycle', value: liquidity.cashConversionCycle, format: 'number' },
+            { label: 'Absolute Liquidity', value: liquidity.absoluteLiquidityRatio, format: 'ratio' },
+            { label: 'Defensive Interval', value: liquidity.defensiveInterval, format: 'number', tooltip: 'Days cash can cover expenses' },
+            { label: 'NWC Ratio', value: liquidity.netWorkingCapitalRatio, format: 'ratio' },
+            { label: 'OCF Ratio', value: liquidity.operatingCashFlowRatio, format: 'ratio' },
+            { label: 'Cash Burn Rate', value: liquidity.cashBurnRate, format: 'number', tooltip: 'Months of cash remaining' },
           ]}
         />
 
@@ -397,25 +521,21 @@ function FinancialsTab({ metrics }: { metrics: AllMetrics }) {
             { label: 'Book Value/Share', value: other.bookValuePerShare, format: 'currency' },
             { label: 'Sales/Share', value: other.salesPerShare, format: 'currency' },
             { label: 'Cash Flow/Share', value: other.cashFlowPerShare, format: 'currency' },
-            { label: 'Altman Z-Score', value: other.altmanZScore, format: 'number', status: getMetricStatus(other.altmanZScore, { good: 3, bad: 1.8 }), tooltip: '>3 = Safe, 1.8-3 = Grey, <1.8 = Distress' },
-            { label: 'Piotroski F-Score', value: other.piotroskiFScore, format: 'score', status: getMetricStatus(other.piotroskiFScore, { good: 7, bad: 3 }), tooltip: '0-9 scale, higher is better' },
-          ]}
-        />
-
-        {/* Growth Metrics Full */}
-        <MetricCard
-          title="Growth Metrics"
-          description="Historical performance"
-          icon={<Sprout className="h-5 w-5" />}
-          metrics={[
-            { label: 'Revenue YoY', value: metrics.growth.revenueGrowthYoY, format: 'percent', status: getMetricStatus(metrics.growth.revenueGrowthYoY, { good: 0.1, bad: -0.05 }) },
-            { label: 'EPS YoY', value: metrics.growth.epsGrowthYoY, format: 'percent', status: getMetricStatus(metrics.growth.epsGrowthYoY, { good: 0.1, bad: -0.1 }) },
-            { label: 'Dividend Growth', value: metrics.growth.dpsGrowth, format: 'percent' },
-            { label: 'FCF Growth', value: metrics.growth.fcfGrowth, format: 'percent' },
-            { label: 'Revenue 3Y CAGR', value: metrics.growth.revenue3YearCAGR, format: 'percent' },
-            { label: 'Revenue 5Y CAGR', value: metrics.growth.revenue5YearCAGR, format: 'percent' },
-            { label: 'Sustainable Growth', value: metrics.growth.sustainableGrowthRate, format: 'percent', tooltip: 'ROE × Retention Ratio' },
-            { label: 'Payout Ratio', value: metrics.growth.payoutRatio, format: 'percent' },
+            { label: 'Altman Z-Score', value: other.altmanZScore, format: 'number', status: getMetricStatus(other.altmanZScore, { good: 3, bad: 1.8 }), tooltip: '>3 = Safe, <1.8 = Distress' },
+            { label: 'Piotroski F-Score', value: other.piotroskiFScore, format: 'score', tooltip: '0-9 scale' },
+            { label: 'Beneish M-Score', value: other.beneishMScore, format: 'number', tooltip: '< -2.22 = Normal' },
+            { label: 'Operating Leverage', value: other.operatingLeverage, format: 'ratio', tooltip: 'DOL' },
+            { label: 'Financial Leverage', value: other.financialLeverage, format: 'ratio', tooltip: 'DFL' },
+            { label: 'Total Leverage', value: other.totalLeverage, format: 'ratio', tooltip: 'DOL × DFL' },
+            { label: 'Tangible BV/Share', value: other.tangibleBookValuePerShare, format: 'currency' },
+            { label: 'Revenue/Employee', value: other.revenuePerEmployee, format: 'currency' },
+            { label: 'Profit/Employee', value: other.profitPerEmployee, format: 'currency' },
+            { label: 'Market Cap/Employee', value: other.marketCapPerEmployee, format: 'currency' },
+            { label: 'EV/Employee', value: other.enterpriseValuePerEmployee, format: 'currency' },
+            { label: 'Tax Burden Ratio', value: other.taxBurdenRatio, format: 'percent' },
+            { label: 'Operating ROI', value: other.operatingRoi, format: 'percent' },
+            { label: 'Invested Capital Turnover', value: other.investedCapitalTurnover, format: 'ratio' },
+            { label: 'Excess ROIC', value: other.excessROIC, format: 'percent', tooltip: 'vs Industry' },
           ]}
         />
       </div>
@@ -428,7 +548,7 @@ function FinancialsTab({ metrics }: { metrics: AllMetrics }) {
 // ============================================================================
 
 function ValuationTab({ metrics }: { metrics: AllMetrics }) {
-  const { valuation, dcf, leverage, liquidity } = metrics;
+  const { valuation, dcf, industry, scores } = metrics;
 
   return (
     <div className="space-y-7">
@@ -465,10 +585,30 @@ function ValuationTab({ metrics }: { metrics: AllMetrics }) {
           ]}
         />
 
+        {/* Extended Valuation */}
+        <MetricCard
+          title="Advanced Valuation"
+          description="Extended value metrics"
+          icon={<Calculator className="h-5 w-5" />}
+          metrics={[
+            { label: 'Price to FCF', value: valuation.priceToFcf, format: 'ratio' },
+            { label: 'EV to FCF', value: valuation.evToFcf, format: 'ratio' },
+            { label: 'EV to OCF', value: valuation.evToOcf, format: 'ratio' },
+            { label: 'EV/Invested Capital', value: valuation.evToInvestedCapital, format: 'ratio' },
+            { label: 'Price/Tangible Book', value: valuation.priceToTangibleBook, format: 'ratio' },
+            { label: 'EV Per Share', value: valuation.enterpriseValuePerShare, format: 'currency' },
+            { label: "Tobin's Q", value: valuation.tobin_Q, format: 'ratio', tooltip: 'Market Value / Replacement Cost' },
+            { label: 'Graham Number', value: valuation.grahamNumber, format: 'currency', tooltip: '√(22.5 × EPS × BVPS)' },
+            { label: 'NCAV', value: valuation.netCurrentAssetValue, format: 'currency', tooltip: 'Net Current Asset Value' },
+            { label: 'Liquidation Value', value: valuation.liquidationValue, format: 'currency' },
+            { label: 'Market Cap/GDP', value: valuation.marketCapToGdp, format: 'percent', tooltip: 'Buffett Indicator' },
+          ]}
+        />
+
         {/* DCF Valuation */}
         <MetricCard
           title="DCF Valuation"
-          description="Intrinsic value"
+          description="Cost of capital"
           icon={<Target className="h-5 w-5" />}
           metrics={[
             { label: 'Risk-Free Rate', value: dcf.riskFreeRate, format: 'percent' },
@@ -478,41 +618,71 @@ function ValuationTab({ metrics }: { metrics: AllMetrics }) {
             { label: 'Cost of Debt', value: dcf.costOfDebt, format: 'percent' },
             { label: 'WACC', value: dcf.wacc, format: 'percent', tooltip: 'Weighted Average Cost of Capital' },
             { label: 'Terminal Value', value: dcf.terminalValue, format: 'currency' },
-            { label: 'Intrinsic Value', value: dcf.intrinsicValue, format: 'currency', status: getMetricStatus(dcf.upsideDownside, { good: 0.1, bad: -0.1 }) },
+            { label: 'Intrinsic Value', value: dcf.intrinsicValue, format: 'currency' },
             { label: 'Target Price', value: dcf.targetPrice, format: 'currency' },
             { label: 'Upside/Downside', value: dcf.upsideDownside, format: 'percent', status: getMetricStatus(dcf.upsideDownside, { good: 0.1, bad: -0.1 }) },
           ]}
         />
 
-        {/* Leverage Full */}
+        {/* Extended DCF */}
         <MetricCard
-          title="Leverage Ratios"
-          description="Debt analysis"
-          icon={<Scale className="h-5 w-5" />}
+          title="DCF Analysis"
+          description="Intrinsic value details"
+          icon={<Target className="h-5 w-5" />}
           metrics={[
-            { label: 'Debt to Assets', value: leverage.debtToAssets, format: 'percent', status: getMetricStatus(leverage.debtToAssets, { good: 0.3, bad: 0.6 }, true) },
-            { label: 'Debt to Equity', value: leverage.debtToEquity, format: 'ratio', status: getMetricStatus(leverage.debtToEquity, { good: 0.5, bad: 2 }, true) },
-            { label: 'Financial D/E', value: leverage.financialDebtToEquity, format: 'ratio' },
-            { label: 'Interest Coverage', value: leverage.interestCoverage, format: 'ratio', status: getMetricStatus(leverage.interestCoverage, { good: 5, bad: 1.5 }) },
-            { label: 'Debt Service Coverage', value: leverage.debtServiceCoverage, format: 'ratio' },
-            { label: 'Equity Multiplier', value: leverage.equityMultiplier, format: 'ratio' },
-            { label: 'Debt/EBITDA', value: leverage.debtToEBITDA, format: 'ratio', status: getMetricStatus(leverage.debtToEBITDA, { good: 2, bad: 5 }, true) },
+            { label: 'PV of FCF', value: dcf.pvOfFcf, format: 'currency' },
+            { label: 'PV of Terminal Value', value: dcf.pvOfTerminalValue, format: 'currency' },
+            { label: 'Equity Value/Share', value: dcf.equityValuePerShare, format: 'currency' },
+            { label: 'Margin of Safety', value: dcf.marginOfSafety, format: 'percent', status: getMetricStatus(dcf.marginOfSafety, { good: 0.2, bad: -0.1 }) },
+            { label: 'Implied Growth', value: dcf.impliedGrowthRate, format: 'percent', tooltip: 'Growth implied by current price' },
+            { label: 'Reverse DCF Growth', value: dcf.reverseDcfGrowth, format: 'percent' },
+            { label: 'Exit Multiple', value: dcf.exitMultiple, format: 'ratio' },
+            { label: 'Perpetuity Growth', value: dcf.perpetuityGrowthRate, format: 'percent' },
           ]}
         />
 
-        {/* Liquidity Full */}
+        {/* Industry Metrics */}
         <MetricCard
-          title="Liquidity Ratios"
-          description="Short-term health"
-          icon={<Droplets className="h-5 w-5" />}
+          title="Industry Analysis"
+          description="Sector positioning"
+          icon={<BarChart3 className="h-5 w-5" />}
           metrics={[
-            { label: 'Current Ratio', value: liquidity.currentRatio, format: 'ratio', status: getMetricStatus(liquidity.currentRatio, { good: 2, bad: 1 }) },
-            { label: 'Quick Ratio', value: liquidity.quickRatio, format: 'ratio', status: getMetricStatus(liquidity.quickRatio, { good: 1, bad: 0.5 }) },
-            { label: 'Cash Ratio', value: liquidity.cashRatio, format: 'ratio', status: getMetricStatus(liquidity.cashRatio, { good: 0.5, bad: 0.2 }) },
-            { label: 'Days Sales Outstanding', value: liquidity.daysSalesOutstanding, format: 'number' },
-            { label: 'Days Inventory', value: liquidity.daysInventoryOutstanding, format: 'number' },
-            { label: 'Days Payables', value: liquidity.daysPayablesOutstanding, format: 'number' },
-            { label: 'Cash Conversion Cycle', value: liquidity.cashConversionCycle, format: 'number', status: getMetricStatus(liquidity.cashConversionCycle, { good: 30, bad: 90 }, true) },
+            { label: 'Industry Growth', value: industry.industryGrowthRate, format: 'percent' },
+            { label: 'Market Size', value: industry.marketSize, format: 'currency' },
+            { label: 'Market Share', value: industry.marketShare, format: 'percent' },
+            { label: 'HHI Index', value: industry.hhiIndex, format: 'number', tooltip: 'Market concentration (0-10000)' },
+            { label: 'CR4', value: industry.cr4, format: 'percent', tooltip: 'Top 4 firms concentration' },
+            { label: 'CR8', value: industry.cr8, format: 'percent', tooltip: 'Top 8 firms concentration' },
+            { label: 'Industry PE', value: industry.industryPE, format: 'ratio' },
+            { label: 'Industry PB', value: industry.industryPB, format: 'ratio' },
+            { label: 'Industry ROE', value: industry.industryROE, format: 'percent' },
+            { label: 'Industry ROIC', value: industry.industryROIC, format: 'percent' },
+            { label: 'Industry Gross Margin', value: industry.industryGrossMargin, format: 'percent' },
+            { label: 'Industry Beta', value: industry.industryBeta, format: 'number' },
+            { label: 'Relative Valuation', value: industry.relativeValuation, format: 'ratio', tooltip: 'vs Industry avg' },
+            { label: 'Sector Rotation', value: industry.sectorRotationScore, format: 'score' },
+            { label: 'Competitive Position', value: industry.competitivePosition, format: 'score' },
+          ]}
+        />
+
+        {/* Scores */}
+        <MetricCard
+          title="Composite Scores"
+          description="Quality ratings (0-100)"
+          icon={<Sparkles className="h-5 w-5" />}
+          metrics={[
+            { label: 'Total Score', value: scores.totalScore, format: 'score' },
+            { label: 'Profitability', value: scores.profitabilityScore, format: 'score' },
+            { label: 'Growth', value: scores.growthScore, format: 'score' },
+            { label: 'Valuation', value: scores.valuationScore, format: 'score' },
+            { label: 'Risk', value: scores.riskScore, format: 'score' },
+            { label: 'Health', value: scores.healthScore, format: 'score' },
+            { label: 'Momentum', value: scores.momentumScore, format: 'score' },
+            { label: 'Quality', value: scores.qualityScore, format: 'score' },
+            { label: 'Stability', value: scores.stabilityScore, format: 'score' },
+            { label: 'Efficiency', value: scores.efficiencyScore, format: 'score' },
+            { label: 'Solvency', value: scores.solvencyScore, format: 'score' },
+            { label: 'Technical', value: scores.technicalScore, format: 'score' },
           ]}
         />
       </div>
@@ -540,6 +710,10 @@ function EconomyTab({ metrics }: { metrics: AllMetrics }) {
             { label: 'Real GDP', value: macro.realGDP ? macro.realGDP * 1e9 : null, format: 'currency', tooltip: 'Inflation-adjusted GDP' },
             { label: 'Nominal GDP', value: macro.nominalGDP ? macro.nominalGDP * 1e9 : null, format: 'currency' },
             { label: 'GDP Per Capita', value: macro.gdpPerCapita, format: 'currency' },
+            { label: 'Real GDP Growth', value: macro.realGDPGrowthRate, format: 'percent' },
+            { label: 'Potential GDP', value: macro.potentialGDP ? macro.potentialGDP * 1e9 : null, format: 'currency' },
+            { label: 'Output Gap', value: macro.outputGap, format: 'percent', tooltip: '(Real - Potential) / Potential' },
+            { label: 'GDP Deflator', value: macro.gdpDeflator, format: 'number' },
           ]}
         />
 
@@ -552,34 +726,100 @@ function EconomyTab({ metrics }: { metrics: AllMetrics }) {
             { label: 'CPI', value: macro.cpi, format: 'number', tooltip: 'Consumer Price Index' },
             { label: 'PPI', value: macro.ppi, format: 'number', tooltip: 'Producer Price Index' },
             { label: 'Core Inflation', value: macro.coreInflation, format: 'number', tooltip: 'Excluding food & energy' },
+            { label: 'Inflation Rate', value: macro.inflationRate, format: 'percent' },
+            { label: 'PCE Inflation', value: macro.pceInflation, format: 'number' },
+            { label: 'Core Inflation Rate', value: macro.coreInflationRate, format: 'percent' },
+            { label: 'Breakeven 5Y', value: macro.breakEvenInflation5Y, format: 'percent', tooltip: '5-Year Breakeven Inflation' },
+            { label: 'Breakeven 10Y', value: macro.breakEvenInflation10Y, format: 'percent', tooltip: '10-Year Breakeven Inflation' },
+            { label: 'Inflation Expectations', value: macro.inflationExpectations, format: 'percent' },
           ]}
         />
 
-        {/* Interest Rates */}
+        {/* Interest Rates Full */}
         <MetricCard
           title="Interest Rates"
           description="Monetary policy"
           icon={<DollarSign className="h-5 w-5" />}
           metrics={[
             { label: 'Fed Funds Rate', value: macro.federalFundsRate, format: 'percent', status: getMetricStatus(macro.federalFundsRate, { good: 2, bad: 5 }, true) },
+            { label: '3M Treasury', value: macro.treasury3M, format: 'percent' },
+            { label: '2Y Treasury', value: macro.treasury2Y, format: 'percent' },
             { label: '10Y Treasury', value: macro.treasury10Y, format: 'percent' },
-            { label: 'USD Index', value: macro.usdIndex, format: 'number', tooltip: 'Trade-weighted dollar index' },
+            { label: '30Y Treasury', value: macro.treasury30Y, format: 'percent' },
+            { label: 'Prime Rate', value: macro.primeRate, format: 'percent' },
+            { label: 'Interbank Rate', value: macro.interbankRate, format: 'percent' },
+            { label: 'Real Interest Rate', value: macro.realInterestRate, format: 'percent', tooltip: 'Nominal - Inflation' },
+            { label: 'Neutral Rate', value: macro.neutralRate, format: 'percent' },
+            { label: 'Yield Curve Spread', value: macro.yieldCurveSpread, format: 'percent', tooltip: '10Y - 2Y Spread' },
+            { label: 'Yield Curve Slope', value: macro.yieldCurveSlope, format: 'percent' },
+            { label: 'Term Premium', value: macro.termPremium, format: 'percent' },
+            { label: 'Fisher Equation', value: macro.fisherEquation, format: 'percent' },
+            { label: 'Risk-Free Rate', value: macro.nominalRiskFreeRate, format: 'percent' },
           ]}
         />
 
-        {/* Labor Market */}
+        {/* Monetary */}
+        <MetricCard
+          title="Monetary Metrics"
+          description="Money supply"
+          icon={<Banknote className="h-5 w-5" />}
+          metrics={[
+            { label: 'M1 Money Supply', value: macro.m1MoneySupply ? macro.m1MoneySupply * 1e9 : null, format: 'currency' },
+            { label: 'M2 Money Supply', value: macro.m2MoneySupply ? macro.m2MoneySupply * 1e9 : null, format: 'currency' },
+            { label: 'M2 Velocity', value: macro.m2Velocity, format: 'number', tooltip: 'GDP / M2' },
+            { label: 'Money Multiplier', value: macro.moneyMultiplier, format: 'ratio' },
+            { label: 'Monetary Base', value: macro.monetaryBase ? macro.monetaryBase * 1e9 : null, format: 'currency' },
+            { label: 'Excess Reserves', value: macro.excessReserves ? macro.excessReserves * 1e9 : null, format: 'currency' },
+            { label: 'QTM', value: macro.quantityTheoryOfMoney, format: 'number', tooltip: 'M × V = P × Y' },
+            { label: 'Money Growth', value: macro.moneyGrowthRate, format: 'percent' },
+          ]}
+        />
+
+        {/* FX Rates */}
+        <MetricCard
+          title="Exchange Rates"
+          description="Currency markets"
+          icon={<Globe className="h-5 w-5" />}
+          metrics={[
+            { label: 'USD Index', value: macro.usdIndex, format: 'number', tooltip: 'Trade-weighted dollar index' },
+            { label: 'EUR/USD', value: macro.eurUsd, format: 'number' },
+            { label: 'USD/JPY', value: macro.usdJpy, format: 'number' },
+            { label: 'GBP/USD', value: macro.gbpUsd, format: 'number' },
+          ]}
+        />
+
+        {/* Labor Market Full */}
         <MetricCard
           title="Labor Market"
           description="Employment indicators"
           icon={<Activity className="h-5 w-5" />}
           metrics={[
             { label: 'Unemployment Rate', value: macro.unemploymentRate, format: 'percent', status: getMetricStatus(macro.unemploymentRate, { good: 4, bad: 7 }, true) },
-            { label: 'Wage Growth', value: macro.wageGrowth, format: 'currency', tooltip: 'Average hourly earnings' },
-            { label: 'Labor Productivity', value: macro.laborProductivity, format: 'number' },
+            { label: 'Labor Force Part.', value: macro.laborForceParticipation, format: 'percent' },
+            { label: 'Employment-Pop Ratio', value: macro.employmentPopulationRatio, format: 'percent' },
+            { label: 'Initial Claims', value: macro.initialClaims, format: 'number', tooltip: 'Weekly jobless claims' },
+            { label: 'Continuing Claims', value: macro.continuingClaims, format: 'number' },
+            { label: 'Nonfarm Payrolls', value: macro.nonFarmPayrolls, format: 'number' },
+            { label: 'Underemployment', value: macro.underemploymentRate, format: 'percent' },
+            { label: 'Natural Unemployment', value: macro.naturalUnemploymentRate, format: 'percent' },
           ]}
         />
 
-        {/* Sentiment */}
+        {/* Wages & Productivity */}
+        <MetricCard
+          title="Wages & Productivity"
+          description="Labor efficiency"
+          icon={<Zap className="h-5 w-5" />}
+          metrics={[
+            { label: 'Wage Growth', value: macro.wageGrowth, format: 'currency', tooltip: 'Average hourly earnings' },
+            { label: 'Labor Productivity', value: macro.laborProductivity, format: 'number' },
+            { label: 'Unit Labor Costs', value: macro.unitLaborCosts, format: 'number' },
+            { label: 'Real Wage Growth', value: macro.realWageGrowth, format: 'percent' },
+            { label: 'Productivity Growth', value: macro.productivityGrowthRate, format: 'percent' },
+          ]}
+        />
+
+        {/* Sentiment Full */}
         <MetricCard
           title="Economic Sentiment"
           description="Confidence indicators"
@@ -587,6 +827,64 @@ function EconomyTab({ metrics }: { metrics: AllMetrics }) {
           metrics={[
             { label: 'Consumer Confidence', value: macro.consumerConfidence, format: 'number', status: getMetricStatus(macro.consumerConfidence, { good: 80, bad: 60 }) },
             { label: 'Business Confidence', value: macro.businessConfidence, format: 'number', status: getMetricStatus(macro.businessConfidence, { good: 100, bad: 95 }) },
+            { label: 'NFIB Optimism', value: macro.nfibOptimism, format: 'number' },
+            { label: 'CEO Confidence', value: macro.ceoConfidence, format: 'number' },
+          ]}
+        />
+
+        {/* Housing */}
+        <MetricCard
+          title="Housing Market"
+          description="Real estate indicators"
+          icon={<LayoutGrid className="h-5 w-5" />}
+          metrics={[
+            { label: 'Housing Starts', value: macro.housingStarts, format: 'number', tooltip: 'Thousands of units' },
+            { label: 'Building Permits', value: macro.buildingPermits, format: 'number' },
+            { label: 'Existing Home Sales', value: macro.existingHomeSales, format: 'number' },
+            { label: 'Case-Shiller Index', value: macro.caseShillerIndex, format: 'number', tooltip: 'Home price index' },
+          ]}
+        />
+
+        {/* Manufacturing & Trade */}
+        <MetricCard
+          title="Manufacturing & Trade"
+          description="Business activity"
+          icon={<BarChart3 className="h-5 w-5" />}
+          metrics={[
+            { label: 'ISM PMI', value: macro.ism_pmi, format: 'number', status: getMetricStatus(macro.ism_pmi, { good: 55, bad: 45 }), tooltip: '>50 = Expansion' },
+            { label: 'ISM Services', value: macro.ism_services, format: 'number' },
+            { label: 'Industrial Production', value: macro.industrialProduction, format: 'number' },
+            { label: 'Capacity Utilization', value: macro.capacityUtilization, format: 'percent' },
+            { label: 'Retail Sales', value: macro.retailSales ? macro.retailSales * 1e6 : null, format: 'currency' },
+            { label: 'Trade Balance', value: macro.tradeBalance ? macro.tradeBalance * 1e9 : null, format: 'currency' },
+          ]}
+        />
+
+        {/* Financial Conditions */}
+        <MetricCard
+          title="Financial Conditions"
+          description="Market stress"
+          icon={<Shield className="h-5 w-5" />}
+          metrics={[
+            { label: 'Credit Spread', value: macro.creditSpread, format: 'percent', tooltip: 'Baa-Treasury spread' },
+            { label: 'TED Spread', value: macro.tedSpread, format: 'percent' },
+            { label: 'VIX', value: macro.vix, format: 'number', status: getMetricStatus(macro.vix, { good: 15, bad: 30 }, true) },
+            { label: 'Financial Stress', value: macro.financialStressIndex, format: 'number', tooltip: 'St. Louis Fed FSI' },
+            { label: 'Chicago Fed Index', value: macro.chicagoFedIndex, format: 'number', tooltip: 'NFCI' },
+            { label: 'Fin. Conditions Index', value: macro.financialConditionsIndex, format: 'number' },
+          ]}
+        />
+
+        {/* Fiscal */}
+        <MetricCard
+          title="Fiscal Indicators"
+          description="Government finances"
+          icon={<Scale className="h-5 w-5" />}
+          metrics={[
+            { label: 'Federal Debt', value: macro.federalDebt ? macro.federalDebt * 1e9 : null, format: 'currency' },
+            { label: 'Debt to GDP', value: macro.debtToGDP, format: 'percent' },
+            { label: 'Budget Deficit', value: macro.budgetDeficit ? macro.budgetDeficit * 1e9 : null, format: 'currency' },
+            { label: 'Fiscal Impulse', value: macro.fiscalImpulse, format: 'percent' },
           ]}
         />
 
@@ -613,23 +911,45 @@ function EconomyTab({ metrics }: { metrics: AllMetrics }) {
 // ============================================================================
 
 function TechnicalTab({ metrics }: { metrics: AllMetrics }) {
-  const { technical, risk } = metrics;
+  const { technical } = metrics;
 
   return (
     <div className="space-y-7">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {/* Technical Indicators */}
         <MetricCard
-          title="Technical Indicators"
+          title="Momentum Indicators"
           description="Price momentum"
           icon={<Activity className="h-5 w-5" />}
           metrics={[
             { label: 'RSI (14)', value: technical.rsi, format: 'number', status: technical.rsi ? (technical.rsi > 70 ? 'negative' : technical.rsi < 30 ? 'positive' : 'neutral') : 'neutral', tooltip: '>70 = Overbought, <30 = Oversold' },
             { label: 'MACD', value: technical.macd, format: 'number' },
             { label: 'MACD Signal', value: technical.macdSignal, format: 'number' },
+            { label: 'MACD Histogram', value: technical.macdHistogram, format: 'number' },
+            { label: 'Stochastic %K', value: technical.stochastic_K, format: 'number' },
+            { label: 'Stochastic %D', value: technical.stochastic_D, format: 'number' },
+            { label: 'Williams %R', value: technical.williamsR, format: 'number' },
+            { label: 'CCI', value: technical.cci, format: 'number', tooltip: 'Commodity Channel Index' },
+            { label: 'MFI', value: technical.mfi, format: 'number', tooltip: 'Money Flow Index' },
+            { label: 'Relative Volume', value: technical.relativeVolume, format: 'ratio' },
+          ]}
+        />
+
+        {/* Moving Averages */}
+        <MetricCard
+          title="Moving Averages"
+          description="Price trends"
+          icon={<TrendingUp className="h-5 w-5" />}
+          metrics={[
+            { label: 'SMA 10', value: technical.sma10, format: 'currency' },
+            { label: 'SMA 20', value: technical.sma20, format: 'currency' },
             { label: '50 Day MA', value: technical.fiftyDayMA, format: 'currency' },
+            { label: 'SMA 100', value: technical.sma100, format: 'currency' },
             { label: '200 Day MA', value: technical.twoHundredDayMA, format: 'currency' },
-            { label: 'Relative Volume', value: technical.relativeVolume, format: 'ratio', tooltip: 'Current volume vs average' },
+            { label: 'EMA 12', value: technical.ema12, format: 'currency' },
+            { label: 'EMA 26', value: technical.ema26, format: 'currency' },
+            { label: 'Price/SMA50', value: technical.priceToSMA50, format: 'percent' },
+            { label: 'Price/SMA200', value: technical.priceToSMA200, format: 'percent' },
           ]}
         />
 
@@ -640,24 +960,907 @@ function TechnicalTab({ metrics }: { metrics: AllMetrics }) {
           icon={<BarChart3 className="h-5 w-5" />}
           metrics={[
             { label: 'Upper Band', value: technical.bollingerUpper, format: 'currency' },
+            { label: 'Middle Band', value: technical.bollingerMiddle, format: 'currency' },
             { label: 'Lower Band', value: technical.bollingerLower, format: 'currency' },
-            { label: 'Band Width', value: technical.bollingerUpper && technical.bollingerLower ? technical.bollingerUpper - technical.bollingerLower : null, format: 'currency' },
+            { label: 'Band Width', value: technical.bollingerWidth, format: 'percent' },
           ]}
         />
 
-        {/* Risk Metrics */}
+        {/* Volatility */}
+        <MetricCard
+          title="Volatility"
+          description="Price volatility"
+          icon={<Activity className="h-5 w-5" />}
+          metrics={[
+            { label: 'ATR', value: technical.atr, format: 'currency', tooltip: 'Average True Range' },
+            { label: 'ATR %', value: technical.atrPercent, format: 'percent' },
+          ]}
+        />
+
+        {/* Trend */}
+        <MetricCard
+          title="Trend Analysis"
+          description="Directional indicators"
+          icon={<TrendingUp className="h-5 w-5" />}
+          metrics={[
+            { label: 'ADX', value: technical.adx, format: 'number', tooltip: 'Average Directional Index' },
+            { label: '+DI', value: technical.plusDI, format: 'number' },
+            { label: '-DI', value: technical.minusDI, format: 'number' },
+            { label: 'Trend Strength', value: technical.trendStrength, format: 'number' },
+            { label: 'Support Level', value: technical.supportLevel, format: 'currency' },
+            { label: 'Resistance Level', value: technical.resistanceLevel, format: 'currency' },
+          ]}
+        />
+
+        {/* Volume */}
+        <MetricCard
+          title="Volume Analysis"
+          description="Volume indicators"
+          icon={<BarChart3 className="h-5 w-5" />}
+          metrics={[
+            { label: 'OBV', value: technical.obv, format: 'number', tooltip: 'On-Balance Volume' },
+            { label: 'OBV Trend', value: technical.obvTrend, format: 'number' },
+            { label: 'VWAP', value: technical.vwap, format: 'currency', tooltip: 'Volume Weighted Average Price' },
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// RISK TAB
+// ============================================================================
+
+function RiskTab({ metrics }: { metrics: AllMetrics }) {
+  const { risk, leverage, liquidity, credit, scores } = metrics;
+
+  return (
+    <div className="space-y-7">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Core Risk Metrics */}
         <MetricCard
           title="Risk Metrics"
-          description="Volatility analysis"
+          description="Market risk measures"
           icon={<Shield className="h-5 w-5" />}
           metrics={[
-            { label: 'Beta', value: risk.beta, format: 'number', status: risk.beta ? (Math.abs(risk.beta) > 1.5 ? 'negative' : 'positive') : 'neutral', tooltip: '>1 = More volatile than market' },
+            { label: 'Beta', value: risk.beta, format: 'number' },
+            { label: 'Alpha', value: risk.alpha, format: 'percent' },
+            { label: 'Sharpe Ratio', value: risk.sharpeRatio, format: 'ratio' },
+            { label: 'Sortino Ratio', value: risk.sortinoRatio, format: 'ratio' },
             { label: 'Std Deviation', value: risk.standardDeviation, format: 'percent' },
-            { label: 'Alpha', value: risk.alpha, format: 'percent', status: getMetricStatus(risk.alpha, { good: 0.05, bad: -0.05 }), tooltip: 'Excess return vs benchmark' },
-            { label: 'Sharpe Ratio', value: risk.sharpeRatio, format: 'number', status: getMetricStatus(risk.sharpeRatio, { good: 1, bad: 0 }), tooltip: 'Risk-adjusted return' },
-            { label: 'Sortino Ratio', value: risk.sortinoRatio, format: 'number', status: getMetricStatus(risk.sortinoRatio, { good: 1.5, bad: 0 }) },
-            { label: 'Max Drawdown', value: risk.maxDrawdown, format: 'percent', status: getMetricStatus(risk.maxDrawdown, { good: -0.1, bad: -0.3 }) },
-            { label: 'VaR (95%)', value: risk.var95, format: 'percent', tooltip: 'Maximum expected loss at 95% confidence' },
+            { label: 'Max Drawdown', value: risk.maxDrawdown, format: 'percent' },
+            { label: 'VaR 95%', value: risk.var95, format: 'percent', tooltip: 'Value at Risk (95% confidence)' },
+            { label: 'VaR 99%', value: risk.var99, format: 'percent', tooltip: 'Value at Risk (99% confidence)' },
+          ]}
+        />
+
+        {/* Advanced Risk */}
+        <MetricCard
+          title="Advanced Risk"
+          description="Extended risk measures"
+          icon={<Shield className="h-5 w-5" />}
+          metrics={[
+            { label: 'CVaR 95%', value: risk.cvar95, format: 'percent', tooltip: 'Conditional VaR (Expected Shortfall)' },
+            { label: 'CVaR 99%', value: risk.cvar99, format: 'percent' },
+            { label: 'Treynor Ratio', value: risk.treynorRatio, format: 'ratio' },
+            { label: "Jensen's Alpha", value: risk.jensensAlpha, format: 'percent' },
+            { label: 'Modigliani M²', value: risk.modigliani_M2, format: 'percent' },
+            { label: 'Omega Ratio', value: risk.omegaRatio, format: 'ratio' },
+            { label: 'Calmar Ratio', value: risk.calmarRatio, format: 'ratio' },
+            { label: 'Ulcer Index', value: risk.ulcerIndex, format: 'number' },
+            { label: 'Tail Ratio', value: risk.tailRatio, format: 'ratio' },
+            { label: 'Pain Index', value: risk.painIndex, format: 'percent' },
+          ]}
+        />
+
+        {/* Capture Ratios */}
+        <MetricCard
+          title="Capture Ratios"
+          description="Market performance"
+          icon={<TrendingUp className="h-5 w-5" />}
+          metrics={[
+            { label: 'Tracking Error', value: risk.trackingError, format: 'percent' },
+            { label: 'Info Ratio', value: risk.informationRatio, format: 'ratio' },
+            { label: 'Upside Capture', value: risk.upsideCapture, format: 'percent', tooltip: 'Performance in up markets' },
+            { label: 'Downside Capture', value: risk.downsideCapture, format: 'percent', tooltip: 'Performance in down markets' },
+          ]}
+        />
+
+        {/* Leverage Risk */}
+        <MetricCard
+          title="Leverage Risk"
+          description="Debt structure"
+          icon={<Scale className="h-5 w-5" />}
+          metrics={[
+            { label: 'Net Debt/EBITDA', value: leverage.netDebtToEBITDA, format: 'ratio', status: getMetricStatus(leverage.netDebtToEBITDA, { good: 2, bad: 4 }, true) },
+            { label: 'Debt to Capital', value: leverage.debtToCapital, format: 'percent' },
+            { label: 'Long Term Debt Ratio', value: leverage.longTermDebtRatio, format: 'percent' },
+            { label: 'Fixed Charge Coverage', value: leverage.fixedChargeCoverage, format: 'ratio', status: getMetricStatus(leverage.fixedChargeCoverage, { good: 2.5, bad: 1 }) },
+            { label: 'Cash Flow Coverage', value: leverage.cashFlowCoverage, format: 'ratio' },
+            { label: 'Times Interest Earned', value: leverage.timesInterestEarned, format: 'ratio' },
+            { label: 'Capital Gearing', value: leverage.capitalGearing, format: 'ratio' },
+            { label: 'Debt Capacity Util.', value: leverage.debtCapacityUtilization, format: 'percent' },
+          ]}
+        />
+
+        {/* Liquidity Risk */}
+        <MetricCard
+          title="Liquidity Risk"
+          description="Short-term solvency"
+          icon={<Droplets className="h-5 w-5" />}
+          metrics={[
+            { label: 'Absolute Liquidity', value: liquidity.absoluteLiquidityRatio, format: 'ratio', tooltip: 'Cash / Current Liabilities' },
+            { label: 'Defensive Interval', value: liquidity.defensiveInterval, format: 'number', tooltip: 'Days to cover expenses' },
+            { label: 'NWC Ratio', value: liquidity.netWorkingCapitalRatio, format: 'ratio' },
+            { label: 'OCF Ratio', value: liquidity.operatingCashFlowRatio, format: 'ratio' },
+            { label: 'Cash Burn Rate', value: liquidity.cashBurnRate, format: 'number', tooltip: 'Months of cash remaining' },
+          ]}
+        />
+
+        {/* Credit Risk */}
+        {credit && (
+          <MetricCard
+            title="Credit Risk"
+            description="Default probability"
+            icon={<CreditCard className="h-5 w-5" />}
+            metrics={[
+              { label: 'Prob. of Default', value: credit.probabilityOfDefault, format: 'percent', tooltip: 'Expected default probability' },
+              { label: 'Loss Given Default', value: credit.lossGivenDefault, format: 'percent' },
+              { label: 'Expected Loss', value: credit.expectedLoss, format: 'percent' },
+              { label: 'Distance to Default', value: credit.distanceToDefault, format: 'number', tooltip: 'Merton model metric' },
+              { label: 'Recovery Rate', value: credit.recoveryRate, format: 'percent' },
+            ]}
+          />
+        )}
+
+        {/* Risk Scores */}
+        <MetricCard
+          title="Risk Scores"
+          description="Composite ratings"
+          icon={<Sparkles className="h-5 w-5" />}
+          metrics={[
+            { label: 'Risk Score', value: scores.riskScore, format: 'score' },
+            { label: 'Stability Score', value: scores.stabilityScore, format: 'score' },
+            { label: 'Solvency Score', value: scores.solvencyScore, format: 'score' },
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// TRADE & FX TAB
+// ============================================================================
+
+function TradeFXTab({ metrics }: { metrics: AllMetrics }) {
+  const { tradeFx } = metrics;
+
+  if (!tradeFx) {
+    return (
+      <div className="text-center py-10 text-gray-500">
+        Trade & FX data not available
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-7">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Trade & FX Core */}
+        <MetricCard
+          title="Trade & FX"
+          description="Currency & trade"
+          icon={<Globe className="h-5 w-5" />}
+          metrics={[
+            { label: 'Terms of Trade', value: tradeFx.termsOfTrade, format: 'ratio' },
+            { label: 'Trade Balance', value: tradeFx.tradeBalance, format: 'currency' },
+            { label: 'Current Account', value: tradeFx.currentAccount, format: 'currency' },
+            { label: 'Spot FX Rate', value: tradeFx.spotRate, format: 'number' },
+            { label: 'Forward Rate 1M', value: tradeFx.forwardRate1M, format: 'number' },
+            { label: 'Forward Rate 3M', value: tradeFx.forwardRate3M, format: 'number' },
+            { label: 'CIP', value: tradeFx.coveredInterestParity, format: 'ratio', tooltip: 'Covered Interest Parity' },
+            { label: 'UIP', value: tradeFx.uncoveredInterestParity, format: 'ratio', tooltip: 'Uncovered Interest Parity' },
+            { label: 'Real Exchange Rate', value: tradeFx.realExchangeRate, format: 'number' },
+            { label: 'PPP Deviation', value: tradeFx.pppDeviation, format: 'percent', tooltip: 'Purchasing Power Parity Deviation' },
+          ]}
+        />
+
+        {/* Trade & FX Extended */}
+        <MetricCard
+          title="Trade & FX Extended"
+          description="Advanced FX metrics"
+          icon={<Globe className="h-5 w-5" />}
+          metrics={[
+            { label: 'Capital Account', value: tradeFx.capitalAccount, format: 'currency' },
+            { label: 'Net Exports', value: tradeFx.netExports, format: 'currency' },
+            { label: 'S-I Gap', value: tradeFx.savingInvestmentGap, format: 'currency', tooltip: 'Saving-Investment Gap' },
+            { label: 'Export Growth', value: tradeFx.exportGrowthRate, format: 'percent' },
+            { label: 'Import Growth', value: tradeFx.importGrowthRate, format: 'percent' },
+            { label: 'Spot Bid', value: tradeFx.spotRateBid, format: 'number' },
+            { label: 'Spot Ask', value: tradeFx.spotRateAsk, format: 'number' },
+            { label: 'Spot Spread', value: tradeFx.spotRateSpread, format: 'number' },
+            { label: 'Spot Midpoint', value: tradeFx.spotRateMidpoint, format: 'number' },
+            { label: 'Forward 6M', value: tradeFx.forwardRate6M, format: 'number' },
+          ]}
+        />
+
+        {/* FX Volatility & Arb */}
+        <MetricCard
+          title="FX Volatility & Arb"
+          description="Trading opportunities"
+          icon={<TrendingUp className="h-5 w-5" />}
+          metrics={[
+            { label: 'Forward 1Y', value: tradeFx.forwardRate1Y, format: 'number' },
+            { label: 'Fwd Points 1M', value: tradeFx.forwardPoints1M, format: 'number' },
+            { label: 'Fwd Points 3M', value: tradeFx.forwardPoints3M, format: 'number' },
+            { label: 'Cross Rate', value: tradeFx.crossRate, format: 'number' },
+            { label: 'Triangular Arb', value: tradeFx.triangularArbitrage, format: 'number', tooltip: 'Arbitrage Opportunity' },
+            { label: 'Fwd Premium/Disc', value: tradeFx.forwardPremiumDiscount, format: 'percent' },
+            { label: 'Carry Trade Return', value: tradeFx.carryTradeReturn, format: 'percent' },
+            { label: 'Interest Diff', value: tradeFx.interestRateDifferential, format: 'percent' },
+            { label: 'PPP Rate', value: tradeFx.purchasingPowerParity, format: 'number' },
+            { label: 'REER', value: tradeFx.realEffectiveExchangeRate, format: 'number', tooltip: 'Real Effective Exchange Rate' },
+          ]}
+        />
+
+        {/* FX Options & Vol */}
+        <MetricCard
+          title="FX Options & Vol"
+          description="Volatility metrics"
+          icon={<Activity className="h-5 w-5" />}
+          metrics={[
+            { label: 'Implied Vol 1M', value: tradeFx.impliedVolatility1M, format: 'percent' },
+            { label: 'Implied Vol 3M', value: tradeFx.impliedVolatility3M, format: 'percent' },
+            { label: 'Historical Vol', value: tradeFx.historicalVolatility, format: 'percent' },
+            { label: 'Risk Reversal 25D', value: tradeFx.riskReversal25D, format: 'percent' },
+            { label: 'Butterfly 25D', value: tradeFx.butterflySpread25D, format: 'percent' },
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// FIXED INCOME TAB
+// ============================================================================
+
+function FixedIncomeTab({ metrics }: { metrics: AllMetrics }) {
+  const { bonds, credit } = metrics;
+
+  if (!bonds && !credit) {
+    return (
+      <div className="text-center py-10 text-gray-500">
+        Fixed Income data not available
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-7">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Bond Yields */}
+        {bonds && (
+          <>
+            <MetricCard
+              title="Bond Yields"
+              description="Yield metrics"
+              icon={<Banknote className="h-5 w-5" />}
+              metrics={[
+                { label: 'Coupon Rate', value: bonds.couponRate, format: 'percent' },
+                { label: 'Current Yield', value: bonds.currentYield, format: 'percent' },
+                { label: 'YTM', value: bonds.yieldToMaturity, format: 'percent', tooltip: 'Yield to Maturity' },
+                { label: 'YTC', value: bonds.yieldToCall, format: 'percent', tooltip: 'Yield to Call' },
+                { label: 'YTW', value: bonds.yieldToWorst, format: 'percent', tooltip: 'Yield to Worst' },
+                { label: 'Nominal Yield', value: bonds.nominalYield, format: 'percent' },
+                { label: 'Real Yield', value: bonds.realYield, format: 'percent' },
+              ]}
+            />
+
+            {/* Duration & Convexity */}
+            <MetricCard
+              title="Duration & Convexity"
+              description="Interest rate risk"
+              icon={<Activity className="h-5 w-5" />}
+              metrics={[
+                { label: 'Macaulay Duration', value: bonds.macaulayDuration, format: 'number' },
+                { label: 'Modified Duration', value: bonds.modifiedDuration, format: 'number' },
+                { label: 'Effective Duration', value: bonds.effectiveDuration, format: 'number' },
+                { label: 'Convexity', value: bonds.convexity, format: 'number' },
+                { label: 'PV01', value: bonds.priceValue01, format: 'currency', tooltip: 'Price Value of 1bp' },
+              ]}
+            />
+
+            {/* Bond Pricing */}
+            <MetricCard
+              title="Bond Pricing"
+              description="Price metrics"
+              icon={<DollarSign className="h-5 w-5" />}
+              metrics={[
+                { label: 'Clean Price', value: bonds.cleanPrice, format: 'currency' },
+                { label: 'Dirty Price', value: bonds.dirtyPrice, format: 'currency' },
+                { label: 'Accrued Interest', value: bonds.accruedInterest, format: 'currency' },
+              ]}
+            />
+
+            {/* Credit Spreads */}
+            <MetricCard
+              title="Credit Spreads"
+              description="Spread analysis"
+              icon={<TrendingUp className="h-5 w-5" />}
+              metrics={[
+                { label: 'G-Spread', value: bonds.gSpread, format: 'percent', tooltip: 'Spread vs Government' },
+                { label: 'I-Spread', value: bonds.iSpread, format: 'percent', tooltip: 'Spread vs Swap' },
+                { label: 'Z-Spread', value: bonds.zSpread, format: 'percent', tooltip: 'Zero-volatility spread' },
+                { label: 'OAS', value: bonds.oas, format: 'percent', tooltip: 'Option-Adjusted Spread' },
+                { label: 'Credit Spread', value: bonds.creditSpread, format: 'percent' },
+              ]}
+            />
+          </>
+        )}
+
+        {/* Credit Analysis */}
+        {credit && (
+          <>
+            <MetricCard
+              title="Credit Analysis"
+              description="Debt quality"
+              icon={<CreditCard className="h-5 w-5" />}
+              metrics={[
+                { label: 'FCF to Debt', value: credit.fcfToTotalDebt, format: 'ratio' },
+                { label: 'Ret. Cash Flow/Debt', value: credit.retainedCashFlowToDebt, format: 'ratio' },
+                { label: 'EBITDA/Interest', value: credit.ebitdaToInterest, format: 'ratio' },
+                { label: 'Net Leverage', value: credit.netLeverage, format: 'ratio' },
+                { label: 'Gross Leverage', value: credit.grossLeverage, format: 'ratio' },
+                { label: 'Liquidity Coverage', value: credit.liquidityCoverage, format: 'ratio' },
+                { label: 'Cash/ST Debt', value: credit.cashToShortTermDebt, format: 'ratio' },
+                { label: 'Debt Capacity Ratio', value: credit.debtCapacityRatio, format: 'ratio' },
+              ]}
+            />
+
+            <MetricCard
+              title="Credit Risk"
+              description="Default & recovery"
+              icon={<Shield className="h-5 w-5" />}
+              metrics={[
+                { label: 'Prob. of Default', value: credit.probabilityOfDefault, format: 'percent', tooltip: 'Expected default probability' },
+                { label: 'Loss Given Default', value: credit.lossGivenDefault, format: 'percent' },
+                { label: 'Expected Loss', value: credit.expectedLoss, format: 'percent' },
+                { label: 'Secured Leverage', value: credit.securedLeverage, format: 'ratio' },
+                { label: 'Distance to Default', value: credit.distanceToDefault, format: 'number', tooltip: 'Merton model metric' },
+                { label: 'Credit Spread Dur.', value: credit.creditSpreadDuration, format: 'number' },
+                { label: 'Recovery Rate', value: credit.recoveryRate, format: 'percent' },
+                { label: "Merton's Model", value: credit.mertonsModel, format: 'number', tooltip: 'Structural credit model' },
+              ]}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// EXTENDED METRICS TAB (New categories: TradeFX, Credit, Options, ESG, Portfolio, etc.)
+// ============================================================================
+
+function ExtendedTab({ metrics }: { metrics: AllMetrics }) {
+  const { profitability, efficiency, leverage, liquidity, growth, cashFlow, valuation, dcf, risk, technical, other, scores, dupont, industry, macro, tradeFx, credit, bonds, options, portfolio, esg } = metrics;
+
+  return (
+    <div className="space-y-7">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Extended Profitability */}
+        <MetricCard
+          title="Extended Profitability"
+          description="Advanced return metrics"
+          icon={<PiggyBank className="h-5 w-5" />}
+          metrics={[
+            { label: 'ROCE', value: profitability.roce, format: 'percent', tooltip: 'Return on Capital Employed' },
+            { label: 'RONA', value: profitability.rona, format: 'percent', tooltip: 'Return on Net Assets' },
+            { label: 'Cash ROA', value: profitability.cashRoa, format: 'percent', tooltip: 'Cash Return on Assets' },
+            { label: 'Cash ROE', value: profitability.cashRoe, format: 'percent', tooltip: 'Cash Return on Equity' },
+            { label: 'Pretax Margin', value: profitability.pretaxMargin, format: 'percent' },
+            { label: 'EBIT Margin', value: profitability.ebitMargin, format: 'percent' },
+            { label: 'Operating ROA', value: profitability.operatingRoa, format: 'percent' },
+            { label: 'Economic Profit', value: profitability.economicProfit, format: 'currency', tooltip: 'EVA - Economic Value Added' },
+            { label: 'Residual Income', value: profitability.residualIncome, format: 'currency' },
+            { label: 'Spread Above WACC', value: profitability.spreadAboveWacc, format: 'percent', tooltip: 'ROIC - WACC', status: getMetricStatus(profitability.spreadAboveWacc, { good: 0.05, bad: -0.02 }) },
+          ]}
+        />
+
+        {/* DuPont Analysis Extended */}
+        <MetricCard
+          title="DuPont Analysis"
+          description="ROE decomposition"
+          icon={<GitBranch className="h-5 w-5" />}
+          metrics={[
+            { label: 'Net Profit Margin', value: dupont.netProfitMargin, format: 'percent' },
+            { label: 'Asset Turnover', value: dupont.assetTurnover, format: 'ratio' },
+            { label: 'Equity Multiplier', value: dupont.equityMultiplier, format: 'ratio' },
+            { label: 'ROE (DuPont)', value: dupont.roeDupont, format: 'percent', tooltip: 'NPM × AT × EM' },
+            { label: 'Operating Margin', value: dupont.operatingMargin, format: 'percent' },
+            { label: 'Interest Burden', value: dupont.interestBurden, format: 'ratio', tooltip: 'EBT / EBIT' },
+            { label: 'Tax Burden', value: dupont.taxBurden, format: 'ratio', tooltip: 'Net Income / EBT' },
+            { label: 'Tax Efficiency', value: dupont.taxEfficiency, format: 'percent' },
+            { label: 'Interest Burden Ratio', value: dupont.interestBurdenRatio, format: 'ratio' },
+            { label: 'Financial Leverage Ratio', value: dupont.financialLeverageRatio, format: 'ratio' },
+          ]}
+        />
+
+        {/* Extended Leverage */}
+        <MetricCard
+          title="Extended Leverage"
+          description="Debt structure"
+          icon={<Scale className="h-5 w-5" />}
+          metrics={[
+            { label: 'Net Debt/EBITDA', value: leverage.netDebtToEBITDA, format: 'ratio', status: getMetricStatus(leverage.netDebtToEBITDA, { good: 2, bad: 4 }, true) },
+            { label: 'Debt to Capital', value: leverage.debtToCapital, format: 'percent' },
+            { label: 'Long Term Debt Ratio', value: leverage.longTermDebtRatio, format: 'percent' },
+            { label: 'Fixed Charge Coverage', value: leverage.fixedChargeCoverage, format: 'ratio', status: getMetricStatus(leverage.fixedChargeCoverage, { good: 2.5, bad: 1 }) },
+            { label: 'Cash Flow Coverage', value: leverage.cashFlowCoverage, format: 'ratio' },
+            { label: 'Times Interest Earned', value: leverage.timesInterestEarned, format: 'ratio' },
+            { label: 'Capital Gearing', value: leverage.capitalGearing, format: 'ratio' },
+            { label: 'Debt Capacity Util.', value: leverage.debtCapacityUtilization, format: 'percent' },
+          ]}
+        />
+
+        {/* Extended Liquidity */}
+        <MetricCard
+          title="Extended Liquidity"
+          description="Short-term health"
+          icon={<Droplets className="h-5 w-5" />}
+          metrics={[
+            { label: 'Absolute Liquidity', value: liquidity.absoluteLiquidityRatio, format: 'ratio', tooltip: 'Cash / Current Liabilities' },
+            { label: 'Defensive Interval', value: liquidity.defensiveInterval, format: 'number', tooltip: 'Days to cover expenses with cash' },
+            { label: 'NWC Ratio', value: liquidity.netWorkingCapitalRatio, format: 'ratio', tooltip: 'Net Working Capital / Total Assets' },
+            { label: 'OCF Ratio', value: liquidity.operatingCashFlowRatio, format: 'ratio', tooltip: 'Operating Cash Flow / Current Liabilities' },
+            { label: 'Cash Burn Rate', value: liquidity.cashBurnRate, format: 'number', tooltip: 'Months of cash remaining' },
+          ]}
+        />
+
+        {/* Extended Efficiency */}
+        <MetricCard
+          title="Extended Efficiency"
+          description="Operating cycles"
+          icon={<Zap className="h-5 w-5" />}
+          metrics={[
+            { label: 'Equity Turnover', value: efficiency.equityTurnover, format: 'ratio' },
+            { label: 'Capital Employed Turnover', value: efficiency.capitalEmployedTurnover, format: 'ratio' },
+            { label: 'Cash Turnover', value: efficiency.cashTurnover, format: 'ratio' },
+            { label: 'Operating Cycle', value: efficiency.operatingCycle, format: 'number', tooltip: 'Days from inventory to cash' },
+            { label: 'Net Trade Cycle', value: efficiency.netTradeCycle, format: 'number', tooltip: 'Operating cycle - Payables days' },
+            { label: 'Asset Utilization', value: efficiency.assetUtilization, format: 'ratio' },
+          ]}
+        />
+
+        {/* Extended Growth */}
+        <MetricCard
+          title="Extended Growth"
+          description="Comprehensive growth"
+          icon={<Sprout className="h-5 w-5" />}
+          metrics={[
+            { label: 'Net Income Growth', value: growth.netIncomeGrowthYoY, format: 'percent' },
+            { label: 'EBITDA Growth', value: growth.ebitdaGrowthYoY, format: 'percent' },
+            { label: 'Operating Income Growth', value: growth.operatingIncomeGrowth, format: 'percent' },
+            { label: 'Gross Profit Growth', value: growth.grossProfitGrowth, format: 'percent' },
+            { label: 'Asset Growth', value: growth.assetGrowthRate, format: 'percent' },
+            { label: 'Equity Growth', value: growth.equityGrowthRate, format: 'percent' },
+            { label: 'Book Value Growth', value: growth.bookValueGrowthRate, format: 'percent' },
+            { label: 'EPS 3Y CAGR', value: growth.eps3YearCAGR, format: 'percent' },
+            { label: 'EPS 5Y CAGR', value: growth.eps5YearCAGR, format: 'percent' },
+            { label: 'Internal Growth Rate', value: growth.internalGrowthRate, format: 'percent', tooltip: 'ROA × Retention Ratio' },
+          ]}
+        />
+
+        {/* Extended Cash Flow */}
+        <MetricCard
+          title="Extended Cash Flow"
+          description="Cash efficiency"
+          icon={<Wallet className="h-5 w-5" />}
+          metrics={[
+            { label: 'Levered FCF', value: cashFlow.leveredFreeCashFlow, format: 'currency' },
+            { label: 'Unlevered FCF', value: cashFlow.unleveredFreeCashFlow, format: 'currency' },
+            { label: 'FCF Margin', value: cashFlow.fcfMargin, format: 'percent' },
+            { label: 'FCF Yield', value: cashFlow.fcfYield, format: 'percent', status: getMetricStatus(cashFlow.fcfYield, { good: 0.05, bad: 0.01 }) },
+            { label: 'FCF to Debt', value: cashFlow.fcfToDebt, format: 'ratio' },
+            { label: 'FCF to Equity', value: cashFlow.fcfToEquity, format: 'ratio' },
+            { label: 'OCF Margin', value: cashFlow.operatingCashFlowMargin, format: 'percent' },
+            { label: 'CapEx to Revenue', value: cashFlow.capexToRevenue, format: 'percent' },
+            { label: 'CapEx to Depreciation', value: cashFlow.capexToDepreciation, format: 'ratio' },
+            { label: 'Cash Generation', value: cashFlow.cashGenerationEfficiency, format: 'ratio', tooltip: 'OCF / Net Income' },
+          ]}
+        />
+
+        {/* Extended Valuation */}
+        <MetricCard
+          title="Extended Valuation"
+          description="Value metrics"
+          icon={<Calculator className="h-5 w-5" />}
+          metrics={[
+            { label: 'Price to FCF', value: valuation.priceToFcf, format: 'ratio' },
+            { label: 'EV to FCF', value: valuation.evToFcf, format: 'ratio' },
+            { label: 'EV to OCF', value: valuation.evToOcf, format: 'ratio' },
+            { label: 'EV/Invested Capital', value: valuation.evToInvestedCapital, format: 'ratio' },
+            { label: 'Price/Tangible Book', value: valuation.priceToTangibleBook, format: 'ratio' },
+            { label: 'EV Per Share', value: valuation.enterpriseValuePerShare, format: 'currency' },
+            { label: "Tobin's Q", value: valuation.tobin_Q, format: 'ratio', tooltip: 'Market Value / Replacement Cost' },
+            { label: 'Graham Number', value: valuation.grahamNumber, format: 'currency', tooltip: '√(22.5 × EPS × BVPS)' },
+            { label: 'NCAV', value: valuation.netCurrentAssetValue, format: 'currency', tooltip: 'Net Current Asset Value' },
+            { label: 'Liquidation Value', value: valuation.liquidationValue, format: 'currency' },
+          ]}
+        />
+
+        {/* Extended DCF */}
+        <MetricCard
+          title="Extended DCF"
+          description="Intrinsic value analysis"
+          icon={<Target className="h-5 w-5" />}
+          metrics={[
+            { label: 'PV of FCF', value: dcf.pvOfFcf, format: 'currency' },
+            { label: 'PV of Terminal Value', value: dcf.pvOfTerminalValue, format: 'currency' },
+            { label: 'Equity Value/Share', value: dcf.equityValuePerShare, format: 'currency' },
+            { label: 'Margin of Safety', value: dcf.marginOfSafety, format: 'percent', status: getMetricStatus(dcf.marginOfSafety, { good: 0.2, bad: -0.1 }) },
+            { label: 'Implied Growth', value: dcf.impliedGrowthRate, format: 'percent', tooltip: 'Growth implied by current price' },
+            { label: 'Reverse DCF Growth', value: dcf.reverseDcfGrowth, format: 'percent' },
+            { label: 'Exit Multiple', value: dcf.exitMultiple, format: 'ratio' },
+            { label: 'Perpetuity Growth', value: dcf.perpetuityGrowthRate, format: 'percent' },
+          ]}
+        />
+
+        {/* Extended Risk */}
+        <MetricCard
+          title="Extended Risk"
+          description="Risk analytics"
+          icon={<Shield className="h-5 w-5" />}
+          metrics={[
+            { label: 'VaR 99%', value: risk.var99, format: 'percent', tooltip: 'Value at Risk (99% confidence)' },
+            { label: 'CVaR 95%', value: risk.cvar95, format: 'percent', tooltip: 'Conditional VaR (Expected Shortfall)' },
+            { label: 'CVaR 99%', value: risk.cvar99, format: 'percent' },
+            { label: 'Treynor Ratio', value: risk.treynorRatio, format: 'ratio' },
+            { label: "Jensen's Alpha", value: risk.jensensAlpha, format: 'percent' },
+            { label: 'Modigliani M²', value: risk.modigliani_M2, format: 'percent' },
+            { label: 'Omega Ratio', value: risk.omegaRatio, format: 'ratio' },
+            { label: 'Calmar Ratio', value: risk.calmarRatio, format: 'ratio' },
+            { label: 'Ulcer Index', value: risk.ulcerIndex, format: 'number' },
+            { label: 'Tail Ratio', value: risk.tailRatio, format: 'ratio' },
+          ]}
+        />
+
+        {/* Extended Technical */}
+        <MetricCard
+          title="Extended Technical"
+          description="Advanced indicators"
+          icon={<Activity className="h-5 w-5" />}
+          metrics={[
+            { label: 'MACD Histogram', value: technical.macdHistogram, format: 'number' },
+            { label: 'Stochastic %K', value: technical.stochastic_K, format: 'number' },
+            { label: 'Stochastic %D', value: technical.stochastic_D, format: 'number' },
+            { label: 'Williams %R', value: technical.williamsR, format: 'number' },
+            { label: 'CCI', value: technical.cci, format: 'number', tooltip: 'Commodity Channel Index' },
+            { label: 'ATR', value: technical.atr, format: 'currency', tooltip: 'Average True Range' },
+            { label: 'ATR %', value: technical.atrPercent, format: 'percent' },
+            { label: 'ADX', value: technical.adx, format: 'number', tooltip: 'Average Directional Index' },
+            { label: '+DI', value: technical.plusDI, format: 'number' },
+            { label: '-DI', value: technical.minusDI, format: 'number' },
+            { label: 'OBV', value: technical.obv, format: 'number', tooltip: 'On-Balance Volume' },
+            { label: 'MFI', value: technical.mfi, format: 'number', tooltip: 'Money Flow Index' },
+          ]}
+        />
+
+        {/* Extended Scores */}
+        <MetricCard
+          title="Extended Scores"
+          description="Composite ratings"
+          icon={<Sparkles className="h-5 w-5" />}
+          metrics={[
+            { label: 'Momentum Score', value: scores.momentumScore, format: 'score' },
+            { label: 'Quality Score', value: scores.qualityScore, format: 'score' },
+            { label: 'Stability Score', value: scores.stabilityScore, format: 'score' },
+            { label: 'Efficiency Score', value: scores.efficiencyScore, format: 'score' },
+            { label: 'Solvency Score', value: scores.solvencyScore, format: 'score' },
+            { label: 'Technical Score', value: scores.technicalScore, format: 'score' },
+          ]}
+        />
+
+        {/* Extended Other Metrics */}
+        <MetricCard
+          title="Extended Analysis"
+          description="Additional metrics"
+          icon={<BarChart3 className="h-5 w-5" />}
+          metrics={[
+            { label: 'Beneish M-Score', value: other.beneishMScore, format: 'number', tooltip: 'Earnings manipulation detector (< -2.22 = Normal)' },
+            { label: 'Tangible BV/Share', value: other.tangibleBookValuePerShare, format: 'currency' },
+            { label: 'Revenue/Employee', value: other.revenuePerEmployee, format: 'currency' },
+            { label: 'Profit/Employee', value: other.profitPerEmployee, format: 'currency' },
+            { label: 'Operating Leverage', value: other.operatingLeverage, format: 'ratio', tooltip: 'DOL - Degree of Operating Leverage' },
+            { label: 'Financial Leverage', value: other.financialLeverage, format: 'ratio', tooltip: 'DFL - Degree of Financial Leverage' },
+            { label: 'Total Leverage', value: other.totalLeverage, format: 'ratio', tooltip: 'DOL × DFL' },
+            { label: 'Invested Capital Turnover', value: other.investedCapitalTurnover, format: 'ratio' },
+            { label: 'Tax Burden Ratio', value: other.taxBurdenRatio, format: 'percent' },
+            { label: 'Operating ROI', value: other.operatingRoi, format: 'percent' },
+          ]}
+        />
+
+        {/* Trade & FX Metrics */}
+        {tradeFx && (
+          <MetricCard
+            title="Trade & FX"
+            description="Currency & trade"
+            icon={<Globe className="h-5 w-5" />}
+            metrics={[
+              { label: 'Terms of Trade', value: tradeFx.termsOfTrade, format: 'ratio' },
+              { label: 'Trade Balance', value: tradeFx.tradeBalance, format: 'currency' },
+              { label: 'Current Account', value: tradeFx.currentAccount, format: 'currency' },
+              { label: 'Spot FX Rate', value: tradeFx.spotRate, format: 'number' },
+              { label: 'Forward Rate 1M', value: tradeFx.forwardRate1M, format: 'number' },
+              { label: 'Forward Rate 3M', value: tradeFx.forwardRate3M, format: 'number' },
+              { label: 'CIP', value: tradeFx.coveredInterestParity, format: 'ratio', tooltip: 'Covered Interest Parity' },
+              { label: 'UIP', value: tradeFx.uncoveredInterestParity, format: 'ratio', tooltip: 'Uncovered Interest Parity' },
+              { label: 'Real Exchange Rate', value: tradeFx.realExchangeRate, format: 'number' },
+              { label: 'PPP Deviation', value: tradeFx.pppDeviation, format: 'percent', tooltip: 'Purchasing Power Parity Deviation' },
+            ]}
+          />
+        )}
+
+        {/* Credit Metrics */}
+        {credit && (
+          <MetricCard
+            title="Credit Analysis"
+            description="Debt quality"
+            icon={<CreditCard className="h-5 w-5" />}
+            metrics={[
+              { label: 'FCF to Debt', value: credit.fcfToTotalDebt, format: 'ratio' },
+              { label: 'Ret. Cash Flow/Debt', value: credit.retainedCashFlowToDebt, format: 'ratio' },
+              { label: 'EBITDA/Interest', value: credit.ebitdaToInterest, format: 'ratio' },
+              { label: 'Net Leverage', value: credit.netLeverage, format: 'ratio' },
+              { label: 'Gross Leverage', value: credit.grossLeverage, format: 'ratio' },
+              { label: 'Liquidity Coverage', value: credit.liquidityCoverage, format: 'ratio' },
+              { label: 'Cash/ST Debt', value: credit.cashToShortTermDebt, format: 'ratio' },
+              { label: 'Debt Capacity Ratio', value: credit.debtCapacityRatio, format: 'ratio' },
+            ]}
+          />
+        )}
+
+        {/* Bond Metrics (if available) */}
+        {bonds && (
+          <MetricCard
+            title="Bond Metrics"
+            description="Fixed income"
+            icon={<Banknote className="h-5 w-5" />}
+            metrics={[
+              { label: 'Coupon Rate', value: bonds.couponRate, format: 'percent' },
+              { label: 'Current Yield', value: bonds.currentYield, format: 'percent' },
+              { label: 'YTM', value: bonds.yieldToMaturity, format: 'percent', tooltip: 'Yield to Maturity' },
+              { label: 'YTC', value: bonds.yieldToCall, format: 'percent', tooltip: 'Yield to Call' },
+              { label: 'YTW', value: bonds.yieldToWorst, format: 'percent', tooltip: 'Yield to Worst' },
+              { label: 'Nominal Yield', value: bonds.nominalYield, format: 'percent' },
+              { label: 'Real Yield', value: bonds.realYield, format: 'percent' },
+              { label: 'Macaulay Duration', value: bonds.macaulayDuration, format: 'number' },
+              { label: 'Modified Duration', value: bonds.modifiedDuration, format: 'number' },
+              { label: 'Effective Duration', value: bonds.effectiveDuration, format: 'number' },
+              { label: 'Convexity', value: bonds.convexity, format: 'number' },
+              { label: 'Clean Price', value: bonds.cleanPrice, format: 'currency' },
+              { label: 'Dirty Price', value: bonds.dirtyPrice, format: 'currency' },
+              { label: 'Accrued Interest', value: bonds.accruedInterest, format: 'currency' },
+              { label: 'PV01', value: bonds.priceValue01, format: 'currency', tooltip: 'Price Value of 1bp' },
+              { label: 'G-Spread', value: bonds.gSpread, format: 'percent', tooltip: 'Spread vs Government' },
+              { label: 'I-Spread', value: bonds.iSpread, format: 'percent', tooltip: 'Spread vs Swap' },
+              { label: 'Z-Spread', value: bonds.zSpread, format: 'percent', tooltip: 'Zero-volatility spread' },
+              { label: 'OAS', value: bonds.oas, format: 'percent', tooltip: 'Option-Adjusted Spread' },
+              { label: 'Credit Spread', value: bonds.creditSpread, format: 'percent' },
+            ]}
+          />
+        )}
+
+        {/* Options Metrics (if available) */}
+        {options && (
+          <MetricCard
+            title="Options Greeks"
+            description="Sensitivity analysis"
+            icon={<LineChart className="h-5 w-5" />}
+            metrics={[
+              { label: 'Delta', value: options.delta, format: 'number', tooltip: 'Price sensitivity to underlying' },
+              { label: 'Gamma', value: options.gamma, format: 'number', tooltip: 'Delta sensitivity' },
+              { label: 'Theta', value: options.theta, format: 'currency', tooltip: 'Time decay per day' },
+              { label: 'Vega', value: options.vega, format: 'currency', tooltip: 'Volatility sensitivity' },
+              { label: 'Rho', value: options.rho, format: 'currency', tooltip: 'Interest rate sensitivity' },
+              { label: 'Vanna', value: options.vanna, format: 'number', tooltip: 'Delta sensitivity to vol' },
+              { label: 'Volga', value: options.volga, format: 'number', tooltip: 'Vega sensitivity to vol' },
+              { label: 'Charm', value: options.charm, format: 'number', tooltip: 'Delta decay' },
+              { label: 'Implied Vol', value: options.impliedVolatility, format: 'percent' },
+              { label: 'Historical Vol', value: options.historicalVolatility, format: 'percent' },
+              { label: 'Vol Skew', value: options.volatilitySkew, format: 'number' },
+              { label: 'IV Rank', value: options.ivRank, format: 'percent' },
+              { label: 'IV Percentile', value: options.ivPercentile, format: 'percent' },
+              { label: 'Intrinsic Value', value: options.intrinsicValue, format: 'currency' },
+              { label: 'Time Value', value: options.timeValue, format: 'currency' },
+              { label: 'Moneyness', value: options.moneyness, format: 'percent' },
+              { label: 'P(ITM)', value: options.probabilityITM, format: 'percent', tooltip: 'Probability In-The-Money' },
+              { label: 'P(OTM)', value: options.probabilityOTM, format: 'percent', tooltip: 'Probability Out-of-Money' },
+              { label: 'Expected Move', value: options.expectedMove, format: 'currency', tooltip: '1 std dev expected price move' },
+            ]}
+          />
+        )}
+
+        {/* ESG Metrics */}
+        {esg && (
+          <MetricCard
+            title="ESG Metrics"
+            description="Environmental, Social, Governance"
+            icon={<Sprout className="h-5 w-5" />}
+            metrics={[
+              { label: 'ESG Score', value: esg.esgScore, format: 'score' },
+              { label: 'Environmental', value: esg.environmentalScore, format: 'score' },
+              { label: 'Social', value: esg.socialScore, format: 'score' },
+              { label: 'Governance', value: esg.governanceScore, format: 'score' },
+              { label: 'Carbon Intensity', value: esg.carbonIntensity, format: 'number', tooltip: 'CO2 tons per $M revenue' },
+              { label: 'Carbon Footprint', value: esg.carbonFootprint, format: 'number', tooltip: 'Total CO2 emissions' },
+              { label: 'Energy Intensity', value: esg.energyIntensity, format: 'number' },
+              { label: 'Water Usage', value: esg.waterUsage, format: 'number' },
+              { label: 'Waste Generation', value: esg.wasteGeneration, format: 'number' },
+              { label: 'Employee Satisfaction', value: esg.employeeSatisfaction, format: 'percent' },
+              { label: 'Diversity Ratio', value: esg.diversityRatio, format: 'percent' },
+              { label: 'Safety Incidents', value: esg.safetyIncidents, format: 'number' },
+              { label: 'Board Independence', value: esg.boardIndependence, format: 'percent' },
+              { label: 'Exec Comp Ratio', value: esg.executiveCompRatio, format: 'ratio', tooltip: 'CEO pay vs median worker' },
+            ]}
+          />
+        )}
+
+        {/* Portfolio Metrics */}
+        {portfolio && (
+          <MetricCard
+            title="Portfolio Analytics"
+            description="Risk-adjusted metrics"
+            icon={<Layers className="h-5 w-5" />}
+            metrics={[
+              { label: 'Portfolio Return', value: portfolio.portfolioReturn, format: 'percent' },
+              { label: 'Excess Return', value: portfolio.excessReturn, format: 'percent' },
+              { label: 'Active Return', value: portfolio.activeReturn, format: 'percent' },
+              { label: 'Portfolio Beta', value: portfolio.portfolioBeta, format: 'number' },
+              { label: 'Portfolio Alpha', value: portfolio.portfolioAlpha, format: 'percent' },
+              { label: 'Volatility', value: portfolio.portfolioVolatility, format: 'percent' },
+              { label: 'Systematic Risk', value: portfolio.systematicRisk, format: 'percent' },
+              { label: 'Unsystematic Risk', value: portfolio.unsystematicRisk, format: 'percent' },
+              { label: 'Sharpe Ratio', value: portfolio.portfolioSharpe, format: 'ratio' },
+              { label: 'Sortino Ratio', value: portfolio.portfolioSortino, format: 'ratio' },
+              { label: 'Treynor Ratio', value: portfolio.portfolioTreynor, format: 'ratio' },
+              { label: 'Info Ratio', value: portfolio.portfolioInformationRatio, format: 'ratio' },
+              { label: 'Sector Allocation', value: portfolio.sectorAllocation, format: 'percent' },
+              { label: 'Security Selection', value: portfolio.securitySelection, format: 'percent' },
+              { label: 'Interaction Effect', value: portfolio.interactionEffect, format: 'percent' },
+              { label: 'Diversification Ratio', value: portfolio.diversificationRatio, format: 'ratio' },
+              { label: 'Effective # Bets', value: portfolio.effectiveNumberOfBets, format: 'number' },
+              { label: 'HHI', value: portfolio.herfindahlIndex, format: 'number', tooltip: 'Portfolio Concentration' },
+              { label: 'Corr w/ Benchmark', value: portfolio.correlationWithBenchmark, format: 'ratio' },
+              { label: 'R-Squared', value: portfolio.rSquared, format: 'percent' },
+            ]}
+          />
+        )}
+
+        {/* Trade & FX Extended */}
+        {tradeFx && (
+          <MetricCard
+            title="Trade & FX Extended"
+            description="Advanced FX metrics"
+            icon={<Globe className="h-5 w-5" />}
+            metrics={[
+              { label: 'Capital Account', value: tradeFx.capitalAccount, format: 'currency' },
+              { label: 'Net Exports', value: tradeFx.netExports, format: 'currency' },
+              { label: 'S-I Gap', value: tradeFx.savingInvestmentGap, format: 'currency', tooltip: 'Saving-Investment Gap' },
+              { label: 'Export Growth', value: tradeFx.exportGrowthRate, format: 'percent' },
+              { label: 'Import Growth', value: tradeFx.importGrowthRate, format: 'percent' },
+              { label: 'Spot Bid', value: tradeFx.spotRateBid, format: 'number' },
+              { label: 'Spot Ask', value: tradeFx.spotRateAsk, format: 'number' },
+              { label: 'Spot Spread', value: tradeFx.spotRateSpread, format: 'number' },
+              { label: 'Spot Midpoint', value: tradeFx.spotRateMidpoint, format: 'number' },
+              { label: 'Forward 6M', value: tradeFx.forwardRate6M, format: 'number' },
+              { label: 'Forward 1Y', value: tradeFx.forwardRate1Y, format: 'number' },
+              { label: 'Fwd Points 1M', value: tradeFx.forwardPoints1M, format: 'number' },
+              { label: 'Fwd Points 3M', value: tradeFx.forwardPoints3M, format: 'number' },
+              { label: 'Cross Rate', value: tradeFx.crossRate, format: 'number' },
+              { label: 'Triangular Arb', value: tradeFx.triangularArbitrage, format: 'number', tooltip: 'Arbitrage Opportunity' },
+              { label: 'Fwd Premium/Disc', value: tradeFx.forwardPremiumDiscount, format: 'percent' },
+              { label: 'Carry Trade Return', value: tradeFx.carryTradeReturn, format: 'percent' },
+              { label: 'Interest Diff', value: tradeFx.interestRateDifferential, format: 'percent' },
+              { label: 'PPP Rate', value: tradeFx.purchasingPowerParity, format: 'number' },
+              { label: 'REER', value: tradeFx.realEffectiveExchangeRate, format: 'number', tooltip: 'Real Effective Exchange Rate' },
+              { label: 'Implied Vol 1M', value: tradeFx.impliedVolatility1M, format: 'percent' },
+              { label: 'Implied Vol 3M', value: tradeFx.impliedVolatility3M, format: 'percent' },
+              { label: 'Historical Vol', value: tradeFx.historicalVolatility, format: 'percent' },
+              { label: 'Risk Reversal 25D', value: tradeFx.riskReversal25D, format: 'percent' },
+              { label: 'Butterfly 25D', value: tradeFx.butterflySpread25D, format: 'percent' },
+            ]}
+          />
+        )}
+
+        {/* Credit Extended */}
+        {credit && (
+          <MetricCard
+            title="Credit Extended"
+            description="Credit risk analysis"
+            icon={<CreditCard className="h-5 w-5" />}
+            metrics={[
+              { label: 'Prob. of Default', value: credit.probabilityOfDefault, format: 'percent', tooltip: 'Expected default probability' },
+              { label: 'Loss Given Default', value: credit.lossGivenDefault, format: 'percent' },
+              { label: 'Expected Loss', value: credit.expectedLoss, format: 'percent' },
+              { label: 'Secured Leverage', value: credit.securedLeverage, format: 'ratio' },
+              { label: 'Distance to Default', value: credit.distanceToDefault, format: 'number', tooltip: 'Merton model metric' },
+              { label: 'Credit Spread Dur.', value: credit.creditSpreadDuration, format: 'number' },
+              { label: 'Recovery Rate', value: credit.recoveryRate, format: 'percent' },
+              { label: "Merton's Model", value: credit.mertonsModel, format: 'number', tooltip: 'Structural credit model' },
+            ]}
+          />
+        )}
+
+        {/* Industry Extended */}
+        <MetricCard
+          title="Industry Extended"
+          description="Sector analysis"
+          icon={<BarChart3 className="h-5 w-5" />}
+          metrics={[
+            { label: 'Industry PE', value: industry.industryPE, format: 'ratio' },
+            { label: 'Industry PB', value: industry.industryPB, format: 'ratio' },
+            { label: 'Industry ROE', value: industry.industryROE, format: 'percent' },
+            { label: 'Industry ROIC', value: industry.industryROIC, format: 'percent' },
+            { label: 'Industry Gross Margin', value: industry.industryGrossMargin, format: 'percent' },
+            { label: 'Industry Beta', value: industry.industryBeta, format: 'number' },
+            { label: 'CR8', value: industry.cr8, format: 'percent', tooltip: 'Top 8 firms concentration' },
+            { label: 'Relative Valuation', value: industry.relativeValuation, format: 'ratio', tooltip: 'vs Industry avg' },
+            { label: 'Sector Rotation', value: industry.sectorRotationScore, format: 'score' },
+            { label: 'Competitive Position', value: industry.competitivePosition, format: 'score' },
+          ]}
+        />
+
+        {/* Moving Averages */}
+        <MetricCard
+          title="Moving Averages"
+          description="Price trends"
+          icon={<TrendingUp className="h-5 w-5" />}
+          metrics={[
+            { label: 'EMA 12', value: technical.ema12, format: 'currency' },
+            { label: 'EMA 26', value: technical.ema26, format: 'currency' },
+            { label: 'SMA 10', value: technical.sma10, format: 'currency' },
+            { label: 'SMA 20', value: technical.sma20, format: 'currency' },
+            { label: 'SMA 100', value: technical.sma100, format: 'currency' },
+            { label: 'Price/SMA50', value: technical.priceToSMA50, format: 'percent' },
+            { label: 'Price/SMA200', value: technical.priceToSMA200, format: 'percent' },
+            { label: 'Trend Strength', value: technical.trendStrength, format: 'number' },
+            { label: 'Support Level', value: technical.supportLevel, format: 'currency' },
+            { label: 'Resistance Level', value: technical.resistanceLevel, format: 'currency' },
+          ]}
+        />
+
+        {/* Risk Extended */}
+        <MetricCard
+          title="Risk Extended"
+          description="Capture ratios"
+          icon={<Shield className="h-5 w-5" />}
+          metrics={[
+            { label: 'Tracking Error', value: risk.trackingError, format: 'percent' },
+            { label: 'Info Ratio', value: risk.informationRatio, format: 'ratio' },
+            { label: 'Pain Index', value: risk.painIndex, format: 'percent' },
+            { label: 'Upside Capture', value: risk.upsideCapture, format: 'percent', tooltip: 'Performance in up markets' },
+            { label: 'Downside Capture', value: risk.downsideCapture, format: 'percent', tooltip: 'Performance in down markets' },
+          ]}
+        />
+
+        {/* Growth Extended */}
+        <MetricCard
+          title="Growth Extended"
+          description="Additional growth"
+          icon={<Sprout className="h-5 w-5" />}
+          metrics={[
+            { label: 'Plowback Ratio', value: growth.plowbackRatio, format: 'percent', tooltip: 'Reinvestment rate' },
+            { label: 'Sustainable Growth', value: growth.sustainableGrowthRate, format: 'percent', tooltip: 'ROE × Retention' },
+            { label: 'Retention Ratio', value: growth.retentionRatio, format: 'percent' },
+            { label: 'Payout Ratio', value: growth.payoutRatio, format: 'percent' },
+            { label: 'DPS Growth', value: growth.dpsGrowth, format: 'percent', tooltip: 'Dividend Per Share Growth' },
+            { label: 'FCF Growth', value: growth.fcfGrowth, format: 'percent' },
+            { label: 'Revenue 5Y CAGR', value: growth.revenue5YearCAGR, format: 'percent' },
           ]}
         />
       </div>
@@ -959,6 +2162,18 @@ export function MetricsTabs({ symbol, metrics, sector, industry }: MetricsTabsPr
 
         <TabsContent value="technical" className="mt-7 animate-fade-up">
           <TechnicalTab metrics={metrics} />
+        </TabsContent>
+
+        <TabsContent value="risk" className="mt-7 animate-fade-up">
+          <RiskTab metrics={metrics} />
+        </TabsContent>
+
+        <TabsContent value="tradefx" className="mt-7 animate-fade-up">
+          <TradeFXTab metrics={metrics} />
+        </TabsContent>
+
+        <TabsContent value="fixedincome" className="mt-7 animate-fade-up">
+          <FixedIncomeTab metrics={metrics} />
         </TabsContent>
 
         <TabsContent value="ai" className="mt-7 animate-fade-up">

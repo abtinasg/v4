@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { BrainCircuit, Workflow, Cpu, MessageSquare, Sparkles, ArrowRight, Check } from 'lucide-react'
 
 const stages = [
@@ -48,11 +47,7 @@ export function AIOrchestrator() {
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left: Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 0.6 }}
+          <div
           >
             {/* Badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.06] px-4 py-1.5 text-xs font-medium text-[#8B5CF6] mb-6">
@@ -92,14 +87,10 @@ export function AIOrchestrator() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Right: Pipeline Visual */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <div
             className="relative"
           >
             {/* Glow */}
@@ -116,12 +107,8 @@ export function AIOrchestrator() {
                 {/* Stages */}
                 <div className="space-y-4">
                   {stages.map((stage, i) => (
-                    <motion.div
+                    <div
                       key={stage.title}
-                      initial={{ opacity: 0, x: 20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.3 + i * 0.1 }}
                       className="group"
                     >
                       <div className="flex items-start gap-4">
@@ -151,16 +138,12 @@ export function AIOrchestrator() {
                           <p className="text-xs text-gray-500">{stage.description}</p>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
 
                 {/* Bottom status */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.8 }}
+                <div
                   className="mt-8 pt-6 border-t border-white/[0.05]"
                 >
                   <div className="flex items-center justify-between">
@@ -170,10 +153,10 @@ export function AIOrchestrator() {
                     </div>
                     <div className="text-xs text-gray-600">Avg. latency: 1.2s</div>
                   </div>
-                </motion.div>
+                </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

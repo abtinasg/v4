@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Search,
   SlidersHorizontal,
@@ -17,6 +17,8 @@ import {
   Award,
   Target,
   X,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,18 +68,22 @@ interface ScreenedStock {
   changePercent: number;
   marketCap: number;
   peRatio: number | null;
+  forwardPE: number | null;
   pbRatio: number | null;
+  psRatio: number | null;
   dividendYield: number | null;
   roe: number | null;
   roa: number | null;
+  profitMargin: number | null;
   revenueGrowth: number | null;
-  epsGrowth: number | null;
+  earningsGrowth: number | null;
   debtToEquity: number | null;
   currentRatio: number | null;
-  rsi: number | null;
-  macdSignal: 'bullish' | 'bearish' | 'neutral';
-  piotroskiScore: number;
-  altmanZ: number;
+  beta: number | null;
+  fiftyTwoWeekHigh: number | null;
+  fiftyTwoWeekLow: number | null;
+  fiftyDayMA: number | null;
+  twoHundredDayMA: number | null;
 }
 
 type SortField = keyof ScreenedStock;
@@ -179,64 +185,27 @@ const SECTORS = [
   'Basic Materials',
 ];
 
-// Mock data generation
-function generateMockStocks(count: number): ScreenedStock[] {
-  const stocks: ScreenedStock[] = [];
-  const symbols = [
-    'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'JPM', 'V', 'JNJ',
-    'WMT', 'PG', 'UNH', 'HD', 'MA', 'BAC', 'XOM', 'PFE', 'CVX', 'ABBV',
-    'KO', 'PEP', 'MRK', 'TMO', 'COST', 'AVGO', 'MCD', 'DHR', 'ACN', 'CSCO',
-    'ABT', 'LLY', 'NKE', 'ADBE', 'CRM', 'TXN', 'NEE', 'QCOM', 'PM', 'BMY',
-  ];
-  
-  const names: Record<string, string> = {
-    AAPL: 'Apple Inc.', MSFT: 'Microsoft Corp', GOOGL: 'Alphabet Inc.', AMZN: 'Amazon.com Inc.',
-    NVDA: 'NVIDIA Corp', META: 'Meta Platforms', TSLA: 'Tesla Inc.', JPM: 'JPMorgan Chase',
-    V: 'Visa Inc.', JNJ: 'Johnson & Johnson', WMT: 'Walmart Inc.', PG: 'Procter & Gamble',
-    UNH: 'UnitedHealth Group', HD: 'Home Depot', MA: 'Mastercard Inc.', BAC: 'Bank of America',
-    XOM: 'Exxon Mobil', PFE: 'Pfizer Inc.', CVX: 'Chevron Corp', ABBV: 'AbbVie Inc.',
-    KO: 'Coca-Cola Co', PEP: 'PepsiCo Inc.', MRK: 'Merck & Co', TMO: 'Thermo Fisher',
-    COST: 'Costco Wholesale', AVGO: 'Broadcom Inc.', MCD: "McDonald's Corp", DHR: 'Danaher Corp',
-    ACN: 'Accenture plc', CSCO: 'Cisco Systems', ABT: 'Abbott Labs', LLY: 'Eli Lilly',
-    NKE: 'Nike Inc.', ADBE: 'Adobe Inc.', CRM: 'Salesforce Inc.', TXN: 'Texas Instruments',
-    NEE: 'NextEra Energy', QCOM: 'Qualcomm Inc.', PM: 'Philip Morris', BMY: 'Bristol-Myers',
-  };
-
-  for (let i = 0; i < Math.min(count, symbols.length); i++) {
-    const symbol = symbols[i];
-    const basePrice = Math.random() * 400 + 50;
-    const change = (Math.random() - 0.5) * 20;
-    
-    stocks.push({
-      symbol,
-      companyName: names[symbol] || `${symbol} Inc.`,
-      sector: SECTORS[Math.floor(Math.random() * SECTORS.length)],
-      industry: ['Software', 'Hardware', 'Banking', 'Retail', 'Pharma'][Math.floor(Math.random() * 5)],
-      price: basePrice,
-      change,
-      changePercent: (change / basePrice) * 100,
-      marketCap: Math.random() * 2500 + 10,
-      peRatio: Math.random() * 50 + 5,
-      pbRatio: Math.random() * 10 + 0.5,
-      dividendYield: Math.random() * 5,
-      roe: Math.random() * 40 + 5,
-      roa: Math.random() * 20 + 2,
-      revenueGrowth: (Math.random() - 0.2) * 50,
-      epsGrowth: (Math.random() - 0.2) * 60,
-      debtToEquity: Math.random() * 2.5,
-      currentRatio: Math.random() * 3 + 0.5,
-      rsi: Math.random() * 50 + 25,
-      macdSignal: ['bullish', 'bearish', 'neutral'][Math.floor(Math.random() * 3)] as 'bullish' | 'bearish' | 'neutral',
-      piotroskiScore: Math.floor(Math.random() * 9) + 1,
-      altmanZ: Math.random() * 5 + 0.5,
-    });
-  }
-  
-  return stocks;
-}
-
 interface ScreenerProps {
   initialFilters?: Partial<ScreenerFilters>;
+}
+
+// API Response types
+interface ScreenerAPIResponse {
+  success: boolean;
+  data: ScreenedStock[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+  meta: {
+    sectors: string[];
+    industries: string[];
+    lastUpdated: number;
+  };
+  error?: string;
 }
 
 export function Screener({ initialFilters }: ScreenerProps) {
@@ -251,36 +220,75 @@ export function Screener({ initialFilters }: ScreenerProps) {
   const [savedScreens, setSavedScreens] = useState<{ name: string; filters: ScreenerFilters }[]>([]);
   const [savingScreen, setSavingScreen] = useState(false);
   const [screenName, setScreenName] = useState('');
+  
+  // API state
+  const [allStocks, setAllStocks] = useState<ScreenedStock[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [totalStocks, setTotalStocks] = useState(0);
+  const [availableSectors, setAvailableSectors] = useState<string[]>(SECTORS);
 
-  // Generate and filter mock data
-  const allStocks = useMemo(() => generateMockStocks(40), []);
-
-  const filteredStocks = useMemo(() => {
-    return allStocks.filter(stock => {
-      // Market cap filter
+  // Fetch stocks from API
+  const fetchStocks = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Build query params based on filters
+      const params = new URLSearchParams();
+      params.set('limit', '500'); // Get all stocks
+      params.set('sortBy', sortField);
+      params.set('sortOrder', sortDirection);
+      
+      if (filters.sector.length > 0) {
+        params.set('sector', filters.sector.join(','));
+      }
+      
       if (filters.marketCap.preset && filters.marketCap.preset !== 'any') {
         const preset = MARKET_CAP_PRESETS[filters.marketCap.preset];
-        if (preset.min !== null && stock.marketCap < preset.min) return false;
-        if (preset.max !== null && stock.marketCap > preset.max) return false;
-      } else {
-        if (filters.marketCap.min !== null && stock.marketCap < filters.marketCap.min) return false;
-        if (filters.marketCap.max !== null && stock.marketCap > filters.marketCap.max) return false;
+        if (preset.min !== null) params.set('minMarketCap', preset.min.toString());
+        if (preset.max !== null) params.set('maxMarketCap', preset.max.toString());
       }
+      
+      if (filters.peRatio.min !== null) params.set('minPE', filters.peRatio.min.toString());
+      if (filters.peRatio.max !== null) params.set('maxPE', filters.peRatio.max.toString());
+      
+      if (filters.dividendYield.min !== null) params.set('minDividend', filters.dividendYield.min.toString());
+      if (filters.dividendYield.max !== null) params.set('maxDividend', filters.dividendYield.max.toString());
+      
+      const response = await fetch(`/api/stocks/screener?${params.toString()}`);
+      const data: ScreenerAPIResponse = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch stocks');
+      }
+      
+      setAllStocks(data.data);
+      setTotalStocks(data.pagination.total);
+      setLastUpdated(data.meta.lastUpdated);
+      if (data.meta.sectors.length > 0) {
+        setAvailableSectors(data.meta.sectors);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load stocks');
+      console.error('Screener fetch error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters.sector, filters.marketCap.preset, filters.peRatio, filters.dividendYield, sortField, sortDirection]);
 
-      // Sector filter
-      if (filters.sector.length > 0 && !filters.sector.includes(stock.sector)) return false;
+  // Initial fetch
+  useEffect(() => {
+    fetchStocks();
+  }, [fetchStocks]);
 
-      // P/E Ratio filter
-      if (filters.peRatio.min !== null && (stock.peRatio === null || stock.peRatio < filters.peRatio.min)) return false;
-      if (filters.peRatio.max !== null && (stock.peRatio === null || stock.peRatio > filters.peRatio.max)) return false;
-
+  // Client-side filtering for filters not in API
+  const filteredStocks = useMemo(() => {
+    return allStocks.filter(stock => {
       // P/B Ratio filter
       if (filters.pbRatio.min !== null && (stock.pbRatio === null || stock.pbRatio < filters.pbRatio.min)) return false;
       if (filters.pbRatio.max !== null && (stock.pbRatio === null || stock.pbRatio > filters.pbRatio.max)) return false;
-
-      // Dividend Yield filter
-      if (filters.dividendYield.min !== null && (stock.dividendYield === null || stock.dividendYield < filters.dividendYield.min)) return false;
-      if (filters.dividendYield.max !== null && (stock.dividendYield === null || stock.dividendYield > filters.dividendYield.max)) return false;
 
       // ROE filter
       if (filters.roe.min !== null && (stock.roe === null || stock.roe < filters.roe.min)) return false;
@@ -294,9 +302,10 @@ export function Screener({ initialFilters }: ScreenerProps) {
       if (filters.revenueGrowth.min !== null && (stock.revenueGrowth === null || stock.revenueGrowth < filters.revenueGrowth.min)) return false;
       if (filters.revenueGrowth.max !== null && (stock.revenueGrowth === null || stock.revenueGrowth > filters.revenueGrowth.max)) return false;
 
-      // EPS Growth filter
-      if (filters.epsGrowth.min !== null && (stock.epsGrowth === null || stock.epsGrowth < filters.epsGrowth.min)) return false;
-      if (filters.epsGrowth.max !== null && (stock.epsGrowth === null || stock.epsGrowth > filters.epsGrowth.max)) return false;
+      // Earnings Growth filter (using earningsGrowth instead of epsGrowth)
+      const stockEarningsGrowth = stock.earningsGrowth;
+      if (filters.epsGrowth.min !== null && (stockEarningsGrowth === null || stockEarningsGrowth < filters.epsGrowth.min)) return false;
+      if (filters.epsGrowth.max !== null && (stockEarningsGrowth === null || stockEarningsGrowth > filters.epsGrowth.max)) return false;
 
       // Debt to Equity filter
       if (filters.debtToEquity.min !== null && (stock.debtToEquity === null || stock.debtToEquity < filters.debtToEquity.min)) return false;
@@ -305,21 +314,6 @@ export function Screener({ initialFilters }: ScreenerProps) {
       // Current Ratio filter
       if (filters.currentRatio.min !== null && (stock.currentRatio === null || stock.currentRatio < filters.currentRatio.min)) return false;
       if (filters.currentRatio.max !== null && (stock.currentRatio === null || stock.currentRatio > filters.currentRatio.max)) return false;
-
-      // RSI filter
-      if (filters.rsi.min !== null && (stock.rsi === null || stock.rsi < filters.rsi.min)) return false;
-      if (filters.rsi.max !== null && (stock.rsi === null || stock.rsi > filters.rsi.max)) return false;
-
-      // MACD Signal filter
-      if (filters.macdSignal && filters.macdSignal !== 'any' && stock.macdSignal !== filters.macdSignal) return false;
-
-      // Piotroski Score filter
-      if (filters.piotroskiScore.min !== null && stock.piotroskiScore < filters.piotroskiScore.min) return false;
-      if (filters.piotroskiScore.max !== null && stock.piotroskiScore > filters.piotroskiScore.max) return false;
-
-      // Altman Z filter
-      if (filters.altmanZ.min !== null && stock.altmanZ < filters.altmanZ.min) return false;
-      if (filters.altmanZ.max !== null && stock.altmanZ > filters.altmanZ.max) return false;
 
       return true;
     });
@@ -330,8 +324,8 @@ export function Screener({ initialFilters }: ScreenerProps) {
       const aVal = a[sortField];
       const bVal = b[sortField];
       
-      if (aVal === null) return 1;
-      if (bVal === null) return -1;
+      if (aVal === null || aVal === undefined) return 1;
+      if (bVal === null || bVal === undefined) return -1;
       
       const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
       return sortDirection === 'asc' ? comparison : -comparison;
@@ -397,10 +391,25 @@ export function Screener({ initialFilters }: ScreenerProps) {
         <div>
           <h1 className="text-2xl font-bold text-white">Stock Screener</h1>
           <p className="text-gray-400 text-sm mt-1">
-            Find stocks matching your criteria • {filteredStocks.length} results
+            Find stocks matching your criteria • {isLoading ? 'Loading...' : `${filteredStocks.length} of ${totalStocks} stocks`}
           </p>
+          {lastUpdated && (
+            <p className="text-gray-500 text-xs mt-0.5">
+              Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchStocks()}
+            disabled={isLoading}
+            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          >
+            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            Refresh
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -426,6 +435,23 @@ export function Screener({ initialFilters }: ScreenerProps) {
           </Button>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <Card className="border-red-500/20 bg-red-500/10">
+          <CardContent className="pt-4">
+            <p className="text-red-400 text-sm">{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchStocks()}
+              className="mt-2 border-red-500/20 text-red-400 hover:bg-red-500/10"
+            >
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Save Screen Modal */}
       {savingScreen && (
@@ -515,97 +541,99 @@ export function Screener({ initialFilters }: ScreenerProps) {
 
       {/* Results Table */}
       <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/10">
-                <SortableHeader field="symbol" label="Symbol" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader field="price" label="Price" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader field="changePercent" label="Change" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader field="marketCap" label="Market Cap" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader field="peRatio" label="P/E" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader field="dividendYield" label="Div Yield" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader field="roe" label="ROE" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader field="revenueGrowth" label="Rev Growth" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader field="rsi" label="RSI" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader field="piotroskiScore" label="F-Score" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-              </tr>
-            </thead>
-            <tbody>
-              {sortedStocks.map(stock => (
-                <tr
-                  key={stock.symbol}
-                  onClick={() => router.push(`/dashboard/stock-analysis/${stock.symbol}`)}
-                  className="border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-colors"
-                >
-                  <td className="p-4">
-                    <div>
-                      <div className="font-medium text-white">{stock.symbol}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-[150px]">{stock.companyName}</div>
-                    </div>
-                  </td>
-                  <td className="p-4 text-white">${stock.price.toFixed(2)}</td>
-                  <td className="p-4">
-                    <span className={cn(
-                      "flex items-center gap-1",
-                      stock.change >= 0 ? "text-green-400" : "text-red-400"
-                    )}>
-                      {stock.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                      {stock.changePercent.toFixed(2)}%
-                    </span>
-                  </td>
-                  <td className="p-4 text-white">
-                    {stock.marketCap >= 1000 ? `$${(stock.marketCap / 1000).toFixed(1)}T` : `$${stock.marketCap.toFixed(1)}B`}
-                  </td>
-                  <td className="p-4 text-white">{stock.peRatio?.toFixed(1) || 'N/A'}</td>
-                  <td className="p-4 text-white">{stock.dividendYield?.toFixed(2)}%</td>
-                  <td className="p-4 text-white">{stock.roe?.toFixed(1)}%</td>
-                  <td className="p-4">
-                    <span className={cn(
-                      stock.revenueGrowth && stock.revenueGrowth >= 0 ? "text-green-400" : "text-red-400"
-                    )}>
-                      {stock.revenueGrowth?.toFixed(1)}%
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <span className={cn(
-                      "px-2 py-1 rounded text-xs",
-                      stock.rsi && stock.rsi > 70 ? "bg-red-500/20 text-red-400" :
-                      stock.rsi && stock.rsi < 30 ? "bg-green-500/20 text-green-400" :
-                      "text-white"
-                    )}>
-                      {stock.rsi?.toFixed(0)}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <span className={cn(
-                      "px-2 py-1 rounded text-xs font-medium",
-                      stock.piotroskiScore >= 7 ? "bg-green-500/20 text-green-400" :
-                      stock.piotroskiScore <= 3 ? "bg-red-500/20 text-red-400" :
-                      "bg-yellow-500/20 text-yellow-400"
-                    )}>
-                      {stock.piotroskiScore}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {sortedStocks.length === 0 && (
+        {isLoading ? (
           <div className="p-12 text-center">
-            <Search className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No stocks match your criteria</h3>
-            <p className="text-gray-400 mb-4">Try adjusting your filters or use a preset screen</p>
-            <Button
-              variant="outline"
-              onClick={resetFilters}
-              className="border-white/10 text-white"
-            >
-              Reset Filters
-            </Button>
+            <Loader2 className="h-12 w-12 text-[#00D4FF] mx-auto mb-4 animate-spin" />
+            <h3 className="text-lg font-medium text-white mb-2">Loading stocks...</h3>
+            <p className="text-gray-400">Fetching real-time data for {totalStocks || '500+'} stocks</p>
           </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <SortableHeader field="symbol" label="Symbol" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader field="sector" label="Sector" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader field="price" label="Price" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader field="changePercent" label="Change" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader field="marketCap" label="Market Cap" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader field="peRatio" label="P/E" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader field="forwardPE" label="Fwd P/E" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader field="pbRatio" label="P/B" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader field="dividendYield" label="Div Yield" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader field="beta" label="Beta" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedStocks.map(stock => (
+                    <tr
+                      key={stock.symbol}
+                      onClick={() => router.push(`/dashboard/stock-analysis/${stock.symbol}`)}
+                      className="border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-colors"
+                    >
+                      <td className="p-4">
+                        <div>
+                          <div className="font-medium text-white">{stock.symbol}</div>
+                          <div className="text-sm text-gray-500 truncate max-w-[150px]">{stock.companyName}</div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-xs px-2 py-1 rounded bg-white/5 text-gray-300">
+                          {stock.sector}
+                        </span>
+                      </td>
+                      <td className="p-4 text-white font-medium">${stock.price?.toFixed(2) || 'N/A'}</td>
+                      <td className="p-4">
+                        <span className={cn(
+                          "flex items-center gap-1",
+                          stock.changePercent >= 0 ? "text-green-400" : "text-red-400"
+                        )}>
+                          {stock.changePercent >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                          {stock.changePercent?.toFixed(2)}%
+                        </span>
+                      </td>
+                      <td className="p-4 text-white">
+                        {stock.marketCap >= 1000 ? `$${(stock.marketCap / 1000).toFixed(1)}T` : 
+                         stock.marketCap >= 1 ? `$${stock.marketCap.toFixed(1)}B` : 
+                         `$${(stock.marketCap * 1000).toFixed(0)}M`}
+                      </td>
+                      <td className="p-4 text-white">{stock.peRatio?.toFixed(1) || 'N/A'}</td>
+                      <td className="p-4 text-white">{stock.forwardPE?.toFixed(1) || 'N/A'}</td>
+                      <td className="p-4 text-white">{stock.pbRatio?.toFixed(2) || 'N/A'}</td>
+                      <td className="p-4 text-white">
+                        {stock.dividendYield ? `${stock.dividendYield.toFixed(2)}%` : 'N/A'}
+                      </td>
+                      <td className="p-4">
+                        <span className={cn(
+                          stock.beta && stock.beta > 1.5 ? "text-red-400" :
+                          stock.beta && stock.beta < 0.8 ? "text-green-400" :
+                          "text-white"
+                        )}>
+                          {stock.beta?.toFixed(2) || 'N/A'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {sortedStocks.length === 0 && !isLoading && (
+              <div className="p-12 text-center">
+                <Search className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-white mb-2">No stocks match your criteria</h3>
+                <p className="text-gray-400 mb-4">Try adjusting your filters or use a preset screen</p>
+                <Button
+                  variant="outline"
+                  onClick={resetFilters}
+                  className="border-white/10 text-white"
+                >
+                  Reset Filters
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </Card>
     </div>

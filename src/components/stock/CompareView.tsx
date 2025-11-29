@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   X,
   Plus,
@@ -13,6 +13,7 @@ import {
   Minus,
   ChevronDown,
   Check,
+  Loader2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,14 @@ interface StockData {
     piotroskiScore: number | null;
     altmanZ: number | null;
   };
+}
+
+// Search result type from API
+interface SearchResult {
+  symbol: string;
+  name: string;
+  type?: string;
+  exchange?: string;
 }
 
 interface MetricConfig {
@@ -111,8 +120,8 @@ const CATEGORIES = [
 
 const STOCK_COLORS = ['#00D4FF', '#22C55E', '#F59E0B', '#EC4899', '#8B5CF6'];
 
-// Sample stocks for search
-const SAMPLE_STOCKS = [
+// Default stocks for quick access
+const DEFAULT_STOCKS = [
   { symbol: 'AAPL', name: 'Apple Inc.' },
   { symbol: 'MSFT', name: 'Microsoft Corporation' },
   { symbol: 'GOOGL', name: 'Alphabet Inc.' },
@@ -125,44 +134,102 @@ const SAMPLE_STOCKS = [
   { symbol: 'JNJ', name: 'Johnson & Johnson' },
 ];
 
-// Mock function to generate stock data
-function generateMockStockData(symbol: string): StockData {
-  const stock = SAMPLE_STOCKS.find(s => s.symbol === symbol);
-  const basePrice = Math.random() * 400 + 100;
-  const change = (Math.random() - 0.5) * 10;
-  
-  return {
-    symbol,
-    companyName: stock?.name || `${symbol} Inc.`,
-    price: basePrice,
-    change,
-    changePercent: (change / basePrice) * 100,
-    marketCap: Math.random() * 2000 + 100, // in billions
-    sector: ['Technology', 'Healthcare', 'Financial', 'Consumer'][Math.floor(Math.random() * 4)],
-    metrics: {
-      peRatio: Math.random() * 40 + 10,
-      pbRatio: Math.random() * 10 + 1,
-      psRatio: Math.random() * 8 + 1,
-      evToEbitda: Math.random() * 20 + 5,
-      dividendYield: Math.random() * 4,
-      roe: Math.random() * 30 + 5,
-      roa: Math.random() * 15 + 2,
-      roic: Math.random() * 25 + 5,
-      grossMargin: Math.random() * 40 + 20,
-      operatingMargin: Math.random() * 25 + 5,
-      netMargin: Math.random() * 20 + 3,
-      debtToEquity: Math.random() * 2,
-      currentRatio: Math.random() * 2 + 0.5,
-      quickRatio: Math.random() * 1.5 + 0.3,
-      revenueGrowth: (Math.random() - 0.3) * 40,
-      epsGrowth: (Math.random() - 0.3) * 50,
-      fcfGrowth: (Math.random() - 0.3) * 45,
-      rsi: Math.random() * 40 + 30,
-      beta: Math.random() * 1.5 + 0.5,
-      piotroskiScore: Math.floor(Math.random() * 9) + 1,
-      altmanZ: Math.random() * 4 + 1,
-    },
-  };
+// Fetch stock metrics from API
+async function fetchStockData(symbol: string): Promise<StockData | null> {
+  try {
+    const response = await fetch(`/api/stock/${symbol}/metrics`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${symbol}`);
+    }
+    const data = await response.json();
+    
+    // Map API response to StockData interface
+    return {
+      symbol: data.symbol,
+      companyName: data.companyName || `${symbol} Inc.`,
+      price: data.currentPrice || 0,
+      change: 0, // Will be calculated from price history if available
+      changePercent: 0,
+      marketCap: data.marketCap ? data.marketCap / 1e9 : 0, // Convert to billions
+      sector: data.sector || 'Unknown',
+      metrics: {
+        // Valuation
+        peRatio: data.metrics?.valuation?.peRatio ?? null,
+        pbRatio: data.metrics?.valuation?.pbRatio ?? null,
+        psRatio: data.metrics?.valuation?.psRatio ?? null,
+        evToEbitda: data.metrics?.valuation?.evToEBITDA ?? null,
+        dividendYield: data.metrics?.valuation?.dividendYield != null 
+          ? data.metrics.valuation.dividendYield * 100 
+          : null,
+        // Profitability
+        roe: data.metrics?.profitability?.roe != null 
+          ? data.metrics.profitability.roe * 100 
+          : null,
+        roa: data.metrics?.profitability?.roa != null 
+          ? data.metrics.profitability.roa * 100 
+          : null,
+        roic: data.metrics?.profitability?.roic != null 
+          ? data.metrics.profitability.roic * 100 
+          : null,
+        grossMargin: data.metrics?.profitability?.grossProfitMargin != null 
+          ? data.metrics.profitability.grossProfitMargin * 100 
+          : null,
+        operatingMargin: data.metrics?.profitability?.operatingProfitMargin != null 
+          ? data.metrics.profitability.operatingProfitMargin * 100 
+          : null,
+        netMargin: data.metrics?.profitability?.netProfitMargin != null 
+          ? data.metrics.profitability.netProfitMargin * 100 
+          : null,
+        // Leverage
+        debtToEquity: data.metrics?.leverage?.debtToEquity ?? null,
+        // Liquidity
+        currentRatio: data.metrics?.liquidity?.currentRatio ?? null,
+        quickRatio: data.metrics?.liquidity?.quickRatio ?? null,
+        // Growth
+        revenueGrowth: data.metrics?.growth?.revenueGrowthYoY != null 
+          ? data.metrics.growth.revenueGrowthYoY * 100 
+          : null,
+        epsGrowth: data.metrics?.growth?.epsGrowthYoY != null 
+          ? data.metrics.growth.epsGrowthYoY * 100 
+          : null,
+        fcfGrowth: data.metrics?.growth?.fcfGrowth != null 
+          ? data.metrics.growth.fcfGrowth * 100 
+          : null,
+        // Technical
+        rsi: data.metrics?.technical?.rsi ?? null,
+        beta: data.metrics?.risk?.beta ?? data.metrics?.dcf?.beta ?? null,
+        // Quality Scores (from 'other' metrics)
+        piotroskiScore: data.metrics?.other?.piotroskiFScore ?? null,
+        altmanZ: data.metrics?.other?.altmanZScore ?? null,
+      },
+    };
+  } catch (error) {
+    console.error(`Error fetching stock data for ${symbol}:`, error);
+    return null;
+  }
+}
+
+// Search stocks API
+async function searchStocksAPI(query: string): Promise<SearchResult[]> {
+  try {
+    const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+      throw new Error('Search failed');
+    }
+    const data = await response.json();
+    if (data.success && data.data) {
+      return data.data.map((item: { symbol: string; name?: string; shortname?: string; longname?: string; type?: string; exchange?: string }) => ({
+        symbol: item.symbol,
+        name: item.name || item.shortname || item.longname || item.symbol,
+        type: item.type,
+        exchange: item.exchange,
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Search error:', error);
+    return [];
+  }
 }
 
 function formatValue(value: number | null, format: MetricConfig['format']): string {
@@ -190,9 +257,8 @@ interface CompareViewProps {
 }
 
 export function CompareView({ initialSymbols = [] }: CompareViewProps) {
-  const [stocks, setStocks] = useState<StockData[]>(() =>
-    initialSymbols.map(s => generateMockStockData(s))
-  );
+  const [stocks, setStocks] = useState<StockData[]>([]);
+  const [loadingSymbols, setLoadingSymbols] = useState<Set<string>>(new Set());
   const [selectedMetrics, setSelectedMetrics] = useState<Set<keyof StockData['metrics']>>(
     new Set(['peRatio', 'roe', 'revenueGrowth', 'debtToEquity', 'currentRatio', 'piotroskiScore'])
   );
@@ -200,22 +266,64 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'bar' | 'radar'>('table');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Load initial symbols
+  useEffect(() => {
+    if (initialSymbols.length > 0) {
+      initialSymbols.forEach(symbol => {
+        addStock(symbol);
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 1) {
+      setSearchResults(DEFAULT_STOCKS);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      const results = await searchStocksAPI(searchQuery);
+      setSearchResults(results.length > 0 ? results : DEFAULT_STOCKS.filter(s => 
+        s.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ));
+      setIsSearching(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const filteredSearchResults = useMemo(() => {
-    if (!searchQuery) return SAMPLE_STOCKS;
-    const query = searchQuery.toLowerCase();
-    return SAMPLE_STOCKS.filter(
-      s => s.symbol.toLowerCase().includes(query) || s.name.toLowerCase().includes(query)
-    ).filter(s => !stocks.find(stock => stock.symbol === s.symbol));
-  }, [searchQuery, stocks]);
+    return searchResults.filter(s => !stocks.find(stock => stock.symbol === s.symbol));
+  }, [searchResults, stocks]);
 
-  const addStock = (symbol: string) => {
+  const addStock = useCallback(async (symbol: string) => {
     if (stocks.length >= 5) return;
     if (stocks.find(s => s.symbol === symbol)) return;
-    setStocks([...stocks, generateMockStockData(symbol)]);
+    if (loadingSymbols.has(symbol)) return;
+
+    setLoadingSymbols(prev => new Set(prev).add(symbol));
     setSearchQuery('');
     setIsSearchOpen(false);
-  };
+
+    const stockData = await fetchStockData(symbol);
+    
+    setLoadingSymbols(prev => {
+      const next = new Set(prev);
+      next.delete(symbol);
+      return next;
+    });
+
+    if (stockData) {
+      setStocks(prev => [...prev, stockData]);
+    }
+  }, [stocks, loadingSymbols]);
 
   const removeStock = (symbol: string) => {
     setStocks(stocks.filter(s => s.symbol !== symbol));
@@ -359,27 +467,53 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
                           className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
                           autoFocus
                         />
+                        {isSearching && (
+                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 animate-spin" />
+                        )}
                       </div>
                     </div>
                     <div className="max-h-60 overflow-y-auto">
-                      {filteredSearchResults.map(stock => (
-                        <button
-                          key={stock.symbol}
-                          onClick={() => addStock(stock.symbol)}
-                          className="w-full px-4 py-2 text-left hover:bg-white/5 flex items-center justify-between transition-colors"
-                        >
-                          <div>
-                            <span className="font-medium text-white">{stock.symbol}</span>
-                            <span className="text-sm text-gray-400 ml-2">{stock.name}</span>
-                          </div>
-                          <Plus className="h-4 w-4 text-gray-500" />
-                        </button>
-                      ))}
+                      {filteredSearchResults.length === 0 ? (
+                        <div className="px-4 py-3 text-center text-gray-500 text-sm">
+                          No stocks found
+                        </div>
+                      ) : (
+                        filteredSearchResults.map(stock => (
+                          <button
+                            key={stock.symbol}
+                            onClick={() => addStock(stock.symbol)}
+                            disabled={loadingSymbols.has(stock.symbol)}
+                            className="w-full px-4 py-2 text-left hover:bg-white/5 flex items-center justify-between transition-colors disabled:opacity-50"
+                          >
+                            <div>
+                              <span className="font-medium text-white">{stock.symbol}</span>
+                              <span className="text-sm text-gray-400 ml-2">{stock.name}</span>
+                            </div>
+                            {loadingSymbols.has(stock.symbol) ? (
+                              <Loader2 className="h-4 w-4 text-gray-500 animate-spin" />
+                            ) : (
+                              <Plus className="h-4 w-4 text-gray-500" />
+                            )}
+                          </button>
+                        ))
+                      )}
                     </div>
                   </div>
                 )}
               </div>
             )}
+
+            {/* Loading indicators for stocks being added */}
+            {Array.from(loadingSymbols).map((symbol) => (
+              <div
+                key={symbol}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 opacity-60"
+              >
+                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                <span className="font-medium text-white">{symbol}</span>
+                <span className="text-sm text-gray-400">Loading...</span>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

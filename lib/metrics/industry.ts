@@ -294,6 +294,29 @@ export function getCR4Interpretation(cr4: number | null): string {
   return 'High concentration';
 }
 
+/**
+ * CR8 (8-Firm Concentration Ratio)
+ * Sum of market shares of the 8 largest firms
+ */
+export function calculateCR8(marketShares: number[]): number | null {
+  if (!marketShares || marketShares.length === 0) {
+    return null;
+  }
+
+  // Filter and sort descending
+  const validShares = marketShares
+    .filter((share) => share != null && isFinite(share) && share >= 0)
+    .sort((a, b) => b - a);
+
+  if (validShares.length === 0) {
+    return null;
+  }
+
+  // Sum top 8 (or all if less than 8)
+  const top8 = validShares.slice(0, 8);
+  return safeAdd(...top8);
+}
+
 // ============================================================================
 // MAIN INDUSTRY DATA FETCHER
 // ============================================================================
@@ -303,6 +326,22 @@ export function getCR4Interpretation(cr4: number | null): string {
  * Gets peers, calculates market shares, and computes concentration metrics
  */
 export async function fetchIndustryData(symbol: string, yahooSector?: string, yahooIndustry?: string): Promise<IndustryData> {
+  const defaultExtended = {
+    industryPE: null,
+    industryPB: null,
+    industryROE: null,
+    industryROIC: null,
+    industryGrossMargin: null,
+    industryOperatingMargin: null,
+    industryNetMargin: null,
+    industryDebtToEquity: null,
+    industryCurrentRatio: null,
+    industryBeta: null,
+    industryDividendYield: null,
+    sectorPE: null,
+    sectorGrowthRate: null,
+  };
+
   // If Yahoo provided sector/industry, use those (FMP API is deprecated)
   if (yahooSector || yahooIndustry) {
     return {
@@ -312,6 +351,7 @@ export async function fetchIndustryData(symbol: string, yahooSector?: string, ya
       industryGrowthRate: null,
       marketSize: null,
       competitorRevenues: [],
+      ...defaultExtended,
     };
   }
 
@@ -327,6 +367,7 @@ export async function fetchIndustryData(symbol: string, yahooSector?: string, ya
         industryGrowthRate: null,
         marketSize: null,
         competitorRevenues: [],
+        ...defaultExtended,
       };
     }
 
@@ -387,6 +428,7 @@ export async function fetchIndustryData(symbol: string, yahooSector?: string, ya
       industryGrowthRate,
       marketSize: marketSize > 0 ? marketSize : null,
       competitorRevenues,
+      ...defaultExtended,
     };
   } catch (error) {
     console.error('FMP API failed, returning basic industry data:', error);
@@ -397,6 +439,7 @@ export async function fetchIndustryData(symbol: string, yahooSector?: string, ya
       industryGrowthRate: null,
       marketSize: null,
       competitorRevenues: [],
+      ...defaultExtended,
     };
   }
 }
@@ -435,12 +478,25 @@ export async function calculateIndustryMetrics(
   // Calculate CR4
   const cr4 = calculateCR4(marketShares);
 
+  // Calculate CR8
+  const cr8 = calculateCR8(marketShares);
+
   return {
     industryGrowthRate: data.industryGrowthRate,
     marketSize: data.marketSize,
     marketShare,
     hhiIndex,
     cr4,
+    cr8,
+    industryPE: data.industryPE,
+    industryPB: data.industryPB,
+    industryROE: data.industryROE,
+    industryROIC: data.industryROIC,
+    industryGrossMargin: data.industryGrossMargin,
+    industryBeta: data.industryBeta,
+    relativeValuation: null,
+    sectorRotationScore: null,
+    competitivePosition: null,
   };
 }
 
@@ -466,12 +522,25 @@ export function calculateIndustryMetricsFromData(
   // Calculate CR4
   const cr4 = calculateCR4(marketShares);
 
+  // Calculate CR8
+  const cr8 = calculateCR8(marketShares);
+
   return {
     industryGrowthRate: industryData.industryGrowthRate,
     marketSize: industryData.marketSize,
     marketShare,
     hhiIndex,
     cr4,
+    cr8,
+    industryPE: industryData.industryPE,
+    industryPB: industryData.industryPB,
+    industryROE: industryData.industryROE,
+    industryROIC: industryData.industryROIC,
+    industryGrossMargin: industryData.industryGrossMargin,
+    industryBeta: industryData.industryBeta,
+    relativeValuation: null,
+    sectorRotationScore: null,
+    competitivePosition: null,
   };
 }
 

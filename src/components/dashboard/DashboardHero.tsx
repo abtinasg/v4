@@ -16,6 +16,16 @@ import {
   Moon,
   Sunrise,
   Sunset,
+  Factory,
+  Briefcase,
+  Percent,
+  Users,
+  BarChart3,
+  Landmark,
+  Smile,
+  Brain,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
@@ -28,6 +38,31 @@ interface MarketData {
   price: number
   change: number
   changePercent: number
+}
+
+interface EconomicIndicatorData {
+  value: number | null
+  change: number | null
+}
+
+interface EconomicData {
+  gdp: EconomicIndicatorData | null
+  unemployment: EconomicIndicatorData | null
+  inflation: EconomicIndicatorData | null
+  federalFundsRate: EconomicIndicatorData | null
+  consumerConfidence: EconomicIndicatorData | null
+  manufacturingPmi: EconomicIndicatorData | null
+  servicesPmi: EconomicIndicatorData | null
+}
+
+interface DashboardAnalysis {
+  analysis: string
+  marketMood: 'bullish' | 'bearish' | 'neutral' | 'mixed'
+  sentimentBreakdown: {
+    bullish: number
+    bearish: number
+    neutral: number
+  }
 }
 
 interface DashboardHeroProps {
@@ -54,7 +89,10 @@ export function DashboardHero({ className }: DashboardHeroProps) {
   const { user } = useUser()
   const [now, setNow] = useState(() => new Date())
   const [marketData, setMarketData] = useState<MarketData[]>([])
+  const [economicData, setEconomicData] = useState<EconomicData | null>(null)
+  const [aiAnalysis, setAiAnalysis] = useState<DashboardAnalysis | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isAnalysisLoading, setIsAnalysisLoading] = useState(true)
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60000)
@@ -78,10 +116,37 @@ export function DashboardHero({ className }: DashboardHeroProps) {
     }
   }
 
+  const fetchAiAnalysis = async () => {
+    setIsAnalysisLoading(true)
+    try {
+      const response = await fetch('/api/market/dashboard-analysis')
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success) {
+          setAiAnalysis({
+            analysis: result.analysis,
+            marketMood: result.marketMood,
+            sentimentBreakdown: result.sentimentBreakdown
+          })
+          setEconomicData(result.economicIndicators)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching AI analysis:', error)
+    } finally {
+      setIsAnalysisLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchMarketData()
-    const interval = setInterval(fetchMarketData, 60000)
-    return () => clearInterval(interval)
+    fetchAiAnalysis()
+    const marketInterval = setInterval(fetchMarketData, 60000)
+    const analysisInterval = setInterval(fetchAiAnalysis, 300000) // Refresh AI analysis every 5 min
+    return () => {
+      clearInterval(marketInterval)
+      clearInterval(analysisInterval)
+    }
   }, [])
 
   const greeting = useMemo(() => {
@@ -167,15 +232,18 @@ export function DashboardHero({ className }: DashboardHeroProps) {
                   <span>{formattedTime}</span>
                 </div>
                 <button
-                  onClick={fetchMarketData}
-                  disabled={isLoading}
+                  onClick={() => {
+                    fetchMarketData()
+                    fetchAiAnalysis()
+                  }}
+                  disabled={isLoading || isAnalysisLoading}
                   className={cn(
                     'p-2 rounded-lg bg-white/5 border border-white/10',
                     'hover:bg-white/10 transition-all',
                     'disabled:opacity-50'
                   )}
                 >
-                  <RefreshCw className={cn('h-4 w-4 text-gray-400', isLoading && 'animate-spin')} />
+                  <RefreshCw className={cn('h-4 w-4 text-gray-400', (isLoading || isAnalysisLoading) && 'animate-spin')} />
                 </button>
               </div>
             </div>
@@ -221,62 +289,209 @@ export function DashboardHero({ className }: DashboardHeroProps) {
               )}
             </div>
 
-            {/* Bottom Row */}
-            <div className="grid gap-4 lg:grid-cols-2">
-              {/* Market Sentiment */}
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-white">
-                  <Activity className="h-4 w-4 text-cyan-300" />
-                  Market Sentiment
+            {/* Economic Indicators Grid */}
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+              {/* Manufacturing PMI */}
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/[0.07] transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Factory className="h-3.5 w-3.5 text-orange-400" />
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400">Mfg PMI</p>
                 </div>
-                <div className="mt-3 space-y-2">
-                  <div className="h-2 w-full rounded-full bg-white/10">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${marketSentiment.score}%` }}
-                      transition={{ duration: 1, ease: 'easeOut' }}
-                      className={cn(
-                        'h-full rounded-full',
-                        marketSentiment.score > 60 ? 'bg-emerald-400' :
-                        marketSentiment.score > 40 ? 'bg-cyan-400' : 'bg-red-400'
-                      )}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-gray-400">
-                    <span>Bearish</span>
-                    <span className="font-medium text-white">{marketSentiment.label}</span>
-                    <span>Bullish</span>
-                  </div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-lg font-semibold text-white tabular-nums">
+                    {economicData?.manufacturingPmi?.value?.toFixed(1) ?? '—'}
+                  </p>
+                  <span className={cn(
+                    'text-[10px] font-medium',
+                    (economicData?.manufacturingPmi?.value ?? 0) >= 50 ? 'text-emerald-400' : 'text-red-400'
+                  )}>
+                    {(economicData?.manufacturingPmi?.value ?? 0) >= 50 ? 'Exp' : 'Con'}
+                  </span>
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-white mb-3">
-                  <Sparkles className="h-4 w-4 text-violet-300" />
-                  Quick Actions
+              {/* Services PMI */}
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/[0.07] transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Briefcase className="h-3.5 w-3.5 text-blue-400" />
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400">Svc PMI</p>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {QUICK_ACTIONS.map((action) => {
-                    const Icon = action.icon
-                    return (
-                      <button
-                        key={action.label}
-                        type="button"
-                        onClick={() => router.push(action.href)}
-                        className="group flex items-center gap-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-left transition-all hover:border-cyan-400/40 hover:bg-white/10"
-                      >
-                        <Icon className="h-4 w-4 text-cyan-300" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-white truncate">{action.label}</p>
-                        </div>
-                        <ArrowRight className="h-3 w-3 text-gray-500 group-hover:text-cyan-300 transition-colors" />
-                      </button>
-                    )
-                  })}
+                <div className="flex items-baseline justify-between">
+                  <p className="text-lg font-semibold text-white tabular-nums">
+                    {economicData?.servicesPmi?.value?.toFixed(1) ?? '—'}
+                  </p>
+                  <span className={cn(
+                    'text-[10px] font-medium',
+                    (economicData?.servicesPmi?.value ?? 0) >= 50 ? 'text-emerald-400' : 'text-red-400'
+                  )}>
+                    {(economicData?.servicesPmi?.value ?? 0) >= 50 ? 'Exp' : 'Con'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Inflation (CPI) */}
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/[0.07] transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Percent className="h-3.5 w-3.5 text-amber-400" />
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400">CPI</p>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-lg font-semibold text-white tabular-nums">
+                    {economicData?.inflation?.value?.toFixed(1) ?? '—'}%
+                  </p>
+                  {economicData?.inflation?.change !== null && (
+                    <span className={cn(
+                      'text-[10px] font-medium',
+                      (economicData?.inflation?.change ?? 0) <= 0 ? 'text-emerald-400' : 'text-red-400'
+                    )}>
+                      {(economicData?.inflation?.change ?? 0) >= 0 ? '+' : ''}{economicData?.inflation?.change?.toFixed(1)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Unemployment */}
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/[0.07] transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="h-3.5 w-3.5 text-cyan-400" />
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400">Unemp</p>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-lg font-semibold text-white tabular-nums">
+                    {economicData?.unemployment?.value?.toFixed(1) ?? '—'}%
+                  </p>
+                  {economicData?.unemployment?.change !== null && (
+                    <span className={cn(
+                      'text-[10px] font-medium',
+                      (economicData?.unemployment?.change ?? 0) <= 0 ? 'text-emerald-400' : 'text-red-400'
+                    )}>
+                      {(economicData?.unemployment?.change ?? 0) >= 0 ? '+' : ''}{economicData?.unemployment?.change?.toFixed(1)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Fed Funds Rate */}
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/[0.07] transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Landmark className="h-3.5 w-3.5 text-purple-400" />
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400">Fed Rate</p>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-lg font-semibold text-white tabular-nums">
+                    {economicData?.federalFundsRate?.value?.toFixed(2) ?? '—'}%
+                  </p>
+                </div>
+              </div>
+
+              {/* GDP Growth */}
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/[0.07] transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="h-3.5 w-3.5 text-emerald-400" />
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400">GDP</p>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-lg font-semibold text-white tabular-nums">
+                    {economicData?.gdp?.value?.toFixed(1) ?? '—'}%
+                  </p>
+                  <span className={cn(
+                    'text-[10px] font-medium',
+                    (economicData?.gdp?.value ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
+                  )}>
+                    {(economicData?.gdp?.value ?? 0) >= 0 ? 'Growth' : 'Decline'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Consumer Confidence */}
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/[0.07] transition-colors col-span-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Smile className="h-3.5 w-3.5 text-rose-400" />
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400">Consumer Confidence</p>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-lg font-semibold text-white tabular-nums">
+                    {economicData?.consumerConfidence?.value?.toFixed(1) ?? '—'}
+                  </p>
+                  {economicData?.consumerConfidence?.change !== null && (
+                    <span className={cn(
+                      'text-[10px] font-medium',
+                      (economicData?.consumerConfidence?.change ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    )}>
+                      {(economicData?.consumerConfidence?.change ?? 0) >= 0 ? '+' : ''}{economicData?.consumerConfidence?.change?.toFixed(1)}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
+
+            {/* AI Market Analysis */}
+            <div className="rounded-xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-transparent to-cyan-500/10 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Brain className="h-4 w-4 text-violet-400" />
+                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  </div>
+                  <span className="text-sm font-medium text-white">AI Market Analysis</span>
+                  <span className="text-[10px] text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">GPT-4o + Claude</span>
+                </div>
+                {aiAnalysis?.marketMood && (
+                  <span className={cn(
+                    'text-xs font-semibold px-2 py-1 rounded-full',
+                    aiAnalysis.marketMood === 'bullish' && 'bg-emerald-500/20 text-emerald-400',
+                    aiAnalysis.marketMood === 'bearish' && 'bg-red-500/20 text-red-400',
+                    aiAnalysis.marketMood === 'neutral' && 'bg-gray-500/20 text-gray-400',
+                    aiAnalysis.marketMood === 'mixed' && 'bg-amber-500/20 text-amber-400'
+                  )}>
+                    {aiAnalysis.marketMood.charAt(0).toUpperCase() + aiAnalysis.marketMood.slice(1)}
+                  </span>
+                )}
+              </div>
+              
+              {isAnalysisLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-5 w-5 text-violet-400 animate-spin mr-2" />
+                  <span className="text-sm text-gray-400">Analyzing markets...</span>
+                </div>
+              ) : aiAnalysis?.analysis ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    {aiAnalysis.analysis}
+                  </p>
+                  {aiAnalysis.sentimentBreakdown && (
+                    <div className="flex items-center gap-4 pt-2 border-t border-white/5">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span className="text-[10px] text-gray-400">
+                          Bullish: {aiAnalysis.sentimentBreakdown.bullish}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-red-400" />
+                        <span className="text-[10px] text-gray-400">
+                          Bearish: {aiAnalysis.sentimentBreakdown.bearish}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-gray-400" />
+                        <span className="text-[10px] text-gray-400">
+                          Neutral: {aiAnalysis.sentimentBreakdown.neutral}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center py-6 text-gray-500">
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  <span className="text-sm">Analysis unavailable</span>
+                </div>
+              )}
+            </div>
+
+      
+            
           </div>
         </div>
       </GlassCard>

@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, Zap, BrainCircuit, BarChart3, Activity } from 'lucide-react'
 
@@ -72,21 +71,15 @@ export function Hero() {
           {/* Left: Copy */}
           <div className="space-y-8">
             {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+            <div
               className="inline-flex items-center gap-2 rounded-full border border-[#00D4FF]/20 bg-[#00D4FF]/[0.08] px-4 py-1.5 text-xs font-medium text-[#00D4FF] glow-cyan"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-[#00D4FF] animate-pulse" />
               Next-Gen Trading Intelligence
-            </motion.div>
+            </div>
 
             {/* Headline */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+            <div
             >
               <h1 className="text-display text-5xl md:text-6xl lg:text-7xl text-white">
                 The{' '}
@@ -99,23 +92,17 @@ export function Hero() {
                 <br />
                 <span className="text-subhead text-gray-300">for the Modern Era.</span>
               </h1>
-            </motion.div>
+            </div>
 
             {/* Subheadline */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+            <p
               className="text-subhead text-lg text-gray-400 max-w-lg"
             >
               Orchestrate AI models, stream institutional-grade data, and analyze 150+ metrics—all in one cinematic workspace built for conviction.
-            </motion.p>
+            </p>
 
             {/* Feature Pills */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+            <div
               className="flex flex-wrap gap-3"
             >
               {featurePills.map((pill) => (
@@ -127,13 +114,10 @@ export function Hero() {
                   {pill.label}
                 </div>
               ))}
-            </motion.div>
+            </div>
 
             {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
+            <div
               className="flex flex-wrap gap-4 pt-4"
             >
               <Link
@@ -152,14 +136,11 @@ export function Hero() {
                 </div>
                 Watch Demo
               </Link>
-            </motion.div>
+            </div>
           </div>
 
           {/* Right: Terminal Mockup */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
+          <div
             className="relative hidden lg:block"
           >
             {/* Glow behind */}
@@ -187,11 +168,8 @@ export function Hero() {
               <div className="p-5 space-y-4">
                 {/* Market Data */}
                 {marketData.map((item, i) => (
-                  <motion.div
+                  <div
                     key={item.symbol}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + i * 0.1 }}
                     className="group rounded-xl border border-white/[0.04] bg-white/[0.01] p-4 hover:border-[#00D4FF]/20 hover:bg-[#00D4FF]/[0.02] transition-all duration-300"
                   >
                     <div className="flex items-center justify-between">
@@ -212,14 +190,11 @@ export function Hero() {
                         />
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
 
                 {/* AI Status */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.9 }}
+                <div
                   className="rounded-xl border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.05] p-4"
                 >
                   <div className="flex items-center gap-3">
@@ -232,19 +207,17 @@ export function Hero() {
                     </div>
                     <div className="flex gap-1">
                       {[0, 1, 2].map((i) => (
-                        <motion.div
+                        <div
                           key={i}
                           className="h-1.5 w-1.5 rounded-full bg-[#8B5CF6]"
-                          animate={{ opacity: [0.3, 1, 0.3] }}
-                          transition={{ duration: 1.2, delay: i * 0.2, repeat: Infinity }}
                         />
                       ))}
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

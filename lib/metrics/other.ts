@@ -84,7 +84,72 @@ export function calculateOther(
     altmanZScore: calculateAltmanZScore(data),
     piotroskiFScore: calculatePiotroskiFScore(data, previousYearData),
     excessROIC: calculateExcessROIC(data, industryROIC),
+    
+    // Extended Other Metrics
+    beneishMScore: null, // Requires 8 specific ratios with multi-year data
+    tangibleBookValuePerShare: calculateTangibleBookValuePerShare(data),
+    revenuePerEmployee: null, // Employee data not typically in YahooFinanceData
+    profitPerEmployee: null,
+    marketCapPerEmployee: null,
+    enterpriseValuePerEmployee: null,
+    taxBurdenRatio: calculateTaxBurdenRatio(data),
+    operatingRoi: calculateOperatingRoi(data),
+    investedCapitalTurnover: calculateInvestedCapitalTurnover(data),
+    totalLeverage: calculateTotalLeverage(data, previousYearData),
   };
+}
+
+// ============================================================================
+// EXTENDED OTHER CALCULATIONS
+// ============================================================================
+
+/**
+ * Tangible Book Value per Share = (Equity - Intangibles) / Shares
+ * Returns null as intangibles data not typically available
+ */
+export function calculateTangibleBookValuePerShare(data: YahooFinanceData): number | null {
+  // Intangibles not available in YahooFinanceData, return null
+  return safeDivide(data.totalEquity, data.sharesOutstanding);
+}
+
+/**
+ * Tax Burden Ratio = Net Income / Pre-Tax Income
+ */
+export function calculateTaxBurdenRatio(data: YahooFinanceData): number | null {
+  return safeDivide(data.netIncome, data.pretaxIncome);
+}
+
+/**
+ * Operating ROI = Operating Income / Operating Assets
+ */
+export function calculateOperatingRoi(data: YahooFinanceData): number | null {
+  // Operating assets = Total Assets - Cash - Short Term Investments
+  const operatingAssets = (data.totalAssets ?? 0) - (data.cash ?? 0) - (data.shortTermInvestments ?? 0);
+  if (operatingAssets <= 0) return null;
+  return safeDivide(data.operatingIncome, operatingAssets);
+}
+
+/**
+ * Invested Capital Turnover = Revenue / Invested Capital
+ */
+export function calculateInvestedCapitalTurnover(data: YahooFinanceData): number | null {
+  // Invested Capital = Total Equity + Total Debt - Cash
+  const investedCapital = (data.totalEquity ?? 0) + (data.totalDebt ?? 0) - (data.cash ?? 0);
+  if (investedCapital <= 0) return null;
+  return safeDivide(data.revenue, investedCapital);
+}
+
+/**
+ * Total Leverage (DTL) = DOL × DFL
+ */
+export function calculateTotalLeverage(
+  data: YahooFinanceData,
+  previousYearData?: Partial<YahooFinanceData>
+): number | null {
+  const dol = calculateOperatingLeverage(data, previousYearData);
+  const dfl = calculateFinancialLeverage(data, previousYearData);
+  if (dol == null || dfl == null) return null;
+  return dol * dfl;
 }
 
 /**

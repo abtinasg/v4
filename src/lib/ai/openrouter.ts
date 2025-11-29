@@ -84,8 +84,8 @@ export const OPENROUTER_MODELS = {
 
 export type OpenRouterModel = keyof typeof OPENROUTER_MODELS
 
-// Default and fallback models - using Claude 3.5 Sonnet for better financial analysis
-export const DEFAULT_MODEL: OpenRouterModel = 'anthropic/claude-3.5-sonnet'
+// Default and fallback models - using Claude Sonnet 4.5 for exceptional financial analysis
+export const DEFAULT_MODEL: OpenRouterModel = 'anthropic/claude-sonnet-4.5'
 export const FALLBACK_MODEL: OpenRouterModel = 'openai/gpt-4o'
 
 // Message types

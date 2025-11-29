@@ -13,10 +13,10 @@ import { safeDivide, safeAdd } from './helpers';
 // ============================================================================
 
 /**
- * Calculate all 7 leverage/solvency metrics from Yahoo Finance data
+ * Calculate all leverage/solvency metrics from Yahoo Finance data
  *
  * @param data - Raw financial data from Yahoo Finance
- * @returns LeverageMetrics object with all 7 ratios
+ * @returns LeverageMetrics object with all ratios
  */
 export function calculateLeverage(data: YahooFinanceData): LeverageMetrics {
   return {
@@ -27,7 +27,92 @@ export function calculateLeverage(data: YahooFinanceData): LeverageMetrics {
     debtServiceCoverage: calculateDebtServiceCoverage(data),
     equityMultiplier: calculateEquityMultiplier(data),
     debtToEBITDA: calculateDebtToEBITDA(data),
+    
+    // Extended Leverage
+    netDebtToEBITDA: calculateNetDebtToEBITDA(data),
+    debtToCapital: calculateDebtToCapital(data),
+    longTermDebtRatio: calculateLongTermDebtRatio(data),
+    fixedChargeCoverage: calculateFixedChargeCoverage(data),
+    cashFlowCoverage: calculateCashFlowCoverage(data),
+    timesInterestEarned: calculateTimesInterestEarned(data),
+    capitalGearing: calculateCapitalGearing(data),
+    debtCapacityUtilization: calculateDebtCapacityUtilization(data),
   };
+}
+
+// ============================================================================
+// EXTENDED LEVERAGE CALCULATIONS
+// ============================================================================
+
+/**
+ * Net Debt-to-EBITDA = (Total Debt - Cash) / EBITDA
+ */
+export function calculateNetDebtToEBITDA(data: YahooFinanceData): number | null {
+  if (!data.ebitda || data.ebitda <= 0) return null;
+  const netDebt = (data.totalDebt ?? 0) - (data.cash ?? 0);
+  return safeDivide(netDebt, data.ebitda);
+}
+
+/**
+ * Debt-to-Capital = Total Debt / (Total Debt + Equity)
+ */
+export function calculateDebtToCapital(data: YahooFinanceData): number | null {
+  const capital = safeAdd(data.totalDebt ?? 0, data.totalEquity ?? 0);
+  if (capital === 0) return null;
+  return safeDivide(data.totalDebt, capital);
+}
+
+/**
+ * Long-Term Debt Ratio = Long-Term Debt / Total Assets
+ */
+export function calculateLongTermDebtRatio(data: YahooFinanceData): number | null {
+  return safeDivide(data.longTermDebt, data.totalAssets);
+}
+
+/**
+ * Fixed Charge Coverage = (EBIT + Fixed Charges) / (Fixed Charges + Interest)
+ * Approximated using operating lease payments as fixed charges
+ */
+export function calculateFixedChargeCoverage(data: YahooFinanceData): number | null {
+  // Using interest expense as primary fixed charge (simplified)
+  const fixedCharges = data.interestExpense ?? 0;
+  if (fixedCharges === 0) return null;
+  const numerator = (data.ebit ?? 0) + fixedCharges;
+  return safeDivide(numerator, fixedCharges);
+}
+
+/**
+ * Cash Flow Coverage = Operating Cash Flow / Total Debt
+ */
+export function calculateCashFlowCoverage(data: YahooFinanceData): number | null {
+  return safeDivide(data.operatingCashFlow, data.totalDebt);
+}
+
+/**
+ * Times Interest Earned (TIE) = EBIT / Interest Expense
+ * Same as Interest Coverage but commonly named differently
+ */
+export function calculateTimesInterestEarned(data: YahooFinanceData): number | null {
+  if (!data.interestExpense || data.interestExpense === 0) return null;
+  return safeDivide(data.ebit, data.interestExpense);
+}
+
+/**
+ * Capital Gearing = (Long-Term Debt + Preferred Stock) / Equity
+ * Simplified to Long-Term Debt / Equity if preferred stock not available
+ */
+export function calculateCapitalGearing(data: YahooFinanceData): number | null {
+  return safeDivide(data.longTermDebt, data.totalEquity);
+}
+
+/**
+ * Debt Capacity Utilization = Total Debt / (EBITDA * 4)
+ * Approximates how much of theoretical debt capacity (typically 4x EBITDA) is used
+ */
+export function calculateDebtCapacityUtilization(data: YahooFinanceData): number | null {
+  if (!data.ebitda || data.ebitda <= 0) return null;
+  const debtCapacity = data.ebitda * 4;
+  return safeDivide(data.totalDebt, debtCapacity);
 }
 
 // ============================================================================
@@ -486,6 +571,26 @@ export function interpretDebtToEBITDA(
 }
 
 /**
+ * Generic interpretation for extended leverage metrics
+ */
+function interpretExtendedLeverage(value: number | null, name: string): MetricInterpretation {
+  if (value == null) {
+    return {
+      level: 'neutral',
+      message: `Insufficient data to calculate ${name}`,
+      threshold: 'N/A',
+    };
+  }
+  // Default interpretation for most leverage ratios
+  if (value < 0.5) {
+    return { level: 'good', message: `Low ${name}`, threshold: '< 0.5' };
+  } else if (value <= 1.0) {
+    return { level: 'neutral', message: `Moderate ${name}`, threshold: '0.5 - 1.0' };
+  }
+  return { level: 'bad', message: `High ${name}`, threshold: '> 1.0' };
+}
+
+/**
  * Get comprehensive interpretation of all leverage metrics
  */
 export function interpretAllLeverageMetrics(
@@ -503,6 +608,16 @@ export function interpretAllLeverageMetrics(
     ),
     equityMultiplier: interpretEquityMultiplier(metrics.equityMultiplier),
     debtToEBITDA: interpretDebtToEBITDA(metrics.debtToEBITDA),
+    
+    // Extended Leverage Interpretations
+    netDebtToEBITDA: interpretExtendedLeverage(metrics.netDebtToEBITDA, 'Net Debt-to-EBITDA'),
+    debtToCapital: interpretExtendedLeverage(metrics.debtToCapital, 'Debt-to-Capital'),
+    longTermDebtRatio: interpretExtendedLeverage(metrics.longTermDebtRatio, 'Long-Term Debt Ratio'),
+    fixedChargeCoverage: interpretExtendedLeverage(metrics.fixedChargeCoverage, 'Fixed Charge Coverage'),
+    cashFlowCoverage: interpretExtendedLeverage(metrics.cashFlowCoverage, 'Cash Flow Coverage'),
+    timesInterestEarned: interpretExtendedLeverage(metrics.timesInterestEarned, 'Times Interest Earned'),
+    capitalGearing: interpretExtendedLeverage(metrics.capitalGearing, 'Capital Gearing'),
+    debtCapacityUtilization: interpretExtendedLeverage(metrics.debtCapacityUtilization, 'Debt Capacity Utilization'),
   };
 }
 

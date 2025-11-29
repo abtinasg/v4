@@ -183,6 +183,14 @@ export function calculateScores(
     riskScore,
     healthScore,
     totalScore,
+    
+    // Extended Scores (simplified calculations)
+    momentumScore: null, // Requires price history
+    qualityScore: profitabilityScore, // Similar to profitability
+    stabilityScore: healthScore, // Similar to health
+    efficiencyScore: null, // Requires efficiency metrics calculation
+    solvencyScore: healthScore, // Similar to health
+    technicalScore: null, // Requires technical indicators
   };
 }
 

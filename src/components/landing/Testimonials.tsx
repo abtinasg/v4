@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Quote, Star } from 'lucide-react'
 
 const testimonials = [
@@ -46,34 +45,24 @@ export function Testimonials() {
 
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Stats Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
           className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20 pb-20 border-b border-white/[0.04]"
         >
           {stats.map((stat, i) => (
-            <motion.div
+            <div
               key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
               className="text-center"
             >
               <div className="text-3xl md:text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#00D4FF] to-[#8B5CF6] mb-2">
                 {stat.value}
               </div>
               <div className="text-sm text-gray-500">{stat.label}</div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
           className="text-center mb-16"
         >
           <h2 className="text-display text-3xl md:text-4xl lg:text-5xl text-white mb-4">
@@ -85,17 +74,13 @@ export function Testimonials() {
           <p className="text-subhead text-gray-400 max-w-xl mx-auto">
             Join thousands of traders who've upgraded their edge.
           </p>
-        </motion.div>
+        </div>
 
         {/* Testimonials Grid */}
         <div className="grid md:grid-cols-3 gap-6">
           {testimonials.map((testimonial, i) => (
-            <motion.div
+            <div
               key={testimonial.author}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
               className="group relative rounded-2xl border border-white/[0.05] bg-[#0A0D12]/60 p-8 backdrop-blur-sm hover:border-white/[0.08] transition-all duration-500"
             >
               {/* Quote icon */}
@@ -123,7 +108,7 @@ export function Testimonials() {
                   <div className="text-xs text-gray-500">{testimonial.role}</div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

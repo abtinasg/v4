@@ -13,10 +13,10 @@ import { safeDivide, safeSubtract, safeAdd } from './helpers';
 // ============================================================================
 
 /**
- * Calculate all 7 liquidity metrics from Yahoo Finance data
+ * Calculate all liquidity metrics from Yahoo Finance data
  *
  * @param data - Raw financial data from Yahoo Finance
- * @returns LiquidityMetrics object with all 7 ratios
+ * @returns LiquidityMetrics object with all ratios
  */
 export function calculateLiquidity(data: YahooFinanceData): LiquidityMetrics {
   return {
@@ -27,7 +27,65 @@ export function calculateLiquidity(data: YahooFinanceData): LiquidityMetrics {
     daysInventoryOutstanding: calculateDaysInventoryOutstanding(data),
     daysPayablesOutstanding: calculateDaysPayablesOutstanding(data),
     cashConversionCycle: calculateCashConversionCycle(data),
+    
+    // Extended Liquidity
+    absoluteLiquidityRatio: calculateAbsoluteLiquidityRatio(data),
+    defensiveInterval: calculateDefensiveInterval(data),
+    netWorkingCapitalRatio: calculateNetWorkingCapitalRatio(data),
+    operatingCashFlowRatio: calculateOperatingCashFlowRatio(data),
+    cashBurnRate: calculateCashBurnRate(data),
   };
+}
+
+// ============================================================================
+// EXTENDED LIQUIDITY CALCULATIONS
+// ============================================================================
+
+/**
+ * Absolute Liquidity Ratio = Cash / Current Liabilities
+ * (More stringent than cash ratio, excludes short-term investments)
+ */
+export function calculateAbsoluteLiquidityRatio(data: YahooFinanceData): number | null {
+  return safeDivide(data.cash, data.currentLiabilities);
+}
+
+/**
+ * Defensive Interval = (Cash + Receivables + Marketable Securities) / Daily Operating Expenses
+ * Measures days a company can operate without additional cash inflows
+ */
+export function calculateDefensiveInterval(data: YahooFinanceData): number | null {
+  const liquidAssets = safeAdd(data.cash ?? 0, safeAdd(data.netReceivables ?? 0, data.shortTermInvestments ?? 0));
+  const operatingExpenses = data.operatingExpenses ?? data.costOfRevenue ?? 0;
+  const dailyExpenses = operatingExpenses / 365;
+  if (dailyExpenses === 0) return null;
+  return safeDivide(liquidAssets, dailyExpenses);
+}
+
+/**
+ * Net Working Capital Ratio = (Current Assets - Current Liabilities) / Total Assets
+ */
+export function calculateNetWorkingCapitalRatio(data: YahooFinanceData): number | null {
+  const nwc = safeSubtract(data.currentAssets ?? 0, data.currentLiabilities ?? 0);
+  return safeDivide(nwc, data.totalAssets);
+}
+
+/**
+ * Operating Cash Flow Ratio = Operating Cash Flow / Current Liabilities
+ */
+export function calculateOperatingCashFlowRatio(data: YahooFinanceData): number | null {
+  return safeDivide(data.operatingCashFlow, data.currentLiabilities);
+}
+
+/**
+ * Cash Burn Rate = (Beginning Cash - Ending Cash) / Number of Months
+ * Simplified as Operating Cash Flow / 12 when negative (burning cash)
+ */
+export function calculateCashBurnRate(data: YahooFinanceData): number | null {
+  if (!data.operatingCashFlow) return null;
+  // If positive cash flow, no burn rate
+  if (data.operatingCashFlow > 0) return 0;
+  // Return monthly burn rate (positive number)
+  return Math.abs(data.operatingCashFlow) / 12;
 }
 
 // ============================================================================
@@ -478,6 +536,25 @@ export function interpretCashConversionCycle(
 }
 
 /**
+ * Generic interpretation for extended liquidity metrics
+ */
+function interpretExtendedLiquidity(value: number | null, name: string): MetricInterpretation {
+  if (value == null) {
+    return {
+      level: 'neutral',
+      message: `Insufficient data to calculate ${name}`,
+      threshold: 'N/A',
+    };
+  }
+  if (value >= 1.0) {
+    return { level: 'good', message: `Strong ${name}`, threshold: '>= 1.0' };
+  } else if (value >= 0.5) {
+    return { level: 'neutral', message: `Moderate ${name}`, threshold: '0.5 - 1.0' };
+  }
+  return { level: 'bad', message: `Low ${name}`, threshold: '< 0.5' };
+}
+
+/**
  * Get comprehensive interpretation of all liquidity metrics
  */
 export function interpretAllLiquidityMetrics(
@@ -499,6 +576,13 @@ export function interpretAllLiquidityMetrics(
     cashConversionCycle: interpretCashConversionCycle(
       metrics.cashConversionCycle
     ),
+    
+    // Extended Liquidity Interpretations
+    absoluteLiquidityRatio: interpretExtendedLiquidity(metrics.absoluteLiquidityRatio, 'Absolute Liquidity Ratio'),
+    defensiveInterval: interpretExtendedLiquidity(metrics.defensiveInterval, 'Defensive Interval'),
+    netWorkingCapitalRatio: interpretExtendedLiquidity(metrics.netWorkingCapitalRatio, 'Net Working Capital Ratio'),
+    operatingCashFlowRatio: interpretExtendedLiquidity(metrics.operatingCashFlowRatio, 'Operating Cash Flow Ratio'),
+    cashBurnRate: interpretExtendedLiquidity(metrics.cashBurnRate, 'Cash Burn Rate'),
   };
 }
 

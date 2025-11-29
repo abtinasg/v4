@@ -1,12 +1,63 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
-import { MessageSquare } from 'lucide-react'
+import { useEffect, useRef, useCallback, useState } from 'react'
+import { MessageSquare, RefreshCw } from 'lucide-react'
 import { useChatStore } from '@/lib/stores/chat-store'
 import { Message } from '@/components/ai/Message'
 import { MessageInput } from '@/components/ai/MessageInput'
 import { SuggestedQuestions } from '@/components/ai/SuggestedQuestions'
 import type { FeedbackType } from '@/lib/stores/chat-store'
+
+// Types for market data
+interface MarketIndex {
+  symbol: string
+  name: string
+  price: number
+  change: number
+  changePercent: number
+}
+
+interface EconomicIndicator {
+  value: number | null
+  change: number | null
+}
+
+interface EconomicData {
+  gdp: EconomicIndicator | null
+  unemployment: EconomicIndicator | null
+  inflation: EconomicIndicator | null
+  federalFundsRate: EconomicIndicator | null
+  consumerConfidence: EconomicIndicator | null
+  manufacturingPmi: EconomicIndicator | null
+  servicesPmi: EconomicIndicator | null
+}
+
+interface NewsItem {
+  headline: string
+  summary?: string
+  category?: string
+  sentiment: 'bullish' | 'bearish' | 'neutral'
+  source?: string
+  timeAgo?: string
+}
+
+interface Mover {
+  symbol: string
+  name?: string
+  price?: number
+  change?: number
+  changePercent?: number
+}
+
+interface FullMarketContext {
+  indices?: MarketIndex[]
+  economicIndicators?: EconomicData
+  topGainers?: Mover[]
+  topLosers?: Mover[]
+  news?: NewsItem[]
+  sectors?: { name: string; change: number }[]
+  lastUpdated?: string
+}
 
 // Chat API Hook
 function useChatApi() {
@@ -82,6 +133,8 @@ function useChatApi() {
 
 export default function AIAssistantPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [marketContext, setMarketContext] = useState<FullMarketContext | null>(null)
+  const [isLoadingContext, setIsLoadingContext] = useState(true)
   
   // Store state
   const messages = useChatStore((s) => s.messages)
@@ -99,15 +152,125 @@ export default function AIAssistantPage() {
   
   const { sendMessage, abort } = useChatApi()
 
-  // Set context for this page
-  useEffect(() => {
-    setContext({
-      type: 'general',
-      pageContext: {
-        currentPage: 'AI Assistant',
-      },
-    })
+  // Fetch comprehensive market data for AI context
+  const fetchMarketContext = useCallback(async () => {
+    setIsLoadingContext(true)
+    try {
+      const [overviewRes, moversRes, newsRes, economicRes, sectorsRes] = await Promise.allSettled([
+        fetch('/api/market/overview'),
+        fetch('/api/market/movers'),
+        fetch('/api/market/news?limit=15'),
+        fetch('/api/economic/indicators'),
+        fetch('/api/market/sectors'),
+      ])
+
+      const newContext: FullMarketContext = { lastUpdated: new Date().toISOString() }
+
+      // Market indices
+      if (overviewRes.status === 'fulfilled' && overviewRes.value.ok) {
+        const data = await overviewRes.value.json()
+        newContext.indices = data.indices || []
+      }
+
+      // Top movers
+      if (moversRes.status === 'fulfilled' && moversRes.value.ok) {
+        const data = await moversRes.value.json()
+        newContext.topGainers = data.gainers?.slice(0, 10) || []
+        newContext.topLosers = data.losers?.slice(0, 10) || []
+      }
+
+      // News
+      if (newsRes.status === 'fulfilled' && newsRes.value.ok) {
+        const data = await newsRes.value.json()
+        newContext.news = data.news?.slice(0, 15) || []
+      }
+
+      // Economic indicators
+      if (economicRes.status === 'fulfilled' && economicRes.value.ok) {
+        const data = await economicRes.value.json()
+        if (data.success) {
+          newContext.economicIndicators = data.data
+        }
+      }
+
+      // Sectors
+      if (sectorsRes.status === 'fulfilled' && sectorsRes.value.ok) {
+        const data = await sectorsRes.value.json()
+        newContext.sectors = data.sectors || []
+      }
+
+      setMarketContext(newContext)
+      
+      // Update chat store context with comprehensive data
+      // Map the local MarketIndex (with 'price') to the store type (with 'value')
+      const mappedIndices = newContext.indices?.map(i => ({
+        symbol: i.symbol,
+        name: i.name,
+        value: i.price,
+        change: i.change,
+        changePercent: i.changePercent,
+      }));
+      
+      setContext({
+        type: 'general',
+        market: {
+          indices: mappedIndices,
+          topGainers: newContext.topGainers?.map(g => ({ symbol: g.symbol, change: g.changePercent || 0 })),
+          topLosers: newContext.topLosers?.map(l => ({ symbol: l.symbol, change: l.changePercent || 0 })),
+          sectorPerformance: newContext.sectors?.reduce((acc, s) => ({ ...acc, [s.name]: s.change }), {}),
+        },
+        newsContext: {
+          recentNews: (newContext.news || []).map(n => ({
+            headline: n.headline,
+            summary: n.summary || '',
+            category: n.category || 'General',
+            sentiment: n.sentiment,
+            source: n.source || '',
+            timeAgo: n.timeAgo || '',
+          })),
+          newsCount: newContext.news?.length || 0,
+          sentimentBreakdown: {
+            bullish: newContext.news?.filter(n => n.sentiment === 'bullish').length || 0,
+            bearish: newContext.news?.filter(n => n.sentiment === 'bearish').length || 0,
+            neutral: newContext.news?.filter(n => n.sentiment === 'neutral').length || 0,
+          },
+        },
+        terminalContext: {
+          indices: newContext.indices,
+          sectors: newContext.sectors,
+          topGainers: newContext.topGainers?.map(g => ({
+            symbol: g.symbol,
+            name: g.name || g.symbol,
+            price: g.price || 0,
+            changePercent: g.changePercent || 0,
+          })),
+          topLosers: newContext.topLosers?.map(l => ({
+            symbol: l.symbol,
+            name: l.name || l.symbol,
+            price: l.price || 0,
+            changePercent: l.changePercent || 0,
+          })),
+        },
+        pageContext: {
+          currentPage: 'AI Assistant',
+        },
+        // @ts-ignore - extend context with economic data
+        economicIndicators: newContext.economicIndicators,
+      })
+    } catch (error) {
+      console.error('Error fetching market context:', error)
+    } finally {
+      setIsLoadingContext(false)
+    }
   }, [setContext])
+
+  // Set context for this page and fetch market data
+  useEffect(() => {
+    fetchMarketContext()
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchMarketContext, 300000)
+    return () => clearInterval(interval)
+  }, [fetchMarketContext])
 
   // Auto-scroll
   useEffect(() => {
@@ -168,6 +331,15 @@ export default function AIAssistantPage() {
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <button
+            onClick={fetchMarketContext}
+            disabled={isLoadingContext}
+            className="px-3 py-1.5 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors flex items-center gap-1.5"
+            title="Refresh market data"
+          >
+            <RefreshCw className={`w-3 h-3 ${isLoadingContext ? 'animate-spin' : ''}`} />
+            Refresh Data
+          </button>
+          <button
             onClick={clearMessages}
             className="px-3 py-1.5 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors"
           >
@@ -175,7 +347,9 @@ export default function AIAssistantPage() {
           </button>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-xs text-green-400">Online</span>
+            <span className="text-xs text-green-400">
+              {isLoadingContext ? 'Loading...' : 'Online'}
+            </span>
           </div>
         </div>
       </div>

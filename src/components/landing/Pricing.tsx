@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Check, Zap, Crown, Building2 } from 'lucide-react'
 
@@ -74,10 +73,7 @@ export function Pricing() {
 
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+        <div
           className="text-center mb-16"
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.06] px-4 py-1.5 text-xs font-medium text-[#8B5CF6] mb-6">
@@ -95,17 +91,13 @@ export function Pricing() {
           <p className="text-subhead text-gray-400 max-w-xl mx-auto">
             From casual exploration to institutional power—pick the plan that matches your ambition.
           </p>
-        </motion.div>
+        </div>
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           {plans.map((plan, i) => (
-            <motion.div
+            <div
               key={plan.name}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
               className={`relative rounded-2xl border ${plan.popular ? 'border-[#8B5CF6]/40' : 'border-white/[0.05]'} bg-[#0A0D12]/80 backdrop-blur-xl overflow-hidden`}
             >
               {/* Popular badge */}
@@ -166,20 +158,16 @@ export function Pricing() {
                   {plan.cta}
                 </Link>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Bottom note */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5 }}
+        <p
           className="text-center text-sm text-gray-600 mt-10"
         >
           All plans include 14-day free trial. No credit card required.
-        </motion.p>
+        </p>
       </div>
     </section>
   )

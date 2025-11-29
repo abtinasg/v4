@@ -13,13 +13,14 @@ import { safeDivide, safeMultiply, safeSubtract, safeAdd } from './helpers';
 // ============================================================================
 
 /**
- * Calculate all 8 profitability metrics from Yahoo Finance data
+ * Calculate all profitability metrics from Yahoo Finance data
  *
  * @param data - Raw financial data from Yahoo Finance
- * @returns ProfitabilityMetrics object with all 8 ratios
+ * @returns ProfitabilityMetrics object with all ratios
  */
 export function calculateProfitability(
-  data: YahooFinanceData
+  data: YahooFinanceData,
+  wacc: number = 0.10
 ): ProfitabilityMetrics {
   return {
     grossProfitMargin: calculateGrossProfitMargin(data),
@@ -30,7 +31,104 @@ export function calculateProfitability(
     roe: calculateROE(data),
     roic: calculateROIC(data),
     noplat: calculateNOPLAT(data),
+    
+    // Extended Profitability
+    roce: calculateROCE(data),
+    rona: calculateRONA(data),
+    cashRoa: calculateCashROA(data),
+    cashRoe: calculateCashROE(data),
+    pretaxMargin: calculatePretaxMargin(data),
+    ebitMargin: calculateEBITMargin(data),
+    operatingRoa: calculateOperatingROA(data),
+    economicProfit: calculateEconomicProfit(data, wacc),
+    residualIncome: calculateResidualIncome(data, wacc),
+    spreadAboveWacc: calculateSpreadAboveWacc(data, wacc),
   };
+}
+
+// ============================================================================
+// EXTENDED PROFITABILITY CALCULATIONS
+// ============================================================================
+
+/**
+ * Return on Capital Employed = EBIT / (Total Assets - Current Liabilities)
+ */
+export function calculateROCE(data: YahooFinanceData): number | null {
+  const capitalEmployed = safeSubtract(data.totalAssets ?? 0, data.currentLiabilities ?? 0);
+  if (!capitalEmployed || capitalEmployed <= 0) return null;
+  return safeDivide(data.ebit, capitalEmployed);
+}
+
+/**
+ * Return on Net Assets = Net Income / Net Assets
+ * Simplified: Net Assets = Total Assets - Current Liabilities
+ */
+export function calculateRONA(data: YahooFinanceData): number | null {
+  const netAssets = safeSubtract(data.totalAssets ?? 0, data.currentLiabilities ?? 0);
+  if (!netAssets || netAssets <= 0) return null;
+  return safeDivide(data.netIncome, netAssets);
+}
+
+/**
+ * Cash Return on Assets = Operating Cash Flow / Total Assets
+ */
+export function calculateCashROA(data: YahooFinanceData): number | null {
+  return safeDivide(data.operatingCashFlow, data.totalAssets);
+}
+
+/**
+ * Cash Return on Equity = Operating Cash Flow / Equity
+ */
+export function calculateCashROE(data: YahooFinanceData): number | null {
+  return safeDivide(data.operatingCashFlow, data.totalEquity);
+}
+
+/**
+ * Pre-Tax Profit Margin = Pre-Tax Income / Revenue
+ */
+export function calculatePretaxMargin(data: YahooFinanceData): number | null {
+  return safeDivide(data.pretaxIncome, data.revenue);
+}
+
+/**
+ * EBIT Margin = EBIT / Revenue
+ */
+export function calculateEBITMargin(data: YahooFinanceData): number | null {
+  return safeDivide(data.ebit, data.revenue);
+}
+
+/**
+ * Operating ROA = Operating Income / Total Assets
+ */
+export function calculateOperatingROA(data: YahooFinanceData): number | null {
+  return safeDivide(data.operatingIncome, data.totalAssets);
+}
+
+/**
+ * Economic Profit (EVA) = NOPAT - (Invested Capital × WACC)
+ */
+export function calculateEconomicProfit(data: YahooFinanceData, wacc: number): number | null {
+  const nopat = calculateNOPLAT(data);
+  if (nopat == null) return null;
+  const investedCapital = (data.totalEquity ?? 0) + (data.totalDebt ?? 0) - (data.cash ?? 0);
+  return nopat - (investedCapital * wacc);
+}
+
+/**
+ * Residual Income = Net Income - (Equity × Cost of Equity)
+ */
+export function calculateResidualIncome(data: YahooFinanceData, costOfEquity: number): number | null {
+  if (!data.netIncome || !data.totalEquity) return null;
+  return data.netIncome - (data.totalEquity * costOfEquity);
+}
+
+/**
+ * Spread Above WACC = ROIC - WACC
+ */
+export function calculateSpreadAboveWacc(data: YahooFinanceData, wacc: number): number | null {
+  const roic = calculateROIC(data);
+  if (roic == null) return null;
+  return roic - wacc;
 }
 
 // ============================================================================
@@ -561,6 +659,25 @@ export function interpretNOPLAT(noplat: number | null): MetricInterpretation {
 }
 
 /**
+ * Generic interpretation for extended profitability metrics
+ */
+function interpretExtendedProfitability(value: number | null, name: string): MetricInterpretation {
+  if (value == null) {
+    return {
+      level: 'neutral',
+      message: `Insufficient data to calculate ${name}`,
+      threshold: 'N/A',
+    };
+  }
+  if (value > 0.15) {
+    return { level: 'good', message: `Strong ${name}`, threshold: '> 15%' };
+  } else if (value >= 0) {
+    return { level: 'neutral', message: `Moderate ${name}`, threshold: '0 - 15%' };
+  }
+  return { level: 'bad', message: `Negative ${name}`, threshold: '< 0' };
+}
+
+/**
  * Get comprehensive interpretation of all profitability metrics
  */
 export function interpretAllProfitabilityMetrics(
@@ -575,6 +692,18 @@ export function interpretAllProfitabilityMetrics(
     roe: interpretROE(metrics.roe),
     roic: interpretROIC(metrics.roic),
     noplat: interpretNOPLAT(metrics.noplat),
+    
+    // Extended Profitability Interpretations
+    roce: interpretExtendedProfitability(metrics.roce, 'ROCE'),
+    rona: interpretExtendedProfitability(metrics.rona, 'RONA'),
+    cashRoa: interpretExtendedProfitability(metrics.cashRoa, 'Cash ROA'),
+    cashRoe: interpretExtendedProfitability(metrics.cashRoe, 'Cash ROE'),
+    pretaxMargin: interpretExtendedProfitability(metrics.pretaxMargin, 'Pre-Tax Margin'),
+    ebitMargin: interpretExtendedProfitability(metrics.ebitMargin, 'EBIT Margin'),
+    operatingRoa: interpretExtendedProfitability(metrics.operatingRoa, 'Operating ROA'),
+    economicProfit: interpretExtendedProfitability(metrics.economicProfit, 'Economic Profit'),
+    residualIncome: interpretExtendedProfitability(metrics.residualIncome, 'Residual Income'),
+    spreadAboveWacc: interpretExtendedProfitability(metrics.spreadAboveWacc, 'Spread Above WACC'),
   };
 }
 
