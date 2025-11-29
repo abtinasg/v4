@@ -100,7 +100,7 @@ export interface PortfolioState {
 // ============================================================
 
 const defaultSettings: PortfolioSettings = {
-  refreshInterval: 10, // 10 seconds
+  refreshInterval: 30, // 30 seconds - optimized for performance
   showDayChange: true,
   showPercent: true,
   sortBy: 'value',
@@ -143,10 +143,10 @@ export const usePortfolioStore = create<PortfolioState>()(
 
       // Fetch portfolio from API
       fetchPortfolio: async () => {
-        const { isLoading } = get()
+        const { isLoading, isRefreshing } = get()
         
         // Prevent concurrent fetches
-        if (isLoading) return
+        if (isLoading || isRefreshing) return
         
         set({ isRefreshing: true, error: null })
         

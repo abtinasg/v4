@@ -121,12 +121,7 @@ const HoldingRow = memo(function HoldingRow({
 
   return (
     <>
-      <motion.tr
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 20 }}
-        className="border-b border-white/5 hover:bg-white/[0.02] transition-colors"
-      >
+      <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
         {/* Symbol & Name */}
         <td className="py-3 px-4">
           <div className="flex items-center gap-3">
@@ -247,7 +242,7 @@ const HoldingRow = memo(function HoldingRow({
             </DropdownMenuContent>
           </DropdownMenu>
         </td>
-      </motion.tr>
+      </tr>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
@@ -669,11 +664,7 @@ export const PortfolioTable = memo(function PortfolioTable() {
 
   if (filteredHoldings.length === 0 && !isLoading) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex flex-col gap-6"
-      >
+      <div className="flex flex-col gap-6">
         {toolbar}
         <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-dashed border-white/20">
           <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
@@ -684,7 +675,7 @@ export const PortfolioTable = memo(function PortfolioTable() {
             Adjust your filters or add a new position to see it here.
           </p>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
@@ -694,16 +685,14 @@ export const PortfolioTable = memo(function PortfolioTable() {
         {toolbar}
         <p className="text-xs text-white/40 mb-3">{timeframeBadges[timeframe]}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          <AnimatePresence>
-            {filteredHoldings.map((holding) => (
-              <HoldingCard
-                key={holding.id}
-                holding={holding}
-                onEdit={openEditModal}
-                onDelete={deleteHolding}
-              />
-            ))}
-          </AnimatePresence>
+          {filteredHoldings.map((holding) => (
+            <HoldingCard
+              key={holding.id}
+              holding={holding}
+              onEdit={openEditModal}
+              onDelete={deleteHolding}
+            />
+          ))}
         </div>
       </div>
     )
@@ -762,16 +751,14 @@ export const PortfolioTable = memo(function PortfolioTable() {
           </tr>
         </thead>
         <tbody>
-          <AnimatePresence mode="popLayout">
-            {filteredHoldings.map((holding) => (
-              <HoldingRow
-                key={holding.id}
-                holding={holding}
-                onEdit={openEditModal}
-                onDelete={deleteHolding}
-              />
-            ))}
-          </AnimatePresence>
+          {filteredHoldings.map((holding) => (
+            <HoldingRow
+              key={holding.id}
+              holding={holding}
+              onEdit={openEditModal}
+              onDelete={deleteHolding}
+            />
+          ))}
         </tbody>
       </table>
     </div>

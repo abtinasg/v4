@@ -56,10 +56,7 @@ const SummaryCard = memo(function SummaryCard({
   const progress = typeof change === 'number' ? Math.min(100, Math.abs(change)) : null
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.3 }}
+    <div
       className={cn(
         'relative overflow-hidden rounded-2xl p-4 sm:p-5 border',
         'bg-gradient-to-br from-white/5 to-white/[0.03] backdrop-blur-sm',
@@ -119,7 +116,7 @@ const SummaryCard = memo(function SummaryCard({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 })
 

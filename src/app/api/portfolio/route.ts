@@ -18,6 +18,10 @@ export const dynamic = 'force-dynamic'
 
 const yahooFinance = new YahooFinance()
 
+// Cache for price data (5 seconds TTL)
+const priceCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_TTL = 5000 // 5 seconds
+
 // Types
 interface HoldingWithPrice {
   id: string
@@ -53,8 +57,16 @@ interface PortfolioSummary {
 // Fetch real-time price for a symbol
 async function fetchRealTimePrice(symbol: string) {
   try {
+    // Check cache first
+    const cached = priceCache.get(symbol)
+    const now = Date.now()
+    
+    if (cached && (now - cached.timestamp) < CACHE_TTL) {
+      return cached.data
+    }
+    
     const quote = await yahooFinance.quote(symbol)
-    return {
+    const data = {
       symbol: quote.symbol || symbol,
       name: quote.shortName || quote.longName || symbol,
       price: quote.regularMarketPrice || 0,
@@ -64,6 +76,19 @@ async function fetchRealTimePrice(symbol: string) {
       marketCap: quote.marketCap,
       pe: quote.trailingPE,
     }
+    
+    // Update cache
+    priceCache.set(symbol, { data, timestamp: now })
+    
+    // Clean old cache entries (keep last 100)
+    if (priceCache.size > 100) {
+      const entries = Array.from(priceCache.entries())
+      entries.sort((a, b) => b[1].timestamp - a[1].timestamp)
+      priceCache.clear()
+      entries.slice(0, 100).forEach(([k, v]) => priceCache.set(k, v))
+    }
+    
+    return data
   } catch (error) {
     console.error(`Error fetching price for ${symbol}:`, error)
     return null

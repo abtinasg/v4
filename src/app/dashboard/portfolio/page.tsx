@@ -11,7 +11,7 @@
 
 'use client'
 
-import React, { useEffect, useCallback, useRef } from 'react'
+import React, { useEffect, useCallback, useRef, Suspense, lazy } from 'react'
 import { motion } from 'framer-motion'
 import {
   Plus,
@@ -21,6 +21,7 @@ import {
   PieChart,
   List,
   LayoutGrid,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -44,15 +45,17 @@ import {
   PortfolioTable,
   AddHoldingModal,
   EditHoldingModal,
-  AllocationChart,
 } from '@/components/portfolio'
 import { PortfolioContextUpdater } from '@/components/ai'
+
+// Lazy load heavy components
+const AllocationChart = lazy(() => import('@/components/portfolio/AllocationChart').then(m => ({ default: m.AllocationChart })))
 
 // ============================================================
 // PORTFOLIO PAGE
 // ============================================================
 
-export default function PortfolioPage() {
+function PortfolioPage() {
   const fetchPortfolio = usePortfolioStore((state) => state.fetchPortfolio)
   const openAddModal = usePortfolioStore((state) => state.openAddModal)
   const settings = usePortfolioStore((state) => state.settings)
@@ -75,9 +78,12 @@ export default function PortfolioPage() {
       clearInterval(intervalRef.current)
     }
 
-    intervalRef.current = setInterval(() => {
-      fetchPortfolio()
-    }, settings.refreshInterval * 1000)
+    // Only enable auto-refresh if refresh interval is less than 60 seconds
+    if (settings.refreshInterval < 60) {
+      intervalRef.current = setInterval(() => {
+        fetchPortfolio()
+      }, settings.refreshInterval * 1000)
+    }
 
     return () => {
       if (intervalRef.current) {
@@ -133,7 +139,7 @@ export default function PortfolioPage() {
   return (
     <div className="min-h-screen bg-[#0a0d12]">
       {/* Portfolio AI Context Updater - fetches comprehensive data for AI */}
-      <PortfolioContextUpdater refreshInterval={60000} />
+      <PortfolioContextUpdater refreshInterval={120000} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
@@ -236,13 +242,9 @@ export default function PortfolioPage() {
         </div>
 
         {/* Summary Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
+        <div className="mb-6">
           <PortfolioSummary />
-        </motion.div>
+        </div>
 
         {/* Main Content */}
         <Tabs defaultValue="holdings" className="space-y-6">
@@ -265,9 +267,7 @@ export default function PortfolioPage() {
 
           {/* Holdings Tab */}
           <TabsContent value="holdings">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <div
               className={cn(
                 'rounded-xl overflow-hidden',
                 'bg-gradient-to-br from-white/5 to-white/[0.02]',
@@ -275,14 +275,12 @@ export default function PortfolioPage() {
               )}
             >
               <PortfolioTable />
-            </motion.div>
+            </div>
           </TabsContent>
 
           {/* Allocation Tab */}
           <TabsContent value="allocation">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <div
               className={cn(
                 'rounded-xl p-6',
                 'bg-gradient-to-br from-white/5 to-white/[0.02]',
@@ -290,78 +288,18 @@ export default function PortfolioPage() {
               )}
             >
               <h3 className="text-lg font-semibold text-white mb-6">Portfolio Allocation</h3>
-              <AllocationChart />
-            </motion.div>
+              <Suspense fallback={
+                <div className="flex items-center justify-center h-64">
+                  <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+                </div>
+              }>
+                <AllocationChart />
+              </Suspense>
+            </div>
           </TabsContent>
         </Tabs>
 
-        {/* Quick Stats */}
-        {holdings.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3"
-          >
-            {/* Top Gainer */}
-            {(() => {
-              const topGainer = [...holdings].sort((a, b) => b.gainLossPercent - a.gainLossPercent)[0]
-              if (!topGainer || topGainer.gainLossPercent <= 0) return null
-              return (
-                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                  <p className="text-xs text-white/50 mb-1">Top Gainer</p>
-                  <p className="font-semibold text-white">{topGainer.symbol}</p>
-                  <p className="text-sm text-green-400">+{topGainer.gainLossPercent.toFixed(2)}%</p>
-                </div>
-              )
-            })()}
 
-            {/* Top Loser */}
-            {(() => {
-              const topLoser = [...holdings].sort((a, b) => a.gainLossPercent - b.gainLossPercent)[0]
-              if (!topLoser || topLoser.gainLossPercent >= 0) return null
-              return (
-                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                  <p className="text-xs text-white/50 mb-1">Top Loser</p>
-                  <p className="font-semibold text-white">{topLoser.symbol}</p>
-                  <p className="text-sm text-red-400">{topLoser.gainLossPercent.toFixed(2)}%</p>
-                </div>
-              )
-            })()}
-
-            {/* Largest Holding */}
-            {(() => {
-              const largest = [...holdings].sort((a, b) => b.totalValue - a.totalValue)[0]
-              if (!largest) return null
-              const percentage = summary.totalValue > 0 ? (largest.totalValue / summary.totalValue) * 100 : 0
-              return (
-                <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                  <p className="text-xs text-white/50 mb-1">Largest Position</p>
-                  <p className="font-semibold text-white">{largest.symbol}</p>
-                  <p className="text-sm text-white/70">{percentage.toFixed(1)}% of portfolio</p>
-                </div>
-              )
-            })()}
-
-            {/* Best Day Performer */}
-            {(() => {
-              const bestDay = [...holdings].sort((a, b) => b.dayGainLossPercent - a.dayGainLossPercent)[0]
-              if (!bestDay) return null
-              return (
-                <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                  <p className="text-xs text-white/50 mb-1">Best Today</p>
-                  <p className="font-semibold text-white">{bestDay.symbol}</p>
-                  <p className={cn(
-                    'text-sm',
-                    bestDay.dayGainLossPercent >= 0 ? 'text-green-400' : 'text-red-400'
-                  )}>
-                    {bestDay.dayGainLossPercent >= 0 ? '+' : ''}{bestDay.dayGainLossPercent.toFixed(2)}%
-                  </p>
-                </div>
-              )
-            })()}
-          </motion.div>
-        )}
       </div>
 
       {/* Modals */}
@@ -370,3 +308,5 @@ export default function PortfolioPage() {
     </div>
   )
 }
+
+export default React.memo(PortfolioPage)
