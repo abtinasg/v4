@@ -475,7 +475,7 @@ export function buildSystemPrompt(options: {
       prompt += `\nMarket Sentiment: Bullish ${sb.bullish}/${total} | Bearish ${sb.bearish}/${total} | Neutral ${sb.neutral}/${total}`
     }
     prompt += `\n\nTop Headlines:`
-    options.newsContext.recentNews.slice(0, 10).forEach((n: any, idx) => {
+    options.newsContext.recentNews.slice(0, 10).forEach((n: any, idx: number) => {
       const sentimentIcon = n.sentiment === 'bullish' ? '🟢' : n.sentiment === 'bearish' ? '🔴' : '⚪'
       const symbolTag = n.symbol ? ` [$${n.symbol}]` : ''
       prompt += `\n${idx + 1}. ${sentimentIcon} ${n.headline}${symbolTag}`
