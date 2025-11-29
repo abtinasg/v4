@@ -375,6 +375,7 @@ function getMockData(): RawFinancialData {
       totalDebt: 124000000000,
       totalEquity: 65000000000,
       retainedEarnings: 45000000000,
+      workingCapital: 10000000000,
       operatingCashFlow: 104000000000,
       investingCashFlow: -8000000000,
       financingCashFlow: -93000000000,

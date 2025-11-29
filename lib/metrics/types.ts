@@ -62,6 +62,7 @@ export interface YahooFinanceData {
   totalDebt: number;
   totalEquity: number;
   retainedEarnings: number;
+  workingCapital: number;
 
   // Cash Flow Statement
   operatingCashFlow: number;

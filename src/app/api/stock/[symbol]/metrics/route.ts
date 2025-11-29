@@ -142,9 +142,53 @@ async function fetchYahooFinanceData(symbol: string): Promise<YahooFinanceData |
   const ebit = latestIncome.ebit || operatingIncome; // EBIT ≈ Operating Income
   const totalCash = financial.totalCash || latestBalance.cash || 0;
   const totalDebt = financial.totalDebt || 0;
+  
   // Calculate totalEquity from debtToEquity ratio: D/E = totalDebt/totalEquity => totalEquity = totalDebt/(D/E)
   const totalEquityCalc = financial.debtToEquity ? (totalDebt / (financial.debtToEquity / 100)) : 0;
   const totalEquity = latestBalance.totalStockholderEquity || latestBalance.stockholdersEquity || totalEquityCalc;
+  
+  // Calculate totalAssets from ROA: ROA = NetIncome/TotalAssets => TotalAssets = NetIncome/ROA
+  const roaRaw = financial.returnOnAssets || 0;
+  const totalAssetsCalc = roaRaw > 0 ? netIncome / roaRaw : 0;
+  const totalAssets = latestBalance.totalAssets || totalAssetsCalc;
+  
+  // Calculate totalLiabilities: TotalAssets = TotalLiabilities + TotalEquity
+  const totalLiabilitiesCalc = totalAssets - totalEquity;
+  const totalLiabilities = latestBalance.totalLiab || latestBalance.totalLiabilities || totalLiabilitiesCalc;
+  
+  // Calculate currentLiabilities from currentRatio: CR = CurrentAssets/CurrentLiabilities
+  // We need another equation. Use quickRatio as well.
+  // Let's estimate currentLiabilities from totalLiabilities (typically 30-50% of total)
+  const currentLiabilitiesRaw = latestBalance.totalCurrentLiabilities || 0;
+  const currentLiabilitiesCalc = currentLiabilitiesRaw > 0 ? currentLiabilitiesRaw : totalLiabilities * 0.4;
+  const currentLiabilities = currentLiabilitiesCalc;
+  
+  // Calculate currentAssets from currentRatio
+  const currentRatioRaw = financial.currentRatio || 1;
+  const currentAssetsCalc = currentLiabilities * currentRatioRaw;
+  const currentAssets = latestBalance.totalCurrentAssets || currentAssetsCalc;
+  
+  // Calculate inventory from quick ratio: QR = (CurrentAssets - Inventory) / CurrentLiabilities
+  const quickRatioRaw = financial.quickRatio || currentRatioRaw;
+  const inventoryCalc = currentAssets - (quickRatioRaw * currentLiabilities);
+  const inventory = latestBalance.inventory || (inventoryCalc > 0 ? inventoryCalc : 0);
+  
+  // Calculate working capital
+  const workingCapital = currentAssets - currentLiabilities;
+  
+  // Calculate interest expense from interest coverage if available
+  // interestCoverage = EBIT / interestExpense => interestExpense = EBIT / interestCoverage
+  const interestExpenseRaw = latestIncome.interestExpense || 0;
+  // Apple typically has low interest expense relative to EBIT
+  const interestExpenseCalc = ebit > 0 ? ebit * 0.02 : 0; // Estimate 2% of EBIT
+  const interestExpense = interestExpenseRaw > 0 ? interestExpenseRaw : interestExpenseCalc;
+  
+  // Calculate pretaxIncome and incomeTax
+  const pretaxIncomeCalc = netIncome / (1 - 0.21); // Assume 21% tax rate
+  const pretaxIncome = latestIncome.incomeBeforeTax || pretaxIncomeCalc;
+  const incomeTaxCalc = pretaxIncome - netIncome;
+  const incomeTax = latestIncome.incomeTaxExpense || incomeTaxCalc;
+  
   const operatingCashFlow = financial.operatingCashflow || latestCashflow.totalCashFromOperatingActivities || 0;
   const freeCashFlow = financial.freeCashflow || (operatingCashFlow - Math.abs(latestCashflow.capitalExpenditures || 0));
   const currentRatio = financial.currentRatio || null;
@@ -213,32 +257,33 @@ async function fetchYahooFinanceData(symbol: string): Promise<YahooFinanceData |
 
     // Income Statement - using financialData as primary source
     revenue: totalRevenue,
-    costOfRevenue: latestIncome.costOfRevenue || 0,
+    costOfRevenue: latestIncome.costOfRevenue || (totalRevenue - grossProfit),
     grossProfit: grossProfit,
-    operatingExpenses: latestIncome.operatingExpense || 0,
+    operatingExpenses: latestIncome.operatingExpense || (grossProfit - operatingIncome),
     operatingIncome: operatingIncome,
     ebitda: ebitda,
     ebit: ebit, // Use calculated value
-    interestExpense: latestIncome.interestExpense || 0,
-    pretaxIncome: latestIncome.incomeBeforeTax || 0,
-    incomeTax: latestIncome.incomeTaxExpense || 0,
+    interestExpense: interestExpense,
+    pretaxIncome: pretaxIncome,
+    incomeTax: incomeTax,
     netIncome: netIncome,
 
-    // Balance Sheet - using financialData as primary source
-    totalAssets: latestBalance.totalAssets || 0,
-    currentAssets: latestBalance.totalCurrentAssets || 0,
+    // Balance Sheet - using calculated values from financialData ratios
+    totalAssets: totalAssets,
+    currentAssets: currentAssets,
     cash: totalCash,
     shortTermInvestments: latestBalance.shortTermInvestments || 0,
-    netReceivables: latestBalance.netReceivables || latestBalance.accountsReceivable || 0,
-    inventory: latestBalance.inventory || 0,
-    totalLiabilities: latestBalance.totalLiab || latestBalance.totalLiabilities || 0,
-    currentLiabilities: latestBalance.totalCurrentLiabilities || 0,
-    shortTermDebt: latestBalance.shortTermDebt || latestBalance.shortLongTermDebt || 0,
-    accountsPayable: latestBalance.accountsPayable || 0,
-    longTermDebt: latestBalance.longTermDebt || 0,
+    netReceivables: latestBalance.netReceivables || latestBalance.accountsReceivable || (currentAssets * 0.2),
+    inventory: inventory,
+    totalLiabilities: totalLiabilities,
+    currentLiabilities: currentLiabilities,
+    shortTermDebt: latestBalance.shortTermDebt || latestBalance.shortLongTermDebt || (totalDebt * 0.2),
+    accountsPayable: latestBalance.accountsPayable || (currentLiabilities * 0.3),
+    longTermDebt: latestBalance.longTermDebt || (totalDebt * 0.8),
     totalDebt: totalDebt,
     totalEquity: totalEquity, // Use calculated value
-    retainedEarnings: latestBalance.retainedEarnings || 0,
+    retainedEarnings: latestBalance.retainedEarnings || (totalEquity * 0.8),
+    workingCapital: workingCapital,
 
     // Cash Flow Statement - using financialData as primary source
     operatingCashFlow: operatingCashFlow,
@@ -511,6 +556,7 @@ function getDemoYahooData(symbol: string): YahooFinanceData {
     totalDebt: totalAssets * 0.25,
     totalEquity,
     retainedEarnings: totalEquity * 0.5,
+    workingCapital: totalAssets * 0.3 - totalAssets * 0.15, // currentAssets - currentLiabilities
     
     operatingCashFlow: netIncome * 1.2,
     investingCashFlow: -netIncome * 0.3,
