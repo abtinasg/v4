@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { getAllEconomicIndicators } from '@/lib/api/fred'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -70,14 +71,11 @@ async function fetchMarketData(): Promise<MarketData | null> {
   }
 }
 
-// Fetch economic indicators
+// Fetch economic indicators - direct function call instead of HTTP to avoid self-referential requests
 async function fetchEconomicIndicators(): Promise<EconomicData | null> {
   try {
-    const baseUrl = getBaseUrl()
-    const res = await fetch(`${baseUrl}/api/economic/indicators`)
-    if (!res.ok) return null
-    const data = await res.json()
-    return data.success ? data.data : null
+    const data = await getAllEconomicIndicators()
+    return data as EconomicData
   } catch (error) {
     console.error('Error fetching economic indicators:', error)
     return null

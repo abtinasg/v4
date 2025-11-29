@@ -42,6 +42,9 @@ export const EditHoldingModal = memo(function EditHoldingModal() {
   const updateHolding = usePortfolioStore((state) => state.updateHolding)
   const isLoading = usePortfolioStore((state) => state.isLoading)
 
+  // Prevent hydration mismatch
+  const [isMounted, setIsMounted] = useState(false)
+
   // Find the holding being edited
   const holding = holdings.find((h) => h.id === editingHoldingId)
 
@@ -49,6 +52,11 @@ export const EditHoldingModal = memo(function EditHoldingModal() {
   const [quantity, setQuantity] = useState('')
   const [avgPrice, setAvgPrice] = useState('')
   const [error, setError] = useState<string | null>(null)
+
+  // Set mounted on client
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Initialize form when holding changes
   useEffect(() => {
@@ -100,7 +108,8 @@ export const EditHoldingModal = memo(function EditHoldingModal() {
     return qty * price
   }
 
-  if (!holding) return null
+  // Prevent hydration mismatch
+  if (!isMounted || !holding) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>

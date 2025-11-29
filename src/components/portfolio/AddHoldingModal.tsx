@@ -107,6 +107,9 @@ export const AddHoldingModal = memo(function AddHoldingModal() {
   const isLoading = usePortfolioStore((state) => state.isLoading)
   const addModalPrefill = usePortfolioStore((state) => state.addModalPrefill)
 
+  // Prevent hydration mismatch by only rendering after mount
+  const [isMounted, setIsMounted] = useState(false)
+
   // Form state
   const [step, setStep] = useState<'search' | 'details'>('search')
   const [query, setQuery] = useState('')
@@ -127,6 +130,11 @@ export const AddHoldingModal = memo(function AddHoldingModal() {
   const inputRef = useRef<HTMLInputElement>(null)
   const sharesInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<NodeJS.Timeout>()
+
+  // Set mounted on client
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // ============================================================
   // VALIDATION
@@ -338,6 +346,11 @@ export const AddHoldingModal = memo(function AddHoldingModal() {
     if (success) {
       closeModal()
     }
+  }
+
+  // Prevent hydration mismatch - only render on client
+  if (!isMounted) {
+    return null
   }
 
   return (
