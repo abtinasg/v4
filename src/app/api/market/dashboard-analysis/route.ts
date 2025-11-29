@@ -10,6 +10,13 @@ import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
+// Use Vercel URL in production, or custom URL, or localhost for dev
+function getBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return 'http://localhost:3000'
+}
+
 interface MarketIndex {
   name: string
   price: number
@@ -43,7 +50,7 @@ interface MarketData {
 // Fetch all market data
 async function fetchMarketData(): Promise<MarketData | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const baseUrl = getBaseUrl()
     const [overviewRes, moversRes] = await Promise.all([
       fetch(`${baseUrl}/api/market/overview`),
       fetch(`${baseUrl}/api/market/movers`)
@@ -66,7 +73,7 @@ async function fetchMarketData(): Promise<MarketData | null> {
 // Fetch economic indicators
 async function fetchEconomicIndicators(): Promise<EconomicData | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const baseUrl = getBaseUrl()
     const res = await fetch(`${baseUrl}/api/economic/indicators`)
     if (!res.ok) return null
     const data = await res.json()
@@ -80,7 +87,7 @@ async function fetchEconomicIndicators(): Promise<EconomicData | null> {
 // Fetch recent news
 async function fetchRecentNews(): Promise<NewsItem[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const baseUrl = getBaseUrl()
     const res = await fetch(`${baseUrl}/api/market/news?limit=20`)
     if (!res.ok) return []
     const data = await res.json()
@@ -197,7 +204,7 @@ async function callAI(prompt: string): Promise<string | null> {
         headers: {
           'Authorization': `Bearer ${openRouterKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+          'HTTP-Referer': getBaseUrl(),
           'X-Title': 'TradeFX Dashboard Analysis'
         },
         body: JSON.stringify({

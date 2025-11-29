@@ -10,7 +10,9 @@ import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 120
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+// Use Vercel URL in production, or custom URL, or localhost for dev
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
 // ============================================================
 // DATA INTERFACES
