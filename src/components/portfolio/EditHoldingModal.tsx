@@ -151,7 +151,7 @@ export const EditHoldingModal = memo(function EditHoldingModal() {
               <Input
                 type="number"
                 value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuantity(e.target.value)}
                 placeholder="0.00"
                 step="0.01"
                 min="0"
@@ -168,7 +168,7 @@ export const EditHoldingModal = memo(function EditHoldingModal() {
               <Input
                 type="number"
                 value={avgPrice}
-                onChange={(e) => setAvgPrice(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAvgPrice(e.target.value)}
                 placeholder="0.00"
                 step="0.01"
                 min="0"

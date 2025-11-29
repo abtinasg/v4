@@ -219,7 +219,7 @@ export const AddHoldingModal = memo(function AddHoldingModal() {
                 <Input
                   ref={inputRef}
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
                   placeholder="Search by symbol or company name..."
                   className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
                 />
@@ -320,7 +320,7 @@ export const AddHoldingModal = memo(function AddHoldingModal() {
                   <Input
                     type="number"
                     value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuantity(e.target.value)}
                     placeholder="0.00"
                     step="0.01"
                     min="0"
@@ -337,7 +337,7 @@ export const AddHoldingModal = memo(function AddHoldingModal() {
                   <Input
                     type="number"
                     value={avgPrice}
-                    onChange={(e) => setAvgPrice(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAvgPrice(e.target.value)}
                     placeholder="0.00"
                     step="0.01"
                     min="0"

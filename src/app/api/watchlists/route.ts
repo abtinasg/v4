@@ -12,14 +12,30 @@ import { watchlistQueries, userQueries } from '@/lib/db/queries'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+// Default watchlist for unauthenticated users
+const DEFAULT_WATCHLIST = {
+  id: 'default',
+  name: 'Popular Stocks',
+  isDefault: true,
+  items: [
+    { id: '1', symbol: 'AAPL', watchlistId: 'default', notes: null, addedAt: new Date() },
+    { id: '2', symbol: 'MSFT', watchlistId: 'default', notes: null, addedAt: new Date() },
+    { id: '3', symbol: 'GOOGL', watchlistId: 'default', notes: null, addedAt: new Date() },
+    { id: '4', symbol: 'AMZN', watchlistId: 'default', notes: null, addedAt: new Date() },
+    { id: '5', symbol: 'TSLA', watchlistId: 'default', notes: null, addedAt: new Date() },
+  ],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+}
+
 // GET - Get user's watchlists
 export async function GET() {
   try {
     const { userId: clerkId } = await auth()
     
     if (!clerkId) {
-      // Return empty watchlists for unauthenticated users instead of error
-      return NextResponse.json({ watchlists: [] })
+      // Return default watchlist for unauthenticated users
+      return NextResponse.json({ watchlists: [DEFAULT_WATCHLIST] })
     }
 
     // Get user from database
