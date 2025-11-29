@@ -245,6 +245,15 @@ export async function POST(request: NextRequest) {
       pageContext: context?.pageContext,
     }
     
+    // Debug log for news context
+    if (aiContext.newsContext) {
+      console.log('📰 API received news context:', {
+        newsCount: aiContext.newsContext.recentNews?.length || 0,
+        sentimentBreakdown: aiContext.newsContext.sentimentBreakdown,
+        sampleHeadline: aiContext.newsContext.recentNews?.[0]?.headline
+      })
+    }
+    
     // Get last user message for context inference
     const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')?.content
     

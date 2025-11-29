@@ -28,8 +28,25 @@ export function NewsContextUpdater({ news }: NewsContextUpdaterProps) {
   const setContext = useChatStore((s) => s.setContext)
 
   const updateContext = useCallback(() => {
-    // Transform news items for AI context (limit to most recent 10)
-    const recentNews: NewsContextItem[] = news.slice(0, 10).map((item) => ({
+    if (!news || news.length === 0) {
+      console.log('⚠️ NewsContextUpdater: No news data available yet')
+      // Still set the context type to 'news' even if no data yet
+      setContext({
+        type: 'news',
+        newsContext: {
+          recentNews: [],
+          newsCount: 0,
+          sentimentBreakdown: { bullish: 0, bearish: 0, neutral: 0 },
+        },
+        pageContext: {
+          currentPage: 'Market News',
+        },
+      })
+      return
+    }
+
+    // Transform news items for AI context (limit to most recent 15 for better context)
+    const recentNews: NewsContextItem[] = news.slice(0, 15).map((item) => ({
       headline: item.headline,
       summary: item.summary,
       category: item.category,
@@ -46,9 +63,12 @@ export function NewsContextUpdater({ news }: NewsContextUpdaterProps) {
       neutral: news.filter((n) => n.sentiment === 'neutral').length,
     }
 
-    console.log('📰 News context updated for AI:', {
+    console.log('✅ NewsContextUpdater: News context updated for AI:', {
       newsCount: recentNews.length,
+      totalNews: news.length,
       sentimentBreakdown,
+      sampleHeadline: recentNews[0]?.headline,
+      categories: [...new Set(recentNews.map(n => n.category))]
     })
 
     // Update the chat context
@@ -70,9 +90,11 @@ export function NewsContextUpdater({ news }: NewsContextUpdaterProps) {
 
     // Cleanup: Reset context when leaving the page
     return () => {
+      console.log('🔄 NewsContextUpdater: Cleaning up news context')
       setContext({
         type: 'general',
         newsContext: undefined,
+        pageContext: undefined,
       })
     }
   }, [updateContext, setContext])

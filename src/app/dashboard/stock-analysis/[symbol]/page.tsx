@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import { CompanyHeader } from '@/components/stock/company-header';
 import { PriceChart } from '@/components/stock/price-chart';
 import { MetricsTabs } from '@/components/stock/metrics-tabs';
+import { StockReportGenerator } from '@/components/stock/stock-report-generator';
 import {
   CompanyHeaderSkeleton,
   ChartSkeleton,
@@ -288,6 +289,12 @@ export default async function StockAnalysisPage({ params }: PageProps) {
         <Suspense fallback={<ChartSkeleton />}>
           <PriceChartServer symbol={upperSymbol} />
         </Suspense>
+
+        {/* AI Report Generator - Below Chart */}
+        <StockReportGenerator 
+          symbol={upperSymbol} 
+          companyName={upperSymbol} 
+        />
 
         {/* Metrics Tabs */}
         <Suspense fallback={<MetricsSkeleton />}>

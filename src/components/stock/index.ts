@@ -5,6 +5,7 @@ export * from './company-header';
 export * from './price-chart';
 export * from './metric-card';
 export * from './metrics-tabs';
+export * from './stock-report-generator';
 
 // Compare & Screener Components
 export * from './CompareView';

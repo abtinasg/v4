@@ -468,16 +468,24 @@ export function buildSystemPrompt(options: {
 
   // News Context (always include if available)
   if (options.newsContext?.recentNews?.length) {
-    prompt += `\n\n📰 RECENT MARKET NEWS:`
+    prompt += `\n\n📰 RECENT MARKET NEWS (You have access to ${options.newsContext.recentNews.length} recent articles):`
     if (options.newsContext.sentimentBreakdown) {
       const sb = options.newsContext.sentimentBreakdown
       const total = sb.bullish + sb.bearish + sb.neutral
-      prompt += `\nSentiment: Bullish ${sb.bullish}/${total} | Bearish ${sb.bearish}/${total} | Neutral ${sb.neutral}/${total}`
+      prompt += `\nMarket Sentiment: Bullish ${sb.bullish}/${total} | Bearish ${sb.bearish}/${total} | Neutral ${sb.neutral}/${total}`
     }
-    options.newsContext.recentNews.slice(0, 5).forEach((n: any) => {
+    prompt += `\n\nTop Headlines:`
+    options.newsContext.recentNews.slice(0, 10).forEach((n: any, idx) => {
       const sentimentIcon = n.sentiment === 'bullish' ? '🟢' : n.sentiment === 'bearish' ? '🔴' : '⚪'
-      prompt += `\n  ${sentimentIcon} ${n.headline} (${n.timeAgo})`
+      const symbolTag = n.symbol ? ` [$${n.symbol}]` : ''
+      prompt += `\n${idx + 1}. ${sentimentIcon} ${n.headline}${symbolTag}`
+      if (n.summary) {
+        prompt += `\n   Summary: ${n.summary.substring(0, 150)}...`
+      }
+      prompt += `\n   Category: ${n.category} | Source: ${n.source} | ${n.timeAgo}`
+      prompt += `\n`
     })
+    prompt += `\n💡 USE THIS NEWS: When users ask about market news, specific stocks mentioned, or recent events, reference these headlines and provide detailed analysis based on this information.`
   }
 
   // Portfolio Summary (always include if available)
