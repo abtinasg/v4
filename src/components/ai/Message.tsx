@@ -322,22 +322,6 @@ export const Message = memo(function Message({
                 Context: {message.context.type}
                 {message.context.symbol && ` • ${message.context.symbol}`}
               </span>
-              {message.model && (
-                <span className="text-xs text-purple-400/70 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  {message.model}
-                </span>
-              )}
-            </div>
-          )}
-          
-          {/* Show model even without context */}
-          {!isUser && !message.context && message.model && (
-            <div className="mt-2 pt-2 border-t border-white/10">
-              <span className="text-xs text-purple-400/70 flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                {message.model}
-              </span>
             </div>
           )}
         </div>

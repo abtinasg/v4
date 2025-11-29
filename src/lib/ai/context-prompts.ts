@@ -312,17 +312,120 @@ function buildPortfolioDataString(portfolio: PortfolioContext): string {
       .sort((a, b) => b.weight - a.weight)
       .forEach(h => {
         const glSign = h.gainLossPercent >= 0 ? '+' : '';
-        sections.push(`${h.symbol}: ${h.shares} shares | Value: $${h.currentValue.toLocaleString()} | ${glSign}${h.gainLossPercent.toFixed(2)}% | Weight: ${(h.weight * 100).toFixed(1)}%`);
+        sections.push(`${h.symbol}: ${h.shares.toFixed(2)} shares | Value: $${h.currentValue.toLocaleString()} | ${glSign}${h.gainLossPercent.toFixed(2)}% | Weight: ${h.weight.toFixed(1)}%`);
       });
   }
   
-  if (portfolio.sectorAllocation) {
+  // Enhanced: Holdings Analysis with detailed metrics
+  const holdingsAnalysis = (portfolio as any).holdingsAnalysis;
+  if (holdingsAnalysis?.length) {
+    sections.push('\n--- HOLDINGS DETAILED ANALYSIS ---');
+    holdingsAnalysis.forEach((h: any) => {
+      sections.push(`\n[${h.symbol}] ${h.name || ''}`);
+      if (h.sector) sections.push(`  Sector: ${h.sector}${h.industry ? ` | Industry: ${h.industry}` : ''}`);
+      
+      // Valuation metrics
+      const valuation: string[] = [];
+      if (h.pe) valuation.push(`P/E: ${h.pe.toFixed(1)}`);
+      if (h.forwardPE) valuation.push(`Fwd P/E: ${h.forwardPE.toFixed(1)}`);
+      if (h.pb) valuation.push(`P/B: ${h.pb.toFixed(2)}`);
+      if (h.ps) valuation.push(`P/S: ${h.ps.toFixed(2)}`);
+      if (h.evToEbitda) valuation.push(`EV/EBITDA: ${h.evToEbitda.toFixed(1)}`);
+      if (h.pegRatio) valuation.push(`PEG: ${h.pegRatio.toFixed(2)}`);
+      if (valuation.length) sections.push(`  Valuation: ${valuation.join(' | ')}`);
+      
+      // Profitability metrics
+      const profitability: string[] = [];
+      if (h.grossMargin) profitability.push(`Gross Margin: ${(h.grossMargin * 100).toFixed(1)}%`);
+      if (h.operatingMargin) profitability.push(`Op Margin: ${(h.operatingMargin * 100).toFixed(1)}%`);
+      if (h.netMargin) profitability.push(`Net Margin: ${(h.netMargin * 100).toFixed(1)}%`);
+      if (h.roe) profitability.push(`ROE: ${(h.roe * 100).toFixed(1)}%`);
+      if (h.roa) profitability.push(`ROA: ${(h.roa * 100).toFixed(1)}%`);
+      if (h.roic) profitability.push(`ROIC: ${(h.roic * 100).toFixed(1)}%`);
+      if (profitability.length) sections.push(`  Profitability: ${profitability.join(' | ')}`);
+      
+      // Growth metrics
+      const growth: string[] = [];
+      if (h.revenueGrowth) growth.push(`Revenue Growth: ${(h.revenueGrowth * 100).toFixed(1)}%`);
+      if (h.earningsGrowth) growth.push(`Earnings Growth: ${(h.earningsGrowth * 100).toFixed(1)}%`);
+      if (growth.length) sections.push(`  Growth: ${growth.join(' | ')}`);
+      
+      // Financial Health
+      const health: string[] = [];
+      if (h.debtToEquity) health.push(`D/E: ${h.debtToEquity.toFixed(2)}`);
+      if (h.currentRatio) health.push(`Current Ratio: ${h.currentRatio.toFixed(2)}`);
+      if (h.quickRatio) health.push(`Quick Ratio: ${h.quickRatio.toFixed(2)}`);
+      if (h.interestCoverage) health.push(`Int Coverage: ${h.interestCoverage.toFixed(1)}x`);
+      if (health.length) sections.push(`  Financial Health: ${health.join(' | ')}`);
+      
+      // Dividends
+      if (h.dividendYield) {
+        sections.push(`  Dividend: Yield ${(h.dividendYield * 100).toFixed(2)}%${h.payoutRatio ? ` | Payout ${(h.payoutRatio * 100).toFixed(0)}%` : ''}`);
+      }
+      
+      // Technical
+      const technical: string[] = [];
+      if (h.beta) technical.push(`Beta: ${h.beta.toFixed(2)}`);
+      if (h.rsi) technical.push(`RSI: ${h.rsi.toFixed(0)}`);
+      if (h.fiftyTwoWeekHigh && h.fiftyTwoWeekLow) {
+        technical.push(`52W Range: $${h.fiftyTwoWeekLow.toFixed(2)} - $${h.fiftyTwoWeekHigh.toFixed(2)}`);
+      }
+      if (technical.length) sections.push(`  Technical: ${technical.join(' | ')}`);
+      
+      // Analyst
+      if (h.targetPrice || h.analystRating) {
+        const analyst: string[] = [];
+        if (h.targetPrice) analyst.push(`Target: $${h.targetPrice.toFixed(2)}`);
+        if (h.analystRating) analyst.push(`Rating: ${h.analystRating}`);
+        if (h.numberOfAnalysts) analyst.push(`(${h.numberOfAnalysts} analysts)`);
+        sections.push(`  Analyst: ${analyst.join(' ')}`);
+      }
+    });
+  }
+  
+  // Portfolio-level metrics
+  const portfolioMetrics = (portfolio as any).portfolioMetrics;
+  if (portfolioMetrics) {
+    sections.push('\n--- PORTFOLIO METRICS ---');
+    if (portfolioMetrics.weightedPE) sections.push(`Weighted P/E: ${portfolioMetrics.weightedPE.toFixed(1)}`);
+    if (portfolioMetrics.weightedPB) sections.push(`Weighted P/B: ${portfolioMetrics.weightedPB.toFixed(2)}`);
+    if (portfolioMetrics.weightedDividendYield) sections.push(`Weighted Dividend Yield: ${(portfolioMetrics.weightedDividendYield * 100).toFixed(2)}%`);
+    if (portfolioMetrics.averageBeta) sections.push(`Portfolio Beta: ${portfolioMetrics.averageBeta.toFixed(2)}`);
+    
+    if (portfolioMetrics.riskMetrics) {
+      sections.push(`\nRisk Analysis:`);
+      sections.push(`  Diversification Score: ${portfolioMetrics.riskMetrics.diversificationScore.toFixed(0)}/100`);
+      sections.push(`  Concentration Risk (HHI): ${portfolioMetrics.riskMetrics.concentrationRisk.toFixed(1)}%`);
+    }
+    
+    if (portfolioMetrics.sectorConcentration?.length) {
+      sections.push(`\nTop Sector Exposures:`);
+      portfolioMetrics.sectorConcentration.forEach((s: any) => {
+        sections.push(`  ${s.sector}: ${s.weight.toFixed(1)}%`);
+      });
+    }
+  }
+  
+  if (portfolio.sectorAllocation && !portfolioMetrics?.sectorConcentration) {
     sections.push('\n--- SECTOR ALLOCATION ---');
     Object.entries(portfolio.sectorAllocation)
       .sort((a, b) => b[1] - a[1])
       .forEach(([sector, weight]) => {
-        sections.push(`${sector}: ${(weight * 100).toFixed(1)}%`);
+        sections.push(`${sector}: ${weight.toFixed(1)}%`);
       });
+  }
+  
+  // Economic Context
+  const economicContext = (portfolio as any).economicContext;
+  if (economicContext && Object.keys(economicContext).length > 0) {
+    sections.push('\n--- ECONOMIC INDICATORS (FRED) ---');
+    if (economicContext.gdp?.value) sections.push(`GDP Growth: ${economicContext.gdp.value}%`);
+    if (economicContext.unemployment?.value) sections.push(`Unemployment: ${economicContext.unemployment.value}%`);
+    if (economicContext.inflation?.value) sections.push(`Inflation (CPI): ${economicContext.inflation.value}%`);
+    if (economicContext.federalFundsRate?.value) sections.push(`Fed Funds Rate: ${economicContext.federalFundsRate.value}%`);
+    if (economicContext.consumerConfidence?.value) sections.push(`Consumer Confidence: ${economicContext.consumerConfidence.value}`);
+    if (economicContext.manufacturingPmi?.value) sections.push(`Manufacturing PMI: ${economicContext.manufacturingPmi.value}`);
+    if (economicContext.servicesPmi?.value) sections.push(`Services PMI: ${economicContext.servicesPmi.value}`);
   }
   
   return sections.join('\n');
@@ -331,33 +434,67 @@ function buildPortfolioDataString(portfolio: PortfolioContext): string {
 function buildPortfolioPrompt(portfolio: PortfolioContext): string {
   const portfolioData = buildPortfolioDataString(portfolio);
   
-  return `You are a portfolio advisor AI for Deep Terminal, a professional stock analysis platform.
+  return `You are an expert portfolio analyst AI for Deep Terminal, a professional institutional-grade stock analysis platform.
 
-YOUR ROLE: Portfolio Strategist advising on asset allocation and portfolio management
+YOUR ROLE: Senior Portfolio Strategist with expertise in:
+- Fundamental Analysis (valuation, profitability, growth metrics)
+- Technical Analysis (momentum, trends, risk indicators)
+- Portfolio Construction (diversification, risk management, allocation)
+- Macroeconomic Analysis (economic indicators, Fed policy, market cycles)
 
-IMPORTANT: You provide EDUCATIONAL information and GENERAL guidance, NOT personalized financial advice. Users should consult qualified financial advisors for their specific situations.
+IMPORTANT: You provide EDUCATIONAL information and PROFESSIONAL-GRADE analysis, NOT personalized financial advice. Users should consult qualified financial advisors for their specific situations.
 
-CURRENT PORTFOLIO DATA:
+COMPREHENSIVE PORTFOLIO DATA:
 ${portfolioData}
+
+DATA SOURCES:
+- Real-time quotes: Yahoo Finance
+- Financial metrics: Proprietary metrics library (calculated from financial statements)
+- Economic indicators: FRED (Federal Reserve Economic Data)
 
 ${CORE_DISCLAIMERS}
 
-ADDITIONAL PORTFOLIO GUIDELINES:
-- Never suggest specific buy/sell amounts or rebalancing actions
-- Discuss portfolio concepts in general terms
-- When discussing concentration risk, reference the actual allocation percentages
-- When discussing diversification, note the sector breakdown provided
-- Acknowledge that you don't know the user's risk tolerance, time horizon, or financial goals
+ANALYSIS CAPABILITIES:
+1. Holdings Analysis:
+   - Evaluate each holding's valuation (P/E, P/B, EV/EBITDA, PEG)
+   - Assess profitability quality (margins, ROE, ROIC)
+   - Analyze growth trajectory (revenue/earnings growth)
+   - Review financial health (leverage, liquidity)
+   - Consider dividend sustainability (yield, payout ratio)
+   - Technical positioning (RSI, 52-week range, moving averages)
+   - Analyst sentiment (price targets, ratings)
+
+2. Portfolio-Level Analysis:
+   - Weighted valuation metrics
+   - Sector concentration risk
+   - Diversification assessment (HHI score)
+   - Portfolio beta and volatility exposure
+   - Income generation potential
+
+3. Macroeconomic Context:
+   - GDP growth implications
+   - Interest rate environment impact
+   - Inflation effects on holdings
+   - Consumer/business confidence signals
+
+RESPONSE GUIDELINES:
+- Provide institutional-quality analysis
+- Reference specific metrics and data points
+- Compare metrics to sector/market averages when relevant
+- Identify potential risks AND opportunities
+- Discuss portfolio construction principles
+- Consider macroeconomic factors
+- Be direct and professional in tone
 
 RESPONSE FORMAT:
-1. Acknowledge this is educational discussion, not personal advice
-2. Reference the specific portfolio data provided
-3. Discuss general portfolio principles that may be relevant
-4. Suggest questions the user should consider
-5. Recommend consulting a qualified financial advisor
+1. Executive Summary of portfolio positioning
+2. Key strengths and areas of concern
+3. Holdings-specific insights (reference actual metrics)
+4. Risk/reward assessment
+5. Educational context on relevant concepts
 6. End with the educational disclaimer
 
-Remember: ONLY use the portfolio data provided above.`;
+Remember: Use ONLY the data provided above. Do not fabricate any numbers or statistics.`;
 }
 
 // ============================================================

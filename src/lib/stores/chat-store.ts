@@ -69,6 +69,16 @@ export interface EconomicIndicatorsContext {
   servicesPmi?: { value: number | null; change: number | null }
 }
 
+// User risk profile from onboarding
+export interface UserRiskProfileContext {
+  riskTolerance: 'conservative' | 'moderate' | 'aggressive'
+  investmentHorizon: 'short_term' | 'medium_term' | 'long_term'
+  investmentExperience: 'beginner' | 'intermediate' | 'advanced'
+  riskScore: number
+  preferredSectors?: string[]
+  avoidSectors?: string[]
+}
+
 export interface ChatContext {
   type: 'general' | 'stock' | 'market' | 'portfolio' | 'screener' | 'news' | 'terminal'
   stock?: StockContext
@@ -88,6 +98,8 @@ export interface ChatContext {
   terminalContext?: TerminalContext
   // Economic indicators context
   economicIndicators?: EconomicIndicatorsContext
+  // User risk profile from database
+  userRiskProfile?: UserRiskProfileContext
   pageContext?: {
     currentPage: string
     selectedTimeframe?: string

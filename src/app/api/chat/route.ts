@@ -241,6 +241,7 @@ export async function POST(request: NextRequest) {
       newsContext: context?.newsContext,
       terminalContext: context?.terminalContext,
       economicIndicators: (context as any)?.economicIndicators,
+      userRiskProfile: (context as any)?.userRiskProfile,
       pageContext: context?.pageContext,
     }
     
@@ -249,12 +250,17 @@ export async function POST(request: NextRequest) {
     
     const { promptContext, contextString } = buildFullContext(aiContext, lastUserMessage)
     
-    // 5. Build system prompt with context
+    // 5. Build system prompt with ALL available context data
     const systemPrompt = buildSystemPrompt({
       context: promptContext,
       stockSymbol: aiContext.stock?.symbol,
       stockData: aiContext.stock,
       marketData: aiContext.market,
+      terminalContext: aiContext.terminalContext,
+      economicIndicators: aiContext.economicIndicators,
+      portfolioData: aiContext.portfolio,
+      newsContext: aiContext.newsContext,
+      userRiskProfile: (aiContext as any).userRiskProfile,
     })
     
     // 6. Prepare messages for AI

@@ -212,15 +212,15 @@ async function fetchStockData(symbol: string): Promise<StockData | null> {
 // Search stocks API
 async function searchStocksAPI(query: string): Promise<SearchResult[]> {
   try {
-    const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}`);
+    const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}&limit=50`);
     if (!response.ok) {
       throw new Error('Search failed');
     }
     const data = await response.json();
     if (data.success && data.data) {
-      return data.data.map((item: { symbol: string; name?: string; shortname?: string; longname?: string; type?: string; exchange?: string }) => ({
+      return data.data.map((item: { symbol: string; shortName?: string; longName?: string; type?: string; exchange?: string }) => ({
         symbol: item.symbol,
-        name: item.name || item.shortname || item.longname || item.symbol,
+        name: item.longName || item.shortName || item.symbol,
         type: item.type,
         exchange: item.exchange,
       }));

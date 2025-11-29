@@ -46,6 +46,7 @@ import {
   EditHoldingModal,
   AllocationChart,
 } from '@/components/portfolio'
+import { PortfolioContextUpdater } from '@/components/ai'
 
 // ============================================================
 // PORTFOLIO PAGE
@@ -131,6 +132,9 @@ export default function PortfolioPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0d12]">
+      {/* Portfolio AI Context Updater - fetches comprehensive data for AI */}
+      <PortfolioContextUpdater refreshInterval={60000} />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -222,7 +226,7 @@ export default function PortfolioPage() {
 
             {/* Add Holding Button */}
             <Button
-              onClick={openAddModal}
+              onClick={() => openAddModal()}
               className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />

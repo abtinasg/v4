@@ -166,9 +166,17 @@ F11 - Fullscreen`)
       setActiveView('SRCH')
       setSearchLoading(true)
       try {
-        const res = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}`)
+        const res = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}&limit=50`)
         const data = await res.json()
-        setSearchResults(data.results || [])
+        const mapped = Array.isArray(data.data)
+          ? data.data.map((item: { symbol: string; shortName?: string; longName?: string; exchange?: string; type?: string }) => ({
+              symbol: item.symbol,
+              name: item.longName || item.shortName || item.symbol,
+              exchange: item.exchange,
+              type: item.type,
+            }))
+          : []
+        setSearchResults(mapped)
       } catch (error) {
         console.error('Search error:', error)
         setSearchResults([])

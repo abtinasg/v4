@@ -10,7 +10,7 @@
 
 'use client'
 
-import React, { memo } from 'react'
+import React, { memo, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   TrendingUp,
@@ -34,7 +34,7 @@ interface SummaryCardProps {
   change?: number
   changeLabel?: string
   icon: React.ElementType
-  iconColor: string
+  accent: string
   delay?: number
 }
 
@@ -48,11 +48,12 @@ const SummaryCard = memo(function SummaryCard({
   change,
   changeLabel,
   icon: Icon,
-  iconColor,
+  accent,
   delay = 0,
 }: SummaryCardProps) {
   const isPositive = change !== undefined && change >= 0
   const showChange = change !== undefined && change !== 0
+  const progress = typeof change === 'number' ? Math.min(100, Math.abs(change)) : null
 
   return (
     <motion.div
@@ -60,21 +61,20 @@ const SummaryCard = memo(function SummaryCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.3 }}
       className={cn(
-        'relative overflow-hidden rounded-xl',
-        'bg-gradient-to-br from-white/5 to-white/[0.02]',
-        'border border-white/10',
-        'p-4 sm:p-5',
+        'relative overflow-hidden rounded-2xl p-4 sm:p-5 border',
+        'bg-gradient-to-br from-white/5 to-white/[0.03] backdrop-blur-sm',
+        accent,
       )}
     >
       {/* Background icon */}
-      <div className="absolute -right-4 -top-4 opacity-5">
+      <div className="absolute -right-6 -top-6 opacity-5">
         <Icon className="w-24 h-24" />
       </div>
 
       {/* Content */}
       <div className="relative">
         <div className="flex items-center gap-2 mb-2">
-          <div className={cn('p-1.5 rounded-lg', iconColor)}>
+          <div className="p-1.5 rounded-lg bg-white/10 border border-white/20">
             <Icon className="w-4 h-4 text-white" />
           </div>
           <span className="text-xs sm:text-sm text-white/50 font-medium">{title}</span>
@@ -102,6 +102,22 @@ const SummaryCard = memo(function SummaryCard({
             )}
           </div>
         )}
+
+        {progress !== null && (
+          <div className="mt-4">
+            <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+              <div
+                className={cn(
+                  'h-full rounded-full bg-gradient-to-r',
+                  isPositive
+                    ? 'from-emerald-400 via-cyan-400 to-blue-500'
+                    : 'from-rose-500 via-orange-400 to-amber-400'
+                )}
+                style={{ width: `${Math.min(100, Math.max(5, progress))}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   )
@@ -115,6 +131,7 @@ export const PortfolioSummary = memo(function PortfolioSummary() {
   const summary = usePortfolioStore((state) => state.summary)
   const isLoading = usePortfolioStore((state) => state.isLoading)
   const isRefreshing = usePortfolioStore((state) => state.isRefreshing)
+  const holdings = usePortfolioStore((state) => state.holdings)
 
   // Format currency
   const formatCurrency = (value: number) => {
@@ -145,14 +162,29 @@ export const PortfolioSummary = memo(function PortfolioSummary() {
     )
   }
 
+  const winRate = useMemo(() => {
+    if (!holdings.length) return 0
+    const winners = holdings.filter((h) => h.gainLoss >= 0).length
+    return (winners / holdings.length) * 100
+  }, [holdings])
+
+  const avgPosition = summary.holdingsCount > 0
+    ? summary.totalValue / summary.holdingsCount
+    : 0
+
+  const dailyVol = summary.totalValue > 0
+    ? Math.abs((summary.dayGainLoss / summary.totalValue) * 100)
+    : 0
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {/* Total Value */}
       <SummaryCard
         title="Total Value"
         value={formatCurrency(summary.totalValue)}
         icon={Wallet}
-        iconColor="bg-cyan-500/20"
+          accent="border-white/10"
         delay={0}
       />
 
@@ -163,7 +195,7 @@ export const PortfolioSummary = memo(function PortfolioSummary() {
         change={summary.dayGainLossPercent}
         changeLabel="today"
         icon={summary.dayGainLoss >= 0 ? TrendingUp : TrendingDown}
-        iconColor={summary.dayGainLoss >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'}
+          accent={summary.dayGainLoss >= 0 ? 'border-emerald-400/30' : 'border-rose-400/30'}
         delay={0.1}
       />
 
@@ -174,7 +206,7 @@ export const PortfolioSummary = memo(function PortfolioSummary() {
         change={summary.totalGainLossPercent}
         changeLabel="all time"
         icon={DollarSign}
-        iconColor={summary.totalGainLoss >= 0 ? 'bg-emerald-500/20' : 'bg-red-500/20'}
+          accent={summary.totalGainLoss >= 0 ? 'border-emerald-400/30' : 'border-rose-400/30'}
         delay={0.2}
       />
 
@@ -183,9 +215,33 @@ export const PortfolioSummary = memo(function PortfolioSummary() {
         title="Holdings"
         value={summary.holdingsCount.toString()}
         icon={PieChart}
-        iconColor="bg-violet-500/20"
+          accent="border-violet-400/30"
         delay={0.3}
       />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs text-white/40 mb-1">Win rate</p>
+          <p className="text-2xl font-semibold text-white">{winRate.toFixed(1)}%</p>
+          <div className="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full"
+              style={{ width: `${Math.min(100, winRate)}%` }}
+            />
+          </div>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs text-white/40 mb-1">Avg. position size</p>
+          <p className="text-2xl font-semibold text-white">{formatCurrency(avgPosition)}</p>
+          <p className="text-xs text-white/40 mt-2">Across {summary.holdingsCount || 0} holdings</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs text-white/40 mb-1">Daily volatility</p>
+          <p className="text-2xl font-semibold text-white">{dailyVol.toFixed(2)}%</p>
+          <p className="text-xs text-white/40 mt-2">vs total portfolio value</p>
+        </div>
+      </div>
     </div>
   )
 })

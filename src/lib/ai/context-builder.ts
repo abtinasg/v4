@@ -188,6 +188,7 @@ export interface AIContext {
   terminalContext?: TerminalContext
   // Economic indicators context
   economicIndicators?: EconomicIndicatorsContext
+  userRiskProfile?: import('@/lib/stores/chat-store').UserRiskProfileContext
   pageContext?: {
     currentPage: string
     selectedTimeframe?: string

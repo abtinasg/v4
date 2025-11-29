@@ -71,6 +71,7 @@ export interface PortfolioState {
   isAddModalOpen: boolean
   isEditModalOpen: boolean
   editingHoldingId: string | null
+  addModalPrefill: { symbol: string; name?: string; exchange?: string } | null
   
   // Actions - Data
   fetchPortfolio: () => Promise<void>
@@ -85,7 +86,7 @@ export interface PortfolioState {
   updateSettings: (settings: Partial<PortfolioSettings>) => void
   
   // Actions - Modals
-  openAddModal: () => void
+  openAddModal: (symbol?: string, name?: string, exchange?: string) => void
   closeAddModal: () => void
   openEditModal: (holdingId: string) => void
   closeEditModal: () => void
@@ -128,6 +129,7 @@ const initialState = {
   isAddModalOpen: false,
   isEditModalOpen: false,
   editingHoldingId: null as string | null,
+  addModalPrefill: null as { symbol: string; name?: string; exchange?: string } | null,
 }
 
 // ============================================================
@@ -284,8 +286,13 @@ export const usePortfolioStore = create<PortfolioState>()(
       },
 
       // Modal Actions
-      openAddModal: () => set({ isAddModalOpen: true }),
-      closeAddModal: () => set({ isAddModalOpen: false }),
+      openAddModal: (symbol, name, exchange) => set({
+        isAddModalOpen: true,
+        addModalPrefill: symbol
+          ? { symbol, name, exchange }
+          : null,
+      }),
+      closeAddModal: () => set({ isAddModalOpen: false, addModalPrefill: null }),
       
       openEditModal: (holdingId) => set({ 
         isEditModalOpen: true, 

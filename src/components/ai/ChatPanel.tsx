@@ -445,9 +445,7 @@ export const ChatPanel = memo(function ChatPanel({
                   <div className="flex items-center gap-2 mt-0.5">
                     <ContextBadge />
                     {/* Model badge - auto selected */}
-                    <span className="text-[10px] text-white/40 px-1.5 py-0.5 rounded bg-white/5">
-                      Claude 3.5
-                    </span>
+                    
                   </div>
                 </div>
               </div>

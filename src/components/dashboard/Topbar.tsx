@@ -101,7 +101,7 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
 
     setIsSearching(true)
     try {
-      const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}`)
+      const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}&limit=50`)
       const data = await response.json()
       
       if (data.success && data.data) {

@@ -117,12 +117,12 @@ export const AddStockModal = memo(function AddStockModal({
     setIsSearching(true)
 
     try {
-      const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(searchQuery)}`)
+      const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(searchQuery)}&limit=50`)
       const data = await response.json()
 
       if (data.success && data.data && data.data.length > 0) {
         // Map API response to SearchResult format
-        const mappedResults: SearchResult[] = data.data.slice(0, 10).map((item: { symbol: string; shortName?: string; longName?: string; exchange?: string; type?: string }) => ({
+        const mappedResults: SearchResult[] = data.data.map((item: { symbol: string; shortName?: string; longName?: string; exchange?: string; type?: string }) => ({
           symbol: item.symbol,
           name: item.longName || item.shortName || item.symbol,
           exchange: item.exchange,

@@ -370,7 +370,10 @@ export async function getStockProfile(symbol: string): Promise<ApiResponse<Stock
 /**
  * Search stocks by symbol or name
  */
-export async function searchStocks(query: string): Promise<ApiResponse<StockSearchResult[]>> {
+export async function searchStocks(
+  query: string,
+  options?: { limit?: number }
+): Promise<ApiResponse<StockSearchResult[]>> {
   try {
     if (!query || query.length < 1) {
       return {
@@ -380,7 +383,9 @@ export async function searchStocks(query: string): Promise<ApiResponse<StockSear
       }
     }
 
-    const cacheKey = `search:${query.toLowerCase()}`
+    const limit = Math.min(Math.max(options?.limit ?? 25, 1), 50)
+
+    const cacheKey = `search:${query.toLowerCase()}:${limit}`
     const cached = searchCache.get<StockSearchResult[]>(cacheKey)
     
     if (cached) {
@@ -395,7 +400,7 @@ export async function searchStocks(query: string): Promise<ApiResponse<StockSear
     await rateLimiter.waitForSlot()
 
     const results = await yahooFinance.search(query, {
-      quotesCount: 10,
+      quotesCount: limit,
       newsCount: 0,
     })
 
@@ -411,6 +416,7 @@ export async function searchStocks(query: string): Promise<ApiResponse<StockSear
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const searchResults: StockSearchResult[] = results.quotes
       .filter((item: any) => item.symbol && (item.quoteType === 'EQUITY' || item.quoteType === 'ETF'))
+      .slice(0, limit)
       .map((item: any, index: number) => ({
         symbol: item.symbol as string,
         shortName: item.shortname || item.symbol,

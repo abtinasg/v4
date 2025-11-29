@@ -21,7 +21,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const result = await searchStocks(query)
+    const limitParam = searchParams.get('limit')
+    const limitValue = limitParam ? parseInt(limitParam, 10) : undefined
+    const limit = limitValue && !Number.isNaN(limitValue) ? limitValue : undefined
+
+    const result = await searchStocks(query, { limit })
     
     if (!result.success) {
       return NextResponse.json(
@@ -39,6 +43,7 @@ export async function GET(request: NextRequest) {
       data: result.data,
       query,
       count: result.data?.length || 0,
+      limit: limit ?? undefined,
       cached: result.cached,
       timestamp: Date.now(),
     })

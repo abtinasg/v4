@@ -1710,35 +1710,204 @@ function ExtendedTab({ metrics }: { metrics: AllMetrics }) {
           />
         )}
 
-        {/* Portfolio Metrics */}
+        {/* Portfolio Metrics - Enhanced Professional Design */}
         {portfolio && (
-          <MetricCard
-            title="Portfolio Analytics"
-            description="Risk-adjusted metrics"
-            icon={<Layers className="h-5 w-5" />}
-            metrics={[
-              { label: 'Portfolio Return', value: portfolio.portfolioReturn, format: 'percent' },
-              { label: 'Excess Return', value: portfolio.excessReturn, format: 'percent' },
-              { label: 'Active Return', value: portfolio.activeReturn, format: 'percent' },
-              { label: 'Portfolio Beta', value: portfolio.portfolioBeta, format: 'number' },
-              { label: 'Portfolio Alpha', value: portfolio.portfolioAlpha, format: 'percent' },
-              { label: 'Volatility', value: portfolio.portfolioVolatility, format: 'percent' },
-              { label: 'Systematic Risk', value: portfolio.systematicRisk, format: 'percent' },
-              { label: 'Unsystematic Risk', value: portfolio.unsystematicRisk, format: 'percent' },
-              { label: 'Sharpe Ratio', value: portfolio.portfolioSharpe, format: 'ratio' },
-              { label: 'Sortino Ratio', value: portfolio.portfolioSortino, format: 'ratio' },
-              { label: 'Treynor Ratio', value: portfolio.portfolioTreynor, format: 'ratio' },
-              { label: 'Info Ratio', value: portfolio.portfolioInformationRatio, format: 'ratio' },
-              { label: 'Sector Allocation', value: portfolio.sectorAllocation, format: 'percent' },
-              { label: 'Security Selection', value: portfolio.securitySelection, format: 'percent' },
-              { label: 'Interaction Effect', value: portfolio.interactionEffect, format: 'percent' },
-              { label: 'Diversification Ratio', value: portfolio.diversificationRatio, format: 'ratio' },
-              { label: 'Effective # Bets', value: portfolio.effectiveNumberOfBets, format: 'number' },
-              { label: 'HHI', value: portfolio.herfindahlIndex, format: 'number', tooltip: 'Portfolio Concentration' },
-              { label: 'Corr w/ Benchmark', value: portfolio.correlationWithBenchmark, format: 'ratio' },
-              { label: 'R-Squared', value: portfolio.rSquared, format: 'percent' },
-            ]}
-          />
+          <div className="col-span-full space-y-4">
+            {/* Portfolio Header */}
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 border border-indigo-500/20 flex items-center justify-center">
+                <Layers className="h-5 w-5 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-white">Portfolio Analytics</h3>
+                <p className="text-xs text-gray-500">Comprehensive risk-adjusted performance metrics</p>
+              </div>
+            </div>
+
+            {/* Performance & Returns Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Portfolio Return Card */}
+              <div className="glass-premium rounded-xl p-4 border border-white/[0.06] hover:border-emerald-500/20 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Return</span>
+                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                </div>
+                <div className="text-2xl font-bold text-white mb-1">
+                  {portfolio.portfolioReturn !== null ? `${(portfolio.portfolioReturn * 100).toFixed(2)}%` : '—'}
+                </div>
+                <div className="text-xs text-gray-500">Portfolio performance</div>
+              </div>
+
+              {/* Alpha Card */}
+              <div className="glass-premium rounded-xl p-4 border border-white/[0.06] hover:border-purple-500/20 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Alpha</span>
+                  <Activity className="h-4 w-4 text-purple-400" />
+                </div>
+                <div className={cn(
+                  'text-2xl font-bold mb-1',
+                  portfolio.portfolioAlpha && portfolio.portfolioAlpha > 0 ? 'text-emerald-400' : 
+                  portfolio.portfolioAlpha && portfolio.portfolioAlpha < 0 ? 'text-red-400' : 'text-white'
+                )}>
+                  {portfolio.portfolioAlpha !== null ? `${(portfolio.portfolioAlpha * 100).toFixed(2)}%` : '—'}
+                </div>
+                <div className="text-xs text-gray-500">Excess return vs benchmark</div>
+              </div>
+
+              {/* Beta Card */}
+              <div className="glass-premium rounded-xl p-4 border border-white/[0.06] hover:border-blue-500/20 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Beta</span>
+                  <BarChart3 className="h-4 w-4 text-blue-400" />
+                </div>
+                <div className="text-2xl font-bold text-white mb-1">
+                  {portfolio.portfolioBeta !== null ? portfolio.portfolioBeta.toFixed(2) : '—'}
+                </div>
+                <div className="text-xs text-gray-500">Market sensitivity</div>
+              </div>
+
+              {/* Sharpe Ratio Card */}
+              <div className="glass-premium rounded-xl p-4 border border-white/[0.06] hover:border-cyan-500/20 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Sharpe Ratio</span>
+                  <Target className="h-4 w-4 text-cyan-400" />
+                </div>
+                <div className={cn(
+                  'text-2xl font-bold mb-1',
+                  portfolio.portfolioSharpe && portfolio.portfolioSharpe >= 1 ? 'text-emerald-400' : 
+                  portfolio.portfolioSharpe && portfolio.portfolioSharpe >= 0.5 ? 'text-amber-400' : 'text-white'
+                )}>
+                  {portfolio.portfolioSharpe !== null ? portfolio.portfolioSharpe.toFixed(2) : '—'}
+                </div>
+                <div className="text-xs text-gray-500">Risk-adjusted return</div>
+              </div>
+            </div>
+
+            {/* Detailed Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Returns Analysis */}
+              <div className="glass-premium rounded-xl p-4 border border-white/[0.06]">
+                <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+                  Returns Analysis
+                </h4>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Excess Return', value: portfolio.excessReturn, format: 'percent' },
+                    { label: 'Active Return', value: portfolio.activeReturn, format: 'percent' },
+                    { label: 'Sector Allocation', value: portfolio.sectorAllocation, format: 'percent' },
+                    { label: 'Security Selection', value: portfolio.securitySelection, format: 'percent' },
+                    { label: 'Interaction Effect', value: portfolio.interactionEffect, format: 'percent' },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-white/[0.04] last:border-0">
+                      <span className="text-xs text-gray-400">{item.label}</span>
+                      <span className={cn(
+                        'text-sm font-medium',
+                        item.value && item.value > 0 ? 'text-emerald-400' : 
+                        item.value && item.value < 0 ? 'text-red-400' : 'text-white'
+                      )}>
+                        {item.value !== null ? `${(item.value * 100).toFixed(2)}%` : '—'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Risk Metrics */}
+              <div className="glass-premium rounded-xl p-4 border border-white/[0.06]">
+                <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-red-500 rounded-full" />
+                  Risk Metrics
+                </h4>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Volatility', value: portfolio.portfolioVolatility, format: 'percent' },
+                    { label: 'Systematic Risk', value: portfolio.systematicRisk, format: 'percent' },
+                    { label: 'Unsystematic Risk', value: portfolio.unsystematicRisk, format: 'percent' },
+                    { label: 'Correlation w/ Benchmark', value: portfolio.correlationWithBenchmark, format: 'ratio' },
+                    { label: 'R-Squared', value: portfolio.rSquared, format: 'percent' },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-white/[0.04] last:border-0">
+                      <span className="text-xs text-gray-400">{item.label}</span>
+                      <span className="text-sm font-medium text-white">
+                        {item.value !== null 
+                          ? item.format === 'percent' 
+                            ? `${(item.value * 100).toFixed(2)}%` 
+                            : item.value.toFixed(2)
+                          : '—'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Performance Ratios */}
+              <div className="glass-premium rounded-xl p-4 border border-white/[0.06]">
+                <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-cyan-500 rounded-full" />
+                  Performance Ratios
+                </h4>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Sortino Ratio', value: portfolio.portfolioSortino },
+                    { label: 'Treynor Ratio', value: portfolio.portfolioTreynor },
+                    { label: 'Information Ratio', value: portfolio.portfolioInformationRatio },
+                    { label: 'Diversification Ratio', value: portfolio.diversificationRatio },
+                    { label: 'Effective Bets', value: portfolio.effectiveNumberOfBets },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-white/[0.04] last:border-0">
+                      <span className="text-xs text-gray-400">{item.label}</span>
+                      <span className={cn(
+                        'text-sm font-medium',
+                        item.value && item.value >= 1 ? 'text-emerald-400' : 
+                        item.value && item.value >= 0.5 ? 'text-amber-400' : 'text-white'
+                      )}>
+                        {item.value !== null ? item.value.toFixed(2) : '—'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Concentration Metrics */}
+            <div className="glass-premium rounded-xl p-4 border border-white/[0.06]">
+              <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                <div className="w-1 h-4 bg-amber-500 rounded-full" />
+                Portfolio Concentration
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 rounded-lg bg-white/[0.02]">
+                  <div className="text-xs text-gray-500 mb-1">HHI Index</div>
+                  <div className="text-lg font-bold text-white">
+                    {portfolio.herfindahlIndex !== null ? portfolio.herfindahlIndex.toFixed(0) : '—'}
+                  </div>
+                  <div className="text-[10px] text-gray-600 mt-1">Concentration measure</div>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-white/[0.02]">
+                  <div className="text-xs text-gray-500 mb-1">Effective Bets</div>
+                  <div className="text-lg font-bold text-white">
+                    {portfolio.effectiveNumberOfBets !== null ? portfolio.effectiveNumberOfBets.toFixed(1) : '—'}
+                  </div>
+                  <div className="text-[10px] text-gray-600 mt-1">Independent positions</div>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-white/[0.02]">
+                  <div className="text-xs text-gray-500 mb-1">Diversification</div>
+                  <div className="text-lg font-bold text-white">
+                    {portfolio.diversificationRatio !== null ? portfolio.diversificationRatio.toFixed(2) : '—'}
+                  </div>
+                  <div className="text-[10px] text-gray-600 mt-1">Risk reduction</div>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-white/[0.02]">
+                  <div className="text-xs text-gray-500 mb-1">R-Squared</div>
+                  <div className="text-lg font-bold text-white">
+                    {portfolio.rSquared !== null ? `${(portfolio.rSquared * 100).toFixed(1)}%` : '—'}
+                  </div>
+                  <div className="text-[10px] text-gray-600 mt-1">Benchmark fit</div>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Trade & FX Extended */}

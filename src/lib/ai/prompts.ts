@@ -311,6 +311,18 @@ export function buildSystemPrompt(options: {
   stockSymbol?: string
   stockData?: Record<string, any>
   marketData?: Record<string, any>
+  terminalContext?: Record<string, any>
+  economicIndicators?: Record<string, any>
+  portfolioData?: Record<string, any>
+  newsContext?: Record<string, any>
+  userRiskProfile?: {
+    riskTolerance: 'conservative' | 'moderate' | 'aggressive'
+    investmentHorizon: 'short_term' | 'medium_term' | 'long_term'
+    investmentExperience: 'beginner' | 'intermediate' | 'advanced'
+    riskScore: number
+    preferredSectors?: string[]
+    avoidSectors?: string[]
+  }
   userPreferences?: {
     experienceLevel?: 'beginner' | 'intermediate' | 'advanced'
     preferredMetrics?: string[]
@@ -328,11 +340,15 @@ export function buildSystemPrompt(options: {
   })}`
 
   // Add data source disclaimer
-  prompt += `\n\n📊 DATA SOURCES:
+  prompt += `\n\n📊 DATA SOURCES (ALL PROVIDED IN CONTEXT):
 - Real-time quotes: Yahoo Finance
-- Financial metrics: Deep Terminal Metrics Library  
+- Financial metrics: Deep Terminal Metrics Library (50+ calculated metrics)
 - Economic data: FRED (Federal Reserve Economic Data)
-- All data is provided in the context below - ONLY use this data`
+- Market indices: S&P 500, Dow Jones, NASDAQ, Russell 2000, VIX, TLT, HYG
+- Sector performance: 11 S&P sectors
+- Top movers: Daily gainers/losers
+
+⚠️ CRITICAL: Use ONLY the data provided below. Never use your training data for prices or metrics.`
 
   // Add experience level adjustment
   if (options.userPreferences?.experienceLevel) {
@@ -344,22 +360,204 @@ export function buildSystemPrompt(options: {
     prompt += levelGuide[options.userPreferences.experienceLevel]
   }
 
+  // ============================================================
+  // GLOBAL CONTEXT - Always available across all pages
+  // ============================================================
+  
+  prompt += `\n\n${'='.repeat(60)}\n🌐 GLOBAL SYSTEM DATA (Available on all pages)\n${'='.repeat(60)}`
+  
+  // Market Overview (always include if available)
+  if (options.marketData) {
+    prompt += `\n\n📈 MARKET OVERVIEW:`
+    if (options.marketData.indices) {
+      prompt += '\nMajor Indices:'
+      const indices = Array.isArray(options.marketData.indices) ? options.marketData.indices : []
+      indices.forEach((idx: any) => {
+        const sign = idx.change >= 0 ? '+' : ''
+        const pctSign = idx.changePercent >= 0 ? '+' : ''
+        prompt += `\n  • ${idx.name || idx.symbol}: ${typeof idx.value !== 'undefined' ? idx.value.toLocaleString() : idx.price?.toLocaleString()} (${sign}${idx.change?.toFixed(2)}, ${pctSign}${idx.changePercent?.toFixed(2)}%)`
+      })
+    }
+    if (options.marketData.vix) {
+      prompt += `\n  • VIX (Fear Index): ${options.marketData.vix.toFixed(2)}`
+    }
+    if (options.marketData.treasuryYield10Y) {
+      prompt += `\n  • 10Y Treasury Yield: ${options.marketData.treasuryYield10Y.toFixed(2)}%`
+    }
+    if (options.marketData.sectorPerformance) {
+      prompt += '\n\nSector Performance:'
+      Object.entries(options.marketData.sectorPerformance)
+        .sort((a, b) => (b[1] as number) - (a[1] as number))
+        .forEach(([sector, change]) => {
+          const sign = (change as number) >= 0 ? '+' : ''
+          prompt += `\n  • ${sector}: ${sign}${(change as number).toFixed(2)}%`
+        })
+    }
+    if (options.marketData.topGainers?.length) {
+      prompt += '\n\nTop Gainers:'
+      options.marketData.topGainers.slice(0, 5).forEach((g: any) => {
+        prompt += `\n  • ${g.symbol}: +${g.change?.toFixed(2) || g.changePercent?.toFixed(2)}%`
+      })
+    }
+    if (options.marketData.topLosers?.length) {
+      prompt += '\n\nTop Losers:'
+      options.marketData.topLosers.slice(0, 5).forEach((l: any) => {
+        prompt += `\n  • ${l.symbol}: ${l.change?.toFixed(2) || l.changePercent?.toFixed(2)}%`
+      })
+    }
+  }
+  
+  // Terminal Context (includes live market data)
+  if (options.terminalContext) {
+    const tc = options.terminalContext
+    if (tc.sectors?.length && !options.marketData?.sectorPerformance) {
+      prompt += '\n\nSector Performance:'
+      tc.sectors.forEach((s: any) => {
+        const sign = s.change >= 0 ? '+' : ''
+        prompt += `\n  • ${s.name}: ${sign}${s.change.toFixed(2)}%`
+      })
+    }
+    if (tc.currencies?.length) {
+      prompt += '\n\nCurrency Rates:'
+      tc.currencies.forEach((c: any) => {
+        prompt += `\n  • ${c.symbol}: ${c.price.toFixed(4)}`
+      })
+    }
+    if (tc.commodities?.length) {
+      prompt += '\n\nCommodities:'
+      tc.commodities.forEach((c: any) => {
+        prompt += `\n  • ${c.name}: $${c.price.toFixed(2)}`
+      })
+    }
+    if (tc.crypto?.length) {
+      prompt += '\n\nCrypto:'
+      tc.crypto.forEach((c: any) => {
+        prompt += `\n  • ${c.symbol}: $${c.price.toLocaleString()}`
+      })
+    }
+  }
+
+  // Economic Indicators (always include if available)
+  if (options.economicIndicators && Object.keys(options.economicIndicators).length > 0) {
+    prompt += `\n\n📊 ECONOMIC INDICATORS (FRED Data):`
+    const econ = options.economicIndicators
+    if (econ.gdp?.value !== null && econ.gdp?.value !== undefined) {
+      prompt += `\n  • GDP Growth: ${econ.gdp.value.toFixed(1)}%`
+    }
+    if (econ.unemployment?.value !== null && econ.unemployment?.value !== undefined) {
+      prompt += `\n  • Unemployment Rate: ${econ.unemployment.value.toFixed(1)}%`
+    }
+    if (econ.inflation?.value !== null && econ.inflation?.value !== undefined) {
+      prompt += `\n  • Inflation (CPI YoY): ${econ.inflation.value.toFixed(1)}%`
+    }
+    if (econ.federalFundsRate?.value !== null && econ.federalFundsRate?.value !== undefined) {
+      prompt += `\n  • Fed Funds Rate: ${econ.federalFundsRate.value.toFixed(2)}%`
+    }
+    if (econ.consumerConfidence?.value !== null && econ.consumerConfidence?.value !== undefined) {
+      prompt += `\n  • Consumer Confidence: ${econ.consumerConfidence.value.toFixed(1)}`
+    }
+    if (econ.manufacturingPmi?.value !== null && econ.manufacturingPmi?.value !== undefined) {
+      const status = econ.manufacturingPmi.value >= 50 ? 'Expansion' : 'Contraction'
+      prompt += `\n  • Manufacturing PMI: ${econ.manufacturingPmi.value.toFixed(1)} [${status}]`
+    }
+    if (econ.servicesPmi?.value !== null && econ.servicesPmi?.value !== undefined) {
+      const status = econ.servicesPmi.value >= 50 ? 'Expansion' : 'Contraction'
+      prompt += `\n  • Services PMI: ${econ.servicesPmi.value.toFixed(1)} [${status}]`
+    }
+  }
+
+  // News Context (always include if available)
+  if (options.newsContext?.recentNews?.length) {
+    prompt += `\n\n📰 RECENT MARKET NEWS:`
+    if (options.newsContext.sentimentBreakdown) {
+      const sb = options.newsContext.sentimentBreakdown
+      const total = sb.bullish + sb.bearish + sb.neutral
+      prompt += `\nSentiment: Bullish ${sb.bullish}/${total} | Bearish ${sb.bearish}/${total} | Neutral ${sb.neutral}/${total}`
+    }
+    options.newsContext.recentNews.slice(0, 5).forEach((n: any) => {
+      const sentimentIcon = n.sentiment === 'bullish' ? '🟢' : n.sentiment === 'bearish' ? '🔴' : '⚪'
+      prompt += `\n  ${sentimentIcon} ${n.headline} (${n.timeAgo})`
+    })
+  }
+
+  // Portfolio Summary (always include if available)
+  if (options.portfolioData) {
+    prompt += `\n\n💼 USER PORTFOLIO SUMMARY:`
+    if (options.portfolioData.totalValue) {
+      prompt += `\n  Total Value: $${options.portfolioData.totalValue.toLocaleString()}`
+    }
+    if (options.portfolioData.totalGainLoss !== undefined) {
+      const sign = options.portfolioData.totalGainLoss >= 0 ? '+' : ''
+      prompt += `\n  Total Gain/Loss: ${sign}$${options.portfolioData.totalGainLoss.toLocaleString()}`
+    }
+    if (options.portfolioData.dayChange !== undefined) {
+      const sign = options.portfolioData.dayChange >= 0 ? '+' : ''
+      prompt += `\n  Today's Change: ${sign}$${options.portfolioData.dayChange.toLocaleString()}`
+    }
+    if (options.portfolioData.holdings?.length) {
+      prompt += `\n  Holdings (${options.portfolioData.holdings.length} positions):`
+      options.portfolioData.holdings.slice(0, 10).forEach((h: any) => {
+        const sign = h.gainLossPercent >= 0 ? '+' : ''
+        prompt += `\n    • ${h.symbol}: $${h.currentValue?.toLocaleString()} (${sign}${h.gainLossPercent?.toFixed(2)}%, ${h.weight?.toFixed(1)}% weight)`
+      })
+    }
+  }
+
+  // User Risk Profile (from database onboarding)
+  if (options.userRiskProfile) {
+    prompt += `\n\n👤 USER INVESTMENT PROFILE (from onboarding):`
+    
+    const riskLabels = {
+      conservative: 'Conservative - Prioritizes capital preservation',
+      moderate: 'Moderate - Balanced risk/reward approach',
+      aggressive: 'Aggressive - Growth-focused, higher risk tolerance'
+    }
+    
+    const horizonLabels = {
+      short_term: 'Short-term (< 2 years)',
+      medium_term: 'Medium-term (2-7 years)',
+      long_term: 'Long-term (7+ years)'
+    }
+    
+    const experienceLabels = {
+      beginner: 'Beginner investor',
+      intermediate: 'Intermediate investor',
+      advanced: 'Advanced/Experienced investor'
+    }
+    
+    prompt += `\n  • Risk Tolerance: ${riskLabels[options.userRiskProfile.riskTolerance] || options.userRiskProfile.riskTolerance}`
+    prompt += `\n  • Investment Horizon: ${horizonLabels[options.userRiskProfile.investmentHorizon] || options.userRiskProfile.investmentHorizon}`
+    prompt += `\n  • Experience Level: ${experienceLabels[options.userRiskProfile.investmentExperience] || options.userRiskProfile.investmentExperience}`
+    prompt += `\n  • Risk Score: ${options.userRiskProfile.riskScore}/100`
+    
+    if (options.userRiskProfile.preferredSectors?.length) {
+      prompt += `\n  • Preferred Sectors: ${options.userRiskProfile.preferredSectors.join(', ')}`
+    }
+    if (options.userRiskProfile.avoidSectors?.length) {
+      prompt += `\n  • Sectors to Avoid: ${options.userRiskProfile.avoidSectors.join(', ')}`
+    }
+    
+    prompt += `\n\n⚡ PERSONALIZATION NOTE: Tailor your analysis considering the user's risk profile above.
+   - For conservative investors: Emphasize stability, dividend yield, low volatility
+   - For moderate investors: Balance growth with risk considerations
+   - For aggressive investors: Can discuss growth opportunities and higher-risk factors
+   - ALWAYS respect user's experience level in explanation depth`
+  }
+
+  // ============================================================
+  // PAGE-SPECIFIC CONTEXT
+  // ============================================================
+
   // Add stock context if analyzing a specific stock
   if (options.stockSymbol) {
-    prompt += `\n\n${'='.repeat(50)}\n📈 STOCK DATA FOR: ${options.stockSymbol}\n${'='.repeat(50)}`
-    prompt += '\n⚠️ IMPORTANT: Use ONLY the data below. Do NOT use your training data for prices/metrics.\n'
+    prompt += `\n\n${'='.repeat(60)}\n📈 STOCK-SPECIFIC DATA: ${options.stockSymbol}\n${'='.repeat(60)}`
+    prompt += '\n⚠️ IMPORTANT: Use ONLY the data below for this stock analysis.\n'
     
     if (options.stockData) {
       prompt += '\n```json\n' + JSON.stringify(options.stockData, null, 2) + '\n```'
     } else {
       prompt += '\n⚠️ No stock data provided. Cannot analyze this stock without data.'
     }
-  }
-
-  // Add market context if available
-  if (options.marketData) {
-    prompt += `\n\n${'='.repeat(50)}\n🌍 MARKET DATA\n${'='.repeat(50)}`
-    prompt += '\n```json\n' + JSON.stringify(options.marketData, null, 2) + '\n```'
   }
 
   // Add preferred metrics
@@ -376,6 +574,7 @@ export function buildSystemPrompt(options: {
 4. NEVER guarantee outcomes or predict exact prices
 5. Always present balanced analysis with both risks and opportunities
 6. Include appropriate disclaimers for market discussions
+7. You have access to comprehensive GLOBAL data - use it to provide context even when discussing specific stocks
 
 ⚠️ This is educational analysis only, not personalized financial advice.`
 
