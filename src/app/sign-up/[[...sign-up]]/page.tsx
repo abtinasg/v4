@@ -62,6 +62,9 @@ export default function SignUpPage() {
                 alertText: 'text-gray-300',
                 formFieldSuccessText: 'text-emerald-400',
                 formFieldErrorText: 'text-red-400',
+                footer: 'bg-[#0a0d12]/50 border-t border-white/5',
+                footerActionText: 'text-gray-400',
+                badge: 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20',
               }
             }}
             routing="path"
