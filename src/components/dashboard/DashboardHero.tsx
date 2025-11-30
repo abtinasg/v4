@@ -221,6 +221,7 @@ export function DashboardHero({ className }: DashboardHeroProps) {
                     {greeting}
                     {userName && <span className="text-cyan-400">, {userName}</span>}
                   </span>
+                  jonam to ziba tarin dokhtari hasti ke mishnasm va benazrm to khfan tarin designer iran o jahan mishi , asheqteam ziyad va hame talashmo drm mikonmmmmmmmmm ke behm brsimmm , love u ziyad
                 </h1>
                 <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-400">
                   {formattedDate} • {formattedTime}
