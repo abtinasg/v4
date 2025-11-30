@@ -96,6 +96,11 @@ export default function CreditsPage() {
       if (res.ok) {
         const data = await res.json()
         setCreditConfig(data)
+      } else if (res.status === 401) {
+        console.error('Unauthorized - redirecting to login')
+        window.location.href = '/admin/login'
+      } else {
+        console.error('Failed to fetch config:', res.status)
       }
     } catch (error) {
       console.error('Failed to fetch credit config:', error)
@@ -107,14 +112,29 @@ export default function CreditsPage() {
     try {
       // Fetch overview
       const overviewRes = await fetch('/api/admin/credits?action=overview')
-      const overviewData = await overviewRes.json()
-      setOverview(overviewData.overview)
-      setPackages(overviewData.packages || [])
+      if (!overviewRes.ok) {
+        const errorText = await overviewRes.text()
+        console.error('Overview API error:', overviewRes.status, errorText)
+        if (overviewRes.status === 401) {
+          // Redirect to admin login if unauthorized
+          window.location.href = '/admin/login'
+          return
+        }
+      } else {
+        const overviewData = await overviewRes.json()
+        setOverview(overviewData.overview)
+        setPackages(overviewData.packages || [])
+      }
 
       // Fetch users
       const usersRes = await fetch('/api/admin/credits?action=users')
-      const usersData = await usersRes.json()
-      setUsers(usersData.users || [])
+      if (!usersRes.ok) {
+        const errorText = await usersRes.text()
+        console.error('Users API error:', usersRes.status, errorText)
+      } else {
+        const usersData = await usersRes.json()
+        setUsers(usersData.users || [])
+      }
     } catch (error) {
       console.error('Failed to fetch credits data:', error)
     }
@@ -366,8 +386,15 @@ export default function CreditsPage() {
           )}
         </button>
 
-        {showConfigPanel && creditConfig && (
+        {showConfigPanel && (
           <div className="p-4 border-t border-white/10 space-y-6">
+            {!creditConfig ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="w-5 h-5 animate-spin text-gray-400 mr-2" />
+                <span className="text-gray-400">Loading configuration...</span>
+              </div>
+            ) : (
+            <>
             {/* Credit Costs */}
             <div>
               <h3 className="text-sm font-medium text-cyan-400 mb-3 flex items-center gap-2">
@@ -426,6 +453,8 @@ export default function CreditsPage() {
               These values are currently read from <code className="text-cyan-400">src/lib/credits/config.ts</code>. 
               To update them, edit the config file and restart the server.
             </p>
+            </>
+            )}
           </div>
         )}
       </div>
@@ -522,8 +551,12 @@ export default function CreditsPage() {
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-gray-500">
-                    No users found
+                  <td colSpan={4} className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <Users className="w-8 h-8 text-gray-600" />
+                      <p className="text-gray-500">No users found</p>
+                      <p className="text-xs text-gray-600">Users will appear here once they sign up</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
