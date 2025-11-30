@@ -5,8 +5,18 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { CREDIT_COSTS, type CreditAction } from '@/lib/credits/config'
+
+// Custom event for credit updates
+export const CREDIT_UPDATE_EVENT = 'credit-balance-update'
+
+// Helper to trigger credit refresh from anywhere
+export function triggerCreditRefresh() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(CREDIT_UPDATE_EVENT))
+  }
+}
 
 export interface CreditData {
   balance: number
@@ -162,6 +172,35 @@ export function useCredits() {
     
     loadData()
   }, [fetchCredits, fetchPackages])
+
+  // Polling for realtime updates (every 30 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchCredits()
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [fetchCredits])
+
+  // Listen for credit update events (triggered after credit usage)
+  useEffect(() => {
+    const handleCreditUpdate = () => {
+      fetchCredits()
+    }
+
+    window.addEventListener(CREDIT_UPDATE_EVENT, handleCreditUpdate)
+    
+    // Also listen to focus event to refresh when user comes back to tab
+    const handleFocus = () => {
+      fetchCredits()
+    }
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      window.removeEventListener(CREDIT_UPDATE_EVENT, handleCreditUpdate)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [fetchCredits])
 
   return {
     // Data

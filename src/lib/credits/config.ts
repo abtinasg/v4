@@ -5,15 +5,15 @@
 // Credit cost per action
 export const CREDIT_COSTS = {
   // Search and basic view
-  stock_search: 2,
+  stock_search: 1,
   real_time_quote: 0,
   
   // Analysis
   technical_analysis: 10,
-  financial_report: 20,
-  ai_analysis: 25,
+  financial_report: 50,
+  ai_analysis: 0,
   dcf_valuation: 35,
-  stock_comparison: 40,
+  stock_comparison: 20,
   portfolio_analysis: 50,
   
   // Other

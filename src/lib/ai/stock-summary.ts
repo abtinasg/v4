@@ -8,6 +8,7 @@
 
 import type { StockContext } from './context-builder';
 import { buildContextSystemPrompt } from './context-prompts';
+import { triggerCreditRefresh } from '@/lib/hooks/use-credits';
 
 // ============================================================
 // TYPES
@@ -165,6 +166,9 @@ export async function generateStockSummary(
 
     const data = await response.json();
     const content = data.content || data.message?.content || '';
+
+    // Refresh credit balance after API call
+    triggerCreditRefresh();
 
     // Parse the response into sections
     const summary = parseAISummary(stock.symbol, content);

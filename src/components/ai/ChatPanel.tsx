@@ -43,6 +43,7 @@ import {
   type ChatMessage,
   type FeedbackType,
 } from '@/lib/stores/chat-store'
+import { triggerCreditRefresh } from '@/lib/hooks/use-credits'
 
 // ============================================================
 // TYPES
@@ -249,6 +250,8 @@ export const ChatPanel = memo(function ChatPanel({
       () => {
         updateMessage(assistantId, { status: 'complete' })
         setStreaming(false, null)
+        // Refresh credit balance after AI response
+        triggerCreditRefresh()
       },
       // On error
       (error) => {
@@ -257,6 +260,8 @@ export const ChatPanel = memo(function ChatPanel({
           content: `Error: ${error}` 
         })
         setStreaming(false, null)
+        // Also refresh on error (credits might have been deducted)
+        triggerCreditRefresh()
       },
       // On model info
       (model, modelName) => {

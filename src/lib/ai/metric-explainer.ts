@@ -7,6 +7,7 @@
 
 import { buildContextSystemPrompt } from './context-prompts';
 import type { StockContext } from './context-builder';
+import { triggerCreditRefresh } from '@/lib/hooks/use-credits';
 
 // ============================================================
 // TYPES
@@ -168,6 +169,9 @@ export async function explainMetric(
 
     const data = await response.json();
     const content = data.content || data.message?.content || '';
+
+    // Refresh credit balance after API call
+    triggerCreditRefresh();
 
     // Parse response
     const explanation = parseExplanation(metricName, content);
