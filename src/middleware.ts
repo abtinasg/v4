@@ -97,9 +97,11 @@ export default clerkMiddleware(async (auth, request) => {
         return NextResponse.next()
       }
 
-      // No cookie = redirect to onboarding
-      // The onboarding page will check if user actually needs it via client-side API call
-      return NextResponse.redirect(new URL('/onboarding', request.url))
+      // No cookie - check via API instead of blocking
+      // Let the page handle the check client-side to avoid redirect loops
+      // Only redirect to onboarding if user explicitly doesn't have the cookie
+      // We'll rely on the dashboard pages to do a client-side check
+      return NextResponse.next()
     }
   }
 })

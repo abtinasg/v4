@@ -1,6 +1,7 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { queries } from '@/lib/db/queries'
+import { cookies } from 'next/headers'
+import { queries, riskProfileQueries } from '@/lib/db/queries'
 import { Sidebar, SidebarProvider } from '@/components/dashboard/Sidebar'
 import { MainContent } from '@/components/dashboard/MainContent'
 import { Topbar } from '@/components/dashboard/Topbar'
@@ -22,6 +23,25 @@ export default async function DashboardLayout({
 
   // Get or create user in database
   let user = await queries.user.getByClerkId(clerkUser.id)
+
+  // Check onboarding status
+  const cookieStore = await cookies()
+  const onboardingCookie = cookieStore.get('onboarding_completed')
+  
+  // If no cookie OR cookie doesn't match current user, check DB
+  if (!onboardingCookie || onboardingCookie.value !== clerkUser.id) {
+    // Check if user exists and has completed onboarding
+    if (user) {
+      const hasCompletedOnboarding = await riskProfileQueries.hasCompletedOnboarding(user.id)
+      if (!hasCompletedOnboarding) {
+        redirect('/onboarding')
+      }
+      // User has completed onboarding but cookie is missing/wrong - cookie will be set on next onboarding API call
+    } else {
+      // New user without record - needs onboarding
+      redirect('/onboarding')
+    }
+  }
   
   // If user doesn't exist in DB, they'll be created by the webhook
   // For now, we'll just show their Clerk data
