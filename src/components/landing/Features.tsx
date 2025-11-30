@@ -61,49 +61,49 @@ function MetricCounter({ value, label, color }: { value: string; label: string; 
 const productPillars = [
   {
     icon: LayoutDashboard,
-    title: 'Pro Terminal',
-    description: 'Multi-monitor workspace with depth-of-market, execution routes, and journaling replay.',
-    bullets: ['Detachable watch panes', 'Playbook automation', 'Dark & light studio themes'],
-    color: '#5BB9F7',
+    title: 'Terminal Pro',
+    description: 'Bloomberg-style command terminal with real-time market data, top movers, and instant stock lookup.',
+    bullets: ['Type any symbol + GO', 'Live market indices', 'Keyboard shortcuts'],
+    color: '#FF6B35',
     large: true,
   },
   {
     icon: Radio,
-    title: 'Realtime Watchlist',
-    description: 'Millisecond-level quote diffing, options IV, economic triggers.',
-    bullets: ['Smart alerts + SMS', 'Basket risk scoring'],
-    color: '#3FE3C2',
+    title: 'Smart Watchlist',
+    description: 'Track your favorite stocks with real-time prices and customizable alerts.',
+    bullets: ['Price alerts', 'Portfolio tracking', 'Quick actions'],
+    color: '#00D4FF',
     large: false,
   },
   {
     icon: BrainCircuit,
-    title: 'AI Orchestrator',
-    description: 'Chain-of-thought AI that routes prompts across Claude, GPT-4, and custom models.',
-    bullets: ['Explains outputs', 'Links to data lineage'],
-    color: '#9A7BFF',
+    title: 'AI Assistant',
+    description: 'Ask questions about any stock and get instant, intelligent answers powered by advanced AI.',
+    bullets: ['Natural language queries', 'Context-aware responses', 'Data-backed insights'],
+    color: '#8B5CF6',
     large: false,
   },
   {
     icon: Layers3,
-    title: 'Stock Analyst 150+',
-    description: 'DuPont, valuation, quality, growth, efficiency, and technical metrics in one dossier.',
-    bullets: ['Auto-grade each metric', 'Highlight anomalies', 'Surface comparable peers'],
-    color: '#5BB9F7',
+    title: '150+ Stock Metrics',
+    description: 'Comprehensive fundamental and technical analysis with valuation, growth, profitability, and more.',
+    bullets: ['Financial statements', 'Valuation ratios', 'Technical indicators'],
+    color: '#00D4FF',
     large: true,
   },
 ]
 
 const aiTimeline = [
-  { label: 'Signal Graph', copy: 'Scrapes macro + micro data, streams market structure.', icon: Database },
-  { label: 'Model Orchestra', copy: 'Routes tasks across GPT-4, Claude, and quant stacks.', icon: BrainCircuit },
-  { label: 'Investor Context', copy: 'Understands your holdings and risk tolerance.', icon: Target },
-  { label: 'Action Layer', copy: 'Outputs watchlist automations and trade tickets.', icon: Zap },
+  { label: 'Live Market Data', copy: 'Real-time prices, financial statements, and market news at your fingertips.', icon: Database },
+  { label: 'AI-Powered Analysis', copy: 'Ask questions in plain English, get intelligent answers backed by data.', icon: BrainCircuit },
+  { label: 'Personal Context', copy: 'Understands your portfolio and watchlist for personalized insights.', icon: Target },
+  { label: 'Take Action', copy: 'Smart alerts, portfolio tracking, and instant stock lookup.', icon: Zap },
 ]
 
 const metricHighlights = [
-  { stat: '150+', label: 'Fundamental metrics', color: '#5BB9F7' },
-  { stat: '18', label: 'Curated collections', color: '#9A7BFF' },
-  { stat: '7', label: 'DuPont dimensions', color: '#3FE3C2' },
+  { stat: '150+', label: 'Financial metrics', color: '#00D4FF' },
+  { stat: '10+', label: 'Analysis categories', color: '#8B5CF6' },
+  { stat: 'Live', label: 'Real-time data', color: '#FF6B35' },
 ]
 
 export function Features() {
@@ -124,23 +124,23 @@ export function Features() {
             </div>
             
             <h2 className="heading-display text-4xl md:text-5xl lg:text-6xl text-white">
-              Institutional grade.{' '}
-              <span className="text-glow-violet text-transparent bg-clip-text bg-gradient-to-r from-[#9A7BFF] to-[#5BB9F7]">
-                Retail accessible.
+              Professional tools.{' '}
+              <span className="text-glow-violet text-transparent bg-clip-text bg-gradient-to-r from-[#00D4FF] to-[#FF6B35]">
+                Simple to use.
               </span>
             </h2>
             
             <p className="subhead-light text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-              We've deconstructed the professional trading desk and rebuilt it for the individual investor. No bloat, just signal.
+              Everything you need to research, analyze, and track stocks—without the complexity or cost of Bloomberg Terminal.
             </p>
           </div>
 
           {/* Vision Cards */}
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { title: 'Give retail investors institutional armor', detail: 'Latency-optimized data feeds, explainable AI, and risk guardrails.' },
-              { title: 'Make discovery continuous', detail: 'From macro signals to trade journaling, everything stays in sync.' },
-              { title: 'Blend human instinct with AI', detail: 'Chain together GPT-4, Claude, and your prompts to co-create.' },
+              { title: 'Powerful yet accessible', detail: 'Professional-grade analysis without the steep learning curve or high cost.' },
+              { title: 'Real-time insights', detail: 'Live market data, instant analysis, and AI-powered answers at your fingertips.' },
+              { title: 'Everything in one place', detail: 'Terminal, watchlist, portfolio, news, and AI assistant—all integrated seamlessly.' },
             ].map((item, i) => (
               <div
                 key={item.title}
@@ -166,11 +166,11 @@ export function Features() {
             className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/5"
           >
             <div className="space-y-3">
-              <div className="label-caps text-[#5BB9F7]">System Architecture</div>
-              <h3 className="heading-display text-3xl md:text-4xl text-white">The Complete Stack</h3>
+              <div className="label-caps text-[#00D4FF]">Everything You Need</div>
+              <h3 className="heading-display text-3xl md:text-4xl text-white">Core Features</h3>
             </div>
             <p className="subhead-light text-gray-400 max-w-md">
-              Four integrated modules that work in concert to provide a complete operating system for your portfolio.
+              All the tools you need to research stocks, track your portfolio, and make informed decisions.
             </p>
           </div>
 
@@ -253,28 +253,28 @@ export function Features() {
               <div className="space-y-8">
                 <div
                 >
-                  <div className="inline-flex items-center gap-2 text-[#9A7BFF] label-caps mb-4">
+                  <div className="inline-flex items-center gap-2 text-[#8B5CF6] label-caps mb-4">
                     <BrainCircuit className="h-4 w-4" />
-                    AI ORCHESTRATOR
+                    AI ASSISTANT
                   </div>
                   
                   <h3 className="heading-display text-4xl md:text-5xl text-white mb-6">
-                    Not just a chatbot.{' '}
-                    <span className="text-glow-violet text-transparent bg-clip-text bg-gradient-to-r from-[#9A7BFF] to-[#5BB9F7]">
-                      A reasoning engine.
+                    Ask anything.{' '}
+                    <span className="text-glow-violet text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] to-[#00D4FF]">
+                      Get instant answers.
                     </span>
                   </h3>
                   
                   <p className="subhead-light text-lg text-gray-400 leading-relaxed">
-                    We chain together specialized models—GPT-4 for reasoning, Claude for context, and proprietary quant models for math—to give you answers you can trust.
+                    Just type your question in plain English. Our AI understands your portfolio, analyzes the data, and gives you clear, actionable insights.
                   </p>
                 </div>
 
                 {/* Feature cards */}
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
-                    { icon: ChartCandlestick, title: 'Quant Verification', desc: 'Every claim cross-referenced with live data.', color: '#9A7BFF' },
-                    { icon: ScanEye, title: 'Full Audit Trail', desc: 'See which model contributed to each part.', color: '#5BB9F7' },
+                    { icon: ChartCandlestick, title: 'Data-Backed', desc: 'Every answer supported by real financial data.', color: '#8B5CF6' },
+                    { icon: ScanEye, title: 'Context Aware', desc: 'Understands your portfolio and preferences.', color: '#00D4FF' },
                   ].map((item, i) => (
                     <div
                       key={item.title}
@@ -329,11 +329,11 @@ export function Features() {
           <div
             className="text-center space-y-6"
           >
-            <div className="label-caps text-[#3FE3C2]">Stock Analyst 150+</div>
+            <div className="label-caps text-[#00D4FF]">Complete Analysis</div>
             <h3 className="heading-display text-3xl md:text-4xl lg:text-5xl text-white max-w-3xl mx-auto">
-              A complete library of metrics{' '}
-              <span className="text-glow-teal text-transparent bg-clip-text bg-gradient-to-r from-[#3FE3C2] to-[#5BB9F7]">
-                with context.
+              150+ metrics at your fingertips.{' '}
+              <span className="text-glow-teal text-transparent bg-clip-text bg-gradient-to-r from-[#00D4FF] to-[#FF6B35]">
+                No expertise required.
               </span>
             </h3>
           </div>

@@ -71,71 +71,86 @@ export function Hero() {
           {/* Left: Copy */}
           <div className="space-y-8">
             {/* Badge */}
-            <div
-              className="inline-flex items-center gap-2 rounded-full border border-[#00D4FF]/20 bg-[#00D4FF]/[0.08] px-4 py-1.5 text-xs font-medium text-[#00D4FF] glow-cyan"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#00D4FF] animate-pulse" />
-              Next-Gen Trading Intelligence
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#00D4FF]/20 bg-[#00D4FF]/[0.08] px-4 py-1.5 text-xs font-medium text-[#00D4FF] glow-cyan">
+              <Activity className="h-3.5 w-3.5 animate-pulse" />
+              Trusted by 10,000+ Retail Investors
             </div>
 
             {/* Headline */}
-            <div
-            >
-              <h1 className="text-display text-5xl md:text-6xl lg:text-7xl text-white">
-                The{' '}
+            <div>
+              <h1 className="text-display text-5xl md:text-6xl lg:text-7xl text-white leading-tight">
+                <span className="text-gray-400">Stock Analysis Made</span>
+                <br />
                 <span className="relative inline-block">
                   <span className="text-glow-cyan text-transparent bg-clip-text bg-gradient-to-r from-[#00D4FF] via-[#3B82F6] to-[#8B5CF6]">
-                    Terminal
+                    Simple
                   </span>
                   <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-[#00D4FF]/30 to-[#8B5CF6]/30 -z-10" />
                 </span>
-                <br />
-                <span className="text-subhead text-gray-300">for the Modern Era.</span>
+                {' & '}
+                <span className="relative inline-block">
+                  <span className="text-glow-cyan text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] via-[#3B82F6] to-[#00D4FF]">
+                    Powerful
+                  </span>
+                  <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-[#8B5CF6]/30 to-[#00D4FF]/30 -z-10" />
+                </span>
               </h1>
             </div>
 
             {/* Subheadline */}
-            <p
-              className="text-subhead text-lg text-gray-400 max-w-lg"
-            >
-              Orchestrate AI models, stream institutional-grade data, and analyze 150+ metrics—all in one cinematic workspace built for conviction.
+            <p className="text-subhead text-lg text-gray-400 max-w-lg">
+              Professional stock analysis tools designed for retail investors. Get AI-powered insights, real-time data, and 150+ metrics—without the Bloomberg Terminal price tag.
             </p>
 
-            {/* Feature Pills */}
-            <div
-              className="flex flex-wrap gap-3"
-            >
-              {featurePills.map((pill) => (
-                <div
-                  key={pill.label}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-4 py-2 text-sm text-gray-300 backdrop-blur-sm hover:border-[#00D4FF]/20 hover:bg-[#00D4FF]/[0.03] transition-all duration-300"
-                >
-                  <pill.icon className="h-4 w-4 text-[#00D4FF]" />
-                  {pill.label}
-                </div>
-              ))}
+            {/* Value Props */}
+            <div className="grid grid-cols-3 gap-4 max-w-lg">
+              <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                <div className="text-2xl font-bold text-[#00D4FF] mb-1">$0</div>
+                <div className="text-xs text-gray-500">Start Free</div>
+              </div>
+              <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                <div className="text-2xl font-bold text-[#22C55E] mb-1">150+</div>
+                <div className="text-xs text-gray-500">Metrics</div>
+              </div>
+              <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                <div className="text-2xl font-bold text-[#8B5CF6] mb-1">AI</div>
+                <div className="text-xs text-gray-500">Powered</div>
+              </div>
             </div>
 
             {/* CTAs */}
-            <div
-              className="flex flex-wrap gap-4 pt-4"
-            >
+            <div className="flex flex-wrap gap-4 pt-2">
               <Link
                 href="/sign-up"
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#00D4FF] to-[#3B82F6] px-7 py-3.5 text-sm font-semibold text-[#05070B] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,212,255,0.4)] hover:scale-[1.02]"
+                className="group inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#00D4FF] to-[#3B82F6] px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,212,255,0.4)] hover:scale-[1.02]"
               >
-                Launch Terminal
+                Start Free Today
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
-                href="/demo"
+                href="/pricing"
                 className="group inline-flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-[#8B5CF6]/30 hover:bg-[#8B5CF6]/[0.05]"
               >
-                <div className="h-6 w-6 rounded-full border border-white/20 flex items-center justify-center">
-                  <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-white border-b-[4px] border-b-transparent ml-0.5" />
-                </div>
-                Watch Demo
+                View Pricing
+                <span className="text-xs text-gray-500">→ From $0/mo</span>
               </Link>
+            </div>
+
+            {/* Social Proof */}
+            <div className="flex items-center gap-6 pt-4">
+              <div className="flex items-center -space-x-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#8B5CF6] border-2 border-[#05070B] flex items-center justify-center text-xs font-bold text-white">
+                    {i}
+                  </div>
+                ))}
+                <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-[#05070B] flex items-center justify-center text-xs text-gray-400">
+                  +10k
+                </div>
+              </div>
+              <div className="text-sm text-gray-400">
+                Join thousands of retail investors
+              </div>
             </div>
           </div>
 
