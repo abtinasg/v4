@@ -39,7 +39,14 @@ export async function GET(request: NextRequest) {
     }
     
     // Get credit information
-    const credits = await getUserCredits(user.id)
+    let credits = await getUserCredits(user.id)
+    
+    // If user has no credits, initialize them
+    if (!credits) {
+      const { initializeUserCredits } = await import('@/lib/credits')
+      credits = await initializeUserCredits(user.id)
+    }
+    
     const stats = await getCreditStats(user.id)
     
     // User limits based on plan
