@@ -2042,7 +2042,7 @@ function ExtendedTab({ metrics }: { metrics: AllMetrics }) {
 // ============================================================================
 
 function AIAnalysisTab({ metrics, symbol }: { metrics: AllMetrics; symbol: string }) {
-  const { scores, profitability, growth, valuation, leverage, liquidity } = metrics;
+  const { scores, profitability, growth, valuation, leverage, liquidity, dcf, risk } = metrics;
 
   // Generate AI insights based on metrics
   const insights = generateInsights(metrics);
@@ -2301,15 +2301,15 @@ function AIAnalysisTab({ metrics, symbol }: { metrics: AllMetrics; symbol: strin
             <div className="grid grid-cols-3 gap-2 text-xs">
               <div className="p-2 rounded-lg bg-black/20">
                 <div className="text-gray-500">Beta (35%)</div>
-                <div className="text-purple-400 font-medium">{formatNum(valuation.beta)}</div>
+                <div className="text-purple-400 font-medium">{formatNum(dcf.beta)}</div>
               </div>
               <div className="p-2 rounded-lg bg-black/20">
                 <div className="text-gray-500">Volatility (35%)</div>
-                <div className="text-purple-400 font-medium">{formatPct(valuation.fiftyTwoWeekRange ? 0.3 : null)}</div>
+                <div className="text-purple-400 font-medium">{formatPct(risk.standardDeviation)}</div>
               </div>
               <div className="p-2 rounded-lg bg-black/20">
                 <div className="text-gray-500">Sharpe Ratio (30%)</div>
-                <div className="text-purple-400 font-medium">N/A</div>
+                <div className="text-purple-400 font-medium">{formatNum(risk.sharpeRatio)}</div>
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
