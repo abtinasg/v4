@@ -5,6 +5,7 @@ import { Sidebar, SidebarProvider } from '@/components/dashboard/Sidebar'
 import { MainContent } from '@/components/dashboard/MainContent'
 import { Topbar } from '@/components/dashboard/Topbar'
 import { AIChatWrapper } from '@/components/ai'
+import { BottomNavigation } from '@/components/mobile'
 
 export default async function DashboardLayout({
   children,
@@ -53,11 +54,14 @@ export default async function DashboardLayout({
             <Topbar subscriptionTier={subscriptionTier} />
           </div>
 
-          {/* Page Content */}
-          <main className="flex-1 p-3 sm:p-4 lg:p-6">
+          {/* Page Content - extra padding bottom on mobile for bottom nav */}
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 md:pb-6">
             {children}
           </main>
         </MainContent>
+
+        {/* Mobile Bottom Navigation */}
+        <BottomNavigation />
 
         {/* Floating AI Chat - Available on all dashboard pages */}
         <AIChatWrapper position="right" />

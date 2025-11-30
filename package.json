@@ -43,6 +43,7 @@
     "font": "^0.0.4",
     "framer-motion": "^12.23.24",
     "geist": "^1.5.1",
+    "jose": "^6.1.2",
     "jspdf": "^3.0.4",
     "lucide-react": "^0.454.0",
     "marked": "^17.0.1",

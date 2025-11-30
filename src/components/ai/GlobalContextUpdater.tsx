@@ -8,7 +8,6 @@
  * - Top movers (gainers/losers)
  * - Sector performance
  * - User's watchlist data
- * - User's portfolio summary
  * - Recent market news
  * 
  * This ensures the AI always has access to full system data,
@@ -19,7 +18,6 @@
 
 import { useEffect, useCallback, useRef } from 'react'
 import { useChatStore, type TerminalContext, type EconomicIndicatorsContext, type NewsContextItem } from '@/lib/stores/chat-store'
-import { usePortfolioStore } from '@/lib/stores/portfolio-store'
 
 interface GlobalMarketData {
   indices?: {
@@ -86,8 +84,6 @@ export function GlobalContextUpdater({
 }: GlobalContextUpdaterProps) {
   const setContext = useChatStore((s) => s.setContext)
   const currentContext = useChatStore((s) => s.context)
-  const holdings = usePortfolioStore((s) => s.holdings)
-  const summary = usePortfolioStore((s) => s.summary)
   
   const lastFetchRef = useRef<number>(0)
   const isFetchingRef = useRef(false)
@@ -359,22 +355,6 @@ export function GlobalContextUpdater({
       topLosers: globalData.marketData.topLosers,
     }
     
-    // Build portfolio summary if available
-    const portfolioSummary = holdings.length > 0 && summary ? {
-      totalValue: summary.totalValue,
-      totalGainLoss: summary.totalGainLoss,
-      dayChange: summary.dayGainLoss,
-      holdings: holdings.slice(0, 10).map(h => ({
-        symbol: h.symbol,
-        shares: h.quantity,
-        avgCost: h.avgBuyPrice,
-        currentValue: h.totalValue,
-        gainLoss: h.gainLoss,
-        gainLossPercent: h.gainLossPercent,
-        weight: summary.totalValue > 0 ? (h.totalValue / summary.totalValue) * 100 : 0,
-      })),
-    } : undefined
-    
     // Build news context
     const newsContext = globalData.recentNews.length > 0 ? {
       recentNews: globalData.recentNews,
@@ -425,8 +405,6 @@ export function GlobalContextUpdater({
       userRiskProfile: globalData.userRiskProfile,
       // Add news context if we have news
       newsContext: currentContext.newsContext || newsContext,
-      // Preserve page-specific portfolio data, or use summary
-      portfolio: currentContext.portfolio || portfolioSummary,
       // Preserve page-specific stock data
       stock: currentContext.stock,
       // Preserve page context
@@ -440,11 +418,10 @@ export function GlobalContextUpdater({
       hasEconomic: Object.keys(globalData.economicIndicators).length > 0,
       hasNews: globalData.recentNews.length > 0,
       hasWatchlist: globalData.watchlist.length > 0,
-      hasPortfolio: holdings.length > 0,
       hasRiskProfile: !!globalData.userRiskProfile,
       pageType: currentContext.type,
     })
-  }, [fetchGlobalData, setContext, currentContext, holdings, summary])
+  }, [fetchGlobalData, setContext, currentContext])
 
   useEffect(() => {
     // Initial fetch with a small delay to let page-specific updaters set their context first
@@ -460,13 +437,6 @@ export function GlobalContextUpdater({
       clearInterval(interval)
     }
   }, [updateGlobalContext, refreshInterval])
-
-  // Update when portfolio changes
-  useEffect(() => {
-    if (holdings.length > 0) {
-      updateGlobalContext()
-    }
-  }, [holdings.length, updateGlobalContext])
 
   // This component doesn't render anything
   return null

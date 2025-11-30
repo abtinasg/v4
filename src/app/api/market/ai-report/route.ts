@@ -7,21 +7,22 @@
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'  // Explicitly use Node.js runtime
 export const maxDuration = 30
 
 // Simple static responses for now (can be made dynamic later)
 const generateSimpleReport = () => {
-  const marketMoods = ['bullish', 'bearish', 'neutral', 'mixed']
+  const marketMoods = ['bullish', 'bearish', 'neutral', 'mixed'] as const
   const randomMood = marketMoods[Math.floor(Math.random() * marketMoods.length)]
   
-  const summaries = {
+  const summaries: Record<typeof marketMoods[number], string> = {
     bullish: "Markets are showing positive momentum with strong buyer interest. Major indices are trending upward with healthy volume. Risk appetite remains elevated as investors rotate into growth sectors.",
     bearish: "Markets are experiencing downward pressure as sellers dominate. Defensive sectors are outperforming while growth stocks face headwinds. Caution is advised as volatility increases.",
     neutral: "Markets are trading in a tight range with mixed signals. Neither bulls nor bears have clear control. Investors are waiting for clearer direction before making significant moves.",
     mixed: "Markets are showing divergent trends across sectors. While some areas demonstrate strength, others face challenges. Selective positioning is recommended in this environment."
   }
 
-  const highlights = {
+  const highlights: Record<typeof marketMoods[number], string[]> = {
     bullish: [
       "Strong technical momentum across major indices",
       "Positive earnings surprises driving sentiment",
@@ -48,8 +49,8 @@ const generateSimpleReport = () => {
     success: true,
     report: {
       marketMood: randomMood,
-      summary: summaries[randomMood as keyof typeof summaries],
-      keyHighlights: highlights[randomMood as keyof typeof highlights]
+      summary: summaries[randomMood],
+      keyHighlights: highlights[randomMood]
     },
     generatedAt: new Date().toISOString()
   }

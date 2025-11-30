@@ -120,10 +120,82 @@ export function AIMarketReport({ className }: AIMarketReportProps) {
       </div>
 
       {isLoading && !report ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-5 h-5 text-purple-400 animate-spin" />
-            <span className="text-sm text-gray-400">Analyzing market...</span>
+        <div className="py-8">
+          {/* Animated Loading State */}
+          <div className="space-y-4">
+            {/* Brain Animation */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-purple-500/20 blur-xl animate-pulse" />
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 5, -5, 0]
+                  }}
+                  transition={{ 
+                    duration: 2, 
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="relative p-4 rounded-full bg-gradient-to-br from-purple-500/20 to-violet-500/20 border border-purple-500/30"
+                >
+                  <Brain className="w-8 h-8 text-purple-400" />
+                </motion.div>
+              </div>
+            </div>
+            
+            {/* Loading Text */}
+            <div className="text-center space-y-2">
+              <motion.p 
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-sm font-medium text-purple-400"
+              >
+                Analyzing Market Data
+              </motion.p>
+              <p className="text-xs text-gray-500">AI is processing real-time information...</p>
+            </div>
+            
+            {/* Progress Steps */}
+            <div className="space-y-3 px-4 pt-4">
+              {[
+                { label: 'Gathering market data', delay: 0 },
+                { label: 'Analyzing trends', delay: 0.3 },
+                { label: 'Generating insights', delay: 0.6 },
+              ].map((step, i) => (
+                <motion.div
+                  key={step.label}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: step.delay }}
+                  className="flex items-center gap-3"
+                >
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1, repeat: Infinity, delay: step.delay }}
+                    className="w-2 h-2 rounded-full bg-purple-500"
+                  />
+                  <span className="text-xs text-gray-400">{step.label}</span>
+                  <motion.div
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{ duration: 1.5, repeat: Infinity, delay: step.delay }}
+                    className="ml-auto"
+                  >
+                    <Loader2 className="w-3 h-3 text-purple-400/50 animate-spin" />
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Shimmer Effect Placeholder */}
+            <div className="space-y-3 mt-4">
+              <div className="h-12 rounded-lg bg-gradient-to-r from-white/[0.02] via-white/[0.05] to-white/[0.02] animate-shimmer overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+              </div>
+              <div className="h-16 rounded-lg bg-gradient-to-r from-white/[0.02] via-white/[0.05] to-white/[0.02] overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -translate-x-full animate-[shimmer_2s_infinite_0.3s]" />
+              </div>
+            </div>
           </div>
         </div>
       ) : error ? (

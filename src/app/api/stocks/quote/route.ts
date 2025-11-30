@@ -5,6 +5,7 @@ import { getStockQuote } from '@/lib/api/yahoo-finance'
 // Force Node.js runtime for yahoo-finance2 compatibility
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const maxDuration = 30
 
 // Get stock quotes - supports single symbol or multiple (comma-separated)
 export async function GET(request: NextRequest) {

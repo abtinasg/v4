@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server'
 import { getAllEconomicIndicators } from '@/lib/api/fred'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 export const maxDuration = 60
 
 // Use Vercel URL in production, or custom URL, or localhost for dev

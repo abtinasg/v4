@@ -25,9 +25,6 @@ export { TerminalContextUpdater } from './TerminalContextUpdater'
 // News context updater - provides news data for News page
 export { NewsContextUpdater } from './NewsContextUpdater'
 
-// Portfolio context updater - fetches comprehensive data for portfolio holdings
-export { PortfolioContextUpdater } from './PortfolioContextUpdater'
-
 // Global context updater - provides system-wide data to AI on ALL pages
 export { GlobalContextUpdater } from './GlobalContextUpdater'
 

@@ -284,64 +284,106 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
   };
 
   return (
-    <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-sm">
-      <CardHeader>
+    <Card className="relative overflow-hidden border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-violet-950/30 backdrop-blur-sm">
+      {/* Animated background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-indigo-600/10 to-purple-600/10 opacity-50 animate-pulse" />
+      
+      <CardHeader className="relative">
         <div className="flex items-start justify-between">
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-violet-400" />
-              <CardTitle className="text-xl">AI Investment Report</CardTitle>
-              <Badge variant="secondary" className="bg-violet-500/20 text-violet-300 border-violet-500/30">
+              <div className="relative">
+                <FileText className="h-6 w-6 text-violet-400" />
+                <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 animate-pulse" />
+              </div>
+              <CardTitle className="text-2xl bg-gradient-to-r from-violet-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent font-bold">
+                AI Investment Report
+              </CardTitle>
+              <Badge variant="secondary" className="bg-gradient-to-r from-violet-500/20 to-indigo-500/20 text-violet-300 border-violet-500/30 animate-pulse">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Pro Feature
               </Badge>
             </div>
-            <CardDescription className="text-slate-400">
-              Generate a comprehensive, CFA-level investment analysis report powered by Claude Sonnet 4.5
+            <CardDescription className="text-slate-300 text-base">
+              Generate a comprehensive, CFA-level investment analysis powered by{' '}
+              <span className="font-semibold text-violet-400">Claude Opus 4.5</span>
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="grid gap-3 text-sm">
-          <div className="flex items-start gap-2">
-            <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-violet-400" />
-            <p className="text-slate-300">
-              <strong className="text-white">Deep Analysis:</strong> Comprehensive review of {companyName} with 170+ financial metrics
-            </p>
+      <CardContent className="relative space-y-6">
+        {/* Features grid with enhanced styling */}
+        <div className="grid gap-4">
+          <div className="group flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10">
+            <div className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-violet-400 to-indigo-400 group-hover:scale-125 transition-transform" />
+            <div>
+              <p className="text-slate-100 font-medium">
+                🎯 Deep Analysis
+              </p>
+              <p className="text-sm text-slate-400 mt-1">
+                Comprehensive review of {companyName} with 170+ financial metrics and industry benchmarks
+              </p>
+            </div>
           </div>
-          <div className="flex items-start gap-2">
-            <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-violet-400" />
-            <p className="text-slate-300">
-              <strong className="text-white">Professional Grade:</strong> CFA Institute framework with valuation, risk assessment, and sector analysis
-            </p>
+
+          <div className="group flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10">
+            <div className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 group-hover:scale-125 transition-transform" />
+            <div>
+              <p className="text-slate-100 font-medium">
+                📊 Professional Grade
+              </p>
+              <p className="text-sm text-slate-400 mt-1">
+                CFA Institute framework with DCF valuation, risk assessment, and competitive analysis
+              </p>
+            </div>
           </div>
-          <div className="flex items-start gap-2">
-            <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-violet-400" />
-            <p className="text-slate-300">
-              <strong className="text-white">AI-Powered:</strong> Intelligent synthesis by Claude Sonnet 4.5 trained on institutional research
-            </p>
+
+          <div className="group flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10">
+            <div className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 group-hover:scale-125 transition-transform" />
+            <div>
+              <p className="text-slate-100 font-medium">
+                🤖 AI-Powered Intelligence
+              </p>
+              <p className="text-sm text-slate-400 mt-1">
+                Advanced synthesis by Claude Opus 4.5 - trained on institutional research standards
+              </p>
+            </div>
           </div>
-          <div className="flex items-start gap-2">
-            <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-violet-400" />
-            <p className="text-slate-300">
-              <strong className="text-white">PDF Format:</strong> Professional document ready for investment committees
-            </p>
+
+          <div className="group flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10">
+            <div className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-pink-400 to-red-400 group-hover:scale-125 transition-transform" />
+            <div>
+              <p className="text-slate-100 font-medium">
+                📄 Professional PDF
+              </p>
+              <p className="text-sm text-slate-400 mt-1">
+                Beautifully formatted document ready for investment committees and presentations
+              </p>
+            </div>
           </div>
         </div>
 
+        {/* Preview badge */}
+        <div className="flex items-center justify-center gap-2 p-4 rounded-lg bg-gradient-to-r from-violet-500/10 via-indigo-500/10 to-purple-500/10 border border-violet-500/20">
+          <Sparkles className="h-4 w-4 text-violet-400 animate-pulse" />
+          <span className="text-sm text-violet-300 font-medium">
+            Institutional-grade analysis in under 60 seconds
+          </span>
+          <Sparkles className="h-4 w-4 text-indigo-400 animate-pulse" />
+        </div>
+
         {error && (
-          <Alert variant="destructive" className="border-red-900 bg-red-950/50">
+          <Alert variant="destructive" className="border-red-900 bg-red-950/50 animate-in fade-in-50">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {progress && !error && (
-          <Alert className="border-violet-800 bg-violet-950/50">
+          <Alert className="border-violet-800 bg-gradient-to-r from-violet-950/50 to-indigo-950/50 animate-in fade-in-50">
             <Loader2 className="h-4 w-4 animate-spin text-violet-400" />
-            <AlertDescription className="text-violet-200">{progress}</AlertDescription>
+            <AlertDescription className="text-violet-200 font-medium">{progress}</AlertDescription>
           </Alert>
         )}
 
@@ -349,24 +391,29 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           onClick={handleGenerateReport}
           disabled={isGenerating}
           size="lg"
-          className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold"
+          className="w-full bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:via-indigo-500 hover:to-purple-500 text-white font-bold text-lg py-6 shadow-lg shadow-violet-500/20 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
         >
           {isGenerating ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Generating Report...
+              Generating Your Report...
             </>
           ) : (
             <>
               <Download className="mr-2 h-5 w-5" />
               Generate Investment Report
+              <Sparkles className="ml-2 h-4 w-4 animate-pulse" />
             </>
           )}
         </Button>
 
-        <p className="text-xs text-slate-500 text-center">
-          Report generation typically takes 30-60 seconds. The AI analyzes all available data to create a comprehensive investment memo.
-        </p>
+        <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
+          <span className="inline-block h-1 w-1 rounded-full bg-slate-500" />
+          <p>
+            Typically takes 30-60 seconds • Powered by Claude Opus 4.5
+          </p>
+          <span className="inline-block h-1 w-1 rounded-full bg-slate-500" />
+        </div>
       </CardContent>
     </Card>
   );

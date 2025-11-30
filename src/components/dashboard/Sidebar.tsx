@@ -19,7 +19,6 @@ import {
   Settings,
   LogOut,
   X,
-  Wallet,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -108,35 +107,29 @@ const navItems = [
     shortcut: '2',
   },
   {
-    href: '/dashboard/portfolio',
-    icon: Wallet,
-    label: 'Portfolio',
-    shortcut: '3',
-  },
-  {
     href: '/dashboard/watchlist',
     icon: Star,
     label: 'Watchlist',
-    shortcut: '4',
+    shortcut: '3',
   },
   {
     href: '/dashboard/news',
     icon: Newspaper,
     label: 'Market News',
-    shortcut: '5',
+    shortcut: '4',
   },
   {
     href: '/dashboard/terminal-pro',
     icon: Terminal,
     label: 'Terminal Pro',
-    shortcut: '6',
+    shortcut: '5',
     badge: 'Pro',
   },
   {
     href: '/dashboard/ai-assistant',
     icon: MessageSquare,
     label: 'AI Assistant',
-    shortcut: '7',
+    shortcut: '6',
     badge: 'New',
   },
 ]

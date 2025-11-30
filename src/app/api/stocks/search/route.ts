@@ -4,6 +4,7 @@ import { searchStocks } from '@/lib/api/yahoo-finance'
 // Force Node.js runtime and dynamic rendering
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const maxDuration = 30
 
 export async function GET(request: NextRequest) {
   try {

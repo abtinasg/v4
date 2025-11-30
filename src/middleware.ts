@@ -1,6 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
+// Admin access secret - add ?access=YOUR_SECRET to access admin panel
+const ADMIN_ACCESS_SECRET = process.env.ADMIN_ACCESS_SECRET || 'super-secret-admin-access-2024'
+const ADMIN_ACCESS_COOKIE = 'admin_access_granted'
+
 // Define protected routes that require authentication
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
@@ -32,6 +36,33 @@ const redirectRoutes: Record<string, string> = {
 
 export default clerkMiddleware(async (auth, request) => {
   const { pathname } = request.nextUrl
+
+  // ============ ADMIN PANEL PROTECTION ============
+  // Block all access to /admin routes unless user has the secret access token
+  if (pathname.startsWith('/admin')) {
+    const accessToken = request.nextUrl.searchParams.get('access')
+    const hasAccessCookie = request.cookies.get(ADMIN_ACCESS_COOKIE)?.value === 'true'
+    
+    // If user provides correct access token, set cookie and redirect to clean URL
+    if (accessToken === ADMIN_ACCESS_SECRET) {
+      const cleanUrl = new URL(pathname, request.url)
+      cleanUrl.searchParams.delete('access')
+      const response = NextResponse.redirect(cleanUrl)
+      response.cookies.set(ADMIN_ACCESS_COOKIE, 'true', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: '/'
+      })
+      return response
+    }
+    
+    // If no valid access cookie, return 404 (hide admin panel existence)
+    if (!hasAccessCookie) {
+      return new NextResponse('Not Found', { status: 404 })
+    }
+  }
 
   // Handle stock-analysis dynamic routes (e.g., /stock-analysis/AAPL -> /dashboard/stock-analysis/AAPL)
   if (pathname.startsWith('/stock-analysis/')) {

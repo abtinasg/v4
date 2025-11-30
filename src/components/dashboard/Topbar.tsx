@@ -20,9 +20,11 @@ import {
   Terminal,
   Loader2,
   Menu,
+  Coins,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSidebar } from './Sidebar'
+import { CreditBadge, CreditModal } from '@/components/credits'
 
 // Search result type
 interface StockSearchResult {
@@ -202,6 +204,15 @@ export function Topbar({ subscriptionTier }: TopbarProps) {
           >
             {isDarkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
+
+          {/* Credit Badge */}
+          <CreditModal 
+            trigger={
+              <button className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg transition-colors">
+                <CreditBadge showIcon={true} size="sm" className="border-0 bg-transparent p-0" />
+              </button>
+            }
+          />
 
           {/* Notifications */}
           <button

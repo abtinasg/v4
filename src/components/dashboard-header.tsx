@@ -2,6 +2,8 @@
 
 import { UserButton } from '@clerk/nextjs'
 import { Search, Bell, LayoutDashboard, Terminal } from 'lucide-react'
+import { CreditBadge } from '@/components/credits'
+import { CreditModal } from '@/components/credits'
 
 export function DashboardHeader() {
   return (
@@ -11,6 +13,15 @@ export function DashboardHeader() {
       </div>
       
       <div className="flex items-center gap-4">
+        {/* Credit Badge with Modal */}
+        <CreditModal 
+          trigger={
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted transition-colors">
+              <CreditBadge showIcon={true} size="sm" />
+            </button>
+          }
+        />
+        
         {/* Search Button */}
         <button 
           className="p-2 rounded-md hover:bg-accent transition-colors"

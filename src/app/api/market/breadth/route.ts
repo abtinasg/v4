@@ -4,6 +4,7 @@ import YahooFinance from 'yahoo-finance2'
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+export const maxDuration = 30
 
 const yahooFinance = new YahooFinance()
 

@@ -1,4 +1,5 @@
 import YahooFinance from 'yahoo-finance2'
+import { getPolygonQuote, getPolygonHistorical, getPolygonTickerDetails, isPolygonConfigured } from '@/lib/api/polygon'
 import type {
   StockQuote,
   HistoricalData,
@@ -168,6 +169,51 @@ export async function getStockQuote(symbol: string): Promise<ApiResponse<StockQu
     }
   } catch (error) {
     console.error(`Error fetching quote for ${symbol}:`, error)
+    
+    // Try Polygon.io as fallback
+    if (isPolygonConfigured()) {
+      console.log(`Trying Polygon.io fallback for ${symbol}...`)
+      const polygonResult = await getPolygonQuote(symbol)
+      if (polygonResult.success && polygonResult.data) {
+        const pq = polygonResult.data
+        const stockQuote: StockQuote = {
+          symbol: pq.symbol,
+          shortName: pq.name,
+          longName: pq.name,
+          price: pq.price,
+          previousClose: pq.previousClose,
+          open: pq.open,
+          dayHigh: pq.high,
+          dayLow: pq.low,
+          change: pq.change,
+          changePercent: pq.changePercent,
+          volume: pq.volume,
+          avgVolume: 0,
+          marketCap: 0,
+          peRatio: null,
+          eps: null,
+          dividend: null,
+          dividendYield: null,
+          fiftyTwoWeekHigh: 0,
+          fiftyTwoWeekLow: 0,
+          exchange: 'UNKNOWN',
+          currency: 'USD',
+          marketState: 'CLOSED',
+          timestamp: Date.now(),
+        }
+        
+        const cacheKey = `quote:${symbol.toUpperCase()}`
+        quoteCache.set(cacheKey, stockQuote, CACHE_TTL.QUOTE)
+        
+        return {
+          success: true,
+          data: stockQuote,
+          cached: false,
+          timestamp: Date.now(),
+        }
+      }
+    }
+    
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch stock quote',
