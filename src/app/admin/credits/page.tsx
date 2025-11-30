@@ -96,9 +96,6 @@ export default function CreditsPage() {
       if (res.ok) {
         const data = await res.json()
         setCreditConfig(data)
-      } else if (res.status === 401) {
-        console.error('Unauthorized - redirecting to login')
-        window.location.href = '/admin/login'
       } else {
         console.error('Failed to fetch config:', res.status)
       }

@@ -29,13 +29,25 @@ async function verifyAdmin() {
 
 // GET - Get credits overview and user credits
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const action = searchParams.get('action') || 'overview'
+
+  // Config action doesn't require authentication (read-only public config)
+  if (action === 'config') {
+    return NextResponse.json({
+      creditCosts: CREDIT_COSTS,
+      rateLimits: RATE_LIMITS,
+      creditConfig: CREDIT_CONFIG,
+      defaultPackages: DEFAULT_CREDIT_PACKAGES,
+    })
+  }
+
+  // All other actions require admin authentication
   if (!await verifyAdmin()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const { searchParams } = new URL(request.url)
-    const action = searchParams.get('action') || 'overview'
     const userId = searchParams.get('userId')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
@@ -100,16 +112,6 @@ export async function GET(request: NextRequest) {
         },
         recentTransactions,
         packages,
-      })
-    }
-
-    // NEW: Return live credit system configuration (read-only from config.ts)
-    if (action === 'config') {
-      return NextResponse.json({
-        creditCosts: CREDIT_COSTS,
-        rateLimits: RATE_LIMITS,
-        creditConfig: CREDIT_CONFIG,
-        defaultPackages: DEFAULT_CREDIT_PACKAGES,
       })
     }
 
