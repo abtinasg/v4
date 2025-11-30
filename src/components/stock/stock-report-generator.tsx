@@ -1,19 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, FileText, Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import { Download, FileText, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import jsPDF from 'jspdf';
-import { marked } from 'marked';
 
 interface StockReportGeneratorProps {
   symbol: string;
@@ -316,177 +306,79 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
   };
 
   return (
-    <Card className="relative overflow-hidden border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-violet-950/30 backdrop-blur-sm">
-      {/* Animated background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-indigo-600/10 to-purple-600/10 opacity-50 animate-pulse" />
+    <div className="relative overflow-hidden rounded-lg border border-white/[0.06] bg-[#0a0d12]/80 backdrop-blur-sm">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.02] to-transparent" />
       
-      <CardHeader className="relative">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <FileText className="h-6 w-6 text-violet-400" />
-                <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 animate-pulse" />
-              </div>
-              <CardTitle className="text-2xl bg-gradient-to-r from-violet-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent font-bold">
-                AI Investment Report
-              </CardTitle>
-              <Badge variant="secondary" className="bg-gradient-to-r from-violet-500/20 to-indigo-500/20 text-violet-300 border-violet-500/30 animate-pulse">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Pro Feature
-              </Badge>
-            </div>
-            <CardDescription className="text-slate-300 text-base">
-              Generate a comprehensive, CFA-level investment analysis powered by{' '}
-              <span className="font-semibold text-violet-400">Claude Opus 4.5</span>
-            </CardDescription>
+      <div className="relative p-4">
+        {/* Header - Compact */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-violet-400/80" />
+            <h3 className="text-sm font-medium text-white/90">AI Investment Report</h3>
+            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-violet-500/10 text-violet-400/80 border border-violet-500/20">
+              PRO
+            </span>
           </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="relative space-y-6">
-        {/* Features grid with enhanced styling */}
-        <div className="grid gap-4">
-          <div className="group flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10">
-            <div className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-violet-400 to-indigo-400 group-hover:scale-125 transition-transform" />
-            <div>
-              <p className="text-slate-100 font-medium">
-                🎯 Deep Analysis
-              </p>
-              <p className="text-sm text-slate-400 mt-1">
-                Comprehensive review of {companyName} with 170+ financial metrics and industry benchmarks
-              </p>
-            </div>
-          </div>
-
-          <div className="group flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10">
-            <div className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 group-hover:scale-125 transition-transform" />
-            <div>
-              <p className="text-slate-100 font-medium">
-                📊 Professional Grade
-              </p>
-              <p className="text-sm text-slate-400 mt-1">
-                CFA Institute framework with DCF valuation, risk assessment, and competitive analysis
-              </p>
-            </div>
-          </div>
-
-          <div className="group flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10">
-            <div className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 group-hover:scale-125 transition-transform" />
-            <div>
-              <p className="text-slate-100 font-medium">
-                🤖 AI-Powered Intelligence
-              </p>
-              <p className="text-sm text-slate-400 mt-1">
-                Advanced synthesis by Claude Opus 4.5 - trained on institutional research standards
-              </p>
-            </div>
-          </div>
-
-          <div className="group flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10">
-            <div className="mt-1 h-2 w-2 rounded-full bg-gradient-to-r from-pink-400 to-red-400 group-hover:scale-125 transition-transform" />
-            <div>
-              <p className="text-slate-100 font-medium">
-                📄 Professional PDF
-              </p>
-              <p className="text-sm text-slate-400 mt-1">
-                Beautifully formatted document ready for investment committees and presentations
-              </p>
-            </div>
-          </div>
+          <span className="text-[10px] text-white/30">Claude Opus 4.5</span>
         </div>
 
-        {/* Preview badge */}
-        <div className="flex items-center justify-center gap-2 p-4 rounded-lg bg-gradient-to-r from-violet-500/10 via-indigo-500/10 to-purple-500/10 border border-violet-500/20">
-          <Sparkles className="h-4 w-4 text-violet-400 animate-pulse" />
-          <span className="text-sm text-violet-300 font-medium">
-            Institutional-grade analysis in under 60 seconds
-          </span>
-          <Sparkles className="h-4 w-4 text-indigo-400 animate-pulse" />
-        </div>
+        {/* Description - Minimal */}
+        <p className="text-xs text-white/40 mb-3">
+          CFA-level analysis with 170+ metrics, valuation models, and risk assessment
+        </p>
 
+        {/* Error state */}
         {error && (
-          <Alert variant="destructive" className="border-red-900 bg-red-950/50 animate-in fade-in-50">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {isGenerating && !error && (
-          <div className="relative overflow-hidden rounded-2xl border border-violet-900/60 bg-slate-950/70 shadow-lg shadow-violet-900/30 animate-in fade-in-50">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(139,92,246,0.18),_transparent_65%)] opacity-80 animate-pulse" />
-            <div className="relative space-y-4 p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Loader2 className="h-6 w-6 text-violet-300 animate-spin" />
-                    <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-yellow-300 animate-ping" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">PDF In Progress</p>
-                    <p className="text-base text-slate-100">{progressMessage}</p>
-                  </div>
-                </div>
-                <Badge className="bg-slate-900/60 text-violet-200 border border-violet-700/40 shadow-inner shadow-violet-700/40">Live Rendering</Badge>
-              </div>
-
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800/80">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-400 to-fuchsia-500 transition-all duration-500 ease-out"
-                  style={{ width: `${animatedWidth}%` }}
-                />
-              </div>
-
-              <div className="grid gap-3 text-sm sm:grid-cols-2">
-                {loadingStages.map((stage, index) => {
-                  const isActive = index <= activeStageIndex && isGenerating;
-                  return (
-                    <div
-                      key={stage.label}
-                      className={`flex flex-col gap-1 rounded-xl border px-3 py-2 transition-colors ${
-                        isActive
-                          ? 'border-violet-400/60 bg-violet-500/10 text-violet-100 shadow shadow-violet-900/20'
-                          : 'border-slate-800 bg-slate-900/40 text-slate-400'
-                      }`}
-                    >
-                      <span className="text-xs font-semibold uppercase tracking-wider">{stage.label}</span>
-                      <span className="text-[13px]">{stage.description}</span>
-                    </div>
-                  );
-                })}
-              </div>
+          <div className="mb-3 p-2 rounded bg-red-500/10 border border-red-500/20">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-3 w-3 text-red-400" />
+              <p className="text-xs text-red-400">{error}</p>
             </div>
           </div>
         )}
 
+        {/* Loading state - Compact */}
+        {isGenerating && !error && (
+          <div className="mb-3 p-3 rounded bg-white/[0.02] border border-white/[0.05]">
+            <div className="flex items-center gap-2 mb-2">
+              <Loader2 className="h-3 w-3 text-violet-400 animate-spin" />
+              <span className="text-xs text-white/60">{progressMessage}</span>
+            </div>
+            <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.05]">
+              <div
+                className="h-full rounded-full bg-violet-500/60 transition-all duration-500"
+                style={{ width: `${animatedWidth}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Generate Button - Compact */}
         <Button
           onClick={handleGenerateReport}
           disabled={isGenerating}
-          size="lg"
-          className="w-full bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:via-indigo-500 hover:to-purple-500 text-white font-bold text-lg py-6 shadow-lg shadow-violet-500/20 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          size="sm"
+          className="w-full h-8 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/20 hover:border-violet-500/30 text-xs font-medium transition-all"
         >
           {isGenerating ? (
             <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Generating Your Report...
+              <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+              Generating...
             </>
           ) : (
             <>
-              <Download className="mr-2 h-5 w-5" />
-              Generate Investment Report
-              <Sparkles className="ml-2 h-4 w-4 animate-pulse" />
+              <Download className="mr-1.5 h-3 w-3" />
+              Generate PDF Report
             </>
           )}
         </Button>
 
-        <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
-          <span className="inline-block h-1 w-1 rounded-full bg-slate-500" />
-          <p>
-            Typically takes 30-60 seconds • Powered by Claude Opus 4.5
-          </p>
-          <span className="inline-block h-1 w-1 rounded-full bg-slate-500" />
-        </div>
-      </CardContent>
-    </Card>
+        {/* Footer note */}
+        <p className="mt-2 text-center text-[10px] text-white/20">
+          30-60 seconds
+        </p>
+      </div>
+    </div>
   );
 }
