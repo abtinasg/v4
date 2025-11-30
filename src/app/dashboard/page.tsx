@@ -6,11 +6,10 @@ import { RefreshCw, Loader2 } from 'lucide-react'
 import {
   TopMoversSection,
   AIInsightBox,
-  EconomicIndicatorsSection,
   SectorHeatmap,
   MarketNewsFeed,
-  WatchlistSnapshot,
   DashboardHero,
+  MarketStatusBanner,
 } from "@/components/dashboard"
 import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh'
 
@@ -80,26 +79,20 @@ export default function DashboardPage() {
         {/* Hero Section */}
         <DashboardHero />
 
+        {/* Market Status Banner */}
+        <MarketStatusBanner />
+
         {/* Mobile-first Grid */}
         <section className="space-y-4 md:space-y-0 md:grid md:grid-cols-12 md:gap-6">
           {/* Main Content - Top Movers & News */}
           <div className="space-y-4 md:space-y-6 md:col-span-8">
             <TopMoversSection />
-            {/* Watchlist - Show on mobile at top, hidden on desktop here */}
-            <div className="md:hidden">
-              <WatchlistSnapshot />
-            </div>
             <MarketNewsFeed />
           </div>
           
-          {/* Sidebar - AI & Watchlist */}
+          {/* Sidebar - AI */}
           <div className="space-y-4 md:space-y-6 md:col-span-4">
             <AIInsightBox />
-            {/* Watchlist - Hidden on mobile, show on desktop */}
-            <div className="hidden md:block">
-              <WatchlistSnapshot />
-            </div>
-            <EconomicIndicatorsSection />
           </div>
         </section>
 
