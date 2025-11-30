@@ -1,8 +1,11 @@
 /**
  * Dashboard AI Market Analysis API
  * 
- * Comprehensive market analysis using GPT-5.1 and Claude Sonnet 4.5
+ * Comprehensive market analysis using GPT-4o and Claude Sonnet
  * Analyzes market data, news, economic indicators, and trends
+ * 
+ * Note: Uses direct API calls instead of self-referential HTTP requests
+ * to avoid Vercel serverless function issues
  */
 
 import { NextResponse } from 'next/server'
@@ -11,6 +14,7 @@ import { db } from '@/lib/db'
 import { users } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { getAllEconomicIndicators } from '@/lib/api/fred'
+import YahooFinance from 'yahoo-finance2'
 import { 
   checkCredits, 
   deductCredits, 
@@ -25,12 +29,39 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
+const yahooFinance = new YahooFinance()
+
 // Use Vercel URL in production, or custom URL, or localhost for dev
 function getBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
   return 'http://localhost:3000'
 }
+
+// Major market indices symbols
+const MARKET_INDICES = [
+  { symbol: '^GSPC', name: 'S&P 500' },
+  { symbol: '^DJI', name: 'Dow Jones' },
+  { symbol: '^IXIC', name: 'NASDAQ' },
+  { symbol: '^RUT', name: 'Russell 2000' },
+  { symbol: '^VIX', name: 'VIX' },
+]
+
+// Top stocks to track for movers
+const TOP_STOCKS = [
+  'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA',
+  'AMD', 'INTC', 'JPM', 'BAC', 'GS', 'V', 'MA',
+  'UNH', 'JNJ', 'PFE', 'XOM', 'CVX', 'WMT', 'HD', 'COST'
+]
+
+// Fallback indices data
+const FALLBACK_INDICES: MarketIndex[] = [
+  { name: 'S&P 500', price: 6032.38, change: 33.64, changePercent: 0.56 },
+  { name: 'Dow Jones', price: 44910.65, change: 188.59, changePercent: 0.42 },
+  { name: 'NASDAQ', price: 19218.17, change: 157.69, changePercent: 0.83 },
+  { name: 'Russell 2000', price: 2434.72, change: 21.45, changePercent: 0.89 },
+  { name: 'VIX', price: 13.51, change: -0.59, changePercent: -4.18 },
+]
 
 interface MarketIndex {
   name: string
@@ -62,26 +93,64 @@ interface MarketData {
   topLosers: Array<{ symbol: string; name?: string; change: number }>
 }
 
-// Fetch all market data
+// Fetch market data directly from Yahoo Finance (no self-referential HTTP)
 async function fetchMarketData(): Promise<MarketData | null> {
   try {
-    const baseUrl = getBaseUrl()
-    const [overviewRes, moversRes] = await Promise.all([
-      fetch(`${baseUrl}/api/market/overview`),
-      fetch(`${baseUrl}/api/market/movers`)
-    ])
+    // Fetch indices
+    const indicesData = await Promise.all(
+      MARKET_INDICES.map(async (index) => {
+        try {
+          const quote = await yahooFinance.quote(index.symbol)
+          return {
+            name: index.name,
+            price: quote.regularMarketPrice || 0,
+            change: quote.regularMarketChange || 0,
+            changePercent: quote.regularMarketChangePercent || 0,
+          }
+        } catch (error) {
+          console.error(`Error fetching ${index.symbol}:`, error)
+          return null
+        }
+      })
+    )
 
-    const overview = overviewRes.ok ? await overviewRes.json() : null
-    const movers = moversRes.ok ? await moversRes.json() : null
+    // Fetch top stocks for movers
+    const stocksData = await Promise.all(
+      TOP_STOCKS.map(async (symbol) => {
+        try {
+          const quote = await yahooFinance.quote(symbol)
+          return {
+            symbol,
+            name: quote.shortName || symbol,
+            change: quote.regularMarketChangePercent || 0,
+          }
+        } catch (error) {
+          console.error(`Error fetching ${symbol}:`, error)
+          return null
+        }
+      })
+    )
+
+    const validStocks = stocksData.filter((s): s is NonNullable<typeof s> => s !== null)
+    const validIndices = indicesData.filter((i): i is MarketIndex => i !== null)
+
+    // Sort for gainers and losers
+    const sortedByChange = [...validStocks].sort((a, b) => b.change - a.change)
+    const topGainers = sortedByChange.filter(s => s.change > 0).slice(0, 5)
+    const topLosers = sortedByChange.filter(s => s.change < 0).slice(-5).reverse()
 
     return {
-      indices: overview?.indices || [],
-      topGainers: movers?.gainers?.slice(0, 5) || [],
-      topLosers: movers?.losers?.slice(0, 5) || []
+      indices: validIndices.length > 0 ? validIndices : FALLBACK_INDICES,
+      topGainers,
+      topLosers
     }
   } catch (error) {
     console.error('Error fetching market data:', error)
-    return null
+    return {
+      indices: FALLBACK_INDICES,
+      topGainers: [],
+      topLosers: []
+    }
   }
 }
 
@@ -96,14 +165,104 @@ async function fetchEconomicIndicators(): Promise<EconomicData | null> {
   }
 }
 
-// Fetch recent news
+// Sentiment analysis helper
+function analyzeSentiment(text: string): 'bullish' | 'bearish' | 'neutral' {
+  const lowerText = text.toLowerCase()
+  const bullishKeywords = ['surge', 'jump', 'soar', 'rally', 'gain', 'up', 'rise', 'beat', 'record', 'strong', 'growth', 'positive', 'bullish', 'buy', 'upgrade', 'outperform', 'breakout', 'momentum', 'high', 'profit']
+  const bearishKeywords = ['fall', 'drop', 'plunge', 'decline', 'down', 'loss', 'miss', 'weak', 'negative', 'bearish', 'sell', 'crash', 'tumble', 'slump', 'downgrade', 'warning', 'concern', 'risk', 'low', 'cut']
+  
+  const bullishCount = bullishKeywords.filter(kw => lowerText.includes(kw)).length
+  const bearishCount = bearishKeywords.filter(kw => lowerText.includes(kw)).length
+  
+  if (bullishCount > bearishCount) return 'bullish'
+  if (bearishCount > bullishCount) return 'bearish'
+  return 'neutral'
+}
+
+// Categorize news
+function categorizeNews(text: string): string {
+  const lowerText = text.toLowerCase()
+  
+  if (lowerText.includes('fed') || lowerText.includes('rate') || lowerText.includes('inflation') || lowerText.includes('economic') || lowerText.includes('gdp')) {
+    return 'Macro'
+  }
+  if (lowerText.includes('earnings') || lowerText.includes('revenue') || lowerText.includes('profit') || lowerText.includes('quarterly')) {
+    return 'Earnings'
+  }
+  return 'Market'
+}
+
+// Parse RSS XML
+function parseRSSXml(xml: string): Array<{title: string, pubDate: string, description: string, source?: string}> {
+  const items: Array<{title: string, pubDate: string, description: string, source?: string}> = []
+  
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g
+  let match
+  
+  while ((match = itemRegex.exec(xml)) !== null) {
+    const itemContent = match[1]
+    
+    const titleMatch = itemContent.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/)
+    const pubDateMatch = itemContent.match(/<pubDate>(.*?)<\/pubDate>/)
+    const descMatch = itemContent.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>|<description>(.*?)<\/description>/)
+    const sourceMatch = itemContent.match(/<source[^>]*>(.*?)<\/source>/)
+    
+    const title = titleMatch ? (titleMatch[1] || titleMatch[2] || '') : ''
+    const pubDate = pubDateMatch ? pubDateMatch[1] : ''
+    const description = descMatch ? (descMatch[1] || descMatch[2] || '') : ''
+    const source = sourceMatch ? sourceMatch[1] : undefined
+    
+    if (title) {
+      items.push({ title, pubDate, description, source })
+    }
+  }
+  
+  return items
+}
+
+// Fetch recent news directly (no self-referential HTTP)
 async function fetchRecentNews(): Promise<NewsItem[]> {
   try {
-    const baseUrl = getBaseUrl()
-    const res = await fetch(`${baseUrl}/api/market/news?limit=20`)
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.news?.slice(0, 20) || []
+    // Fetch from Yahoo Finance RSS feeds directly
+    const rssFeeds = [
+      'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AAPL,MSFT,GOOGL,AMZN,NVDA,TSLA,META&region=US&lang=en-US',
+      'https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY,QQQ,DIA,IWM&region=US&lang=en-US',
+    ]
+
+    const allItems: NewsItem[] = []
+    
+    for (const feedUrl of rssFeeds) {
+      try {
+        const response = await fetch(feedUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        })
+        
+        if (response.ok) {
+          const xml = await response.text()
+          const items = parseRSSXml(xml)
+          
+          items.forEach((item) => {
+            if (item.title) {
+              const headline = item.title
+              const summary = item.description || item.title
+              
+              allItems.push({
+                headline,
+                sentiment: analyzeSentiment(headline + ' ' + summary),
+                category: categorizeNews(headline),
+                source: item.source || 'Yahoo Finance',
+              })
+            }
+          })
+        }
+      } catch (err) {
+        console.error('RSS fetch error:', err)
+      }
+    }
+    
+    return allItems.slice(0, 20)
   } catch (error) {
     console.error('Error fetching news:', error)
     return []

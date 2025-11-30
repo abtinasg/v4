@@ -1,70 +1,14 @@
 import Link from 'next/link'
-import { ArrowLeft, Check, Coins, Sparkles, Zap, Gift } from 'lucide-react'
+import { ArrowLeft, Check, Coins, Gift } from 'lucide-react'
 import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { creditPackages } from '@/lib/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { CREDIT_COSTS } from '@/lib/credits/config'
 
-// Subscription plans
-const subscriptionPlans = [
-  {
-    name: 'Free',
-    tier: 'free',
-    price: '$0',
-    description: 'Perfect for getting started',
-    monthlyCredits: 50,
-    features: [
-      '50 free credits/month',
-      '10 requests/minute',
-      'Basic stock analysis',
-      'Limited watchlists (3 stocks)',
-      'Community support',
-    ],
-    cta: 'Get Started',
-    popular: false,
-  },
-  {
-    name: 'Premium',
-    tier: 'premium',
-    price: '$19',
-    description: 'For active traders',
-    monthlyCredits: 500,
-    features: [
-      '500 free credits/month',
-      '30 requests/minute',
-      'Advanced technical analysis',
-      'Unlimited watchlists',
-      'Real-time data feeds',
-      'Priority support',
-      'AI-powered insights',
-    ],
-    cta: 'Upgrade to Premium',
-    popular: true,
-  },
-  {
-    name: 'Professional',
-    tier: 'professional',
-    price: '$49',
-    description: 'For professional traders',
-    monthlyCredits: 2000,
-    features: [
-      '2,000 free credits/month',
-      '60 requests/minute',
-      'Everything in Premium',
-      'DCF Valuation tools',
-      'Portfolio analysis',
-      'API access',
-      'Custom alerts',
-    ],
-    cta: 'Go Professional',
-    popular: false,
-  },
-]
-
 export default async function PricingPage() {
   const user = await currentUser()
-  
+
   // Get credit packages from database
   const packages = await db.select()
     .from(creditPackages)
@@ -119,72 +63,8 @@ export default async function PricingPage() {
           Choose Your <span className="text-gradient">Trading Edge</span>
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Pay only for what you use with our credit-based system, or subscribe for more value.
+          Pay only for what you use with our credit-based system.
         </p>
-      </div>
-
-      {/* Subscription Plans */}
-      <div className="max-w-7xl mx-auto px-6 pb-16">
-        <h2 className="text-2xl font-bold text-center mb-8">
-          <Zap className="w-6 h-6 inline mr-2 text-primary" />
-          Subscription Plans
-        </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {subscriptionPlans.map((plan) => (
-            <div
-              key={plan.tier}
-              className={`relative rounded-2xl border p-8 transition-all hover:shadow-xl ${
-                plan.popular
-                  ? 'border-primary shadow-lg shadow-primary/20 scale-105'
-                  : 'border-border bg-card'
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-sm font-medium rounded-full flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Most Popular
-                </div>
-              )}
-
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {plan.description}
-                </p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  {plan.price !== '$0' && (
-                    <span className="text-muted-foreground">/month</span>
-                  )}
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-emerald-500 text-sm">
-                  <Coins className="w-4 h-4" />
-                  <span>{plan.monthlyCredits.toLocaleString()} credits/month included</span>
-                </div>
-              </div>
-
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href={plan.tier === 'free' ? '/sign-up' : '#'}
-                className={`block w-full py-3 text-center rounded-lg font-medium transition-colors ${
-                  plan.popular
-                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                    : 'bg-accent text-foreground hover:bg-accent/80'
-                }`}
-              >
-                {plan.cta}
-              </Link>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Credit Packages */}
@@ -310,22 +190,6 @@ export default async function PricingPage() {
             </h3>
             <p className="text-muted-foreground">
               Purchased credits never expire. Monthly free credits reset at the beginning of each billing cycle.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-2">
-              Can I change plans later?
-            </h3>
-            <p className="text-muted-foreground">
-              Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-2">
-              What payment methods do you accept?
-            </h3>
-            <p className="text-muted-foreground">
-              We accept all major credit cards and PayPal through our secure payment processor.
             </p>
           </div>
         </div>
