@@ -8,6 +8,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { 
+  checkCredits, 
+  deductCredits, 
+  checkAndResetMonthlyCredits,
+} from '@/lib/credits';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -219,6 +228,42 @@ export async function POST(
   { params }: { params: Promise<{ symbol: string }> }
 ) {
   try {
+    // === Credit System Check ===
+    const { userId: clerkUserId } = await auth();
+    
+    if (!clerkUserId) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkUserId),
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    await checkAndResetMonthlyCredits(user.id);
+
+    const creditCheck = await checkCredits(user.id, 'ai_analysis');
+    if (!creditCheck.success) {
+      return NextResponse.json(
+        { 
+          error: 'Insufficient credits',
+          required: creditCheck.requiredCredits,
+          balance: creditCheck.currentBalance,
+        },
+        { status: 402 }
+      );
+    }
+    // === End Credit Check ===
+
     const { symbol } = await params;
     const upperSymbol = symbol.toUpperCase();
     
@@ -267,6 +312,12 @@ export async function POST(
     const analysisMarkdown = await generateAIAnalysis(stockData);
 
     console.log(`[Report] Report generated successfully for ${upperSymbol}`);
+
+    // Deduct credits after successful report generation
+    await deductCredits(user.id, 'ai_analysis', {
+      symbol: upperSymbol,
+      endpoint: '/api/stock/[symbol]/report',
+    });
 
     // Return markdown report (frontend will convert to PDF)
     return NextResponse.json({

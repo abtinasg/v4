@@ -21,7 +21,8 @@ import {
   Download,
   Coins,
   Gauge,
-  Bot
+  Bot,
+  Gift
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -45,6 +46,12 @@ const sidebarItems = [
     href: '/admin/credits', 
     icon: Coins,
     description: 'Credit Control' 
+  },
+  { 
+    title: 'Promo Codes', 
+    href: '/admin/promo-codes', 
+    icon: Gift,
+    description: 'Promotional Codes' 
   },
   { 
     title: 'Rate Limits', 
@@ -77,7 +84,6 @@ const sidebarItems = [
     description: 'Advanced Analytics' 
   },
   { 
-    title: 'Activity Logs', 
     href: '/admin/activity', 
     icon: FileText,
     description: 'User Activity Feed' 

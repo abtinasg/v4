@@ -98,30 +98,32 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'users') {
-      // Get all users with their credit balances
-      const usersCredits = await db
+      // Get all users with their credit balances (LEFT JOIN to show all users)
+      const allUsers = await db
         .select({
-          userId: userCredits.userId,
+          userId: users.id,
+          clerkId: users.clerkId,
           email: users.email,
-          balance: userCredits.balance,
-          lifetimeCredits: userCredits.lifetimeCredits,
-          freeCreditsUsed: userCredits.freeCreditsUsed,
+          balance: sql<string>`COALESCE(${userCredits.balance}, '0')`,
+          lifetimeCredits: sql<string>`COALESCE(${userCredits.lifetimeCredits}, '0')`,
+          freeCreditsUsed: sql<string>`COALESCE(${userCredits.freeCreditsUsed}, '0')`,
           subscriptionTier: users.subscriptionTier,
           lastReset: userCredits.lastFreeCreditsReset,
           updatedAt: userCredits.updatedAt,
+          userCreatedAt: users.createdAt,
         })
-        .from(userCredits)
-        .leftJoin(users, eq(userCredits.userId, users.id))
-        .orderBy(desc(userCredits.balance))
+        .from(users)
+        .leftJoin(userCredits, eq(users.id, userCredits.userId))
+        .orderBy(desc(users.createdAt))
         .limit(limit)
         .offset(offset)
 
       const total = await db
         .select({ count: sql<number>`COUNT(*)` })
-        .from(userCredits)
+        .from(users)
 
       return NextResponse.json({
-        users: usersCredits,
+        users: allUsers,
         pagination: {
           page,
           limit,

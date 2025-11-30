@@ -30,10 +30,15 @@ interface CreditOverview {
 
 interface UserCredit {
   userId: string
-  email: string
+  clerkId?: string
+  email: string | null
   balance: string
   lifetimeCredits: string
-  subscriptionTier: string
+  freeCreditsUsed?: string
+  subscriptionTier: string | null
+  lastReset?: Date | null
+  updatedAt?: Date | null
+  userCreatedAt?: Date | null
 }
 
 interface CreditPackage {
@@ -341,47 +346,62 @@ export default function CreditsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.userId} className="border-b border-white/5 hover:bg-white/[0.02]">
-                  <td className="p-4">
-                    <p className="text-sm text-white truncate max-w-[200px]">{user.email}</p>
-                    <p className="text-xs text-gray-500">{user.userId.slice(0, 8)}...</p>
-                  </td>
-                  <td className="p-4">
-                    <span className={cn(
-                      "px-2 py-1 rounded text-xs font-medium",
-                      user.subscriptionTier === 'professional' && "bg-violet-500/20 text-violet-400",
-                      user.subscriptionTier === 'premium' && "bg-cyan-500/20 text-cyan-400",
-                      user.subscriptionTier === 'free' && "bg-gray-500/20 text-gray-400",
-                    )}>
-                      {user.subscriptionTier}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <span className="text-white font-medium">
-                      {Number(user.balance).toLocaleString()}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <span className="text-gray-400">
-                      {Number(user.lifetimeCredits).toLocaleString()}
-                    </span>
-                  </td>
-                  <td className="p-4 text-center">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedUser(user)
-                        setShowAdjustModal(true)
-                      }}
-                    >
-                      <DollarSign className="w-4 h-4 mr-1" />
-                      Adjust
-                    </Button>
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-gray-500">
+                    No users found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user.userId} className="border-b border-white/5 hover:bg-white/[0.02]">
+                    <td className="p-4">
+                      <p className="text-sm text-white truncate max-w-[200px]">
+                        {user.email || 'No email'}
+                      </p>
+                      <p className="text-xs text-gray-500">{user.userId.slice(0, 8)}...</p>
+                    </td>
+                    <td className="p-4">
+                      <span className={cn(
+                        "px-2 py-1 rounded text-xs font-medium",
+                        user.subscriptionTier === 'professional' && "bg-violet-500/20 text-violet-400",
+                        user.subscriptionTier === 'premium' && "bg-cyan-500/20 text-cyan-400",
+                        (!user.subscriptionTier || user.subscriptionTier === 'free') && "bg-gray-500/20 text-gray-400",
+                      )}>
+                        {user.subscriptionTier || 'free'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <span className={cn(
+                        "font-medium",
+                        Number(user.balance) > 0 ? "text-white" : "text-gray-500"
+                      )}>
+                        {Number(user.balance).toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <span className="text-gray-400">
+                        {Number(user.lifetimeCredits).toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedUser(user)
+                          setAdjustAmount('')
+                          setAdjustReason('')
+                          setShowAdjustModal(true)
+                        }}
+                      >
+                        <DollarSign className="w-4 h-4 mr-1" />
+                        Adjust
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

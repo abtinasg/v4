@@ -61,22 +61,26 @@ function calculateNetIncomeGrowthYoY(data: YahooFinanceData): number | null {
 
 // Helper for EPS 3Y CAGR
 function calculateEPS3YearCAGR(data: YahooFinanceData): number | null {
-  if (!data.historicalEPS || data.historicalEPS.length < 3) {
+  if (!data.historicalEPS || data.historicalEPS.length < 4) {
     return null;
   }
-  const start = data.historicalEPS[0];
-  const end = data.historicalEPS[Math.min(2, data.historicalEPS.length - 1)];
+  // Data is in chronological order: oldest at index 0, newest at last index
+  const len = data.historicalEPS.length;
+  const end = data.historicalEPS[len - 1]; // Most recent
+  const start = data.historicalEPS[len - 4]; // 3 years ago
   if (start <= 0) return null;
   return Math.pow(end / start, 1 / 3) - 1;
 }
 
 // Helper for EPS 5Y CAGR
 function calculateEPS5YearCAGR(data: YahooFinanceData): number | null {
-  if (!data.historicalEPS || data.historicalEPS.length < 5) {
+  if (!data.historicalEPS || data.historicalEPS.length < 6) {
     return null;
   }
-  const start = data.historicalEPS[0];
-  const end = data.historicalEPS[data.historicalEPS.length - 1];
+  // Data is in chronological order: oldest at index 0, newest at last index
+  const len = data.historicalEPS.length;
+  const end = data.historicalEPS[len - 1]; // Most recent
+  const start = data.historicalEPS[len - 6]; // 5 years ago
   if (start <= 0) return null;
   return Math.pow(end / start, 1 / 5) - 1;
 }
@@ -98,9 +102,10 @@ export function calculateRevenueGrowthYoY(data: YahooFinanceData): number | null
     return null;
   }
 
-  // Most recent year is at index 0, prior year at index 1
-  const currentRevenue = data.historicalRevenue[0];
-  const priorRevenue = data.historicalRevenue[1];
+  // Data is in chronological order: oldest at index 0, newest at last index
+  const len = data.historicalRevenue.length;
+  const currentRevenue = data.historicalRevenue[len - 1];
+  const priorRevenue = data.historicalRevenue[len - 2];
 
   return percentageChange(currentRevenue, priorRevenue);
 }
@@ -118,8 +123,10 @@ export function calculateEPSGrowthYoY(data: YahooFinanceData): number | null {
     return null;
   }
 
-  const currentEPS = data.historicalEPS[0];
-  const priorEPS = data.historicalEPS[1];
+  // Data is in chronological order: oldest at index 0, newest at last index
+  const len = data.historicalEPS.length;
+  const currentEPS = data.historicalEPS[len - 1];
+  const priorEPS = data.historicalEPS[len - 2];
 
   return percentageChange(currentEPS, priorEPS);
 }
@@ -137,8 +144,10 @@ export function calculateDPSGrowth(data: YahooFinanceData): number | null {
     return null;
   }
 
-  const currentDPS = data.historicalDividends[0];
-  const priorDPS = data.historicalDividends[1];
+  // Data is in chronological order: oldest at index 0, newest at last index
+  const len = data.historicalDividends.length;
+  const currentDPS = data.historicalDividends[len - 1];
+  const priorDPS = data.historicalDividends[len - 2];
 
   // Skip calculation if either value is zero or negative
   if (currentDPS <= 0 || priorDPS <= 0) {
@@ -161,8 +170,10 @@ export function calculateFCFGrowth(data: YahooFinanceData): number | null {
     return null;
   }
 
-  const currentFCF = data.historicalFCF[0];
-  const priorFCF = data.historicalFCF[1];
+  // Data is in chronological order: oldest at index 0, newest at last index
+  const len = data.historicalFCF.length;
+  const currentFCF = data.historicalFCF[len - 1];
+  const priorFCF = data.historicalFCF[len - 2];
 
   // Skip if either FCF is zero or negative (can't calculate meaningful growth)
   if (currentFCF <= 0 || priorFCF <= 0) {
@@ -185,9 +196,10 @@ export function calculateRevenue3YearCAGR(data: YahooFinanceData): number | null
     return null;
   }
 
-  // Most recent year is at index 0, 3 years ago at index 3
-  const endValue = data.historicalRevenue[0];
-  const startValue = data.historicalRevenue[3];
+  // Data is in chronological order: oldest at index 0, newest at last index
+  const len = data.historicalRevenue.length;
+  const endValue = data.historicalRevenue[len - 1]; // Most recent
+  const startValue = data.historicalRevenue[len - 4]; // 3 years ago
 
   return calculateCAGR(endValue, startValue, 3);
 }
@@ -205,9 +217,10 @@ export function calculateRevenue5YearCAGR(data: YahooFinanceData): number | null
     return null;
   }
 
-  // Most recent year is at index 0, 5 years ago at index 5
-  const endValue = data.historicalRevenue[0];
-  const startValue = data.historicalRevenue[5];
+  // Data is in chronological order: oldest at index 0, newest at last index
+  const len = data.historicalRevenue.length;
+  const endValue = data.historicalRevenue[len - 1]; // Most recent
+  const startValue = data.historicalRevenue[len - 6]; // 5 years ago
 
   return calculateCAGR(endValue, startValue, 5);
 }

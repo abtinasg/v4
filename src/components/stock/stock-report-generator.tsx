@@ -32,10 +32,42 @@ interface ReportResponse {
   };
 }
 
+const loadingStages = [
+  {
+    label: 'Secure Handshake',
+    description: 'Syncing premium market data feeds',
+    keywords: ['initializing'],
+  },
+  {
+    label: 'AI Intelligence',
+    description: 'Analyzing 170+ metrics with Claude Opus',
+    keywords: ['analyzing'],
+  },
+  {
+    label: 'Narrative Design',
+    description: 'Crafting institutional-grade insights',
+    keywords: ['generating', 'creating'],
+  },
+  {
+    label: 'PDF Delivery',
+    description: 'Finalizing and downloading the dossier',
+    keywords: ['downloaded'],
+  },
+];
+
 export function StockReportGenerator({ symbol, companyName }: StockReportGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
+  const normalizedProgress = progress.toLowerCase();
+  const derivedStageIndex = loadingStages.findIndex((stage) =>
+    stage.keywords.some((keyword) => normalizedProgress.includes(keyword)),
+  );
+  const activeStageIndex = derivedStageIndex === -1 ? (isGenerating ? 0 : -1) : derivedStageIndex;
+  const progressPercent =
+    activeStageIndex === -1 ? 0 : ((activeStageIndex + 1) / loadingStages.length) * 100;
+  const animatedWidth = isGenerating ? Math.min(100, Math.max(12, progressPercent || 10)) : 0;
+  const progressMessage = progress || 'Preparing institutional-grade PDF...';
 
   /**
    * Convert markdown to formatted text for PDF
@@ -380,11 +412,51 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           </Alert>
         )}
 
-        {progress && !error && (
-          <Alert className="border-violet-800 bg-gradient-to-r from-violet-950/50 to-indigo-950/50 animate-in fade-in-50">
-            <Loader2 className="h-4 w-4 animate-spin text-violet-400" />
-            <AlertDescription className="text-violet-200 font-medium">{progress}</AlertDescription>
-          </Alert>
+        {isGenerating && !error && (
+          <div className="relative overflow-hidden rounded-2xl border border-violet-900/60 bg-slate-950/70 shadow-lg shadow-violet-900/30 animate-in fade-in-50">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(139,92,246,0.18),_transparent_65%)] opacity-80 animate-pulse" />
+            <div className="relative space-y-4 p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Loader2 className="h-6 w-6 text-violet-300 animate-spin" />
+                    <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-yellow-300 animate-ping" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">PDF In Progress</p>
+                    <p className="text-base text-slate-100">{progressMessage}</p>
+                  </div>
+                </div>
+                <Badge className="bg-slate-900/60 text-violet-200 border border-violet-700/40 shadow-inner shadow-violet-700/40">Live Rendering</Badge>
+              </div>
+
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800/80">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-400 to-fuchsia-500 transition-all duration-500 ease-out"
+                  style={{ width: `${animatedWidth}%` }}
+                />
+              </div>
+
+              <div className="grid gap-3 text-sm sm:grid-cols-2">
+                {loadingStages.map((stage, index) => {
+                  const isActive = index <= activeStageIndex && isGenerating;
+                  return (
+                    <div
+                      key={stage.label}
+                      className={`flex flex-col gap-1 rounded-xl border px-3 py-2 transition-colors ${
+                        isActive
+                          ? 'border-violet-400/60 bg-violet-500/10 text-violet-100 shadow shadow-violet-900/20'
+                          : 'border-slate-800 bg-slate-900/40 text-slate-400'
+                      }`}
+                    >
+                      <span className="text-xs font-semibold uppercase tracking-wider">{stage.label}</span>
+                      <span className="text-[13px]">{stage.description}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         )}
 
         <Button

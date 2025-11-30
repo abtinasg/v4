@@ -5,7 +5,7 @@ import { Sidebar, SidebarProvider } from '@/components/dashboard/Sidebar'
 import { MainContent } from '@/components/dashboard/MainContent'
 import { Topbar } from '@/components/dashboard/Topbar'
 import { AIChatWrapper } from '@/components/ai'
-import { BottomNavigation } from '@/components/mobile'
+import { BottomNavigation, MobileHeader } from '@/components/mobile'
 
 export default async function DashboardLayout({
   children,
@@ -44,18 +44,23 @@ export default async function DashboardLayout({
       </div>
 
       <div className="relative min-h-screen">
-        {/* Sidebar - Fixed on desktop, overlay on mobile */}
-        <Sidebar subscriptionTier={subscriptionTier} />
+        {/* Sidebar - Hidden on mobile, visible on desktop */}
+        <div className="hidden lg:block">
+          <Sidebar subscriptionTier={subscriptionTier} />
+        </div>
 
-        {/* Main Content - with dynamic margin for sidebar on desktop, full width on mobile */}
+        {/* Mobile Header - Only on mobile */}
+        <MobileHeader />
+
+        {/* Main Content - Full width on mobile, adjusted for sidebar on desktop */}
         <MainContent>
-          {/* Header - Sticky */}
-          <div className="sticky top-0 z-40">
+          {/* Desktop Header - Hidden on mobile */}
+          <div className="sticky top-0 z-40 hidden md:block">
             <Topbar subscriptionTier={subscriptionTier} />
           </div>
 
           {/* Page Content - extra padding bottom on mobile for bottom nav */}
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 md:pb-6">
+          <main className="flex-1 p-2 sm:p-3 md:p-4 lg:p-6 pb-20 md:pb-6">
             {children}
           </main>
         </MainContent>
@@ -63,8 +68,10 @@ export default async function DashboardLayout({
         {/* Mobile Bottom Navigation */}
         <BottomNavigation />
 
-        {/* Floating AI Chat - Available on all dashboard pages */}
-        <AIChatWrapper position="right" />
+        {/* Floating AI Chat - Hidden on mobile (use AI tab instead) */}
+        <div className="hidden md:block">
+          <AIChatWrapper position="right" />
+        </div>
       </div>
     </SidebarProvider>
   )

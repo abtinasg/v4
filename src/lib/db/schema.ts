@@ -234,7 +234,8 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'refund',        // Credit refund
   'bonus',         // Bonus credits
   'monthly_reset', // Monthly free credits
-  'admin_adjust'   // Admin adjustment
+  'admin_adjust',  // Admin adjustment
+  'promo'          // Promo code redemption
 ])
 
 export const creditActionEnum = pgEnum('credit_action', [
@@ -413,6 +414,54 @@ export const rateLimitConfig = pgTable('rate_limit_config', {
   endpointTierIdx: index('rate_limit_config_endpoint_tier_idx').on(table.endpoint, table.subscriptionTier),
 }))
 
+// ==================== PROMO CODES TABLE ====================
+export const promoCodes = pgTable('promo_codes', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  code: varchar('code', { length: 50 }).notNull().unique(),
+  type: varchar('type', { length: 20 }).notNull().default('credits'), // 'credits' | 'discount' | 'trial'
+  credits: decimal('credits', { precision: 15, scale: 2 }), // تعداد کردیت رایگان
+  discountPercent: decimal('discount_percent', { precision: 5, scale: 2 }), // درصد تخفیف
+  discountAmount: decimal('discount_amount', { precision: 10, scale: 2 }), // مبلغ تخفیف
+  trialDays: decimal('trial_days', { precision: 5, scale: 0 }), // روزهای رایگان
+  maxUses: decimal('max_uses', { precision: 10, scale: 0 }), // حداکثر استفاده کلی
+  usedCount: decimal('used_count', { precision: 10, scale: 0 }).notNull().default('0'),
+  maxUsesPerUser: decimal('max_uses_per_user', { precision: 5, scale: 0 }).notNull().default('1'),
+  minPurchaseAmount: decimal('min_purchase_amount', { precision: 10, scale: 2 }), // حداقل خرید
+  applicablePackages: jsonb('applicable_packages').$type<string[]>(), // پکیج‌های قابل اعمال
+  applicableTiers: jsonb('applicable_tiers').$type<string[]>(), // تیرهای قابل استفاده
+  startsAt: timestamp('starts_at', { withTimezone: true }),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  isActive: boolean('is_active').default(true).notNull(),
+  description: text('description'),
+  createdBy: text('created_by'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  codeIdx: index('promo_codes_code_idx').on(table.code),
+  isActiveIdx: index('promo_codes_is_active_idx').on(table.isActive),
+  expiresAtIdx: index('promo_codes_expires_at_idx').on(table.expiresAt),
+}))
+
+// ==================== PROMO CODE USAGE TABLE ====================
+export const promoCodeUsage = pgTable('promo_code_usage', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  promoCodeId: text('promo_code_id').notNull().references(() => promoCodes.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  creditsAwarded: decimal('credits_awarded', { precision: 15, scale: 2 }),
+  discountApplied: decimal('discount_applied', { precision: 10, scale: 2 }),
+  purchaseId: text('purchase_id'), // آیدی خرید مرتبط (اگر برای خرید استفاده شده)
+  metadata: jsonb('metadata').$type<{
+    ipAddress?: string
+    userAgent?: string
+    packageId?: string
+  }>(),
+  usedAt: timestamp('used_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  promoCodeIdIdx: index('promo_code_usage_promo_code_id_idx').on(table.promoCodeId),
+  userIdIdx: index('promo_code_usage_user_id_idx').on(table.userId),
+  promoUserIdx: index('promo_code_usage_promo_user_idx').on(table.promoCodeId, table.userId),
+}))
+
 // ==================== CREDIT SYSTEM RELATIONS ====================
 export const userCreditsRelations = relations(userCredits, ({ one }) => ({
   user: one(users, {
@@ -431,6 +480,21 @@ export const creditTransactionsRelations = relations(creditTransactions, ({ one 
 export const rateLimitTrackingRelations = relations(rateLimitTracking, ({ one }) => ({
   user: one(users, {
     fields: [rateLimitTracking.userId],
+    references: [users.id],
+  }),
+}))
+
+export const promoCodesRelations = relations(promoCodes, ({ many }) => ({
+  usages: many(promoCodeUsage),
+}))
+
+export const promoCodeUsageRelations = relations(promoCodeUsage, ({ one }) => ({
+  promoCode: one(promoCodes, {
+    fields: [promoCodeUsage.promoCodeId],
+    references: [promoCodes.id],
+  }),
+  user: one(users, {
+    fields: [promoCodeUsage.userId],
     references: [users.id],
   }),
 }))
@@ -472,3 +536,9 @@ export type AiAccessControl = typeof aiAccessControl.$inferSelect
 export type NewAiAccessControl = typeof aiAccessControl.$inferInsert
 export type RateLimitConfig = typeof rateLimitConfig.$inferSelect
 export type NewRateLimitConfig = typeof rateLimitConfig.$inferInsert
+
+// Promo Code Types
+export type PromoCode = typeof promoCodes.$inferSelect
+export type NewPromoCode = typeof promoCodes.$inferInsert
+export type PromoCodeUsage = typeof promoCodeUsage.$inferSelect
+export type NewPromoCodeUsage = typeof promoCodeUsage.$inferInsert

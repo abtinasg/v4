@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getStockQuote } from '@/lib/api/yahoo-finance'
+import { withCredits } from '@/lib/credits'
 
 // Force Node.js runtime for yahoo-finance2 compatibility
 export const runtime = 'nodejs'
@@ -8,7 +9,7 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
 // Get stock quotes - supports single symbol or multiple (comma-separated)
-export async function GET(request: NextRequest) {
+export const GET = withCredits('real_time_quote', async (request, { deductCreditsAfter }) => {
   const searchParams = request.nextUrl.searchParams
   const symbolParam = searchParams.get('symbol') || searchParams.get('symbols')
 
@@ -39,6 +40,9 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // Deduct credits after successful quote
+    await deductCreditsAfter()
 
     // Map to watchlist-compatible format
     const quote = result.data!
@@ -92,8 +96,11 @@ export async function GET(request: NextRequest) {
     })
     .filter(Boolean)
 
+  // Deduct credits after successful quotes
+  await deductCreditsAfter()
+
   return NextResponse.json({
     quotes,
     timestamp: new Date().toISOString(),
   })
-}
+})

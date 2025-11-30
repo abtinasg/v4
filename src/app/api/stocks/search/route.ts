@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { searchStocks } from '@/lib/api/yahoo-finance'
+import { withCredits } from '@/lib/credits'
 
 // Force Node.js runtime and dynamic rendering
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
-export async function GET(request: NextRequest) {
+export const GET = withCredits('stock_search', async (request, { deductCreditsAfter }) => {
   try {
     const searchParams = request.nextUrl.searchParams
     const query = searchParams.get('q')
@@ -39,6 +40,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Deduct credits after successful search
+    await deductCreditsAfter()
+
     return NextResponse.json({
       success: true,
       data: result.data,
@@ -59,4 +63,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

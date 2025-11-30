@@ -59,3 +59,27 @@ export {
   withRateLimit,
   type CreditContext,
 } from './with-credits'
+
+// Promo Codes
+export {
+  validatePromoCode,
+  redeemPromoCode,
+  applyPromoCodeToPurchase,
+  recordPromoCodePurchaseUsage,
+  createPromoCode,
+  getActivePromoCodes,
+  getPromoCodeStats,
+  type PromoCodeValidationResult,
+  type PromoCodeRedeemResult,
+} from './promo'
+
+// Analytics
+export {
+  getUserUsageAnalytics,
+  getSystemAnalytics,
+  getUserTransactionHistory,
+  type UsageByAction,
+  type DailyUsage,
+  type UsageAnalytics,
+  type AdminAnalytics,
+} from './analytics'

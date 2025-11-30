@@ -8,6 +8,16 @@
 
 import { NextRequest } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
+import { db } from '@/lib/db'
+import { users } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
+import { 
+  checkCredits, 
+  deductCredits, 
+  checkRateLimit,
+  checkAndResetMonthlyCredits,
+  CREDIT_COSTS,
+} from '@/lib/credits'
 import { 
   OpenRouterClient, 
   ChatMessage, 
@@ -33,54 +43,6 @@ import {
   type NewsPageContext,
   type TerminalContext,
 } from '@/lib/ai/context-builder'
-
-// ============================================================
-// RATE LIMITING
-// ============================================================
-
-// Simple in-memory rate limiter (use Redis in production)
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
-
-const RATE_LIMIT = {
-  FREE: { requests: 10, windowMs: 60 * 1000 }, // 10 req/min
-  PREMIUM: { requests: 30, windowMs: 60 * 1000 }, // 30 req/min
-  PROFESSIONAL: { requests: 100, windowMs: 60 * 1000 }, // 100 req/min
-  ENTERPRISE: { requests: 500, windowMs: 60 * 1000 }, // 500 req/min
-}
-
-type SubscriptionTier = keyof typeof RATE_LIMIT
-
-function checkRateLimit(userId: string, tier: SubscriptionTier = 'FREE'): {
-  allowed: boolean
-  remaining: number
-  resetIn: number
-} {
-  const now = Date.now()
-  const limit = RATE_LIMIT[tier]
-  const key = `${userId}:${tier}`
-  
-  const existing = rateLimitMap.get(key)
-  
-  if (!existing || now > existing.resetTime) {
-    rateLimitMap.set(key, { count: 1, resetTime: now + limit.windowMs })
-    return { allowed: true, remaining: limit.requests - 1, resetIn: limit.windowMs }
-  }
-  
-  if (existing.count >= limit.requests) {
-    return { 
-      allowed: false, 
-      remaining: 0, 
-      resetIn: existing.resetTime - now 
-    }
-  }
-  
-  existing.count++
-  return { 
-    allowed: true, 
-    remaining: limit.requests - existing.count, 
-    resetIn: existing.resetTime - now 
-  }
-}
 
 // ============================================================
 // REQUEST VALIDATION
@@ -180,38 +142,73 @@ function createSSEEncoder() {
 export async function POST(request: NextRequest) {
   try {
     // 1. Authentication check
-    const { userId } = await auth()
+    const { userId: clerkUserId } = await auth()
     
-    if (!userId) {
+    if (!clerkUserId) {
       return new Response(
         JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       )
     }
+
+    // 2. Find internal user and check credits
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkUserId),
+    })
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'User not found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Check and reset monthly credits if needed
+    await checkAndResetMonthlyCredits(user.id)
+
+    // 3. Rate limiting with credit system
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     request.headers.get('x-real-ip') || 'unknown'
     
-    // 2. Rate limiting
-    // TODO: Fetch actual subscription tier from database
-    const subscriptionTier: SubscriptionTier = 'FREE'
-    const rateLimit = checkRateLimit(userId, subscriptionTier)
+    const rateLimitResult = await checkRateLimit(
+      { userId: user.id, ipAddress },
+      '/api/chat'
+    )
     
-    if (!rateLimit.allowed) {
+    if (!rateLimitResult.allowed) {
       return new Response(
         JSON.stringify({ 
-          error: 'Rate limit exceeded', 
-          resetIn: Math.ceil(rateLimit.resetIn / 1000) 
+          error: 'Rate limit exceeded. Please slow down.', 
+          retryAfter: rateLimitResult.retryAfter 
         }),
         { 
           status: 429, 
           headers: { 
             'Content-Type': 'application/json',
             'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': String(Math.ceil(rateLimit.resetIn / 1000))
+            'X-RateLimit-Reset': rateLimitResult.resetAt.toISOString(),
+            'Retry-After': String(rateLimitResult.retryAfter || 60)
           } 
         }
       )
     }
+
+    // 4. Check credits for chat
+    const creditCheck = await checkCredits(user.id, 'chat_message')
     
-    // 3. Parse and validate request
+    if (!creditCheck.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Insufficient credits',
+          required: creditCheck.requiredCredits,
+          balance: creditCheck.currentBalance,
+          message: `This action requires ${creditCheck.requiredCredits} credits. Your balance: ${creditCheck.currentBalance}`
+        }),
+        { status: 402, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+    
+    // 5. Parse and validate request
     let body: unknown
     try {
       body = await request.json()
@@ -331,6 +328,11 @@ export async function POST(request: NextRequest) {
               controller.enqueue(sseEncoder.encode(JSON.stringify({ content: chunk })))
             }
             
+            // Deduct credits after successful streaming
+            await deductCredits(user.id, 'chat_message', {
+              apiEndpoint: '/api/chat',
+            })
+            
             controller.enqueue(sseEncoder.encodeDone())
             controller.close()
           } catch (error) {
@@ -349,17 +351,23 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache',
           'Connection': 'keep-alive',
-          'X-RateLimit-Remaining': String(rateLimit.remaining),
+          'X-RateLimit-Remaining': String(rateLimitResult.remaining),
         }
       })
     } else {
       // Non-streaming response
       try {
+        const selectedModel = model || DEFAULT_MODEL
         const response = await client.chatWithFallback({
-          model: model || DEFAULT_MODEL,
+          model: selectedModel,
           messages: aiMessages,
           maxTokens: 4096,
           temperature: 0.7,
+        })
+        
+        // Deduct credits after successful response
+        await deductCredits(user.id, 'chat_message', {
+          apiEndpoint: '/api/chat',
         })
         
         return new Response(
@@ -372,7 +380,7 @@ export async function POST(request: NextRequest) {
             status: 200, 
             headers: { 
               'Content-Type': 'application/json',
-              'X-RateLimit-Remaining': String(rateLimit.remaining),
+              'X-RateLimit-Remaining': String(rateLimitResult.remaining),
             } 
           }
         )

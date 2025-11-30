@@ -1,4 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { 
+  checkCredits, 
+  deductCredits, 
+  checkAndResetMonthlyCredits,
+} from '@/lib/credits';
 import YahooFinance from 'yahoo-finance2';
 
 const yahooFinance = new YahooFinance();
@@ -18,6 +27,42 @@ export async function GET(
   { params }: { params: Promise<{ symbol: string }> }
 ) {
   try {
+    // === Credit System Check ===
+    const { userId: clerkUserId } = await auth();
+    
+    if (!clerkUserId) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkUserId),
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    await checkAndResetMonthlyCredits(user.id);
+
+    const creditCheck = await checkCredits(user.id, 'financial_report');
+    if (!creditCheck.success) {
+      return NextResponse.json(
+        { 
+          error: 'Insufficient credits',
+          required: creditCheck.requiredCredits,
+          balance: creditCheck.currentBalance,
+        },
+        { status: 402 }
+      );
+    }
+    // === End Credit Check ===
+
     const { symbol } = await params;
     const searchParams = request.nextUrl.searchParams;
     
@@ -132,6 +177,12 @@ export async function GET(
         };
       }
     }
+
+    // Deduct credits after successful fetch
+    await deductCredits(user.id, 'financial_report', {
+      symbol: upperSymbol,
+      endpoint: '/api/stocks/financials/[symbol]',
+    });
 
     return NextResponse.json({
       success: true,

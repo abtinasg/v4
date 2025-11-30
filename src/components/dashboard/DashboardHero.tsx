@@ -202,86 +202,80 @@ export function DashboardHero({ className }: DashboardHeroProps) {
       className={className}
     >
       <GlassCard variant="elevated" className="overflow-hidden">
-        <div className="relative p-4 sm:p-6">
+        <div className="relative p-3 sm:p-4 md:p-6">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-violet-500/5" />
           </div>
 
-          <div className="relative space-y-6">
-            {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-cyan-300/80">
+          <div className="relative space-y-4 md:space-y-6">
+            {/* Header - Compact on mobile */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 text-[10px] sm:text-xs uppercase tracking-wider text-cyan-300/80">
                   <PulsingDot color="cyan" />
-                  <span>Live Market Data</span>
+                  <span>Live Market</span>
                 </div>
-                <h1 className="mt-2 text-2xl sm:text-3xl font-semibold text-white flex items-center gap-3">
-                  {greetingIcon}
-                  <span>
+                <h1 className="mt-1 sm:mt-2 text-lg sm:text-2xl md:text-3xl font-semibold text-white flex items-center gap-2 sm:gap-3">
+                  <span className="hidden sm:inline">{greetingIcon}</span>
+                  <span className="truncate">
                     {greeting}
                     {userName && <span className="text-cyan-400">, {userName}</span>}
                   </span>
                 </h1>
-                <p className="mt-1 text-sm text-gray-400">
-                  {formattedDate}
+                <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-400">
+                  {formattedDate} • {formattedTime}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>{formattedTime}</span>
-                </div>
-                <button
-                  onClick={() => {
-                    fetchMarketData()
-                    fetchAiAnalysis()
-                  }}
-                  disabled={isLoading || isAnalysisLoading}
-                  className={cn(
-                    'p-2 rounded-lg bg-white/5 border border-white/10',
-                    'hover:bg-white/10 transition-all',
-                    'disabled:opacity-50'
-                  )}
-                >
-                  <RefreshCw className={cn('h-4 w-4 text-gray-400', (isLoading || isAnalysisLoading) && 'animate-spin')} />
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  fetchMarketData()
+                  fetchAiAnalysis()
+                }}
+                disabled={isLoading || isAnalysisLoading}
+                className={cn(
+                  'p-2 rounded-lg bg-white/5 border border-white/10 flex-shrink-0',
+                  'hover:bg-white/10 transition-all active:scale-95',
+                  'disabled:opacity-50'
+                )}
+              >
+                <RefreshCw className={cn('h-4 w-4 text-gray-400', (isLoading || isAnalysisLoading) && 'animate-spin')} />
+              </button>
             </div>
 
-            {/* Market Stats Grid */}
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Market Stats Grid - 2 cols on mobile, 4 on desktop */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
               {isLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-4 animate-pulse">
-                    <div className="h-3 w-16 bg-white/10 rounded mb-3" />
-                    <div className="h-6 w-24 bg-white/10 rounded" />
+                  <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-4 animate-pulse">
+                    <div className="h-2.5 sm:h-3 w-12 sm:w-16 bg-white/10 rounded mb-2 sm:mb-3" />
+                    <div className="h-5 sm:h-6 w-16 sm:w-24 bg-white/10 rounded" />
                   </div>
                 ))
               ) : (
                 marketData.map((item) => (
                   <div
                     key={item.symbol}
-                    className="rounded-xl border border-white/10 bg-white/5 p-4 hover:bg-white/[0.07] transition-colors"
+                    className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-4 hover:bg-white/[0.07] transition-colors active:scale-[0.98]"
                   >
                     <div className="flex items-center justify-between">
-                      <p className="text-xs uppercase tracking-wider text-gray-400">{item.name}</p>
+                      <p className="text-[10px] sm:text-xs uppercase tracking-wider text-gray-400 truncate">{item.name}</p>
                       <span
                         className={cn(
-                          'text-xs font-semibold',
+                          'text-[10px] sm:text-xs font-semibold ml-1',
                           item.changePercent >= 0 ? 'text-emerald-400' : 'text-red-400'
                         )}
                       >
                         {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
                       </span>
                     </div>
-                    <div className="mt-2 flex items-end justify-between">
-                      <p className="text-xl font-semibold text-white tabular-nums">
+                    <div className="mt-1.5 sm:mt-2 flex items-end justify-between">
+                      <p className="text-base sm:text-xl font-semibold text-white tabular-nums">
                         {item.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                       </p>
                       {item.changePercent >= 0 ? (
-                        <TrendingUp className="h-4 w-4 text-emerald-400" />
+                        <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
                       ) : (
-                        <TrendingDown className="h-4 w-4 text-red-400" />
+                        <TrendingDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-400" />
                       )}
                     </div>
                   </div>
@@ -289,8 +283,8 @@ export function DashboardHero({ className }: DashboardHeroProps) {
               )}
             </div>
 
-            {/* Economic Indicators Grid */}
-            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+            {/* Economic Indicators Grid - Hidden on small mobile */}
+            <div className="hidden xs:grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
               {/* Manufacturing PMI */}
               <div className="rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/[0.07] transition-colors">
                 <div className="flex items-center gap-2 mb-2">

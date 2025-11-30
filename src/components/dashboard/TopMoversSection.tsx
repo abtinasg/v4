@@ -277,8 +277,8 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
           </Tabs>
         </div>
 
-        {/* Table - Horizontally scrollable on mobile */}
-        <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+        {/* Table - Hidden on mobile, shown on sm and up */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-white/[0.06]">
@@ -394,6 +394,50 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
               </AnimatePresence>
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="sm:hidden p-3 space-y-2">
+          <AnimatePresence mode="wait">
+            {sortedData.map((stock, index) => (
+              <motion.div
+                key={stock.symbol}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
+                onClick={() => {
+                  triggerHaptic('light')
+                  window.location.href = `/dashboard/stock-analysis?symbol=${stock.symbol}`
+                }}
+                className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] active:bg-white/[0.05] transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    'w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold',
+                    stock.changePercent >= 0 
+                      ? 'bg-emerald-500/10 text-emerald-400' 
+                      : 'bg-red-500/10 text-red-400'
+                  )}>
+                    {stock.symbol.slice(0, 2)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{stock.symbol}</p>
+                    <p className="text-xs text-gray-500 truncate max-w-[120px]">{stock.name}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-white">${stock.price.toFixed(2)}</p>
+                  <span className={cn(
+                    'text-xs font-medium',
+                    stock.changePercent >= 0 ? 'text-emerald-400' : 'text-red-400'
+                  )}>
+                    {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </GlassCard>
     </motion.div>

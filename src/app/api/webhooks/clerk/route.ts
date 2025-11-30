@@ -4,6 +4,7 @@ import { WebhookEvent } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { users, userPreferences } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { initializeUserCredits } from '@/lib/credits'
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
@@ -70,6 +71,9 @@ export async function POST(req: Request) {
           displayCurrency: 'USD',
         },
       })
+
+      // Initialize user credits
+      await initializeUserCredits(newUser.id)
 
       console.log('User created:', newUser.id)
     } catch (error) {

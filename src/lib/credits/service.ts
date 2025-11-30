@@ -117,7 +117,10 @@ export async function checkCredits(
   action: CreditAction
 ): Promise<CreditCheckResult> {
   const requiredCredits = CREDIT_COSTS[action]
-  const currentBalance = await getUserCreditBalance(userId)
+  
+  // Get or initialize user credits
+  const userCreditRecord = await getUserCredits(userId)
+  const currentBalance = parseFloat(userCreditRecord?.balance || '0')
   
   if (currentBalance >= requiredCredits) {
     return {
@@ -147,10 +150,15 @@ export async function deductCredits(
     symbol?: string
     apiEndpoint?: string
     ipAddress?: string
+    endpoint?: string
+    model?: string
   }
 ): Promise<CreditDeductResult> {
   const requiredCredits = CREDIT_COSTS[action]
-  const currentBalance = await getUserCreditBalance(userId)
+  
+  // Get or initialize user credits
+  const userCreditRecord = await getUserCredits(userId)
+  const currentBalance = parseFloat(userCreditRecord?.balance || '0')
   
   if (currentBalance < requiredCredits) {
     return {

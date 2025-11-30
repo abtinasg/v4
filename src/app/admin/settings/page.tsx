@@ -26,7 +26,11 @@ import {
   ChevronRight,
   Database,
   FileCode,
-  ExternalLink
+  ExternalLink,
+  Eye,
+  X,
+  Copy,
+  Check
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -41,24 +45,57 @@ import {
   DEFAULT_CREDIT_PACKAGES
 } from '@/lib/credits/config'
 
-// AI Prompts info (these are defined in lib/ai/prompts.ts and context-prompts.ts)
-const AI_PROMPTS_INFO = [
-  { name: 'Stock Analysis', category: 'analysis', file: 'lib/ai/prompts.ts', description: 'Comprehensive stock analysis with financial metrics' },
-  { name: 'Market Overview', category: 'market', file: 'lib/ai/prompts.ts', description: 'Market overview and indices' },
-  { name: 'News Sentiment', category: 'sentiment', file: 'lib/ai/context-prompts.ts', description: 'News sentiment analysis' },
-  { name: 'Financial Education', category: 'education', file: 'lib/ai/prompts.ts', description: 'Financial concepts education' },
-  { name: 'General Assistant', category: 'general', file: 'lib/ai/context-prompts.ts', description: 'Deep Terminal general assistant' },
-  { name: 'Technical Analysis', category: 'technical', file: 'lib/ai/prompts.ts', description: 'Technical analysis with RSI, MACD, etc' },
-  { name: 'Comparison', category: 'comparison', file: 'lib/ai/comparison.ts', description: 'Multiple stocks comparison' },
+// Import actual AI prompts
+import {
+  GENERAL_FINANCIAL_ANALYSIS,
+  STOCK_ANALYSIS,
+  METRIC_EXPLANATION,
+  MARKET_OVERVIEW,
+  PORTFOLIO_ADVICE,
+  TECHNICAL_ANALYSIS,
+  NEWS_ANALYSIS,
+} from '@/lib/ai/prompts'
+
+// AI Prompts with actual content
+const AI_PROMPTS = [
+  { name: 'GENERAL_FINANCIAL_ANALYSIS', category: 'general', file: 'lib/ai/prompts.ts', description: 'General financial analysis for open-ended questions', content: GENERAL_FINANCIAL_ANALYSIS },
+  { name: 'STOCK_ANALYSIS', category: 'analysis', file: 'lib/ai/prompts.ts', description: 'Comprehensive stock analysis with financial metrics & valuation', content: STOCK_ANALYSIS },
+  { name: 'METRIC_EXPLANATION', category: 'education', file: 'lib/ai/prompts.ts', description: 'Financial metric explanations with examples', content: METRIC_EXPLANATION },
+  { name: 'MARKET_OVERVIEW', category: 'market', file: 'lib/ai/prompts.ts', description: 'Market indices, sectors, economic indicators', content: MARKET_OVERVIEW },
+  { name: 'PORTFOLIO_ADVICE', category: 'portfolio', file: 'lib/ai/prompts.ts', description: 'Portfolio allocation & diversification guidance', content: PORTFOLIO_ADVICE },
+  { name: 'TECHNICAL_ANALYSIS', category: 'technical', file: 'lib/ai/prompts.ts', description: 'Technical analysis with RSI, MACD, patterns', content: TECHNICAL_ANALYSIS },
+  { name: 'NEWS_ANALYSIS', category: 'sentiment', file: 'lib/ai/prompts.ts', description: 'News impact analysis & market sentiment', content: NEWS_ANALYSIS },
 ]
+
+// Context functions (no content to show)
+const AI_CONTEXT_FUNCTIONS = [
+  { name: 'buildContextSystemPrompt', category: 'context', file: 'lib/ai/context-prompts.ts', description: 'Dynamic context-aware prompt builder' },
+  { name: 'generateSuggestedQuestions', category: 'context', file: 'lib/ai/context-prompts.ts', description: 'AI-generated follow-up questions' },
+  { name: 'detectContextType', category: 'context', file: 'lib/ai/context-prompts.ts', description: 'Auto-detect context from user data' },
+]
+
+interface SelectedPrompt {
+  name: string
+  content: string
+  category: string
+  description: string
+}
 
 export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'credits' | 'limits' | 'ai' | 'endpoints'>('overview')
+  const [selectedPrompt, setSelectedPrompt] = useState<SelectedPrompt | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const handleSave = () => {
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
+  }
+
+  const handleCopyPrompt = (content: string) => {
+    navigator.clipboard.writeText(content)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -470,20 +507,21 @@ export default function AdminSettingsPage() {
       {/* AI Prompts Tab */}
       {activeTab === 'ai' && (
         <div className="space-y-6">
+          {/* System Prompts with View Button */}
           <Card className="bg-slate-800/50 border-slate-700/50">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Bot className="w-5 h-5 text-violet-400" />
                 AI System Prompts
               </CardTitle>
-              <CardDescription>پرامپت‌های سیستمی هوش مصنوعی (از context-prompts.ts و prompts.ts)</CardDescription>
+              <CardDescription>پرامپت‌های سیستمی هوش مصنوعی - کلیک روی "مشاهده" برای دیدن محتوای کامل</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {AI_PROMPTS_INFO.map((prompt, index) => (
+                {AI_PROMPTS.map((prompt, index) => (
                   <div 
                     key={index}
-                    className="flex items-center justify-between p-4 rounded-lg bg-slate-700/30"
+                    className="flex items-center justify-between p-4 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <div className={cn(
@@ -494,7 +532,7 @@ export default function AdminSettingsPage() {
                         prompt.category === 'education' && "bg-blue-500/20",
                         prompt.category === 'general' && "bg-violet-500/20",
                         prompt.category === 'technical' && "bg-rose-500/20",
-                        prompt.category === 'comparison' && "bg-orange-500/20",
+                        prompt.category === 'portfolio' && "bg-emerald-500/20",
                       )}>
                         <Bot className={cn(
                           "w-5 h-5",
@@ -504,7 +542,7 @@ export default function AdminSettingsPage() {
                           prompt.category === 'education' && "text-blue-400",
                           prompt.category === 'general' && "text-violet-400",
                           prompt.category === 'technical' && "text-rose-400",
-                          prompt.category === 'comparison' && "text-orange-400",
+                          prompt.category === 'portfolio' && "text-emerald-400",
                         )} />
                       </div>
                       <div>
@@ -513,27 +551,79 @@ export default function AdminSettingsPage() {
                         <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
                           <FileCode className="w-3 h-3" />
                           {prompt.file}
+                          <span className="mx-2">•</span>
+                          <span className="text-cyan-400">{prompt.content.length.toLocaleString()} chars</span>
                         </p>
                       </div>
                     </div>
-                    <Badge className="bg-emerald-500/20 text-emerald-400">Active</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-emerald-500/20 text-emerald-400">Active</Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedPrompt({
+                          name: prompt.name,
+                          content: prompt.content,
+                          category: prompt.category,
+                          description: prompt.description,
+                        })}
+                        className="gap-1"
+                      >
+                        <Eye className="w-3 h-3" />
+                        مشاهده
+                      </Button>
+                    </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Context Functions */}
+              <div className="mt-6">
+                <h4 className="text-sm font-medium text-slate-400 mb-3">Context Builder Functions</h4>
+                <div className="space-y-2">
+                  {AI_CONTEXT_FUNCTIONS.map((func, index) => (
+                    <div 
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-lg bg-slate-700/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-500/20">
+                          <FileCode className="w-4 h-4 text-indigo-400" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-white text-sm">{func.name}()</p>
+                          <p className="text-xs text-slate-400">{func.description}</p>
+                        </div>
+                      </div>
+                      <Badge className="bg-indigo-500/20 text-indigo-400">Function</Badge>
+                    </div>
+                  ))}
+                </div>
               </div>
               
               {/* AI Rules Summary */}
               <div className="mt-6 p-4 rounded-xl bg-slate-900/50 border border-slate-700">
                 <h4 className="font-medium text-white mb-3 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  AI Rules & Restrictions
+                  AI Rules & Restrictions (در همه پرامپت‌ها)
                 </h4>
-                <div className="space-y-2 text-sm text-slate-400">
-                  <p>❌ هرگز سیگنال خرید/فروش نمی‌دهد</p>
-                  <p>❌ پیش‌بینی قیمت و تارگت نمی‌دهد</p>
-                  <p>❌ ضمانت سود نمی‌دهد</p>
-                  <p>✅ فقط از داده‌های ارائه شده استفاده می‌کند</p>
-                  <p>✅ تحلیل آموزشی و توضیحی ارائه می‌دهد</p>
-                  <p>✅ همیشه disclaimer نمایش می‌دهد</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2 text-sm">
+                    <p className="text-red-400 font-medium">🚫 ممنوعیت‌ها:</p>
+                    <p className="text-slate-400">❌ سیگنال خرید/فروش</p>
+                    <p className="text-slate-400">❌ پیش‌بینی قیمت و تارگت</p>
+                    <p className="text-slate-400">❌ ضمانت سود</p>
+                    <p className="text-slate-400">❌ توصیه مارجین/لوریج</p>
+                    <p className="text-slate-400">❌ مشاوره مالیاتی</p>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <p className="text-emerald-400 font-medium">✅ مجازها:</p>
+                    <p className="text-slate-400">✓ تحلیل متریک‌های مالی</p>
+                    <p className="text-slate-400">✓ آموزش مفاهیم</p>
+                    <p className="text-slate-400">✓ مقایسه با industry</p>
+                    <p className="text-slate-400">✓ سناریوهای bull/bear</p>
+                    <p className="text-slate-400">✓ تحلیل تکنیکال آموزشی</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -660,6 +750,77 @@ export default function AdminSettingsPage() {
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Prompt View Modal */}
+      {selectedPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-4xl max-h-[90vh] rounded-xl bg-[#0a0d12] border border-white/10 flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center",
+                  selectedPrompt.category === 'analysis' && "bg-cyan-500/20",
+                  selectedPrompt.category === 'market' && "bg-green-500/20",
+                  selectedPrompt.category === 'sentiment' && "bg-amber-500/20",
+                  selectedPrompt.category === 'education' && "bg-blue-500/20",
+                  selectedPrompt.category === 'general' && "bg-violet-500/20",
+                  selectedPrompt.category === 'technical' && "bg-rose-500/20",
+                  selectedPrompt.category === 'portfolio' && "bg-emerald-500/20",
+                )}>
+                  <Bot className={cn(
+                    "w-5 h-5",
+                    selectedPrompt.category === 'analysis' && "text-cyan-400",
+                    selectedPrompt.category === 'market' && "text-green-400",
+                    selectedPrompt.category === 'sentiment' && "text-amber-400",
+                    selectedPrompt.category === 'education' && "text-blue-400",
+                    selectedPrompt.category === 'general' && "text-violet-400",
+                    selectedPrompt.category === 'technical' && "text-rose-400",
+                    selectedPrompt.category === 'portfolio' && "text-emerald-400",
+                  )} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{selectedPrompt.name}</h3>
+                  <p className="text-sm text-slate-400">{selectedPrompt.description}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleCopyPrompt(selectedPrompt.content)}
+                  className="gap-1"
+                >
+                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  {copied ? 'Copied!' : 'Copy'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSelectedPrompt(null)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="flex-1 overflow-auto p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Badge className="bg-slate-700 text-slate-300">
+                  {selectedPrompt.content.length.toLocaleString()} characters
+                </Badge>
+                <Badge className="bg-slate-700 text-slate-300">
+                  ~{Math.round(selectedPrompt.content.length / 4).toLocaleString()} tokens
+                </Badge>
+              </div>
+              <pre className="text-sm text-slate-300 whitespace-pre-wrap font-mono bg-slate-900/50 p-4 rounded-lg border border-slate-700 leading-relaxed">
+                {selectedPrompt.content}
+              </pre>
+            </div>
           </div>
         </div>
       )}
