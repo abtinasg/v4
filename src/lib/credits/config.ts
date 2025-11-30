@@ -6,7 +6,7 @@
 export const CREDIT_COSTS = {
   // Search and basic view
   stock_search: 2,
-  real_time_quote: 3,
+  real_time_quote: 0,
   
   // Analysis
   technical_analysis: 10,
