@@ -6,6 +6,17 @@ import { cn } from '@/lib/utils'
 import { TerminalContextUpdater } from '@/components/ai'
 import { useRouter } from 'next/navigation'
 import { Monitor } from 'lucide-react'
+import { 
+  IPOPanel, 
+  DividendPanel, 
+  InsiderPanel, 
+  AnalystPanel, 
+  OptionsPanel, 
+  ChartsPanel, 
+  AlertsPanel, 
+  PortfolioPanel, 
+  ComparePanel 
+} from '@/components/terminal'
 
 // Mobile blocker component
 function MobileBlocker() {
@@ -27,7 +38,7 @@ function MobileBlocker() {
 }
 
 // View types for sidebar navigation
-type ViewType = 'MRKT' | 'EQ' | 'FX' | 'GOVT' | 'CMDTY' | 'NEWS' | 'SRCH'
+type ViewType = 'MRKT' | 'EQ' | 'FX' | 'GOVT' | 'CMDTY' | 'NEWS' | 'SRCH' | 'IPO' | 'DIV' | 'INSDR' | 'ANLYST' | 'OPTS' | 'CHART' | 'ALRTS' | 'PORT' | 'COMP'
 
 export default function TerminalProPage() {
   const router = useRouter()
@@ -152,6 +163,24 @@ F11 - Fullscreen`)
       setActiveView('CMDTY')
     } else if (command === 'GOVT' || command === 'BONDS') {
       setActiveView('GOVT')
+    } else if (command === 'IPO') {
+      setActiveView('IPO')
+    } else if (command === 'DIV' || command === 'DIVIDEND' || command === 'DIVIDENDS') {
+      setActiveView('DIV')
+    } else if (command === 'INSDR' || command === 'INSIDER') {
+      setActiveView('INSDR')
+    } else if (command === 'ANLYST' || command === 'ANALYST' || command === 'RATINGS') {
+      setActiveView('ANLYST')
+    } else if (command === 'OPTS' || command === 'OPTIONS') {
+      setActiveView('OPTS')
+    } else if (command === 'CHART' || command === 'CHARTS') {
+      setActiveView('CHART')
+    } else if (command === 'ALRTS' || command === 'ALERTS' || command === 'ALERT') {
+      setActiveView('ALRTS')
+    } else if (command === 'PORT' || command === 'PORTFOLIO') {
+      setActiveView('PORT')
+    } else if (command === 'COMP' || command === 'COMPARE') {
+      setActiveView('COMP')
     } else if (command === 'CLEAR') {
       setCommandInput('')
     } else if (command.includes('GO') || command.includes('EQUITY')) {
@@ -294,6 +323,15 @@ F11 - Fullscreen`)
     { icon: '🛢️', label: 'CMDTY', view: 'CMDTY' as ViewType },
     { icon: '📰', label: 'NEWS', view: 'NEWS' as ViewType },
     { icon: '🔍', label: 'SRCH', view: 'SRCH' as ViewType },
+    { icon: '🚀', label: 'IPO', view: 'IPO' as ViewType },
+    { icon: '💰', label: 'DIV', view: 'DIV' as ViewType },
+    { icon: '👤', label: 'INSDR', view: 'INSDR' as ViewType },
+    { icon: '⭐', label: 'ANLYST', view: 'ANLYST' as ViewType },
+    { icon: '📉', label: 'OPTS', view: 'OPTS' as ViewType },
+    { icon: '📈', label: 'CHART', view: 'CHART' as ViewType },
+    { icon: '🔔', label: 'ALRTS', view: 'ALRTS' as ViewType },
+    { icon: '💼', label: 'PORT', view: 'PORT' as ViewType },
+    { icon: '⚖️', label: 'COMP', view: 'COMP' as ViewType },
   ]
 
   return (
@@ -425,6 +463,69 @@ F11 - Fullscreen`)
                   loading={searchLoading}
                   onSelectStock={(symbol) => router.push(`/dashboard/stock-analysis?symbol=${symbol}`)}
                 />
+              </div>
+            )}
+
+            {/* IPO Calendar View */}
+            {activeView === 'IPO' && (
+              <div className="h-full">
+                <IPOPanel />
+              </div>
+            )}
+
+            {/* Dividend Calendar View */}
+            {activeView === 'DIV' && (
+              <div className="h-full">
+                <DividendPanel />
+              </div>
+            )}
+
+            {/* Insider Trading View */}
+            {activeView === 'INSDR' && (
+              <div className="h-full">
+                <InsiderPanel />
+              </div>
+            )}
+
+            {/* Analyst Ratings View */}
+            {activeView === 'ANLYST' && (
+              <div className="h-full">
+                <AnalystPanel />
+              </div>
+            )}
+
+            {/* Options Flow View */}
+            {activeView === 'OPTS' && (
+              <div className="h-full">
+                <OptionsPanel />
+              </div>
+            )}
+
+            {/* Charts View */}
+            {activeView === 'CHART' && (
+              <div className="h-full">
+                <ChartsPanel />
+              </div>
+            )}
+
+            {/* Alerts View */}
+            {activeView === 'ALRTS' && (
+              <div className="h-full">
+                <AlertsPanel />
+              </div>
+            )}
+
+            {/* Portfolio View */}
+            {activeView === 'PORT' && (
+              <div className="h-full">
+                <PortfolioPanel />
+              </div>
+            )}
+
+            {/* Compare View */}
+            {activeView === 'COMP' && (
+              <div className="h-full">
+                <ComparePanel />
               </div>
             )}
           </main>
