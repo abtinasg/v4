@@ -2042,10 +2042,22 @@ function ExtendedTab({ metrics }: { metrics: AllMetrics }) {
 // ============================================================================
 
 function AIAnalysisTab({ metrics, symbol }: { metrics: AllMetrics; symbol: string }) {
-  const { scores } = metrics;
+  const { scores, profitability, growth, valuation, leverage, liquidity } = metrics;
 
   // Generate AI insights based on metrics
   const insights = generateInsights(metrics);
+
+  // Helper to format percentage
+  const formatPct = (val: number | null | undefined) => {
+    if (val == null) return 'N/A';
+    return `${(val * 100).toFixed(1)}%`;
+  };
+
+  // Helper to format number
+  const formatNum = (val: number | null | undefined, decimals = 2) => {
+    if (val == null) return 'N/A';
+    return val.toFixed(decimals);
+  };
 
   return (
     <div className="space-y-7">
@@ -2116,6 +2128,227 @@ function AIAnalysisTab({ metrics, symbol }: { metrics: AllMetrics; symbol: strin
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Score Calculation Breakdown Section */}
+      <div className="relative overflow-hidden rounded-2xl p-7 glass-premium animate-fade-up" style={{ animationDelay: '150ms' }}>
+        {/* Premium gradient accent */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-violet-500" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-emerald-500/5 via-cyan-500/5 to-transparent pointer-events-none" />
+        
+        <div className="relative flex items-center gap-4 mb-6">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500/30 to-cyan-600/20 border border-emerald-500/30 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+            <Calculator className="h-6 w-6 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              Score Calculation Breakdown
+              <span className="px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-full">
+                AI Powered
+              </span>
+            </h3>
+            <p className="text-sm text-gray-500">How each score is calculated with your actual metrics</p>
+          </div>
+        </div>
+
+        <div className="relative space-y-6">
+          {/* Overall Score */}
+          <div className="p-5 rounded-xl bg-gradient-to-r from-orange-500/5 to-amber-500/5 border border-orange-500/20">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Target className="h-5 w-5 text-orange-400" />
+                <h4 className="font-semibold text-orange-400">Overall Score</h4>
+              </div>
+              <span className="text-2xl font-bold text-orange-400">{scores.totalScore ?? 'N/A'}/100</span>
+            </div>
+            <p className="text-sm text-gray-400 mb-3">Weighted average of all category scores:</p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+              <div className="p-2 rounded-lg bg-black/20 text-center">
+                <div className="text-gray-500">Profitability</div>
+                <div className="text-white font-medium">25%</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20 text-center">
+                <div className="text-gray-500">Growth</div>
+                <div className="text-white font-medium">20%</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20 text-center">
+                <div className="text-gray-500">Valuation</div>
+                <div className="text-white font-medium">20%</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20 text-center">
+                <div className="text-gray-500">Risk</div>
+                <div className="text-white font-medium">15%</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20 text-center">
+                <div className="text-gray-500">Health</div>
+                <div className="text-white font-medium">20%</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Profitability Score */}
+          <div className="p-5 rounded-xl bg-gradient-to-r from-cyan-500/5 to-teal-500/5 border border-cyan-500/20">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <PiggyBank className="h-5 w-5 text-cyan-400" />
+                <h4 className="font-semibold text-cyan-400">Profitability Score</h4>
+              </div>
+              <span className="text-2xl font-bold text-cyan-400">{scores.profitabilityScore ?? 'N/A'}/100</span>
+            </div>
+            <p className="text-sm text-gray-400 mb-3">Based on margin and return metrics (each 20% weight):</p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Gross Margin</div>
+                <div className="text-cyan-400 font-medium">{formatPct(profitability.grossProfitMargin)}</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Operating Margin</div>
+                <div className="text-cyan-400 font-medium">{formatPct(profitability.operatingProfitMargin)}</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Net Margin</div>
+                <div className="text-cyan-400 font-medium">{formatPct(profitability.netProfitMargin)}</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">ROE</div>
+                <div className="text-cyan-400 font-medium">{formatPct(profitability.roe)}</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">ROIC</div>
+                <div className="text-cyan-400 font-medium">{formatPct(profitability.roic)}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Growth Score */}
+          <div className="p-5 rounded-xl bg-gradient-to-r from-pink-500/5 to-rose-500/5 border border-pink-500/20">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Sprout className="h-5 w-5 text-pink-400" />
+                <h4 className="font-semibold text-pink-400">Growth Score</h4>
+              </div>
+              <span className="text-2xl font-bold text-pink-400">{scores.growthScore ?? 'N/A'}/100</span>
+            </div>
+            <p className="text-sm text-gray-400 mb-3">Based on growth rates:</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Revenue YoY (30%)</div>
+                <div className="text-pink-400 font-medium">{formatPct(growth.revenueGrowthYoY)}</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">EPS YoY (30%)</div>
+                <div className="text-pink-400 font-medium">{formatPct(growth.epsGrowthYoY)}</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">FCF Growth (20%)</div>
+                <div className="text-pink-400 font-medium">{formatPct(growth.fcfGrowth)}</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">3Y CAGR (20%)</div>
+                <div className="text-pink-400 font-medium">{formatPct(growth.revenue3YearCAGR)}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Valuation Score */}
+          <div className="p-5 rounded-xl bg-gradient-to-r from-red-500/5 to-orange-500/5 border border-red-500/20">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Calculator className="h-5 w-5 text-red-400" />
+                <h4 className="font-semibold text-red-400">Valuation Score</h4>
+              </div>
+              <span className="text-2xl font-bold text-red-400">{scores.valuationScore ?? 'N/A'}/100</span>
+            </div>
+            <p className="text-sm text-gray-400 mb-3">
+              <span className="text-red-400">Inverse scoring</span> - Lower valuations = Higher score:
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">P/E Ratio (30%)</div>
+                <div className="text-red-400 font-medium">{formatNum(valuation.peRatio, 1)}x</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">P/B Ratio (25%)</div>
+                <div className="text-red-400 font-medium">{formatNum(valuation.pbRatio)}x</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">PEG Ratio (25%)</div>
+                <div className="text-red-400 font-medium">{formatNum(valuation.pegRatio)}x</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">EV/EBITDA (20%)</div>
+                <div className="text-red-400 font-medium">{formatNum(valuation.evToEBITDA, 1)}x</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              * Benchmarks: P/E 5-50, P/B 0.5-10, PEG 0.5-3, EV/EBITDA 3-25
+            </p>
+          </div>
+
+          {/* Risk Score */}
+          <div className="p-5 rounded-xl bg-gradient-to-r from-purple-500/5 to-violet-500/5 border border-purple-500/20">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-purple-400" />
+                <h4 className="font-semibold text-purple-400">Risk Score</h4>
+              </div>
+              <span className="text-2xl font-bold text-purple-400">{scores.riskScore ?? 'N/A'}/100</span>
+            </div>
+            <p className="text-sm text-gray-400 mb-3">
+              <span className="text-purple-400">Inverse scoring</span> - Lower risk = Higher score:
+            </p>
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Beta (35%)</div>
+                <div className="text-purple-400 font-medium">{formatNum(valuation.beta)}</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Volatility (35%)</div>
+                <div className="text-purple-400 font-medium">{formatPct(valuation.fiftyTwoWeekRange ? 0.3 : null)}</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Sharpe Ratio (30%)</div>
+                <div className="text-purple-400 font-medium">N/A</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              * Benchmarks: Beta 0.5-2.0, Volatility 10%-60%
+            </p>
+          </div>
+
+          {/* Health Score */}
+          <div className="p-5 rounded-xl bg-gradient-to-r from-amber-500/5 to-yellow-500/5 border border-amber-500/20">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Activity className="h-5 w-5 text-amber-400" />
+                <h4 className="font-semibold text-amber-400">Health Score</h4>
+              </div>
+              <span className="text-2xl font-bold text-amber-400">{scores.healthScore ?? 'N/A'}/100</span>
+            </div>
+            <p className="text-sm text-gray-400 mb-3">Based on liquidity and solvency (each 25% weight):</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Current Ratio</div>
+                <div className="text-amber-400 font-medium">{formatNum(liquidity.currentRatio)}x</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Quick Ratio</div>
+                <div className="text-amber-400 font-medium">{formatNum(liquidity.quickRatio)}x</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Debt/Equity ↓</div>
+                <div className="text-amber-400 font-medium">{formatNum(leverage.debtToEquity)}x</div>
+              </div>
+              <div className="p-2 rounded-lg bg-black/20">
+                <div className="text-gray-500">Interest Coverage</div>
+                <div className="text-amber-400 font-medium">{formatNum(leverage.interestCoverage, 1)}x</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              * Benchmarks: Current 0.5-3.0, Quick 0.3-2.5, D/E 0-3.0, Interest 0-20x
+            </p>
+          </div>
         </div>
       </div>
 
@@ -2280,7 +2513,7 @@ export function MetricsTabs({ symbol, metrics, sector, industry }: MetricsTabsPr
         <div 
           ref={tabsRef}
           className={cn(
-            'sticky top-14 sm:top-16 z-30 transition-all duration-300',
+            'sticky top-[100px] sm:top-[110px] md:top-[120px] z-30 transition-all duration-300',
             isSticky && 'shadow-lg shadow-black/20 backdrop-blur-xl'
           )}
           style={{

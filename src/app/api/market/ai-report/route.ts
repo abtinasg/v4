@@ -5,6 +5,19 @@
  */
 
 import { NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { db } from '@/lib/db'
+import { users } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
+import { 
+  checkCredits, 
+  deductCredits, 
+  checkRateLimit,
+  checkAndResetMonthlyCredits,
+  createInsufficientCreditsResponse,
+  createAuthRequiredResponse,
+  createRateLimitResponse,
+} from '@/lib/credits'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'  // Explicitly use Node.js runtime
@@ -56,15 +69,74 @@ const generateSimpleReport = () => {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // === Authentication Check ===
+    const { userId } = await auth()
+    
+    if (!userId) {
+      return createAuthRequiredResponse()
+    }
+    
+    // Get user from database
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, userId),
+    })
+    
+    if (!user) {
+      return createAuthRequiredResponse()
+    }
+
+    // === Check and Reset Monthly Credits ===
+    await checkAndResetMonthlyCredits(user.id)
+    
+    // === Rate Limit Check ===
+    const { pathname } = new URL(request.url)
+    const ipAddress = request.headers.get('x-forwarded-for') || 
+                      request.headers.get('x-real-ip') || 
+                      'unknown'
+    
+    const rateLimitResult = await checkRateLimit(
+      { userId: user.id, ipAddress },
+      pathname
+    )
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(
+        rateLimitResult.retryAfter || 60,
+        rateLimitResult.limit,
+        rateLimitResult.resetAt
+      )
+    }
+    
+    // === Credit Check for news_fetch (5 credits) ===
+    const creditCheck = await checkCredits(user.id, 'news_fetch')
+    if (!creditCheck.success) {
+      return createInsufficientCreditsResponse(
+        creditCheck.currentBalance,
+        creditCheck.requiredCredits,
+        'news_fetch'
+      )
+    }
+
     const report = generateSimpleReport()
     
-    return NextResponse.json(report, {
+    // === Deduct Credits after successful report generation ===
+    await deductCredits(user.id, 'news_fetch', {
+      apiEndpoint: pathname,
+      ipAddress,
+    })
+    
+    const response = NextResponse.json(report, {
       headers: {
         'Cache-Control': 'no-store, max-age=0',
       },
     })
+    
+    // Add credit headers
+    response.headers.set('X-Credit-Balance', String(creditCheck.remainingBalance))
+    response.headers.set('X-RateLimit-Remaining', String(rateLimitResult.remaining))
+    
+    return response
   } catch (error) {
     console.error('AI Report error:', error)
     return NextResponse.json(

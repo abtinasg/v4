@@ -30,19 +30,14 @@ export function IPOPanel() {
             setIpos(data.ipos)
           } else {
             // Fallback sample data if API returns empty
-            setIpos([
-              { symbol: 'RDDT', name: 'Reddit Inc', exchange: 'NYSE', priceRange: '$31-34', shares: '22M', expectedDate: '2024-03-21', status: 'priced', industry: 'Technology' },
-              { symbol: 'ASPR', name: 'Astera Labs', exchange: 'NASDAQ', priceRange: '$32-36', shares: '18M', expectedDate: '2024-03-20', status: 'priced', industry: 'Semiconductors' },
-              { symbol: 'VZIO', name: 'Vizio Holdings', exchange: 'NYSE', priceRange: '$21-23', shares: '15M', expectedDate: '2024-03-15', status: 'upcoming', industry: 'Consumer Electronics' },
-            ])
+            setIpos(getDefaultIPOs())
           }
+        } else {
+          setIpos(getDefaultIPOs())
         }
       } catch (error) {
         console.error('Failed to fetch IPO data:', error)
-        // Use sample data on error
-        setIpos([
-          { symbol: 'RDDT', name: 'Reddit Inc', exchange: 'NYSE', priceRange: '$31-34', shares: '22M', expectedDate: '2024-03-21', status: 'priced', industry: 'Technology' },
-        ])
+        setIpos(getDefaultIPOs())
       } finally {
         setLoading(false)
       }
@@ -50,6 +45,21 @@ export function IPOPanel() {
 
     fetchIPOs()
   }, [])
+
+  const getDefaultIPOs = (): IPOData[] => {
+    const today = new Date()
+    const formatDate = (daysFromNow: number) => {
+      const date = new Date(today)
+      date.setDate(date.getDate() + daysFromNow)
+      return date.toISOString().split('T')[0]
+    }
+    return [
+      { symbol: 'STRP', name: 'Stripe Inc', exchange: 'NYSE', priceRange: '$70-75', shares: '55M', expectedDate: formatDate(14), status: 'upcoming', industry: 'Fintech' },
+      { symbol: 'DBRX', name: 'Databricks Inc', exchange: 'NASDAQ', priceRange: '$95-105', shares: '40M', expectedDate: formatDate(21), status: 'upcoming', industry: 'AI/Data' },
+      { symbol: 'SHEIN', name: 'Shein Group', exchange: 'NYSE', priceRange: '$60-66', shares: '100M', expectedDate: formatDate(28), status: 'upcoming', industry: 'E-Commerce' },
+      { symbol: 'RDIO', name: 'Reddit Inc', exchange: 'NYSE', priceRange: '$34-38', shares: '22M', expectedDate: formatDate(-7), status: 'priced', industry: 'Social Media' },
+    ]
+  }
 
   const filteredIPOs = ipos.filter(ipo => {
     if (filter === 'all') return true

@@ -5,7 +5,26 @@ import { useSidebar } from '@/components/dashboard/Sidebar'
 import { cn } from '@/lib/utils'
 import { TerminalContextUpdater } from '@/components/ai'
 import { useRouter } from 'next/navigation'
-import { Monitor } from 'lucide-react'
+import { 
+  Monitor,
+  BarChart3,
+  TrendingUp,
+  DollarSign,
+  Landmark,
+  Fuel,
+  Newspaper,
+  Search,
+  Rocket,
+  Coins,
+  UserCheck,
+  Star,
+  LineChart,
+  CandlestickChart,
+  Bell,
+  Briefcase,
+  Scale,
+  type LucideIcon
+} from 'lucide-react'
 import { 
   IPOPanel, 
   DividendPanel, 
@@ -315,23 +334,23 @@ F11 - Fullscreen`)
   }
 
   // Sidebar navigation items
-  const sidebarItems = [
-    { icon: '📊', label: 'MRKT', view: 'MRKT' as ViewType },
-    { icon: '📈', label: 'EQ', view: 'EQ' as ViewType },
-    { icon: '💵', label: 'FX', view: 'FX' as ViewType },
-    { icon: '🏛️', label: 'GOVT', view: 'GOVT' as ViewType },
-    { icon: '🛢️', label: 'CMDTY', view: 'CMDTY' as ViewType },
-    { icon: '📰', label: 'NEWS', view: 'NEWS' as ViewType },
-    { icon: '🔍', label: 'SRCH', view: 'SRCH' as ViewType },
-    { icon: '🚀', label: 'IPO', view: 'IPO' as ViewType },
-    { icon: '💰', label: 'DIV', view: 'DIV' as ViewType },
-    { icon: '👤', label: 'INSDR', view: 'INSDR' as ViewType },
-    { icon: '⭐', label: 'ANLYST', view: 'ANLYST' as ViewType },
-    { icon: '📉', label: 'OPTS', view: 'OPTS' as ViewType },
-    { icon: '📈', label: 'CHART', view: 'CHART' as ViewType },
-    { icon: '🔔', label: 'ALRTS', view: 'ALRTS' as ViewType },
-    { icon: '💼', label: 'PORT', view: 'PORT' as ViewType },
-    { icon: '⚖️', label: 'COMP', view: 'COMP' as ViewType },
+  const sidebarItems: { icon: LucideIcon; label: string; view: ViewType }[] = [
+    { icon: BarChart3, label: 'MRKT', view: 'MRKT' },
+    { icon: TrendingUp, label: 'EQ', view: 'EQ' },
+    { icon: DollarSign, label: 'FX', view: 'FX' },
+    { icon: Landmark, label: 'GOVT', view: 'GOVT' },
+    { icon: Fuel, label: 'CMDTY', view: 'CMDTY' },
+    { icon: Newspaper, label: 'NEWS', view: 'NEWS' },
+    { icon: Search, label: 'SRCH', view: 'SRCH' },
+    { icon: Rocket, label: 'IPO', view: 'IPO' },
+    { icon: Coins, label: 'DIV', view: 'DIV' },
+    { icon: UserCheck, label: 'INSDR', view: 'INSDR' },
+    { icon: Star, label: 'ANLYST', view: 'ANLYST' },
+    { icon: LineChart, label: 'OPTS', view: 'OPTS' },
+    { icon: CandlestickChart, label: 'CHART', view: 'CHART' },
+    { icon: Bell, label: 'ALRTS', view: 'ALRTS' },
+    { icon: Briefcase, label: 'PORT', view: 'PORT' },
+    { icon: Scale, label: 'COMP', view: 'COMP' },
   ]
 
   return (
@@ -381,21 +400,24 @@ F11 - Fullscreen`)
 
         <div className="flex-1 flex overflow-hidden">
           <aside className="w-12 bg-[#0a0a0a] border-r border-[#222] flex flex-col items-center py-2 gap-1 shrink-0">
-            {sidebarItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => setActiveView(item.view)}
-                className={cn(
-                  'w-10 h-10 flex flex-col items-center justify-center rounded text-[8px] transition-colors',
-                  activeView === item.view
-                    ? 'bg-[#FF6600]/20 text-[#FF6600] border border-[#FF6600]/50'
-                    : 'hover:bg-[#222] text-gray-500 hover:text-gray-300'
-                )}
-              >
-                <span className="text-sm">{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
+            {sidebarItems.map((item) => {
+              const IconComponent = item.icon
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => setActiveView(item.view)}
+                  className={cn(
+                    'w-10 h-10 flex flex-col items-center justify-center rounded text-[8px] transition-colors',
+                    activeView === item.view
+                      ? 'bg-[#FF6600]/20 text-[#FF6600] border border-[#FF6600]/50'
+                      : 'hover:bg-[#222] text-gray-500 hover:text-gray-300'
+                  )}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              )
+            })}
           </aside>
 
           <main className="flex-1 p-1 overflow-auto">
