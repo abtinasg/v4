@@ -1,7 +1,7 @@
 /**
  * Deep Terminal - Metrics Type Definitions
  *
- * Complete type system for 170+ financial metrics across 15 categories
+ * Complete type system for 190+ institutional-grade financial metrics across 15 categories
  * Based on data-sources.md specification
  */
 

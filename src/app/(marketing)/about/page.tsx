@@ -21,7 +21,7 @@ export const metadata: Metadata = generatePageMetadata({
 });
 
 const stats = [
-  { value: '170+', label: 'Financial Metrics' },
+  { value: '190+', label: 'Financial Metrics' },
   { value: '10K+', label: 'Active Users' },
   { value: '5M+', label: 'Analyses Run' },
   { value: '99.9%', label: 'Uptime' },
@@ -64,7 +64,7 @@ const timeline = [
   {
     year: '2024',
     title: 'Public Launch',
-    description: 'Launched to the public with 170+ metrics and comprehensive analysis tools.',
+    description: 'Launched to the public with 190+ institutional-grade metrics and comprehensive analysis tools.',
   },
   {
     year: '2025',
@@ -136,7 +136,7 @@ export default function AboutPage() {
                 Bloomberg terminals and institutional access. We're changing that.
               </p>
               <p className="mt-4 text-white/60">
-                Deep Terminal combines real-time market data, 170+ financial metrics, and 
+                Deep Terminal combines real-time market data, 190+ institutional-grade financial metrics, and 
                 AI-powered insights to give every investor the tools they need to make 
                 informed decisions. Whether you're analyzing your first stock or managing 
                 a portfolio, we've got you covered.

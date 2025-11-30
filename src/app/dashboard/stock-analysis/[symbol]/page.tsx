@@ -31,10 +31,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${upperSymbol} Stock Analysis | Deep Terminal`,
-    description: `Comprehensive analysis of ${upperSymbol} with 170+ financial metrics, AI insights, and real-time data.`,
+    description: `Comprehensive analysis of ${upperSymbol} with 190+ institutional-grade metrics, AI insights, and real-time data.`,
     openGraph: {
       title: `${upperSymbol} Stock Analysis | Deep Terminal`,
-      description: `Comprehensive analysis of ${upperSymbol} with 170+ financial metrics.`,
+      description: `Comprehensive analysis of ${upperSymbol} with 190+ institutional-grade metrics.`,
     },
   };
 }

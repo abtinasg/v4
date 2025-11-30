@@ -12,7 +12,7 @@ import { Metadata } from 'next';
 
 export const siteConfig = {
   name: 'Deep Terminal',
-  description: 'Professional stock analysis platform with 170+ metrics, AI-powered insights, and institutional-grade research tools. The affordable Bloomberg Terminal alternative.',
+  description: 'Professional stock analysis platform with 190+ institutional-grade metrics, AI-powered insights, and comprehensive research tools. The affordable Bloomberg Terminal alternative.',
   url: process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.co',
   ogImage: '/og-image.png',
   twitterHandle: '@deepterminal',

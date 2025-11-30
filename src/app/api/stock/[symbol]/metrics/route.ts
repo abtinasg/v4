@@ -4,7 +4,7 @@
  * GET /api/stock/[symbol]/metrics
  *
  * Fetches data from all sources (Yahoo Finance, FRED, FMP)
- * Calculates all 170+ financial metrics
+ * Calculates all 190+ institutional-grade financial metrics
  * Returns structured response with caching
  */
 

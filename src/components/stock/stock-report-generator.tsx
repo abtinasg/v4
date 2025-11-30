@@ -30,7 +30,7 @@ const loadingStages = [
   },
   {
     label: 'AI Intelligence',
-    description: 'Analyzing 170+ metrics with Claude Opus',
+    description: 'Analyzing 190+ institutional-grade metrics with Claude Opus',
     keywords: ['analyzing'],
   },
   {
@@ -325,7 +325,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
 
         {/* Description - Minimal */}
         <p className="text-xs text-white/40 mb-3">
-          CFA-level analysis with 170+ metrics, valuation models, and risk assessment
+          CFA-level analysis with 190+ institutional-grade metrics, valuation models, and risk assessment
         </p>
 
         {/* Error state */}

@@ -1,7 +1,7 @@
 /**
  * Deep Terminal - Metrics Calculator
  *
- * Main calculation engine for 170+ financial metrics
+ * Main calculation engine for 190+ institutional-grade financial metrics
  * Processes raw data from Yahoo Finance, FRED, and other sources
  */
 

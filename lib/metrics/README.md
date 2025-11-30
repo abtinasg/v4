@@ -1,6 +1,6 @@
 # Deep Terminal - Metrics Calculation Engine
 
-Comprehensive financial metrics calculation system supporting **170+ metrics** across **15 categories**.
+Comprehensive financial metrics calculation system supporting **190+ institutional-grade metrics** across **15 categories**.
 
 ## 📚 Overview
 
@@ -23,7 +23,7 @@ The metrics calculation engine is the core of Deep Terminal's financial analysis
         │            │            │            │
 ┌───────▼────────────▼────────────▼────────────▼─────────┐
 │              Metrics Calculator                         │
-│         (170+ metrics across 15 categories)             │
+│         (190+ metrics across 15 categories)             │
 └─────────────────────┬───────────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────────┐
@@ -232,7 +232,7 @@ Run the test suite to verify calculations:
 npx ts-node lib/metrics/test.ts
 
 # Expected output:
-# ✅ Calculated 170+ metrics in 50ms
+# ✅ Calculated 190+ institutional-grade metrics in 50ms
 # 📊 COMPANY INFORMATION
 # ...
 # ✅ All tests passed successfully!
@@ -350,7 +350,7 @@ FMP API       → Industry Data (fallback)
               ↓
         MetricsCalculator
               ↓
-     170+ Calculated Metrics
+     190+ Calculated Metrics
               ↓
         Redis Cache (1 hour)
               ↓
@@ -432,7 +432,7 @@ Full TypeScript coverage:
 
 ## 📈 Performance
 
-- **Calculation time**: ~50ms for 170+ metrics
+- **Calculation time**: ~50ms for 190+ institutional-grade metrics
 - **Memory usage**: ~5MB per calculation
 - **Cache hit rate**: ~80% (1 hour TTL)
 - **API response time**: <100ms (cached), <500ms (uncached)

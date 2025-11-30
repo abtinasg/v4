@@ -114,7 +114,7 @@ export default function MarketingLayout({
                 <span className="text-lg font-semibold text-white">Deep Terminal</span>
               </Link>
               <p className="mt-4 max-w-xs text-sm text-white/40">
-                Professional stock analysis platform with 170+ metrics and AI-powered insights.
+                Professional stock analysis platform with 190+ institutional-grade metrics and AI-powered insights.
                 The affordable Bloomberg Terminal alternative.
               </p>
               <div className="mt-6 flex gap-4">

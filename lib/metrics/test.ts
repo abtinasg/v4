@@ -168,7 +168,7 @@ function runTests() {
     const metrics = calculator.calculateAll();
     const elapsed = Date.now() - startTime;
 
-    console.log(`✅ Calculated 170+ metrics in ${elapsed}ms`);
+    console.log(`✅ Calculated 190+ institutional-grade metrics in ${elapsed}ms`);
     console.log();
 
     // Display results by category

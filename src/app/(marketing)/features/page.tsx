@@ -24,7 +24,7 @@ import {
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Features - Professional Stock Analysis Tools',
-  description: 'Explore Deep Terminal features: 170+ financial metrics, AI-powered analysis, real-time data, stock screener, technical analysis, and more. Your Bloomberg alternative.',
+  description: 'Explore Deep Terminal features: 190+ institutional-grade financial metrics, AI-powered analysis, real-time data, stock screener, technical analysis, and more. Your Bloomberg alternative.',
   path: '/features',
   keywords: ['stock analysis features', 'financial metrics', 'AI stock analysis', 'stock screener', 'technical analysis tools'],
 });
@@ -32,7 +32,7 @@ export const metadata: Metadata = generatePageMetadata({
 const mainFeatures = [
   {
     icon: BarChart3,
-    title: '170+ Financial Metrics',
+    title: '190+ Institutional Metrics',
     description: 'Comprehensive coverage of valuation, profitability, growth, liquidity, efficiency, and risk metrics. All calculated in real-time.',
     highlights: ['P/E, P/B, EV/EBITDA', 'ROE, ROA, ROIC', 'Current & Quick Ratios', 'Beta & Volatility'],
   },
@@ -51,7 +51,7 @@ const mainFeatures = [
   {
     icon: Search,
     title: 'Stock Screener',
-    description: 'Filter through thousands of stocks using any combination of our 170+ metrics. Find opportunities that match your criteria.',
+    description: 'Filter through thousands of stocks using any combination of our 190+ institutional-grade metrics. Find opportunities that match your criteria.',
     highlights: ['Custom Filters', 'Save Screens', 'Export Results', 'Real-time Updates'],
   },
   {
@@ -82,7 +82,7 @@ const metricCategories = [
 ];
 
 const comparisonTable = [
-  { feature: 'Financial Metrics', deepTerminal: '170+', bloomberg: '200+', yahooFinance: '30' },
+  { feature: 'Financial Metrics', deepTerminal: '190+', bloomberg: '200+', yahooFinance: '30' },
   { feature: 'AI Analysis', deepTerminal: true, bloomberg: false, yahooFinance: false },
   { feature: 'Real-time Data', deepTerminal: true, bloomberg: true, yahooFinance: true },
   { feature: 'PDF Reports', deepTerminal: true, bloomberg: true, yahooFinance: false },
@@ -118,7 +118,7 @@ export default function FeaturesPage() {
               </span>
             </h1>
             <p className="mt-6 text-lg text-white/60">
-              170+ financial metrics, AI-powered insights, advanced charts, and institutional-grade 
+              190+ institutional-grade financial metrics, AI-powered insights, advanced charts, and 
               research tools. All in one affordable platform.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
@@ -180,7 +180,7 @@ export default function FeaturesPage() {
       <section className="py-20 bg-white/[0.02]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white sm:text-4xl">170+ Financial Metrics</h2>
+            <h2 className="text-3xl font-bold text-white sm:text-4xl">190+ Institutional Metrics</h2>
             <p className="mt-4 text-white/60">
               Comprehensive coverage across 10 categories
             </p>

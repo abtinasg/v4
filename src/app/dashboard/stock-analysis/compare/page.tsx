@@ -3,10 +3,10 @@ import { CompareView } from '@/components/stock/CompareView';
 
 export const metadata: Metadata = {
   title: 'Compare Stocks | Deep Terminal',
-  description: 'Compare up to 5 stocks side-by-side with 170+ metrics, visual charts, and exportable reports.',
+  description: 'Compare up to 5 stocks side-by-side with 190+ institutional-grade metrics, visual charts, and exportable reports.',
   openGraph: {
     title: 'Compare Stocks | Deep Terminal',
-    description: 'Compare up to 5 stocks side-by-side with 170+ metrics.',
+    description: 'Compare up to 5 stocks side-by-side with 190+ institutional-grade metrics.',
   },
 };
 

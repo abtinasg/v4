@@ -6,42 +6,42 @@ import Link from 'next/link'
 const categories = [
   {
     title: 'Valuation',
-    count: 25,
+    count: 28,
     icon: DollarSign,
     color: '#00D4FF',
     metrics: ['P/E Ratio', 'P/B Ratio', 'EV/EBITDA', 'PEG Ratio', 'Price/Sales']
   },
   {
     title: 'Profitability',
-    count: 32,
+    count: 35,
     icon: TrendingUp,
     color: '#22C55E',
     metrics: ['ROE', 'ROA', 'Net Margin', 'Gross Margin', 'Operating Margin']
   },
   {
     title: 'Growth',
-    count: 28,
+    count: 30,
     icon: BarChart3,
     color: '#3B82F6',
     metrics: ['Revenue Growth', 'EPS Growth', 'FCF Growth', 'EBITDA Growth', 'Book Value Growth']
   },
   {
     title: 'Technical',
-    count: 35,
+    count: 42,
     icon: Activity,
     color: '#8B5CF6',
     metrics: ['RSI', 'MACD', 'Bollinger Bands', 'Moving Averages', 'Volume Analysis']
   },
   {
     title: 'Quality',
-    count: 20,
+    count: 26,
     icon: Gauge,
     color: '#F59E0B',
     metrics: ['Debt/Equity', 'Current Ratio', 'Interest Coverage', 'Altman Z-Score', 'Piotroski Score']
   },
   {
     title: 'Efficiency',
-    count: 18,
+    count: 29,
     icon: PieChart,
     color: '#2DD4BF',
     metrics: ['Asset Turnover', 'Inventory Turnover', 'Receivables Turnover', 'Working Capital', 'Cash Conversion']
