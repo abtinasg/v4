@@ -23,9 +23,11 @@ const footerLinks = {
     { name: 'Press', href: '/press' },
   ],
   Legal: [
-    { name: 'Privacy', href: '/privacy' },
-    { name: 'Terms', href: '/terms' },
-    { name: 'Security', href: '/security' },
+    { name: 'Privacy Policy', href: '/privacy' },
+    { name: 'Terms of Service', href: '/terms' },
+    { name: 'Cookie Policy', href: '/cookie-policy' },
+    { name: 'Disclaimer', href: '/disclaimer' },
+    { name: 'Data Processing Agreement', href: '/data-processing-agreement' },
   ],
 }
 

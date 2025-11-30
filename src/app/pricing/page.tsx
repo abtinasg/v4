@@ -1,10 +1,18 @@
 import Link from 'next/link'
+import { Metadata } from 'next'
 import { ArrowLeft, Check, Coins, Gift } from 'lucide-react'
 import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { creditPackages } from '@/lib/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { CREDIT_COSTS } from '@/lib/credits/config'
+import { generatePageMetadata } from '@/lib/seo'
+
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Pricing - Affordable Stock Analysis Credits',
+  description: 'Get professional stock analysis at a fraction of the cost. Pay only for what you use with our credit-based pricing. Start free with 100 credits.',
+  path: '/pricing',
+});
 
 export default async function PricingPage() {
   const user = await currentUser()

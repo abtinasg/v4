@@ -40,6 +40,14 @@ interface NewsItem {
 type CategoryFilter = 'all' | 'Macro' | 'Earnings' | 'Stock' | 'Market' | 'Global'
 type SentimentFilter = 'all' | 'bullish' | 'bearish' | 'neutral'
 
+// Calculate reading time based on word count (assuming 200 words per minute)
+const calculateReadingTime = (text: string): string => {
+  const wordsPerMinute = 200
+  const wordCount = text.trim().split(/\s+/).length
+  const minutes = Math.ceil(wordCount / wordsPerMinute)
+  return minutes === 1 ? '1 min read' : `${minutes} min read`
+}
+
 export default function NewsPage() {
   const [news, setNews] = useState<NewsItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -394,6 +402,10 @@ export default function NewsPage() {
                           <Clock className="w-3 h-3" />
                           {featuredNews.timeAgo}
                         </span>
+                        <span>•</span>
+                        <span className="text-cyan-400">
+                          {calculateReadingTime(featuredNews.fullText || featuredNews.summary)}
+                        </span>
                       </div>
 
                       <div className="flex flex-wrap gap-2">
@@ -504,12 +516,17 @@ export default function NewsPage() {
 
                         {/* Footer */}
                         <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
-                          <div className="flex items-center gap-2 text-[10px] text-gray-600">
-                            <span>{item.source}</span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-2.5 h-2.5" />
-                              {item.timeAgo}
+                          <div className="flex flex-col gap-1 text-[10px] text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <span>{item.source}</span>
+                              <span>•</span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-2.5 h-2.5" />
+                                {item.timeAgo}
+                              </span>
+                            </div>
+                            <span className="text-cyan-400/80">
+                              {calculateReadingTime(item.fullText || item.summary)}
                             </span>
                           </div>
                           <ExternalLink className="w-3 h-3 text-gray-600 group-hover:text-cyan-400 transition-colors" />
@@ -641,6 +658,10 @@ export default function NewsPage() {
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
                     {selectedNews.timeAgo}
+                  </span>
+                  <span>•</span>
+                  <span className="text-cyan-400">
+                    {calculateReadingTime(selectedNews.fullText || selectedNews.summary)}
                   </span>
                 </div>
 
