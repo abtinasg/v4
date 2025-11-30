@@ -47,11 +47,28 @@ async function fetchStockData(symbol: string): Promise<StockDataForReport | null
   try {
     console.log(`[Report] Fetching Yahoo Finance data for ${symbol}...`);
     
-    // Fetch quote data
-    const quoteData = await yahooFinance.quote(symbol);
-    const quote = quoteData as any;
-    if (!quote) {
-      console.error(`[Report] No quote data for ${symbol}`);
+    // Fetch quote data with retry logic
+    let quote: any = null;
+    let retries = 3;
+    
+    while (retries > 0 && !quote) {
+      try {
+        const quoteData = await yahooFinance.quote(symbol);
+        quote = quoteData as any;
+        if (quote && quote.regularMarketPrice) {
+          break;
+        }
+      } catch (quoteError: any) {
+        console.warn(`[Report] Quote attempt failed for ${symbol}, retries left: ${retries - 1}`, quoteError.message);
+        retries--;
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        }
+      }
+    }
+    
+    if (!quote || !quote.regularMarketPrice) {
+      console.error(`[Report] No quote data for ${symbol} after retries`);
       return null;
     }
 
@@ -449,10 +466,11 @@ export async function POST(
       console.error(`[Report] Failed to fetch data for ${upperSymbol}`);
       return NextResponse.json(
         { 
-          error: `Could not retrieve data for ${upperSymbol}`,
-          details: 'The stock symbol may be invalid or data is temporarily unavailable.'
+          error: `Could not retrieve market data for ${upperSymbol}`,
+          details: 'Yahoo Finance API may be temporarily unavailable. Please try again in a few moments. If the problem persists, the stock symbol may be invalid or delisted.',
+          suggestion: 'Try refreshing the page or wait a minute before retrying.'
         },
-        { status: 404 }
+        { status: 503 } // Service Unavailable - better status code for temporary issues
       );
     }
     
