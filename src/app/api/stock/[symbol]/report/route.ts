@@ -17,6 +17,7 @@ import {
   deductCredits, 
   checkAndResetMonthlyCredits,
 } from '@/lib/credits';
+import yahooFinance from 'yahoo-finance2';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -40,49 +41,190 @@ interface StockDataForReport {
 }
 
 /**
- * Fetch comprehensive stock data for report generation
+ * Fetch comprehensive stock data for report generation using Yahoo Finance directly
  */
-async function fetchStockData(symbol: string, baseUrl: string): Promise<StockDataForReport | null> {
+async function fetchStockData(symbol: string): Promise<StockDataForReport | null> {
   try {
-    // Fetch metrics
-    const metricsResponse = await fetch(`${baseUrl}/api/stock/${symbol}/metrics`, {
-      cache: 'no-store',
-    });
-
-    if (!metricsResponse.ok) {
-      console.error(`Failed to fetch metrics for ${symbol}`);
+    console.log(`[Report] Fetching Yahoo Finance data for ${symbol}...`);
+    
+    // Fetch quote data
+    const quoteData = await yahooFinance.quote(symbol);
+    const quote = quoteData as any;
+    if (!quote) {
+      console.error(`[Report] No quote data for ${symbol}`);
       return null;
     }
 
-    const metricsData = await metricsResponse.json();
-
-    // Fetch historical data
-    let historicalData = null;
+    // Fetch quoteSummary for detailed data
+    let summaryData: any = {};
     try {
-      const historicalResponse = await fetch(`${baseUrl}/api/stock/${symbol}/historical?period=1y`, {
-        cache: 'no-store',
+      const summary = await yahooFinance.quoteSummary(symbol, {
+        modules: [
+          'summaryProfile',
+          'summaryDetail', 
+          'financialData',
+          'defaultKeyStatistics',
+          'earningsHistory',
+          'earningsTrend',
+          'industryTrend',
+          'recommendationTrend',
+          'upgradeDowngradeHistory',
+          'incomeStatementHistory',
+          'balanceSheetHistory',
+          'cashflowStatementHistory',
+        ]
       });
-      if (historicalResponse.ok) {
-        historicalData = await historicalResponse.json();
+      summaryData = summary;
+    } catch (error) {
+      console.warn('[Report] Could not fetch full summary data:', error);
+    }
+
+    // Fetch historical data for technical analysis
+    let historicalData: any[] = [];
+    try {
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setFullYear(startDate.getFullYear() - 1);
+      
+      const historical = await yahooFinance.chart(symbol, {
+        period1: startDate,
+        period2: endDate,
+        interval: '1d',
+      });
+      
+      if (historical && (historical as any).quotes) {
+        historicalData = (historical as any).quotes.slice(-252); // Last year of trading days
       }
     } catch (error) {
-      console.warn('Could not fetch historical data:', error);
+      console.warn('[Report] Could not fetch historical data:', error);
+    }
+
+    // Build comprehensive metrics object
+    const metrics = {
+      // Valuation
+      pe: quote.trailingPE,
+      forwardPE: quote.forwardPE,
+      peg: summaryData.defaultKeyStatistics?.pegRatio,
+      priceToBook: quote.priceToBook,
+      priceToSales: summaryData.summaryDetail?.priceToSalesTrailing12Months,
+      enterpriseValue: summaryData.defaultKeyStatistics?.enterpriseValue,
+      evToRevenue: summaryData.defaultKeyStatistics?.enterpriseToRevenue,
+      evToEbitda: summaryData.defaultKeyStatistics?.enterpriseToEbitda,
+      
+      // Profitability
+      profitMargin: summaryData.financialData?.profitMargins,
+      operatingMargin: summaryData.financialData?.operatingMargins,
+      grossMargin: summaryData.financialData?.grossMargins,
+      returnOnEquity: summaryData.financialData?.returnOnEquity,
+      returnOnAssets: summaryData.financialData?.returnOnAssets,
+      
+      // Growth
+      revenueGrowth: summaryData.financialData?.revenueGrowth,
+      earningsGrowth: summaryData.financialData?.earningsGrowth,
+      earningsQuarterlyGrowth: summaryData.defaultKeyStatistics?.earningsQuarterlyGrowth,
+      
+      // Financial Health
+      currentRatio: summaryData.financialData?.currentRatio,
+      quickRatio: summaryData.financialData?.quickRatio,
+      debtToEquity: summaryData.financialData?.debtToEquity,
+      totalDebt: summaryData.financialData?.totalDebt,
+      totalCash: summaryData.financialData?.totalCash,
+      freeCashflow: summaryData.financialData?.freeCashflow,
+      operatingCashflow: summaryData.financialData?.operatingCashflow,
+      
+      // Dividends
+      dividendYield: quote.dividendYield,
+      dividendRate: quote.dividendRate,
+      payoutRatio: summaryData.summaryDetail?.payoutRatio,
+      fiveYearAvgDividendYield: summaryData.summaryDetail?.fiveYearAvgDividendYield,
+      
+      // Risk & Volatility
+      beta: quote.beta,
+      fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
+      fiftyTwoWeekLow: quote.fiftyTwoWeekLow,
+      fiftyDayAverage: quote.fiftyDayAverage,
+      twoHundredDayAverage: quote.twoHundredDayAverage,
+      
+      // Shares
+      sharesOutstanding: summaryData.defaultKeyStatistics?.sharesOutstanding,
+      floatShares: summaryData.defaultKeyStatistics?.floatShares,
+      sharesShort: summaryData.defaultKeyStatistics?.sharesShort,
+      shortRatio: summaryData.defaultKeyStatistics?.shortRatio,
+      shortPercentOfFloat: summaryData.defaultKeyStatistics?.shortPercentOfFloat,
+      
+      // Analyst Ratings
+      targetHighPrice: summaryData.financialData?.targetHighPrice,
+      targetLowPrice: summaryData.financialData?.targetLowPrice,
+      targetMeanPrice: summaryData.financialData?.targetMeanPrice,
+      recommendationMean: summaryData.financialData?.recommendationMean,
+      recommendationKey: summaryData.financialData?.recommendationKey,
+      numberOfAnalystOpinions: summaryData.financialData?.numberOfAnalystOpinions,
+      
+      // Earnings
+      trailingEps: quote.epsTrailingTwelveMonths,
+      forwardEps: quote.epsForward,
+      bookValue: summaryData.defaultKeyStatistics?.bookValue,
+    };
+
+    // Calculate additional technical metrics from historical data
+    let technicalMetrics = {};
+    if (historicalData.length > 0) {
+      const prices = historicalData.map(d => d.close).filter(Boolean);
+      if (prices.length > 20) {
+        const last20 = prices.slice(-20);
+        const last50 = prices.slice(-50);
+        const volatility = calculateVolatility(prices.slice(-30));
+        
+        technicalMetrics = {
+          sma20: last20.reduce((a, b) => a + b, 0) / last20.length,
+          sma50: last50.length >= 50 ? last50.reduce((a, b) => a + b, 0) / 50 : null,
+          volatility30Day: volatility,
+          priceChange1Month: prices.length > 21 ? ((prices[prices.length - 1] - prices[prices.length - 22]) / prices[prices.length - 22]) * 100 : null,
+          priceChange3Month: prices.length > 63 ? ((prices[prices.length - 1] - prices[prices.length - 64]) / prices[prices.length - 64]) * 100 : null,
+          priceChange1Year: prices.length > 252 ? ((prices[prices.length - 1] - prices[0]) / prices[0]) * 100 : null,
+        };
+      }
     }
 
     return {
-      symbol: metricsData.symbol,
-      companyName: metricsData.companyName,
-      sector: metricsData.sector,
-      industry: metricsData.industry,
-      currentPrice: metricsData.currentPrice,
-      marketCap: metricsData.marketCap,
-      metrics: metricsData.metrics,
-      historicalData,
+      symbol: quote.symbol,
+      companyName: quote.longName || quote.shortName || symbol,
+      sector: summaryData.summaryProfile?.sector || 'N/A',
+      industry: summaryData.summaryProfile?.industry || 'N/A',
+      currentPrice: quote.regularMarketPrice || 0,
+      marketCap: quote.marketCap || 0,
+      metrics: { ...metrics, ...technicalMetrics },
+      historicalData: historicalData.length > 0 ? {
+        prices: historicalData.slice(-60).map(d => ({
+          date: d.date,
+          close: d.close,
+          volume: d.volume,
+        })),
+      } : null,
     };
   } catch (error) {
-    console.error('Error fetching stock data for report:', error);
+    console.error('[Report] Error fetching stock data:', error);
     return null;
   }
+}
+
+/**
+ * Calculate annualized volatility from price array
+ */
+function calculateVolatility(prices: number[]): number {
+  if (prices.length < 2) return 0;
+  
+  const returns: number[] = [];
+  for (let i = 1; i < prices.length; i++) {
+    returns.push(Math.log(prices[i] / prices[i - 1]));
+  }
+  
+  const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+  const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
+  const dailyStdDev = Math.sqrt(variance);
+  
+  // Annualize (252 trading days)
+  return dailyStdDev * Math.sqrt(252) * 100;
 }
 
 /**
@@ -300,16 +442,9 @@ export async function POST(
     // Get request body
     const body: StockReportRequest = await request.json().catch(() => ({}));
 
-    // Get base URL for internal API calls
-    const protocol = request.headers.get('x-forwarded-proto') || 'http';
-    const host = request.headers.get('host') || 'localhost:3000';
-    const baseUrl = `${protocol}://${host}`;
-    
-    console.log(`[Report] Using base URL: ${baseUrl}`);
-
-    // Fetch comprehensive stock data
+    // Fetch comprehensive stock data directly from Yahoo Finance
     console.log(`[Report] Fetching stock data for ${upperSymbol}...`);
-    const stockData = await fetchStockData(upperSymbol, baseUrl);
+    const stockData = await fetchStockData(upperSymbol);
     if (!stockData) {
       console.error(`[Report] Failed to fetch data for ${upperSymbol}`);
       return NextResponse.json(

@@ -19,6 +19,7 @@ import {
   Settings,
   LogOut,
   X,
+  Coins,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -143,12 +144,29 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
   const pathname = usePathname()
   const { user } = useUser()
   const [isMounted, setIsMounted] = useState(false)
+  const [creditBalance, setCreditBalance] = useState<number | null>(null)
 
   const isPro = subscriptionTier === 'pro' || subscriptionTier === 'enterprise'
 
   // Track if component is mounted (for SSR safety)
   useEffect(() => {
     setIsMounted(true)
+  }, [])
+
+  // Fetch credit balance
+  useEffect(() => {
+    async function fetchCredits() {
+      try {
+        const res = await fetch('/api/credits')
+        if (res.ok) {
+          const data = await res.json()
+          setCreditBalance(Number(data.balance) || 0)
+        }
+      } catch (error) {
+        console.error('Failed to fetch credits:', error)
+      }
+    }
+    fetchCredits()
   }, [])
 
   // Close mobile sidebar when route changes
@@ -315,7 +333,7 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
         })}
       </nav>
 
-      {/* Subscription Badge */}
+      {/* Credits Section */}
       <div className="px-3 py-4 border-t border-white/[0.06]">
         <AnimatePresence>
           {!isCollapsed ? (
@@ -323,38 +341,20 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className={cn(
-                'p-3 rounded-xl relative overflow-hidden',
-                isPro
-                  ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20'
-                  : 'glass-panel border border-white/[0.08]'
-              )}
+              className="p-3 rounded-xl relative overflow-hidden glass-panel border border-white/[0.08]"
             >
-              {/* Subtle glow for pro users */}
-              {isPro && (
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent animate-pulse-slow" />
-              )}
               <div className="relative flex items-center gap-2 mb-2">
-                {isPro ? (
-                  <Crown className="w-4 h-4 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
-                ) : (
-                  <Zap className="w-4 h-4 text-gray-400" />
-                )}
-                <span className={cn('text-sm font-semibold', isPro ? 'text-amber-400' : 'text-white')}>
-                  {subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1)} Plan
+                <Coins className="w-4 h-4 text-cyan-400" />
+                <span className="text-sm font-semibold text-white">
+                  {creditBalance !== null ? creditBalance.toLocaleString() : '...'} Credits
                 </span>
               </div>
-              {!isPro && (
-                <Link
-                  href="/pricing"
-                  className="relative block w-full px-3 py-2 text-xs font-semibold text-center text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
-                >
-                  Upgrade to Pro
-                </Link>
-              )}
-              {isPro && (
-                <p className="relative text-xs text-gray-400">Full access to all features</p>
-              )}
+              <Link
+                href="/pricing"
+                className="relative block w-full px-3 py-2 text-xs font-semibold text-center text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
+              >
+                Buy Credits
+              </Link>
             </motion.div>
           ) : (
             <motion.div
@@ -363,16 +363,13 @@ export function Sidebar({ subscriptionTier }: SidebarProps) {
               exit={{ opacity: 0 }}
               className="flex justify-center"
             >
-              {isPro ? (
-                <Crown className="w-5 h-5 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" />
-              ) : (
-                <Link
-                  href="/pricing"
-                  className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-500/20"
-                >
-                  <Zap className="w-4 h-4 text-white" />
-                </Link>
-              )}
+              <Link
+                href="/pricing"
+                className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-500/20"
+                title={`${creditBalance !== null ? creditBalance.toLocaleString() : '...'} Credits`}
+              >
+                <Coins className="w-4 h-4 text-white" />
+              </Link>
             </motion.div>
           )}
         </AnimatePresence>

@@ -2,23 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { rateLimitConfig } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { cookies } from 'next/headers'
-import * as jose from 'jose'
+import { getAdminSession } from '@/lib/admin/auth'
 
 // Verify admin authentication
 async function verifyAdmin() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('admin_token')?.value
-  
-  if (!token) return false
-  
-  try {
-    const secret = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 'fallback-secret-key-min-32-chars!!')
-    await jose.jwtVerify(token, secret)
-    return true
-  } catch {
-    return false
-  }
+  const session = await getAdminSession()
+  return !!session
 }
 
 // Default rate limits

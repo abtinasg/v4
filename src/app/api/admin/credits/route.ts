@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { userCredits, creditTransactions, creditPackages, users } from '@/lib/db/schema'
 import { eq, desc, sql, and, gte, lte } from 'drizzle-orm'
-import { cookies } from 'next/headers'
-import * as jose from 'jose'
+import { getAdminSession } from '@/lib/admin/auth'
 import {
   CREDIT_COSTS,
   RATE_LIMITS,
@@ -11,20 +10,10 @@ import {
   DEFAULT_CREDIT_PACKAGES,
 } from '@/lib/credits/config'
 
-// Verify admin authentication
+// Verify admin authentication using the shared auth function
 async function verifyAdmin() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('admin_token')?.value
-  
-  if (!token) return false
-  
-  try {
-    const secret = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 'fallback-secret-key-min-32-chars!!')
-    await jose.jwtVerify(token, secret)
-    return true
-  } catch {
-    return false
-  }
+  const session = await getAdminSession()
+  return !!session
 }
 
 // GET - Get credits overview and user credits
