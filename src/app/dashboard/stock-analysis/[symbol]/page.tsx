@@ -154,13 +154,26 @@ async function fetchStockMetrics(symbol: string): Promise<{
 }> {
   try {
     const baseUrl = await getBaseUrl();
+    
+    // Get cookies from the incoming request to forward authentication
+    const headersList = await headers();
+    const cookie = headersList.get('cookie') || '';
+    
     const response = await fetch(`${baseUrl}/api/stock/${symbol}/metrics`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
       cache: 'force-cache',
+      headers: {
+        'Cookie': cookie,
+      },
     });
 
     if (!response.ok) {
       if (response.status === 404) return { data: null, error: 'Stock not found' };
+      if (response.status === 401) return { data: null, error: 'Please sign in to view stock data' };
+      if (response.status === 402) {
+        const errorData = await response.json().catch(() => ({}));
+        return { data: null, error: errorData.message || 'Insufficient credits' };
+      }
       return { data: null, error: `API error: ${response.status}` };
     }
 
