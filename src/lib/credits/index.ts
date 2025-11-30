@@ -50,6 +50,9 @@ export {
   deductCreditsAfterSuccess,
   addCreditHeaders,
   createCreditErrorResponse,
+  createInsufficientCreditsResponse,
+  createAuthRequiredResponse,
+  createRateLimitResponse,
   type CreditMiddlewareResult,
 } from './middleware'
 

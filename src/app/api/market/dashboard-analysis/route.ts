@@ -6,7 +6,20 @@
  */
 
 import { NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { db } from '@/lib/db'
+import { users } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { getAllEconomicIndicators } from '@/lib/api/fred'
+import { 
+  checkCredits, 
+  deductCredits, 
+  checkRateLimit,
+  checkAndResetMonthlyCredits,
+  createInsufficientCreditsResponse,
+  createAuthRequiredResponse,
+  createRateLimitResponse,
+} from '@/lib/credits'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -235,8 +248,60 @@ async function callAI(prompt: string): Promise<string | null> {
   return null
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const pathname = '/api/market/dashboard-analysis'
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     request.headers.get('x-real-ip') ||
+                     'unknown'
+
+    // === Authentication ===
+    const { userId: clerkUserId } = await auth()
+    
+    if (!clerkUserId) {
+      return createAuthRequiredResponse()
+    }
+    
+    // Find internal user
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkUserId),
+    })
+    
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      )
+    }
+    
+    // === Check and reset monthly credits ===
+    await checkAndResetMonthlyCredits(user.id)
+    
+    // === Rate Limiting ===
+    const rateLimitResult = await checkRateLimit(
+      { userId: user.id, ipAddress },
+      pathname
+    )
+    
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(
+        rateLimitResult.retryAfter || 60,
+        rateLimitResult.limit,
+        rateLimitResult.resetAt
+      )
+    }
+    
+    // === Credit Check ===
+    const creditCheck = await checkCredits(user.id, 'ai_analysis')
+    
+    if (!creditCheck.success) {
+      return createInsufficientCreditsResponse(
+        creditCheck.currentBalance,
+        creditCheck.requiredCredits,
+        'ai_analysis'
+      )
+    }
+
     // Fetch all data in parallel
     const [marketData, economicData, news] = await Promise.all([
       fetchMarketData(),
@@ -259,6 +324,12 @@ export async function GET() {
       }, { status: 500 })
     }
 
+    // === Deduct Credits after successful AI call ===
+    await deductCredits(user.id, 'ai_analysis', {
+      apiEndpoint: pathname,
+      ipAddress,
+    })
+
     // Calculate market mood from indices
     const avgChange = marketData?.indices?.reduce((sum, idx) => sum + (idx.changePercent || 0), 0) || 0
     const indicesCount = marketData?.indices?.length || 1
@@ -277,7 +348,7 @@ export async function GET() {
       neutral: news.filter(n => n.sentiment === 'neutral').length
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       analysis,
       marketMood,
@@ -287,6 +358,12 @@ export async function GET() {
       newsCount: news.length,
       timestamp: new Date().toISOString()
     })
+    
+    // Add credit headers
+    response.headers.set('X-Credit-Balance', String(creditCheck.remainingBalance))
+    response.headers.set('X-RateLimit-Remaining', String(rateLimitResult.remaining))
+    
+    return response
 
   } catch (error) {
     console.error('Dashboard analysis error:', error)

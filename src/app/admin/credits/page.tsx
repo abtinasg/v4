@@ -16,7 +16,11 @@ import {
   Edit,
   Trash2,
   Check,
-  X
+  X,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  Zap
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -51,6 +55,19 @@ interface CreditPackage {
   isPopular: boolean
 }
 
+interface CreditConfig {
+  creditCosts: Record<string, number>
+  rateLimits: Record<string, { requestsPerMinute: number; requestsPerHour: number; requestsPerDay: number; monthlyCredits: number }>
+  creditConfig: {
+    initialFreeCredits: number
+    monthlyFreeCredits: Record<string, number>
+    lowCreditThreshold: number
+    freeCreditExpiryDays: number
+    maxCreditBalance: number
+  }
+  defaultPackages: Array<{ name: string; description: string; credits: number; bonusCredits: number; price: number; isPopular: boolean }>
+}
+
 export default function CreditsPage() {
   const [overview, setOverview] = useState<CreditOverview | null>(null)
   const [users, setUsers] = useState<UserCredit[]>([])
@@ -63,10 +80,28 @@ export default function CreditsPage() {
   const [showAdjustModal, setShowAdjustModal] = useState(false)
   const [showPackageModal, setShowPackageModal] = useState(false)
   const [editingPackage, setEditingPackage] = useState<CreditPackage | null>(null)
+  
+  // NEW: Credit config state
+  const [creditConfig, setCreditConfig] = useState<CreditConfig | null>(null)
+  const [showConfigPanel, setShowConfigPanel] = useState(false)
+  const [showPackagesConfig, setShowPackagesConfig] = useState(false)
 
   useEffect(() => {
     fetchData()
+    fetchConfig()
   }, [])
+
+  const fetchConfig = async () => {
+    try {
+      const res = await fetch('/api/admin/credits?action=config')
+      if (res.ok) {
+        const data = await res.json()
+        setCreditConfig(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch credit config:', error)
+    }
+  }
 
   const fetchData = async () => {
     setLoading(true)
@@ -312,6 +347,218 @@ export default function CreditsPage() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Credit System Config Panel */}
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+        <button 
+          onClick={() => setShowConfigPanel(!showConfigPanel)}
+          className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+        >
+          <h2 className="font-semibold text-white flex items-center gap-2">
+            <Settings className="w-5 h-5 text-amber-400" />
+            Credit System Configuration
+            <span className="text-xs text-gray-500 font-normal ml-2">(from config.ts)</span>
+          </h2>
+          {showConfigPanel ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </button>
+
+        {showConfigPanel && creditConfig && (
+          <div className="p-4 border-t border-white/10 space-y-6">
+            {/* Credit Costs */}
+            <div>
+              <h3 className="text-sm font-medium text-cyan-400 mb-3 flex items-center gap-2">
+                <Zap className="w-4 h-4" />
+                Credit Costs per Action
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                {Object.entries(creditConfig.creditCosts).map(([action, cost]) => (
+                  <div key={action} className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
+                    <span className="text-xs text-gray-400 truncate">{action.replace(/_/g, ' ')}</span>
+                    <span className={cn(
+                      "text-xs font-mono px-1.5 py-0.5 rounded",
+                      cost <= 5 ? "bg-green-500/20 text-green-400" :
+                      cost <= 15 ? "bg-amber-500/20 text-amber-400" :
+                      "bg-red-500/20 text-red-400"
+                    )}>
+                      {cost}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* General Config */}
+            <div>
+              <h3 className="text-sm font-medium text-violet-400 mb-3 flex items-center gap-2">
+                <CreditCard className="w-4 h-4" />
+                General Settings
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-center">
+                  <p className="text-lg font-bold text-cyan-400">{creditConfig.creditConfig.initialFreeCredits}</p>
+                  <p className="text-xs text-gray-500">Initial Free</p>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-center">
+                  <p className="text-lg font-bold text-green-400">{creditConfig.creditConfig.lowCreditThreshold}</p>
+                  <p className="text-xs text-gray-500">Low Threshold</p>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-center">
+                  <p className="text-lg font-bold text-amber-400">{creditConfig.creditConfig.freeCreditExpiryDays}</p>
+                  <p className="text-xs text-gray-500">Expiry Days</p>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-center">
+                  <p className="text-lg font-bold text-purple-400">{(creditConfig.creditConfig.maxCreditBalance / 1000).toFixed(0)}K</p>
+                  <p className="text-xs text-gray-500">Max Balance</p>
+                </div>
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-center">
+                  <p className="text-lg font-bold text-blue-400">{Object.keys(creditConfig.creditCosts).length}</p>
+                  <p className="text-xs text-gray-500">Total Actions</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Monthly Free Credits by Tier */}
+            <div>
+              <h3 className="text-sm font-medium text-emerald-400 mb-3">Monthly Free Credits by Tier</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {Object.entries(creditConfig.creditConfig.monthlyFreeCredits).map(([tier, credits]) => (
+                  <div 
+                    key={tier} 
+                    className={cn(
+                      "p-3 rounded-lg text-center",
+                      tier === 'free' && "bg-gray-500/10 border border-gray-500/20",
+                      tier === 'premium' && "bg-cyan-500/10 border border-cyan-500/20",
+                      tier === 'professional' && "bg-violet-500/10 border border-violet-500/20",
+                      tier === 'enterprise' && "bg-amber-500/10 border border-amber-500/20",
+                    )}
+                  >
+                    <p className={cn(
+                      "text-lg font-bold",
+                      tier === 'free' && "text-gray-400",
+                      tier === 'premium' && "text-cyan-400",
+                      tier === 'professional' && "text-violet-400",
+                      tier === 'enterprise' && "text-amber-400",
+                    )}>
+                      {credits.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-gray-500 capitalize">{tier}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Rate Limits */}
+            <div>
+              <h3 className="text-sm font-medium text-rose-400 mb-3">Rate Limits by Tier</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-2 px-3 text-gray-400 font-medium">Tier</th>
+                      <th className="text-center py-2 px-3 text-gray-400 font-medium">Per Min</th>
+                      <th className="text-center py-2 px-3 text-gray-400 font-medium">Per Hour</th>
+                      <th className="text-center py-2 px-3 text-gray-400 font-medium">Per Day</th>
+                      <th className="text-center py-2 px-3 text-gray-400 font-medium">Monthly</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(creditConfig.rateLimits).map(([tier, limits]) => (
+                      <tr key={tier} className="border-b border-white/5">
+                        <td className="py-2 px-3">
+                          <span className={cn(
+                            "px-2 py-1 rounded text-xs font-medium capitalize",
+                            tier === 'free' && "bg-gray-500/20 text-gray-400",
+                            tier === 'premium' && "bg-cyan-500/20 text-cyan-400",
+                            tier === 'professional' && "bg-violet-500/20 text-violet-400",
+                            tier === 'enterprise' && "bg-amber-500/20 text-amber-400",
+                          )}>
+                            {tier}
+                          </span>
+                        </td>
+                        <td className="text-center py-2 px-3 text-white font-mono">{limits.requestsPerMinute}</td>
+                        <td className="text-center py-2 px-3 text-white font-mono">{limits.requestsPerHour.toLocaleString()}</td>
+                        <td className="text-center py-2 px-3 text-white font-mono">{limits.requestsPerDay.toLocaleString()}</td>
+                        <td className="text-center py-2 px-3 text-white font-mono">
+                          {limits.monthlyCredits === -1 ? '∞' : limits.monthlyCredits.toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Info note */}
+            <p className="text-xs text-gray-500 italic">
+              These values are currently read from <code className="text-cyan-400">src/lib/credits/config.ts</code>. 
+              To update them, edit the config file and restart the server.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Default Packages Config Panel */}
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+        <button 
+          onClick={() => setShowPackagesConfig(!showPackagesConfig)}
+          className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+        >
+          <h2 className="font-semibold text-white flex items-center gap-2">
+            <Package className="w-5 h-5 text-green-400" />
+            Default Packages Template
+            <span className="text-xs text-gray-500 font-normal ml-2">(from config.ts)</span>
+          </h2>
+          {showPackagesConfig ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </button>
+
+        {showPackagesConfig && creditConfig && (
+          <div className="p-4 border-t border-white/10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {creditConfig.defaultPackages.map((pkg, index) => (
+                <div 
+                  key={index}
+                  className={cn(
+                    "p-4 rounded-lg border transition-all",
+                    pkg.isPopular 
+                      ? "border-green-500/50 bg-green-500/5" 
+                      : "border-white/10 bg-white/[0.02]"
+                  )}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium text-white">{pkg.name}</h3>
+                    {pkg.isPopular && (
+                      <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">Popular</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3">{pkg.description}</p>
+                  <div className="space-y-1 text-sm">
+                    <p className="text-gray-400">
+                      Credits: <span className="text-white">{pkg.credits.toLocaleString()}</span>
+                      {pkg.bonusCredits > 0 && (
+                        <span className="text-green-400"> +{pkg.bonusCredits} bonus</span>
+                      )}
+                    </p>
+                    <p className="text-gray-400">
+                      Price: <span className="text-white font-medium">${pkg.price}</span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 italic mt-4">
+              These are default templates. Active packages above are stored in database.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* User Credits */}

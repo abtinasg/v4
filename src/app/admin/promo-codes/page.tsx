@@ -163,7 +163,7 @@ export default function PromoCodesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('آیا از حذف این کد اطمینان دارید؟')) return
+    if (!confirm('Are you sure you want to delete this code?')) return
     try {
       const res = await fetch('/api/admin/promo-codes', {
         method: 'POST',
@@ -198,9 +198,9 @@ export default function PromoCodesPage() {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'credits': return 'کردیت'
-      case 'discount': return 'تخفیف'
-      case 'trial': return 'آزمایشی'
+      case 'credits': return 'Credits'
+      case 'discount': return 'Discount'
+      case 'trial': return 'Trial'
       default: return type
     }
   }
@@ -214,11 +214,11 @@ export default function PromoCodesPage() {
             <Gift className="w-8 h-8 text-pink-400" />
             Promo Codes
           </h1>
-          <p className="text-slate-400 mt-1">مدیریت کدهای تخفیف و پروموشن</p>
+          <p className="text-slate-400 mt-1">Manage discount and promotional codes</p>
         </div>
         <Button onClick={() => setShowCreateModal(true)} className="gap-2">
           <Plus className="w-4 h-4" />
-          کد جدید
+          New Code
         </Button>
       </div>
 
@@ -233,7 +233,7 @@ export default function PromoCodesPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">{overview.totalCodes}</p>
-                  <p className="text-xs text-slate-400">کل کدها</p>
+                  <p className="text-xs text-slate-400">Total codes</p>
                 </div>
               </div>
             </CardContent>
@@ -247,7 +247,7 @@ export default function PromoCodesPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">{overview.activeCodes}</p>
-                  <p className="text-xs text-slate-400">فعال</p>
+                  <p className="text-xs text-slate-400">Active</p>
                 </div>
               </div>
             </CardContent>
@@ -261,7 +261,7 @@ export default function PromoCodesPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">{overview.totalRedemptions}</p>
-                  <p className="text-xs text-slate-400">استفاده شده</p>
+                  <p className="text-xs text-slate-400">Redeemed</p>
                 </div>
               </div>
             </CardContent>
@@ -275,7 +275,7 @@ export default function PromoCodesPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">{overview.totalCreditsAwarded.toLocaleString()}</p>
-                  <p className="text-xs text-slate-400">کردیت اهدا شده</p>
+                  <p className="text-xs text-slate-400">Credits awarded</p>
                 </div>
               </div>
             </CardContent>
@@ -288,7 +288,7 @@ export default function PromoCodesPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
-            placeholder="جستجوی کد..."
+            placeholder="Search promo code..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-slate-800/50 border-slate-700"
@@ -306,26 +306,26 @@ export default function PromoCodesPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-700">
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">کد</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">نوع</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">مقدار</th>
-                  <th className="text-center py-3 px-4 text-slate-400 font-medium">استفاده</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">انقضا</th>
-                  <th className="text-center py-3 px-4 text-slate-400 font-medium">وضعیت</th>
-                  <th className="text-center py-3 px-4 text-slate-400 font-medium">عملیات</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Code</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Type</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Value</th>
+                  <th className="text-center py-3 px-4 text-slate-400 font-medium">Usage</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Expiration</th>
+                  <th className="text-center py-3 px-4 text-slate-400 font-medium">Status</th>
+                  <th className="text-center py-3 px-4 text-slate-400 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
                     <td colSpan={7} className="text-center py-8 text-slate-400">
-                      در حال بارگذاری...
+                      Loading...
                     </td>
                   </tr>
                 ) : filteredCodes.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="text-center py-8 text-slate-400">
-                      کدی یافت نشد
+                      No promo codes found
                     </td>
                   </tr>
                 ) : (
@@ -381,7 +381,7 @@ export default function PromoCodesPage() {
                         {code.type === 'trial' && code.trialDays && (
                           <span className="flex items-center gap-1">
                             <Clock className="w-4 h-4 text-blue-400" />
-                            {code.trialDays} روز
+                            {code.trialDays} days
                           </span>
                         )}
                       </td>
@@ -399,7 +399,7 @@ export default function PromoCodesPage() {
                               ? "text-red-400" 
                               : "text-slate-300"
                           )}>
-                            {new Date(code.expiresAt).toLocaleDateString('fa-IR')}
+                            {new Date(code.expiresAt).toLocaleDateString('en-US')}
                           </span>
                         ) : (
                           <span className="text-slate-500">-</span>
@@ -407,7 +407,7 @@ export default function PromoCodesPage() {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <Badge className={code.isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}>
-                          {code.isActive ? 'فعال' : 'غیرفعال'}
+                          {code.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
@@ -418,7 +418,7 @@ export default function PromoCodesPage() {
                             onClick={() => handleToggleActive(code.id, code.isActive)}
                             className="h-8 px-2"
                           >
-                            {code.isActive ? 'غیرفعال' : 'فعال'}
+                            {code.isActive ? 'Deactivate' : 'Activate'}
                           </Button>
                           <Button
                             size="icon"
@@ -444,7 +444,7 @@ export default function PromoCodesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="w-full max-w-lg rounded-xl bg-[#0a0d12] border border-white/10 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-white">کد تخفیف جدید</h3>
+              <h3 className="text-lg font-semibold text-white">Create Promo Code</h3>
               <Button size="icon" variant="ghost" onClick={() => setShowCreateModal(false)}>
                 <X className="w-4 h-4" />
               </Button>
@@ -452,9 +452,9 @@ export default function PromoCodesPage() {
 
             <div className="space-y-4">
               <div>
-                <Label className="text-slate-300">کد</Label>
+                <Label className="text-slate-300">Code</Label>
                 <Input
-                  placeholder="مثال: WELCOME2024"
+                  placeholder="Example: WELCOME2024"
                   value={newCode.code}
                   onChange={(e) => setNewCode({...newCode, code: e.target.value.toUpperCase()})}
                   className="bg-slate-800/50 border-slate-700 mt-1 font-mono"
@@ -462,7 +462,7 @@ export default function PromoCodesPage() {
               </div>
 
               <div>
-                <Label className="text-slate-300">نوع</Label>
+                <Label className="text-slate-300">Type</Label>
                 <div className="flex gap-2 mt-1">
                   {(['credits', 'discount', 'trial'] as const).map((type) => (
                     <Button
@@ -480,7 +480,7 @@ export default function PromoCodesPage() {
 
               {newCode.type === 'credits' && (
                 <div>
-                  <Label className="text-slate-300">تعداد کردیت</Label>
+                  <Label className="text-slate-300">Credit amount</Label>
                   <Input
                     type="number"
                     placeholder="50"
@@ -494,7 +494,7 @@ export default function PromoCodesPage() {
               {newCode.type === 'discount' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-300">درصد تخفیف</Label>
+                    <Label className="text-slate-300">Discount percent</Label>
                     <Input
                       type="number"
                       placeholder="10"
@@ -504,7 +504,7 @@ export default function PromoCodesPage() {
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-300">مبلغ تخفیف ($)</Label>
+                    <Label className="text-slate-300">Discount amount ($)</Label>
                     <Input
                       type="number"
                       placeholder="5"
@@ -518,7 +518,7 @@ export default function PromoCodesPage() {
 
               {newCode.type === 'trial' && (
                 <div>
-                  <Label className="text-slate-300">روزهای آزمایشی</Label>
+                  <Label className="text-slate-300">Trial days</Label>
                   <Input
                     type="number"
                     placeholder="7"
@@ -531,17 +531,17 @@ export default function PromoCodesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">حداکثر استفاده</Label>
+                  <Label className="text-slate-300">Max uses</Label>
                   <Input
                     type="number"
-                    placeholder="بدون محدودیت"
+                    placeholder="Unlimited"
                     value={newCode.maxUses}
                     onChange={(e) => setNewCode({...newCode, maxUses: e.target.value})}
                     className="bg-slate-800/50 border-slate-700 mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">استفاده هر کاربر</Label>
+                  <Label className="text-slate-300">Uses per user</Label>
                   <Input
                     type="number"
                     placeholder="1"
@@ -553,7 +553,7 @@ export default function PromoCodesPage() {
               </div>
 
               <div>
-                <Label className="text-slate-300">تاریخ انقضا</Label>
+                <Label className="text-slate-300">Expiration date</Label>
                 <Input
                   type="datetime-local"
                   value={newCode.expiresAt}
@@ -563,9 +563,9 @@ export default function PromoCodesPage() {
               </div>
 
               <div>
-                <Label className="text-slate-300">توضیحات</Label>
+                <Label className="text-slate-300">Description</Label>
                 <Input
-                  placeholder="توضیح کوتاه..."
+                  placeholder="Short description..."
                   value={newCode.description}
                   onChange={(e) => setNewCode({...newCode, description: e.target.value})}
                   className="bg-slate-800/50 border-slate-700 mt-1"
@@ -575,14 +575,14 @@ export default function PromoCodesPage() {
 
             <div className="flex gap-3 mt-6">
               <Button variant="outline" className="flex-1" onClick={() => setShowCreateModal(false)}>
-                انصراف
+                Cancel
               </Button>
               <Button 
                 className="flex-1" 
                 onClick={handleCreate}
                 disabled={!newCode.code || (newCode.type === 'credits' && !newCode.credits)}
               >
-                ایجاد کد
+                Create Code
               </Button>
             </div>
           </div>

@@ -255,11 +255,27 @@ export async function POST(
     if (!creditCheck.success) {
       return NextResponse.json(
         { 
-          error: 'Insufficient credits',
-          required: creditCheck.requiredCredits,
-          balance: creditCheck.currentBalance,
+          success: false,
+          error: 'insufficient_credits',
+          message: 'You do not have enough credits for this action. Please purchase more credits.',
+          details: {
+            currentBalance: creditCheck.currentBalance,
+            requiredCredits: creditCheck.requiredCredits,
+            shortfall: creditCheck.requiredCredits - creditCheck.currentBalance,
+            action: 'ai_analysis',
+          },
+          links: {
+            pricing: '/pricing',
+            credits: '/dashboard/settings/credits',
+          },
         },
-        { status: 402 }
+        { 
+          status: 402,
+          headers: {
+            'X-Credit-Balance': String(creditCheck.currentBalance),
+            'X-Credit-Required': String(creditCheck.requiredCredits),
+          }
+        }
       );
     }
     // === End Credit Check ===

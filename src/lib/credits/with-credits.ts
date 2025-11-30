@@ -102,15 +102,26 @@ export function withCredits(
       if (!creditCheck.success) {
         const response = NextResponse.json(
           { 
-            error: 'Insufficient credits',
-            currentBalance: creditCheck.currentBalance,
-            requiredCredits: creditCheck.requiredCredits,
+            success: false,
+            error: 'insufficient_credits',
+            message: 'You do not have enough credits for this action. Please purchase more credits.',
+            details: {
+              currentBalance: creditCheck.currentBalance,
+              requiredCredits: creditCheck.requiredCredits,
+              shortfall: creditCheck.requiredCredits - creditCheck.currentBalance,
+              action,
+            },
+            links: {
+              pricing: '/pricing',
+              credits: '/dashboard/settings/credits',
+            },
           },
           { status: 402 }
         )
         
         response.headers.set('X-Credit-Balance', String(creditCheck.currentBalance))
         response.headers.set('X-Credit-Required', String(creditCheck.requiredCredits))
+        response.headers.set('X-Credit-Shortfall', String(creditCheck.requiredCredits - creditCheck.currentBalance))
         
         return response
       }

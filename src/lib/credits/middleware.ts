@@ -181,3 +181,86 @@ export function createCreditErrorResponse(
   
   return addCreditHeaders(response, result)
 }
+
+/**
+ * Standard insufficient credits error response
+ * Use this in all API routes for consistent error format
+ */
+export function createInsufficientCreditsResponse(
+  currentBalance: number,
+  requiredCredits: number,
+  action?: string
+): NextResponse {
+  const response = NextResponse.json(
+    {
+      success: false,
+      error: 'insufficient_credits',
+      message: 'You do not have enough credits for this action. Please purchase more credits.',
+      details: {
+        currentBalance,
+        requiredCredits,
+        shortfall: requiredCredits - currentBalance,
+        action,
+      },
+      links: {
+        pricing: '/pricing',
+        credits: '/dashboard/settings/credits',
+      },
+    },
+    { status: 402 } // Payment Required
+  )
+  
+  response.headers.set('X-Credit-Balance', String(currentBalance))
+  response.headers.set('X-Credit-Required', String(requiredCredits))
+  response.headers.set('X-Credit-Shortfall', String(requiredCredits - currentBalance))
+  
+  return response
+}
+
+/**
+ * Standard authentication required error response
+ */
+export function createAuthRequiredResponse(): NextResponse {
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'authentication_required',
+      message: 'You must be logged in to access this feature.',
+      links: {
+        signIn: '/sign-in',
+        signUp: '/sign-up',
+      },
+    },
+    { status: 401 }
+  )
+}
+
+/**
+ * Standard rate limit error response
+ */
+export function createRateLimitResponse(
+  retryAfter: number,
+  limit: number,
+  resetAt: Date
+): NextResponse {
+  const response = NextResponse.json(
+    {
+      success: false,
+      error: 'rate_limit_exceeded',
+      message: 'You have exceeded the rate limit. Please slow down.',
+      details: {
+        retryAfter,
+        limit,
+        resetAt: resetAt.toISOString(),
+      },
+    },
+    { status: 429 }
+  )
+  
+  response.headers.set('X-RateLimit-Limit', String(limit))
+  response.headers.set('X-RateLimit-Remaining', '0')
+  response.headers.set('X-RateLimit-Reset', resetAt.toISOString())
+  response.headers.set('Retry-After', String(retryAfter))
+  
+  return response
+}

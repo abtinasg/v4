@@ -4,6 +4,12 @@ import { userCredits, creditTransactions, creditPackages, users } from '@/lib/db
 import { eq, desc, sql, and, gte, lte } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import * as jose from 'jose'
+import {
+  CREDIT_COSTS,
+  RATE_LIMITS,
+  CREDIT_CONFIG,
+  DEFAULT_CREDIT_PACKAGES,
+} from '@/lib/credits/config'
 
 // Verify admin authentication
 async function verifyAdmin() {
@@ -94,6 +100,16 @@ export async function GET(request: NextRequest) {
         },
         recentTransactions,
         packages,
+      })
+    }
+
+    // NEW: Return live credit system configuration (read-only from config.ts)
+    if (action === 'config') {
+      return NextResponse.json({
+        creditCosts: CREDIT_COSTS,
+        rateLimits: RATE_LIMITS,
+        creditConfig: CREDIT_CONFIG,
+        defaultPackages: DEFAULT_CREDIT_PACKAGES,
       })
     }
 

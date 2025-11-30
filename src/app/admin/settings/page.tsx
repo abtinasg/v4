@@ -342,7 +342,7 @@ export default function AdminSettingsPage() {
                 <Coins className="w-5 h-5 text-yellow-400" />
                 Credit Configuration
               </CardTitle>
-              <CardDescription>تنظیمات عمومی سیستم کردیت (از فایل config.ts)</CardDescription>
+              <CardDescription>Global credit system configuration (sourced from config.ts)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -377,7 +377,7 @@ export default function AdminSettingsPage() {
                 <Zap className="w-5 h-5 text-amber-400" />
                 Credit Costs per Action
               </CardTitle>
-              <CardDescription>هزینه کردیت برای هر عملیات (CREDIT_COSTS)</CardDescription>
+              <CardDescription>Credit consumption per action (CREDIT_COSTS)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -408,7 +408,7 @@ export default function AdminSettingsPage() {
                 <Clock className="w-5 h-5 text-blue-400" />
                 Monthly Free Credits by Tier
               </CardTitle>
-              <CardDescription>کردیت رایگان ماهانه برای هر پلن</CardDescription>
+              <CardDescription>Monthly free credits allocated to each plan</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -450,7 +450,7 @@ export default function AdminSettingsPage() {
                 <Gauge className="w-5 h-5 text-cyan-400" />
                 Rate Limits by Subscription Tier
               </CardTitle>
-              <CardDescription>محدودیت‌های Rate Limiting برای هر پلن (RATE_LIMITS)</CardDescription>
+              <CardDescription>Rate limiting constraints per subscription tier (RATE_LIMITS)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -514,7 +514,7 @@ export default function AdminSettingsPage() {
                 <Bot className="w-5 h-5 text-violet-400" />
                 AI System Prompts
               </CardTitle>
-              <CardDescription>پرامپت‌های سیستمی هوش مصنوعی - کلیک روی "مشاهده" برای دیدن محتوای کامل</CardDescription>
+              <CardDescription>Core AI system prompts – click “View” to inspect the full content</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -570,7 +570,7 @@ export default function AdminSettingsPage() {
                         className="gap-1"
                       >
                         <Eye className="w-3 h-3" />
-                        مشاهده
+                        View
                       </Button>
                     </div>
                   </div>
@@ -605,24 +605,24 @@ export default function AdminSettingsPage() {
               <div className="mt-6 p-4 rounded-xl bg-slate-900/50 border border-slate-700">
                 <h4 className="font-medium text-white mb-3 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  AI Rules & Restrictions (در همه پرامپت‌ها)
+                  AI Rules & Restrictions (applies to every prompt)
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 text-sm">
-                    <p className="text-red-400 font-medium">🚫 ممنوعیت‌ها:</p>
-                    <p className="text-slate-400">❌ سیگنال خرید/فروش</p>
-                    <p className="text-slate-400">❌ پیش‌بینی قیمت و تارگت</p>
-                    <p className="text-slate-400">❌ ضمانت سود</p>
-                    <p className="text-slate-400">❌ توصیه مارجین/لوریج</p>
-                    <p className="text-slate-400">❌ مشاوره مالیاتی</p>
+                    <p className="text-red-400 font-medium">🚫 Prohibited:</p>
+                    <p className="text-slate-400">❌ Direct buy/sell signals</p>
+                    <p className="text-slate-400">❌ Price targets or predictions</p>
+                    <p className="text-slate-400">❌ Guaranteed returns</p>
+                    <p className="text-slate-400">❌ Margin/leverage advice</p>
+                    <p className="text-slate-400">❌ Tax or legal guidance</p>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <p className="text-emerald-400 font-medium">✅ مجازها:</p>
-                    <p className="text-slate-400">✓ تحلیل متریک‌های مالی</p>
-                    <p className="text-slate-400">✓ آموزش مفاهیم</p>
-                    <p className="text-slate-400">✓ مقایسه با industry</p>
-                    <p className="text-slate-400">✓ سناریوهای bull/bear</p>
-                    <p className="text-slate-400">✓ تحلیل تکنیکال آموزشی</p>
+                    <p className="text-emerald-400 font-medium">✅ Allowed:</p>
+                    <p className="text-slate-400">✓ Financial metric analysis</p>
+                    <p className="text-slate-400">✓ Concept education</p>
+                    <p className="text-slate-400">✓ Industry benchmarking</p>
+                    <p className="text-slate-400">✓ Bull vs. bear scenarios</p>
+                    <p className="text-slate-400">✓ Educational technical analysis</p>
                   </div>
                 </div>
               </div>
@@ -652,7 +652,7 @@ export default function AdminSettingsPage() {
                 Credit Required Endpoints
               </CardTitle>
               <CardDescription>
-                Endpoints که نیاز به کردیت دارند (CREDIT_REQUIRED_ENDPOINTS از config.ts)
+                Endpoints requiring credits (CREDIT_REQUIRED_ENDPOINTS from config.ts)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -683,7 +683,7 @@ export default function AdminSettingsPage() {
                 Rate Limit Exempt Endpoints
               </CardTitle>
               <CardDescription>
-                Endpoints معاف از Rate Limiting (RATE_LIMIT_EXEMPT_ENDPOINTS)
+                Endpoints exempt from rate limiting (RATE_LIMIT_EXEMPT_ENDPOINTS)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -708,7 +708,7 @@ export default function AdminSettingsPage() {
                 Default Credit Packages
               </CardTitle>
               <CardDescription>
-                پکیج‌های پیش‌فرض خرید کردیت (DEFAULT_CREDIT_PACKAGES)
+                Default purchasable credit bundles (DEFAULT_CREDIT_PACKAGES)
               </CardDescription>
             </CardHeader>
             <CardContent>

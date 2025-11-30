@@ -199,12 +199,28 @@ export async function POST(request: NextRequest) {
     if (!creditCheck.success) {
       return new Response(
         JSON.stringify({ 
-          error: 'Insufficient credits',
-          required: creditCheck.requiredCredits,
-          balance: creditCheck.currentBalance,
-          message: `This action requires ${creditCheck.requiredCredits} credits. Your balance: ${creditCheck.currentBalance}`
+          success: false,
+          error: 'insufficient_credits',
+          message: 'You do not have enough credits for this action. Please purchase more credits.',
+          details: {
+            currentBalance: creditCheck.currentBalance,
+            requiredCredits: creditCheck.requiredCredits,
+            shortfall: creditCheck.requiredCredits - creditCheck.currentBalance,
+            action: 'chat_message',
+          },
+          links: {
+            pricing: '/pricing',
+            credits: '/dashboard/settings/credits',
+          },
         }),
-        { status: 402, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 402, 
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-Credit-Balance': String(creditCheck.currentBalance),
+            'X-Credit-Required': String(creditCheck.requiredCredits),
+          } 
+        }
       )
     }
     
