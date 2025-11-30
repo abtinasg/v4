@@ -5,9 +5,10 @@ import {
   watchlists, 
   watchlistItems, 
   stockAlerts, 
-  chatHistory
+  chatHistory,
+  userCredits
 } from '@/lib/db/schema'
-import { count, sql, desc, gte } from 'drizzle-orm'
+import { count, sql, desc, gte, eq } from 'drizzle-orm'
 import { getAdminSession } from '@/lib/admin/auth'
 
 export async function GET() {
@@ -39,7 +40,7 @@ export async function GET() {
       usersThisWeekResult,
       usersTodayResult,
       recentUsersResult,
-      subscriptionStatsResult,
+      totalCreditsResult,
       chatsThisWeekResult,
     ] = await Promise.all([
       // Total counts
@@ -55,24 +56,20 @@ export async function GET() {
       db.select({ count: count() }).from(users).where(gte(users.createdAt, startOfWeek)),
       db.select({ count: count() }).from(users).where(gte(users.createdAt, startOfToday)),
       
-      // Recent users
+      // Recent users with credits
       db.select({
         id: users.id,
         email: users.email,
-        subscriptionTier: users.subscriptionTier,
+        creditBalance: sql<number>`COALESCE(${userCredits.balance}, 0)`,
         createdAt: users.createdAt
       })
         .from(users)
+        .leftJoin(userCredits, eq(users.id, userCredits.userId))
         .orderBy(desc(users.createdAt))
         .limit(10),
       
-      // Subscription tier distribution
-      db.select({
-        tier: users.subscriptionTier,
-        count: count()
-      })
-        .from(users)
-        .groupBy(users.subscriptionTier),
+      // Total credits in system
+      db.select({ total: sql<number>`COALESCE(SUM(${userCredits.balance}), 0)` }).from(userCredits),
       
       // Chats this week
       db.select({ count: count() }).from(chatHistory).where(gte(chatHistory.createdAt, startOfWeek)),
@@ -94,6 +91,7 @@ export async function GET() {
         totalAlerts: totalAlertsResult[0]?.count || 0,
         activeAlerts: activeAlertsResult[0]?.count || 0,
         totalChats: totalChatsResult[0]?.count || 0,
+        totalCredits: Number(totalCreditsResult[0]?.total || 0),
       },
       growth: {
         usersThisMonth: usersThisMonthResult[0]?.count || 0,
@@ -102,10 +100,6 @@ export async function GET() {
         chatsThisWeek: chatsThisWeekResult[0]?.count || 0,
         growthRate: `${growthRate}%`,
       },
-      subscriptionDistribution: subscriptionStatsResult.reduce((acc, item) => {
-        acc[item.tier] = item.count
-        return acc
-      }, {} as Record<string, number>),
       recentUsers: recentUsersResult,
     })
   } catch (error) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { users, watchlists, stockAlerts, chatHistory } from '@/lib/db/schema'
-import { eq, desc, asc, like, count } from 'drizzle-orm'
+import { users, watchlists, stockAlerts, chatHistory, userCredits } from '@/lib/db/schema'
+import { eq, desc, asc, like, count, sql } from 'drizzle-orm'
 import { getAdminSession } from '@/lib/admin/auth'
 
 export async function GET(request: NextRequest) {
@@ -17,28 +17,24 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const search = searchParams.get('search') || ''
     const sortOrder = searchParams.get('sortOrder') || 'desc'
-    const tier = searchParams.get('tier') || ''
 
     const offset = (page - 1) * limit
 
-    // Build query
+    // Build query with credits
     let query = db.select({
       id: users.id,
       clerkId: users.clerkId,
       email: users.email,
-      subscriptionTier: users.subscriptionTier,
+      creditBalance: sql<number>`COALESCE(${userCredits.balance}, 0)`,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
-    }).from(users)
+    })
+    .from(users)
+    .leftJoin(userCredits, eq(users.id, userCredits.userId))
 
     // Apply search filter
     if (search) {
       query = query.where(like(users.email, `%${search}%`)) as typeof query
-    }
-
-    // Apply tier filter
-    if (tier && ['free', 'premium', 'professional', 'enterprise'].includes(tier)) {
-      query = query.where(eq(users.subscriptionTier, tier as any)) as typeof query
     }
 
     // Apply sorting
@@ -64,10 +60,12 @@ export async function GET(request: NextRequest) {
 
         return {
           ...user,
+          creditBalance: Number(user.creditBalance || 0),
           _count: {
             watchlists: watchlistCount[0]?.count || 0,
             alerts: alertCount[0]?.count || 0,
             chats: chatCount[0]?.count || 0,
+            holdings: 0,
           }
         }
       })

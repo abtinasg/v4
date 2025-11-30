@@ -55,9 +55,9 @@ interface User {
   id: string
   clerkId: string
   email: string
-  subscriptionTier: string
   createdAt: string
   updatedAt: string
+  creditBalance?: number
   _count: {
     watchlists: number
     alerts: number
@@ -73,25 +73,17 @@ interface Pagination {
   totalPages: number
 }
 
-const tierColors: Record<string, string> = {
-  free: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
-  premium: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  professional: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  enterprise: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-}
-
 export default function AdminUsersPage() {
   const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 20, totalPages: 1 })
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [tierFilter, setTierFilter] = useState('all')
   const [sortOrder, setSortOrder] = useState('desc')
   
   // Edit dialog state
   const [editUser, setEditUser] = useState<User | null>(null)
-  const [editTier, setEditTier] = useState('')
+  const [editCredits, setEditCredits] = useState('')
   const [saving, setSaving] = useState(false)
   
   // Delete dialog state
@@ -106,7 +98,6 @@ export default function AdminUsersPage() {
         limit: pagination.limit.toString(),
         sortOrder,
         ...(search && { search }),
-        ...(tierFilter !== 'all' && { tier: tierFilter }),
       })
 
       const res = await fetch(`/api/admin/users?${params}`)
@@ -120,7 +111,7 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false)
     }
-  }, [pagination.page, search, tierFilter, sortOrder])
+  }, [pagination.page, search, sortOrder])
 
   useEffect(() => {
     fetchUsers()
@@ -132,21 +123,27 @@ export default function AdminUsersPage() {
       setPagination(p => ({ ...p, page: 1 }))
     }, 300)
     return () => clearTimeout(timer)
-  }, [search, tierFilter])
+  }, [search])
 
   const handleEditUser = async () => {
-    if (!editUser) return
+    if (!editUser || !editCredits) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/admin/users/${editUser.id}`, {
-        method: 'PATCH',
+      const res = await fetch('/api/admin/credits', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscriptionTier: editTier }),
+        body: JSON.stringify({
+          action: 'adjust_credits',
+          userId: editUser.id,
+          amount: Number(editCredits),
+          description: 'Admin adjustment',
+        }),
       })
       
       if (!res.ok) throw new Error('Failed to update')
       
       setEditUser(null)
+      setEditCredits('')
       fetchUsers()
     } catch (error) {
       console.error('Error updating user:', error)
@@ -201,18 +198,6 @@ export default function AdminUsersPage() {
                 className="pl-10 bg-slate-900/50 border-slate-700"
               />
             </div>
-            <Select value={tierFilter} onValueChange={setTierFilter}>
-              <SelectTrigger className="w-full sm:w-48 bg-slate-900/50 border-slate-700">
-                <SelectValue placeholder="Filter by tier" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Tiers</SelectItem>
-                <SelectItem value="free">Free</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="enterprise">Enterprise</SelectItem>
-              </SelectContent>
-            </Select>
             <Select value={sortOrder} onValueChange={setSortOrder}>
               <SelectTrigger className="w-full sm:w-40 bg-slate-900/50 border-slate-700">
                 <SelectValue placeholder="Sort order" />
@@ -246,7 +231,7 @@ export default function AdminUsersPage() {
                   <TableHeader>
                     <TableRow className="border-slate-700">
                       <TableHead className="text-slate-400">Email</TableHead>
-                      <TableHead className="text-slate-400">Tier</TableHead>
+                      <TableHead className="text-slate-400">Credits</TableHead>
                       <TableHead className="text-slate-400 hidden md:table-cell">Watchlists</TableHead>
                       <TableHead className="text-slate-400 hidden md:table-cell">Alerts</TableHead>
                       <TableHead className="text-slate-400 hidden lg:table-cell">AI Chats</TableHead>
@@ -266,9 +251,9 @@ export default function AdminUsersPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={tierColors[user.subscriptionTier] || tierColors.free}>
-                            {user.subscriptionTier}
-                          </Badge>
+                          <span className="text-cyan-400 font-medium">
+                            {(user.creditBalance || 0).toLocaleString()}
+                          </span>
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-slate-300">
                           {user._count.watchlists}
@@ -298,7 +283,7 @@ export default function AdminUsersPage() {
                               className="h-8 w-8 p-0 text-slate-400 hover:text-blue-400"
                               onClick={() => {
                                 setEditUser(user)
-                                setEditTier(user.subscriptionTier)
+                                setEditCredits('')
                               }}
                             >
                               <Edit className="w-4 h-4" />
@@ -365,34 +350,33 @@ export default function AdminUsersPage() {
       <Dialog open={!!editUser} onOpenChange={() => setEditUser(null)}>
         <DialogContent className="bg-slate-800 border-slate-700">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit User</DialogTitle>
+            <DialogTitle className="text-white">Adjust Credits</DialogTitle>
             <DialogDescription className="text-slate-400">
-              Update subscription tier for {editUser?.email}
+              Add or remove credits for {editUser?.email}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <label className="text-sm font-medium text-slate-300 mb-2 block">
-              Subscription Tier
+              Credit Amount
             </label>
-            <Select value={editTier} onValueChange={setEditTier}>
-              <SelectTrigger className="bg-slate-900/50 border-slate-700">
-                <SelectValue placeholder="Select tier" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="free">Free</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="enterprise">Enterprise</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              type="number"
+              placeholder="Enter amount (negative to deduct)"
+              value={editCredits}
+              onChange={(e) => setEditCredits(e.target.value)}
+              className="bg-slate-900/50 border-slate-700"
+            />
+            <p className="text-xs text-slate-500 mt-2">
+              Current balance: {(editUser?.creditBalance || 0).toLocaleString()} credits
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditUser(null)}>
               Cancel
             </Button>
-            <Button onClick={handleEditUser} disabled={saving}>
+            <Button onClick={handleEditUser} disabled={saving || !editCredits}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Save Changes
+              Adjust Credits
             </Button>
           </DialogFooter>
         </DialogContent>

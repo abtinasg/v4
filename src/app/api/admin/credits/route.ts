@@ -123,7 +123,6 @@ export async function GET(request: NextRequest) {
           balance: sql<string>`COALESCE(${userCredits.balance}, '0')`,
           lifetimeCredits: sql<string>`COALESCE(${userCredits.lifetimeCredits}, '0')`,
           freeCreditsUsed: sql<string>`COALESCE(${userCredits.freeCreditsUsed}, '0')`,
-          subscriptionTier: users.subscriptionTier,
           lastReset: userCredits.lastFreeCreditsReset,
           updatedAt: userCredits.updatedAt,
           userCreatedAt: users.createdAt,

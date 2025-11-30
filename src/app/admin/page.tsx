@@ -25,6 +25,7 @@ interface AdminStats {
     totalAlerts: number
     activeAlerts: number
     totalChats: number
+    totalCredits?: number
   }
   growth: {
     usersThisMonth: number
@@ -33,11 +34,10 @@ interface AdminStats {
     chatsThisWeek: number
     growthRate: string
   }
-  subscriptionDistribution: Record<string, number>
   recentUsers: Array<{
     id: string
     email: string
-    subscriptionTier: string
+    creditBalance?: number
     createdAt: string
   }>
 }
@@ -134,13 +134,7 @@ export default function AdminDashboardPage() {
     amber: 'from-amber-400 to-amber-600 shadow-amber-500/30',
     purple: 'from-purple-400 to-purple-600 shadow-purple-500/30',
     green: 'from-green-400 to-green-600 shadow-green-500/30',
-  }
-
-  const tierColors: Record<string, string> = {
-    free: 'bg-slate-500/20 text-slate-400',
-    premium: 'bg-emerald-500/20 text-emerald-400',
-    professional: 'bg-blue-500/20 text-blue-400',
-    enterprise: 'bg-purple-500/20 text-purple-400',
+    cyan: 'from-cyan-400 to-cyan-600 shadow-cyan-500/30',
   }
 
   return (
@@ -188,41 +182,26 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Subscription Distribution */}
+        {/* Credit Stats */}
         <Card className="bg-slate-800/50 border-slate-700/50">
           <CardHeader>
-            <CardTitle className="text-white">Subscription Tiers</CardTitle>
-            <CardDescription>Distribution of user subscriptions</CardDescription>
+            <CardTitle className="text-white">Credit System</CardTitle>
+            <CardDescription>Platform credit statistics</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {Object.entries(stats?.subscriptionDistribution || {}).map(([tier, count]) => {
-                const total = stats?.overview.totalUsers || 1
-                const percentage = ((count / total) * 100).toFixed(1)
-                
-                return (
-                  <div key={tier} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge className={tierColors[tier] || tierColors.free}>
-                          {tier}
-                        </Badge>
-                      </div>
-                      <span className="text-sm text-slate-400">{count} users ({percentage}%)</span>
-                    </div>
-                    <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          tier === 'enterprise' ? 'bg-purple-500' :
-                          tier === 'professional' ? 'bg-blue-500' :
-                          tier === 'premium' ? 'bg-emerald-500' : 'bg-slate-500'
-                        }`}
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-slate-700/30 text-center">
+                <p className="text-3xl font-bold text-cyan-400">
+                  {(stats?.overview.totalCredits || 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-slate-400 mt-1">Total Credits</p>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-700/30 text-center">
+                <p className="text-3xl font-bold text-emerald-400">
+                  {stats?.overview.totalUsers || 0}
+                </p>
+                <p className="text-sm text-slate-400 mt-1">Active Users</p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -254,9 +233,9 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
                   </div>
-                  <Badge className={tierColors[user.subscriptionTier] || tierColors.free}>
-                    {user.subscriptionTier || 'free'}
-                  </Badge>
+                  <span className="text-cyan-400 font-medium text-sm">
+                    {(user.creditBalance || 0).toLocaleString()} credits
+                  </span>
                 </div>
               ))}
               

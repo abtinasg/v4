@@ -39,7 +39,6 @@ interface UserCredit {
   balance: string
   lifetimeCredits: string
   freeCreditsUsed?: string
-  subscriptionTier: string | null
   lastReset?: Date | null
   updatedAt?: Date | null
   userCreatedAt?: Date | null
@@ -422,77 +421,6 @@ export default function CreditsPage() {
               </div>
             </div>
 
-            {/* Monthly Free Credits by Tier */}
-            <div>
-              <h3 className="text-sm font-medium text-emerald-400 mb-3">Monthly Free Credits by Tier</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {Object.entries(creditConfig.creditConfig.monthlyFreeCredits).map(([tier, credits]) => (
-                  <div 
-                    key={tier} 
-                    className={cn(
-                      "p-3 rounded-lg text-center",
-                      tier === 'free' && "bg-gray-500/10 border border-gray-500/20",
-                      tier === 'premium' && "bg-cyan-500/10 border border-cyan-500/20",
-                      tier === 'professional' && "bg-violet-500/10 border border-violet-500/20",
-                      tier === 'enterprise' && "bg-amber-500/10 border border-amber-500/20",
-                    )}
-                  >
-                    <p className={cn(
-                      "text-lg font-bold",
-                      tier === 'free' && "text-gray-400",
-                      tier === 'premium' && "text-cyan-400",
-                      tier === 'professional' && "text-violet-400",
-                      tier === 'enterprise' && "text-amber-400",
-                    )}>
-                      {credits.toLocaleString()}
-                    </p>
-                    <p className="text-xs text-gray-500 capitalize">{tier}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Rate Limits */}
-            <div>
-              <h3 className="text-sm font-medium text-rose-400 mb-3">Rate Limits by Tier</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left py-2 px-3 text-gray-400 font-medium">Tier</th>
-                      <th className="text-center py-2 px-3 text-gray-400 font-medium">Per Min</th>
-                      <th className="text-center py-2 px-3 text-gray-400 font-medium">Per Hour</th>
-                      <th className="text-center py-2 px-3 text-gray-400 font-medium">Per Day</th>
-                      <th className="text-center py-2 px-3 text-gray-400 font-medium">Monthly</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(creditConfig.rateLimits).map(([tier, limits]) => (
-                      <tr key={tier} className="border-b border-white/5">
-                        <td className="py-2 px-3">
-                          <span className={cn(
-                            "px-2 py-1 rounded text-xs font-medium capitalize",
-                            tier === 'free' && "bg-gray-500/20 text-gray-400",
-                            tier === 'premium' && "bg-cyan-500/20 text-cyan-400",
-                            tier === 'professional' && "bg-violet-500/20 text-violet-400",
-                            tier === 'enterprise' && "bg-amber-500/20 text-amber-400",
-                          )}>
-                            {tier}
-                          </span>
-                        </td>
-                        <td className="text-center py-2 px-3 text-white font-mono">{limits.requestsPerMinute}</td>
-                        <td className="text-center py-2 px-3 text-white font-mono">{limits.requestsPerHour.toLocaleString()}</td>
-                        <td className="text-center py-2 px-3 text-white font-mono">{limits.requestsPerDay.toLocaleString()}</td>
-                        <td className="text-center py-2 px-3 text-white font-mono">
-                          {limits.monthlyCredits === -1 ? '∞' : limits.monthlyCredits.toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
             {/* Info note */}
             <p className="text-xs text-gray-500 italic">
               These values are currently read from <code className="text-cyan-400">src/lib/credits/config.ts</code>. 
@@ -586,7 +514,6 @@ export default function CreditsPage() {
             <thead>
               <tr className="border-b border-white/10">
                 <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">User</th>
-                <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Tier</th>
                 <th className="text-right p-4 text-xs font-medium text-gray-500 uppercase">Balance</th>
                 <th className="text-right p-4 text-xs font-medium text-gray-500 uppercase">Lifetime</th>
                 <th className="text-center p-4 text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -595,7 +522,7 @@ export default function CreditsPage() {
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500">
+                  <td colSpan={4} className="p-8 text-center text-gray-500">
                     No users found
                   </td>
                 </tr>
@@ -607,16 +534,6 @@ export default function CreditsPage() {
                         {user.email || 'No email'}
                       </p>
                       <p className="text-xs text-gray-500">{user.userId.slice(0, 8)}...</p>
-                    </td>
-                    <td className="p-4">
-                      <span className={cn(
-                        "px-2 py-1 rounded text-xs font-medium",
-                        user.subscriptionTier === 'professional' && "bg-violet-500/20 text-violet-400",
-                        user.subscriptionTier === 'premium' && "bg-cyan-500/20 text-cyan-400",
-                        (!user.subscriptionTier || user.subscriptionTier === 'free') && "bg-gray-500/20 text-gray-400",
-                      )}>
-                        {user.subscriptionTier || 'free'}
-                      </span>
                     </td>
                     <td className="p-4 text-right">
                       <span className={cn(
