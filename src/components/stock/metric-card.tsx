@@ -12,6 +12,13 @@ function formatValue(value: number | string | null, format?: MetricItem['format'
 
   switch (format) {
     case 'percent':
+      // FRED API returns percentages as values (e.g., 3.8 = 3.8%, not 0.038)
+      // So we don't multiply by 100 for values that are already in percentage form
+      // Check if value is likely already a percentage (between -100 and 100)
+      if (Math.abs(value) <= 100) {
+        return `${value.toFixed(2)}%`;
+      }
+      // For decimal percentages (0.038 = 3.8%), multiply by 100
       return `${(value * 100).toFixed(2)}%`;
     case 'currency':
       if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
