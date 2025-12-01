@@ -107,16 +107,7 @@ export async function validatePromoCode(
     }
   }
   
-  // Check applicable tiers
-  if (promoCode.applicableTiers) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    })
-    const tiers = promoCode.applicableTiers as string[]
-    if (tiers.length > 0 && user && !tiers.includes(user.subscriptionTier)) {
-      return { valid: false, error: 'این کد تخفیف برای پلن شما قابل استفاده نیست' }
-    }
-  }
+  // Note: applicableTiers check removed - credit-based system with no tiers
   
   return {
     valid: true,

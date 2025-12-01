@@ -1,6 +1,7 @@
 /**
  * Credit System
  * Main exports for the credit system
+ * Note: Credit-based system - no subscription tiers
  */
 
 // Config
@@ -13,7 +14,6 @@ export {
   RATE_LIMIT_EXEMPT_ENDPOINTS,
   RATE_LIMIT_WINDOWS,
   type CreditAction,
-  type SubscriptionTier,
 } from './config'
 
 // Service

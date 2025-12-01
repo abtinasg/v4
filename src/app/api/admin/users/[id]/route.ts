@@ -70,19 +70,13 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { subscriptionTier, email } = body
+    const { email } = body
 
-    // Validate tier if provided
-    if (subscriptionTier && !['free', 'premium', 'professional', 'enterprise'].includes(subscriptionTier)) {
-      return NextResponse.json({ error: 'Invalid subscription tier' }, { status: 400 })
-    }
-
-    // Build update object
+    // Build update object (credit-based system - no tier updates)
     const updateData: Record<string, any> = {
       updatedAt: new Date(),
     }
 
-    if (subscriptionTier) updateData.subscriptionTier = subscriptionTier
     if (email) updateData.email = email
 
     // Update user

@@ -49,8 +49,6 @@ export default async function DashboardLayout({
     user.email : 
     (clerkUser.emailAddresses[0]?.emailAddress || 'User')
 
-  const subscriptionTier = user?.subscriptionTier || 'free'
-
   return (
     <SidebarProvider>
       {/* Cinematic Background */}
@@ -66,7 +64,7 @@ export default async function DashboardLayout({
       <div className="relative min-h-screen">
         {/* Sidebar - Hidden on mobile, visible on desktop */}
         <div className="hidden lg:block">
-          <Sidebar subscriptionTier={subscriptionTier} />
+          <Sidebar />
         </div>
 
         {/* Mobile Header - Only on mobile */}
@@ -76,7 +74,7 @@ export default async function DashboardLayout({
         <MainContent>
           {/* Desktop Header - Hidden on mobile */}
           <div className="sticky top-0 z-40 hidden md:block">
-            <Topbar subscriptionTier={subscriptionTier} />
+            <Topbar />
           </div>
 
           {/* Page Content - extra padding bottom on mobile for bottom nav */}

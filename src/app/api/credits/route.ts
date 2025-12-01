@@ -1,6 +1,7 @@
 /**
  * Credits API - Get Balance and Stats
  * GET /api/credits
+ * Credit-based system - no subscription tiers
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -49,9 +50,8 @@ export async function GET(request: NextRequest) {
     
     const stats = await getCreditStats(user.id)
     
-    // User limits based on plan
-    const tier = user.subscriptionTier as keyof typeof RATE_LIMITS
-    const rateLimits = RATE_LIMITS[tier] || RATE_LIMITS.free
+    // Credit-based system - same rate limits for all users
+    const rateLimits = RATE_LIMITS
     
     return NextResponse.json({
       success: true,
@@ -64,7 +64,6 @@ export async function GET(request: NextRequest) {
           todayUsage: stats.todayUsage,
           monthUsage: stats.monthUsage,
         },
-        tier: user.subscriptionTier,
         limits: rateLimits,
         creditCosts: CREDIT_COSTS,
       },

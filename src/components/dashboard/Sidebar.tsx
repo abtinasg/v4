@@ -135,18 +135,13 @@ const navItems = [
   },
 ]
 
-interface SidebarProps {
-  subscriptionTier: string
-}
-
-export function Sidebar({ subscriptionTier }: SidebarProps) {
+// Credit-based system - no subscription tier props needed
+export function Sidebar() {
   const { isCollapsed, toggleSidebar, isMobileOpen, setIsMobileOpen } = useSidebar()
   const pathname = usePathname()
   const { user } = useUser()
   const [isMounted, setIsMounted] = useState(false)
   const [creditBalance, setCreditBalance] = useState<number | null>(null)
-
-  const isPro = subscriptionTier === 'pro' || subscriptionTier === 'enterprise'
 
   // Track if component is mounted (for SSR safety)
   useEffect(() => {

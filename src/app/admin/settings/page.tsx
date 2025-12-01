@@ -448,44 +448,36 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Gauge className="w-5 h-5 text-cyan-400" />
-                Rate Limits by Subscription Tier
+                Rate Limits (Credit-Based System)
               </CardTitle>
-              <CardDescription>Rate limiting constraints per subscription tier (RATE_LIMITS)</CardDescription>
+              <CardDescription>Same rate limits for all users - credit-based system</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-slate-700">
-                      <th className="text-left py-3 px-4 text-slate-400 font-medium">Tier</th>
-                      <th className="text-center py-3 px-4 text-slate-400 font-medium">Per Minute</th>
-                      <th className="text-center py-3 px-4 text-slate-400 font-medium">Per Hour</th>
-                      <th className="text-center py-3 px-4 text-slate-400 font-medium">Per Day</th>
-                      <th className="text-center py-3 px-4 text-slate-400 font-medium">Monthly Credits</th>
+                      <th className="text-left py-3 px-4 text-slate-400 font-medium">Limit Type</th>
+                      <th className="text-center py-3 px-4 text-slate-400 font-medium">Value</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.entries(RATE_LIMITS).map(([tier, limits]) => (
-                      <tr key={tier} className="border-b border-slate-700/50">
-                        <td className="py-3 px-4">
-                          <span className={cn(
-                            "px-2 py-1 rounded text-xs font-medium",
-                            tier === 'free' && "bg-slate-600/50 text-slate-300",
-                            tier === 'premium' && "bg-cyan-500/20 text-cyan-400",
-                            tier === 'professional' && "bg-violet-500/20 text-violet-400",
-                            tier === 'enterprise' && "bg-amber-500/20 text-amber-400",
-                          )}>
-                            {tier.toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="text-center py-3 px-4 text-white font-mono">{limits.requestsPerMinute}</td>
-                        <td className="text-center py-3 px-4 text-white font-mono">{limits.requestsPerHour.toLocaleString()}</td>
-                        <td className="text-center py-3 px-4 text-white font-mono">{limits.requestsPerDay.toLocaleString()}</td>
-                        <td className="text-center py-3 px-4 text-white font-mono">
-                          {limits.monthlyCredits === -1 ? '∞' : limits.monthlyCredits.toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-3 px-4 text-slate-300">Requests Per Minute</td>
+                      <td className="text-center py-3 px-4 text-white font-mono">{RATE_LIMITS.requestsPerMinute}</td>
+                    </tr>
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-3 px-4 text-slate-300">Requests Per Hour</td>
+                      <td className="text-center py-3 px-4 text-white font-mono">{RATE_LIMITS.requestsPerHour.toLocaleString()}</td>
+                    </tr>
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-3 px-4 text-slate-300">Requests Per Day</td>
+                      <td className="text-center py-3 px-4 text-white font-mono">{RATE_LIMITS.requestsPerDay.toLocaleString()}</td>
+                    </tr>
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-3 px-4 text-slate-300">Monthly Free Credits</td>
+                      <td className="text-center py-3 px-4 text-white font-mono">{CREDIT_CONFIG.monthlyFreeCredits}</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

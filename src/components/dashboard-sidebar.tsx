@@ -5,20 +5,14 @@ import { usePathname } from 'next/navigation'
 import { LayoutDashboard, LineChart, List, Terminal, Newspaper, Briefcase } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface DashboardSidebarProps {
-  subscriptionTier: string
-}
-
-export function DashboardSidebar({ subscriptionTier }: DashboardSidebarProps) {
+// Credit-based system - no subscription tier needed
+export function DashboardSidebar() {
   return (
     <aside className="w-64 border-r bg-card flex flex-col">
       <div className="p-6 border-b">
         <Link href="/dashboard">
           <h1 className="text-2xl font-bold text-gradient">Deep Terminal</h1>
         </Link>
-        <p className="text-xs text-muted-foreground mt-1">
-          {subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1)} Plan
-        </p>
       </div>
       
       <nav className="flex-1 space-y-1 px-3 py-4">
@@ -47,7 +41,7 @@ export function DashboardSidebar({ subscriptionTier }: DashboardSidebarProps) {
           href="/pricing"
           className="block w-full px-4 py-2 text-sm text-center bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
         >
-          Upgrade Plan
+          Buy Credits
         </Link>
       </div>
     </aside>

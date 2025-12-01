@@ -1,6 +1,6 @@
 /**
  * Rate Limiter
- * Request rate limiting system
+ * Request rate limiting system - credit-based, same limits for all users
  */
 
 import { db } from '@/lib/db'
@@ -10,7 +10,6 @@ import {
   RATE_LIMITS, 
   RATE_LIMIT_WINDOWS, 
   RATE_LIMIT_EXEMPT_ENDPOINTS,
-  type SubscriptionTier 
 } from './config'
 
 export interface RateLimitResult {
@@ -29,6 +28,7 @@ export interface RateLimitInfo {
 
 /**
  * Check rate limit for a user
+ * Credit-based system: same limits for all users
  */
 export async function checkRateLimit(
   identifier: { userId?: string; ipAddress?: string },
@@ -44,21 +44,8 @@ export async function checkRateLimit(
     }
   }
   
-  const { userId, ipAddress } = identifier
-  
-  // Determine limits based on user plan
-  let tier: SubscriptionTier = 'free'
-  
-  if (userId) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    })
-    if (user) {
-      tier = user.subscriptionTier as SubscriptionTier
-    }
-  }
-  
-  const limits = RATE_LIMITS[tier]
+  // Same limits for all users in credit-based system
+  const limits = RATE_LIMITS
   const now = new Date()
   
   // Check per-minute limit (strictest)
@@ -202,24 +189,14 @@ async function recordRequest(
 
 /**
  * Get complete rate limit information
+ * Credit-based system: same limits for all users
  */
 export async function getRateLimitInfo(
   identifier: { userId?: string; ipAddress?: string },
   endpoint: string
 ): Promise<RateLimitInfo> {
-  const { userId } = identifier
-  
-  let tier: SubscriptionTier = 'free'
-  if (userId) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    })
-    if (user) {
-      tier = user.subscriptionTier as SubscriptionTier
-    }
-  }
-  
-  const limits = RATE_LIMITS[tier]
+  // Same limits for all users
+  const limits = RATE_LIMITS
   
   const [minute, hour, day] = await Promise.all([
     checkWindow(identifier, endpoint, 'minute', limits.requestsPerMinute),

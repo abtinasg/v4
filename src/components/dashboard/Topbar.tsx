@@ -44,11 +44,8 @@ const breadcrumbMap: Record<string, string> = {
   'ai-assistant': 'AI Assistant',
 }
 
-interface TopbarProps {
-  subscriptionTier?: string
-}
-
-export function Topbar({ subscriptionTier }: TopbarProps) {
+// Credit-based system - no subscription tier needed
+export function Topbar() {
   const pathname = usePathname()
   const router = useRouter()
   const [isSearchOpen, setIsSearchOpen] = useState(false)

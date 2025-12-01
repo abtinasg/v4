@@ -13,10 +13,8 @@ import {
 import { eq, desc, and, sql, gte } from 'drizzle-orm'
 import { 
   CREDIT_COSTS, 
-  CREDIT_CONFIG, 
-  RATE_LIMITS,
+  CREDIT_CONFIG,
   type CreditAction,
-  type SubscriptionTier 
 } from './config'
 
 export interface CreditCheckResult {
@@ -82,9 +80,8 @@ export async function initializeUserCredits(userId: string) {
     throw new Error('User not found')
   }
   
-  // Determine initial credits based on plan
-  const tier = user.subscriptionTier as SubscriptionTier
-  const monthlyCredits = CREDIT_CONFIG.monthlyFreeCredits[tier] || CREDIT_CONFIG.monthlyFreeCredits.free
+  // Credit-based system: same initial credits for all users
+  const monthlyCredits = CREDIT_CONFIG.monthlyFreeCredits
   const initialCredits = CREDIT_CONFIG.initialFreeCredits + monthlyCredits
   
   // Create credit record
@@ -269,8 +266,8 @@ export async function resetMonthlyCredits(userId: string): Promise<CreditAddResu
     throw new Error('User not found')
   }
   
-  const tier = user.subscriptionTier as SubscriptionTier
-  const monthlyCredits = CREDIT_CONFIG.monthlyFreeCredits[tier] || CREDIT_CONFIG.monthlyFreeCredits.free
+  // Credit-based system: same monthly credits for all users
+  const monthlyCredits = CREDIT_CONFIG.monthlyFreeCredits
   
   // Update reset date
   await db.update(userCredits)
@@ -284,7 +281,7 @@ export async function resetMonthlyCredits(userId: string): Promise<CreditAddResu
     userId, 
     monthlyCredits, 
     'monthly_reset', 
-    `Monthly free credits reset (${tier} tier)`
+    'Monthly free credits reset'
   )
 }
 

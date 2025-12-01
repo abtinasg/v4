@@ -2,6 +2,7 @@ import { pgTable, text, varchar, timestamp, real, boolean, index, jsonb, serial,
 import { relations } from 'drizzle-orm'
 
 // Enums for type safety
+// Note: subscriptionTierEnum kept for backward compatibility with existing data
 export const subscriptionTierEnum = pgEnum('subscription_tier', ['free', 'premium', 'professional', 'enterprise'])
 export const alertConditionEnum = pgEnum('alert_condition', ['above', 'below', 'crosses_above', 'crosses_below', 'percent_change'])
 export const themeEnum = pgEnum('theme', ['light', 'dark', 'system'])
@@ -17,13 +18,14 @@ export const users = pgTable('users', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   clerkId: varchar('clerk_id', { length: 255 }).notNull().unique(),
   email: varchar('email', { length: 255 }).notNull().unique(),
+  // subscriptionTier kept for backward compatibility, but not used in new credit-based system
   subscriptionTier: subscriptionTierEnum('subscription_tier').notNull().default('free'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   clerkIdIdx: index('users_clerk_id_idx').on(table.clerkId),
   emailIdx: index('users_email_idx').on(table.email),
-  subscriptionIdx: index('users_subscription_tier_idx').on(table.subscriptionTier),
+  // subscriptionIdx removed - no longer needed in credit-based system
 }))
 
 // ==================== WATCHLISTS TABLE ====================
@@ -518,9 +520,11 @@ export const aiPrompts = pgTable('ai_prompts', {
 }))
 
 // ==================== AI ACCESS CONTROL TABLE ====================
+// Simplified for credit-based system - no tier-based access
 export const aiAccessControl = pgTable('ai_access_control', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  subscriptionTier: subscriptionTierEnum('subscription_tier').notNull(),
+  // subscriptionTier kept for backward compatibility but not actively used
+  subscriptionTier: subscriptionTierEnum('subscription_tier'),
   feature: varchar('feature', { length: 100 }).notNull(),
   isEnabled: boolean('is_enabled').default(true).notNull(),
   dailyLimit: decimal('daily_limit', { precision: 10, scale: 0 }),
@@ -534,14 +538,15 @@ export const aiAccessControl = pgTable('ai_access_control', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
-  tierFeatureIdx: index('ai_access_control_tier_feature_idx').on(table.subscriptionTier, table.feature),
   featureIdx: index('ai_access_control_feature_idx').on(table.feature),
 }))
 
 // ==================== RATE LIMIT CONFIG TABLE ====================
+// Simplified for credit-based system - same limits for all users
 export const rateLimitConfig = pgTable('rate_limit_config', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   endpoint: varchar('endpoint', { length: 255 }).notNull(),
+  // subscriptionTier kept for backward compatibility but not actively used
   subscriptionTier: subscriptionTierEnum('subscription_tier'),
   requestsPerMinute: decimal('requests_per_minute', { precision: 10, scale: 0 }).notNull().default('60'),
   requestsPerHour: decimal('requests_per_hour', { precision: 10, scale: 0 }).notNull().default('1000'),
@@ -553,8 +558,6 @@ export const rateLimitConfig = pgTable('rate_limit_config', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   endpointIdx: index('rate_limit_config_endpoint_idx').on(table.endpoint),
-  tierIdx: index('rate_limit_config_tier_idx').on(table.subscriptionTier),
-  endpointTierIdx: index('rate_limit_config_endpoint_tier_idx').on(table.endpoint, table.subscriptionTier),
 }))
 
 // ==================== PROMO CODES TABLE ====================

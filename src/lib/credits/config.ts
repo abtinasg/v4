@@ -24,35 +24,12 @@ export const CREDIT_COSTS = {
 
 export type CreditAction = keyof typeof CREDIT_COSTS
 
-// Rate Limiting per plan
+// Rate Limiting - same for all users (credit-based system)
 export const RATE_LIMITS = {
-  free: {
-    requestsPerMinute: 10,
-    requestsPerHour: 50,
-    requestsPerDay: 200,
-    monthlyCredits: 50,
-  },
-  premium: {
-    requestsPerMinute: 30,
-    requestsPerHour: 200,
-    requestsPerDay: 1000,
-    monthlyCredits: 500,
-  },
-  professional: {
-    requestsPerMinute: 60,
-    requestsPerHour: 500,
-    requestsPerDay: 3000,
-    monthlyCredits: 2000,
-  },
-  enterprise: {
-    requestsPerMinute: 120,
-    requestsPerHour: 1000,
-    requestsPerDay: 10000,
-    monthlyCredits: -1, // Unlimited
-  },
+  requestsPerMinute: 30,
+  requestsPerHour: 200,
+  requestsPerDay: 1000,
 } as const
-
-export type SubscriptionTier = keyof typeof RATE_LIMITS
 
 // Credit packages
 export const DEFAULT_CREDIT_PACKAGES = [
@@ -103,13 +80,8 @@ export const CREDIT_CONFIG = {
   // Initial free credits for new users
   initialFreeCredits: 20,
   
-  // Monthly free credits per plan
-  monthlyFreeCredits: {
-    free: 50,
-    premium: 200,
-    professional: 800,
-    enterprise: 2000,
-  },
+  // Monthly free credits for all users
+  monthlyFreeCredits: 100,
   
   // Low credit threshold for warning
   lowCreditThreshold: 20,

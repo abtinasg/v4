@@ -73,12 +73,7 @@ interface UserDetail {
   }>
 }
 
-const tierColors: Record<string, string> = {
-  free: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
-  premium: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  professional: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  enterprise: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-}
+// tierColors removed - credit-based system
 
 export default function UserDetailPage() {
   const router = useRouter()
@@ -151,9 +146,9 @@ export default function UserDetailPage() {
             </div>
             <div className="flex-1 space-y-3">
               <div className="flex flex-wrap items-center gap-3">
-                <Badge className={`${tierColors[user.subscriptionTier]} text-sm px-3 py-1`}>
+                <Badge className="bg-cyan-500/20 text-cyan-400 text-sm px-3 py-1">
                   <Shield className="w-3 h-3 mr-1" />
-                  {user.subscriptionTier}
+                  Credit User
                 </Badge>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">

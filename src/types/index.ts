@@ -65,6 +65,7 @@ export interface TimeSeriesData {
 
 // Alert Types
 export type AlertCondition = 'above' | 'below' | 'crosses_above' | 'crosses_below' | 'percent_change'
+// SubscriptionTier kept for backward compatibility but not used in credit-based system
 export type SubscriptionTier = 'free' | 'premium' | 'professional' | 'enterprise'
 export type Theme = 'light' | 'dark' | 'system'
 export type ChartType = 'line' | 'candlestick' | 'bar' | 'area'
