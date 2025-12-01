@@ -705,7 +705,7 @@ OUTPUT FORMAT:
           },
         ],
         max_tokens: 16000,
-        temperature: 0.4, // کمی بالاتر برای تحلیل خلاقانه‌تر
+        temperature: 0.4,
       }),
       signal: controller.signal,
     });

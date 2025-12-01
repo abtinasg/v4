@@ -193,7 +193,7 @@ function displayMetrics(metrics: any) {
   console.log('📊 COMPANY INFORMATION');
   console.log('-'.repeat(80));
   console.log(`Symbol:        ${metrics.symbol}`);
-  console.log(`Industry:      ${metrics.industry}`);
+  console.log(`Industry:      ${metrics.industryName}`);
   console.log(`Sector:        ${metrics.sector}`);
   console.log(`Timestamp:     ${metrics.timestamp.toISOString()}`);
   console.log();

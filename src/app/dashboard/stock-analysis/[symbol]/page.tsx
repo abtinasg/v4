@@ -118,6 +118,9 @@ interface StockDataResult {
   sector: string;
   industry: string;
   currentPrice: number;
+  previousClose: number;
+  change: number;
+  changePercent: number;
   marketCap: number;
   metrics: AllMetrics;
 }
@@ -228,18 +231,14 @@ async function CompanyHeaderServer({ symbol }: { symbol: string }) {
   }
 
   const logo = `https://logo.clearbit.com/${getCompanyDomain(data.companyName)}`;
-  const change = data.metrics.valuation?.peRatio
-    ? (data.currentPrice * 0.01) // Placeholder - would come from real data
-    : 0;
-  const changePercent = change / data.currentPrice;
 
   return (
     <CompanyHeader
       symbol={data.symbol}
       companyName={data.companyName}
       price={data.currentPrice}
-      change={change}
-      changePercent={changePercent * 100}
+      change={data.change}
+      changePercent={data.changePercent}
       marketCap={data.marketCap}
       peRatio={data.metrics.valuation?.peRatio ?? null}
       dividendYield={data.metrics.valuation?.dividendYield ?? null}

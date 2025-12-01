@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -14,7 +14,7 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
-import { LineChart as LineChartIcon, BarChart3, TrendingUp } from 'lucide-react';
+import { LineChart as LineChartIcon, BarChart3, TrendingUp, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChartTimeframe, ChartType, ChartDataPoint, PriceChartProps } from './types';
 
@@ -123,9 +123,8 @@ function seededRandom(seed: number): number {
   return x - Math.floor(x);
 }
 
-function generateMockData(days: number): ChartDataPoint[] {
+function generateMockData(days: number, basePrice: number = 180): ChartDataPoint[] {
   const data: ChartDataPoint[] = [];
-  const basePrice = 180;
   let price = basePrice;
 
   for (let i = days; i >= 0; i--) {
@@ -173,13 +172,55 @@ function getDaysForTimeframe(timeframe: ChartTimeframe): number {
 export function PriceChart({ symbol, initialData }: PriceChartProps) {
   const [timeframe, setTimeframe] = useState<ChartTimeframe>('1M');
   const [chartType, setChartType] = useState<ChartType>('area');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  // Generate or use provided data
-  const chartData = useMemo(() => {
-    if (initialData && initialData.length > 0) return initialData;
-    return generateMockData(getDaysForTimeframe(timeframe));
-  }, [timeframe, initialData]);
+  // Fetch historical data from API
+  const fetchHistoricalData = useCallback(async (tf: ChartTimeframe) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`/api/stock/${symbol}/historical?timeframe=${tf}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch historical data');
+      }
+      
+      const result = await response.json();
+      
+      if (result.data && result.data.length > 0) {
+        setChartData(result.data);
+      } else {
+        // Fallback to mock data if no real data
+        setChartData(generateMockData(getDaysForTimeframe(tf)));
+      }
+    } catch (err) {
+      console.error('Error fetching chart data:', err);
+      setError('Failed to load chart data');
+      // Fallback to mock data on error
+      setChartData(generateMockData(getDaysForTimeframe(tf)));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [symbol]);
+
+  // Fetch data on mount and when timeframe changes
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      setChartData(initialData);
+      setIsLoading(false);
+    } else {
+      fetchHistoricalData(timeframe);
+    }
+  }, [timeframe, initialData, fetchHistoricalData]);
+
+  // Handle timeframe change
+  const handleTimeframeChange = useCallback(async (tf: ChartTimeframe) => {
+    setTimeframe(tf);
+    fetchHistoricalData(tf);
+  }, [fetchHistoricalData]);
 
   // Calculate price change
   const priceChange = useMemo(() => {

@@ -55,6 +55,7 @@
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-plaid-link": "^4.1.1",
     "recharts": "^2.15.4",
     "resend": "^6.5.2",
     "sans": "^1.0.0",

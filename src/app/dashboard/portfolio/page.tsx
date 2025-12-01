@@ -20,10 +20,12 @@ import {
   Settings,
   Trash2,
   Edit,
-  Eye
+  Eye,
+  Upload
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { CSVImport } from '@/components/portfolio/csv-import';
 
 interface Portfolio {
   id: string;
@@ -64,6 +66,7 @@ export default function PortfolioPage() {
   const [holdingsLoading, setHoldingsLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddHoldingModal, setShowAddHoldingModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch portfolios
@@ -136,13 +139,23 @@ export default function PortfolioPage() {
           <h1 className="text-2xl font-bold text-white">Portfolio</h1>
           <p className="text-gray-400 mt-1">Track and manage your investments</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
-        >
-          <Plus className="h-4 w-4" />
-          New Portfolio
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white font-medium transition-all"
+            disabled={!selectedPortfolio}
+          >
+            <Upload className="h-4 w-4" />
+            Import
+          </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-4 w-4" />
+            New Portfolio
+          </button>
+        </div>
       </div>
 
       {portfolios.length === 0 ? (
@@ -333,6 +346,30 @@ export default function PortfolioPage() {
           onSuccess={(holding) => {
             setHoldings([holding, ...holdings]);
             setShowAddHoldingModal(false);
+          }}
+        />
+      )}
+
+      {/* Import Modal */}
+      {showImportModal && selectedPortfolio && (
+        <ImportModal
+          isOpen={showImportModal}
+          portfolioId={selectedPortfolio.id}
+          onClose={() => setShowImportModal(false)}
+          onSuccess={() => {
+            // Refresh holdings after import
+            const fetchHoldings = async () => {
+              try {
+                const response = await fetch(`/api/portfolio/${selectedPortfolio.id}/holdings`);
+                if (response.ok) {
+                  const data = await response.json();
+                  setHoldings(data.holdings || []);
+                }
+              } catch (err) {
+                console.error('Error refreshing holdings:', err);
+              }
+            };
+            fetchHoldings();
           }}
         />
       )}
@@ -546,7 +583,49 @@ function CreatePortfolioModal({
   );
 }
 
-// Add Holding Modal
+// Import Modal
+function ImportModal({ 
+  isOpen, 
+  onClose, 
+  portfolioId,
+  onSuccess 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  portfolioId: string;
+  onSuccess: () => void;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-[#0a0f1e] rounded-xl border border-white/10 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-white/10">
+          <h2 className="text-xl font-bold text-white">Import Holdings</h2>
+          <p className="text-gray-400 text-sm mt-1">Import from CSV or connect your broker</p>
+        </div>
+        <div className="p-6">
+          <CSVImport 
+            portfolioId={portfolioId} 
+            onImportSuccess={() => {
+              onSuccess();
+              onClose();
+            }}
+          />
+        </div>
+        <div className="p-6 border-t border-white/10">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AddHoldingModal({
   portfolioId,
   onClose,

@@ -3,7 +3,7 @@
  *
  * GET /api/stock/[symbol]/metrics
  *
- * Fetches data from all sources (Yahoo Finance, FRED, FMP)
+ * Fetches data from all sources (FMP as primary, Yahoo Finance as fallback, FRED)
  * Calculates all 190+ institutional-grade financial metrics
  * Returns structured response with caching
  */
@@ -20,6 +20,8 @@ import {
   checkAndResetMonthlyCredits,
 } from '@/lib/credits';
 import YahooFinance from 'yahoo-finance2';
+import { fetchFMPData } from '@/lib/data/fmp-adapter';
+import { getProfile as getFMPProfile, getQuote as getFMPQuote } from '@/lib/data/fmp';
 import type {
   YahooFinanceData,
   FREDData,
@@ -59,6 +61,9 @@ interface MetricsResponse {
   industry: string;
   timestamp: string;
   currentPrice: number;
+  previousClose: number;
+  change: number;
+  changePercent: number;
   marketCap: number;
   metrics: {
     macro: AllMetrics['macro'];
@@ -715,16 +720,35 @@ export async function GET(
       });
     }
 
-    // 2. Fetch Yahoo and FRED data first
-    const [yahooData, fredData] = await Promise.all([
-      fetchYahooFinanceData(upperSymbol),
+    // 2. Fetch FMP data first (primary source), then FRED
+    const [fmpResult, fredData] = await Promise.all([
+      fetchFMPData(upperSymbol),
       fetchFREDData(),
     ]);
 
-    // If Yahoo Finance fails, use demo data
-    const effectiveYahooData = yahooData || getDemoYahooData(upperSymbol);
+    let effectiveYahooData: YahooFinanceData;
+    let dataSource = 'fmp';
+
+    // Use FMP as primary, fallback to Yahoo if FMP fails
+    if (fmpResult.success && fmpResult.data) {
+      effectiveYahooData = fmpResult.data;
+      console.log(`[Metrics] Using FMP data for ${upperSymbol}`);
+    } else {
+      // Fallback to Yahoo Finance
+      console.log(`[Metrics] FMP failed for ${upperSymbol}, falling back to Yahoo. Error: ${fmpResult.error}`);
+      const yahooData = await fetchYahooFinanceData(upperSymbol);
+      
+      if (yahooData) {
+        effectiveYahooData = yahooData;
+        dataSource = 'yahoo-finance';
+      } else {
+        // Last resort: demo data
+        effectiveYahooData = getDemoYahooData(upperSymbol);
+        dataSource = 'demo';
+      }
+    }
     
-    // Extract sector/industry from Yahoo for FMP fallback
+    // Extract sector/industry
     const yahooSector = effectiveYahooData.sector || getDemoSector(upperSymbol);
     const yahooIndustry = effectiveYahooData.industry || getDemoIndustry(upperSymbol);
 
@@ -748,8 +772,19 @@ export async function GET(
     let sector = industryData.sectorName || getDemoSector(upperSymbol);
     let industry = industryData.industryName || getDemoIndustry(upperSymbol);
 
-    // Only try Yahoo profile if Yahoo data succeeded
-    if (yahooData) {
+    // Get company profile from FMP (primary) or Yahoo (fallback)
+    if (dataSource === 'fmp') {
+      try {
+        const fmpProfile = await getFMPProfile(upperSymbol);
+        if (fmpProfile) {
+          companyName = fmpProfile.companyName || companyName;
+          sector = fmpProfile.sector || sector;
+          industry = fmpProfile.industry || industry;
+        }
+      } catch {
+        // FMP profile fetch failed, use defaults
+      }
+    } else if (dataSource === 'yahoo-finance') {
       try {
         const profileResult = await yahooFinance.quoteSummary(upperSymbol, {
           modules: ['assetProfile', 'price'],
@@ -766,6 +801,11 @@ export async function GET(
     // 6. Prepare response
     const calculationTime = Date.now() - startTime;
     
+    // Calculate change and change percent
+    const previousClose = effectiveYahooData.previousClose || effectiveYahooData.price;
+    const change = effectiveYahooData.price - previousClose;
+    const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
+    
     const response: MetricsResponse = {
       symbol: upperSymbol,
       companyName,
@@ -773,6 +813,9 @@ export async function GET(
       industry,
       timestamp: new Date().toISOString(),
       currentPrice: effectiveYahooData.price,
+      previousClose,
+      change,
+      changePercent,
       marketCap: effectiveYahooData.marketCap,
 
       metrics: {
@@ -802,9 +845,9 @@ export async function GET(
 
       metadata: {
         dataSources: [
-          'yahoo-finance',
+          dataSource,
           fredData.treasury10Y !== null ? 'fred' : null,
-          industryData.industryRevenue !== null ? 'fmp' : null,
+          industryData.industryRevenue !== null ? 'fmp-industry' : null,
         ].filter((s): s is string => s !== null),
         lastUpdated: new Date().toISOString(),
         cacheHit: false,
