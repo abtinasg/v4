@@ -376,6 +376,12 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
     try {
       // Step 1: Generate report with AI
       setProgress('Analyzing stock data with AI...');
+      
+      // Add a client-side timeout warning (show warning at 90s)
+      const warningTimeout = setTimeout(() => {
+        setProgress('Analysis is taking longer than usual... Please wait...');
+      }, 90000); // Show warning after 90 seconds
+      
       const response = await fetch(`/api/stock/${symbol}/report`, {
         method: 'POST',
         headers: {
@@ -387,6 +393,8 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           includeCharts: true,
         }),
       });
+      
+      clearTimeout(warningTimeout);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -399,6 +407,18 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           error: errorMessage,
           details: errorDetails,
         });
+        
+        // Provide specific error messages based on status code
+        if (response.status === 408 || response.status === 504) {
+          throw new Error(
+            `Report generation timed out. This can happen with complex analyses. ` +
+            `Please try again. If the issue persists, the stock may have limited data available.`
+          );
+        }
+        
+        if (response.status === 402) {
+          throw new Error(errorDetails || 'Insufficient credits. Please purchase more credits to generate reports.');
+        }
         
         // Throw user-friendly error message
         throw new Error(errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage);
@@ -420,7 +440,17 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
 
     } catch (err) {
       console.error('Report generation error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate report');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to generate report';
+      
+      // Show helpful timeout message
+      if (errorMsg.toLowerCase().includes('timeout') || errorMsg.toLowerCase().includes('timed out')) {
+        setError(
+          'Report generation timed out. AI analysis can take 1-2 minutes for complex stocks. ' +
+          'Please try again. If the issue persists, try again in a few minutes.'
+        );
+      } else {
+        setError(errorMsg);
+      }
     } finally {
       setIsGenerating(false);
     }

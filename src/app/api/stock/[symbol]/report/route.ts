@@ -47,13 +47,28 @@ interface StockDataForReport {
 /**
  * Fetch comprehensive stock data for report generation using FMP API
  * Now includes 430+ calculated metrics from MetricsCalculator
+ * @param symbol Stock ticker symbol
+ * @param timeoutMs Maximum time allowed for data fetching (default: 30 seconds)
  */
-async function fetchStockData(symbol: string): Promise<StockDataForReport | null> {
+async function fetchStockData(symbol: string, timeoutMs = 30000): Promise<StockDataForReport | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
   try {
-    console.log(`[Report] Fetching FMP data for ${symbol}...`);
+    console.log(`[Report] Fetching FMP data for ${symbol}... (timeout: ${timeoutMs}ms)`);
+    const startTime = Date.now();
     
-    // Fetch all financial data from FMP
-    const fmpData = await getAllFinancialData(symbol);
+    // Fetch all financial data from FMP with timeout
+    const fmpData = await Promise.race([
+      getAllFinancialData(symbol),
+      new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Data fetch timeout')), timeoutMs)
+      )
+    ]);
+    
+    clearTimeout(timeoutId);
+    const fetchTime = Date.now() - startTime;
+    console.log(`[Report] FMP data fetched in ${fetchTime}ms`);
     
     if (!fmpData.quote || !fmpData.profile) {
       console.error(`[Report] No quote or profile data for ${symbol}`);
@@ -638,10 +653,11 @@ OUTPUT FORMAT:
 
   // Call OpenRouter API with timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 100000); // 100 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout (leaving 30s buffer)
   
   try {
     console.log('[Report] Calling OpenRouter API with Claude Sonnet 4.5...');
+    const startTime = Date.now();
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -666,6 +682,8 @@ OUTPUT FORMAT:
     });
     
     clearTimeout(timeoutId);
+    const responseTime = Date.now() - startTime;
+    console.log(`[Report] OpenRouter API responded in ${responseTime}ms`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -826,6 +844,16 @@ export async function POST(
     if (error instanceof Error) {
       const errorMessage = error.message.toLowerCase();
       
+      if (errorMessage.includes('data fetch timeout')) {
+        return NextResponse.json(
+          { 
+            error: 'Data fetch timeout',
+            details: 'Unable to fetch financial data within time limit. The market data provider may be slow or unavailable. Please try again in a few moments.'
+          },
+          { status: 504 }
+        );
+      }
+      
       if (errorMessage.includes('api key') || errorMessage.includes('unauthorized')) {
         return NextResponse.json(
           { 
@@ -846,11 +874,11 @@ export async function POST(
         );
       }
       
-      if (errorMessage.includes('timeout')) {
+      if (errorMessage.includes('timeout') || errorMessage.includes('abort')) {
         return NextResponse.json(
           { 
             error: 'Request timeout',
-            details: 'The analysis is taking longer than expected. Please try again.'
+            details: 'AI analysis is taking longer than expected. This can happen with complex reports. Please try again. If the issue persists, try using a summary report instead of a full report.'
           },
           { status: 408 }
         );
