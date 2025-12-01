@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch خبرهای جدید از API داخلی
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.deepinhq.com';
     const newsResponse = await fetch(`${baseUrl}/api/market/news?limit=10`, {
       headers: {
         'Content-Type': 'application/json',
@@ -60,7 +60,8 @@ export async function GET(req: NextRequest) {
     });
 
     if (!newsResponse.ok) {
-      throw new Error('Failed to fetch news');
+      console.error('[Telegram Cron] Failed to fetch news:', newsResponse.status, newsResponse.statusText);
+      throw new Error(`Failed to fetch news: ${newsResponse.status}`);
     }
 
     const newsData = await newsResponse.json();
@@ -123,10 +124,15 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('[Cron Telegram News] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Cron job failed';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Cron job failed',
+        error: errorMessage,
+        details: errorStack,
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Warm cache for popular stocks (parallel requests)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.deepinhq.com';
     
     const quotePromises = POPULAR_SYMBOLS.map(async (symbol) => {
       try {
