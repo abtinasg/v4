@@ -810,6 +810,7 @@ export async function fetchAllMacroData(): Promise<FREDData> {
     moneyMultiplier,
     monetaryBase,
     excessReserves,
+    moneyGrowthRate,
 
     // FX
     usdIndex,
@@ -832,6 +833,7 @@ export async function fetchAllMacroData(): Promise<FREDData> {
     laborProductivity,
     unitLaborCosts,
     realWageGrowth,
+    productivityGrowthRate,
 
     // Confidence
     consumerConfidence,
@@ -859,11 +861,13 @@ export async function fetchAllMacroData(): Promise<FREDData> {
     vix,
     financialStressIndex,
     chicagoFedIndex,
+    financialConditionsIndex: chicagoFedIndex, // Use NFCI as proxy
 
     // Fiscal
     federalDebt,
     debtToGDP,
     budgetDeficit,
+    fiscalImpulse,
 
     // Calculated/Derived
     fisherEquation,
@@ -943,8 +947,8 @@ export function calculateMacro(fredData: FREDData): MacroMetrics {
     initialClaims: fredData.initialClaims,
     continuingClaims: fredData.continuingClaims,
     nonFarmPayrolls: fredData.nonFarmPayrolls,
-    underemploymentRate: u6Rate, // U-6 Total Unemployed plus Marginally Attached
-    naturalUnemploymentRate: nairu, // NAIRU (Non-Accelerating Inflation Rate of Unemployment)
+    underemploymentRate: fredData.underemploymentRate, // U-6 Total Unemployed plus Marginally Attached
+    naturalUnemploymentRate: fredData.naturalUnemploymentRate, // NAIRU (Non-Accelerating Inflation Rate of Unemployment)
 
     // Wages & Productivity (5 metrics)
     wageGrowth: fredData.wageGrowth,

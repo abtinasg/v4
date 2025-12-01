@@ -155,6 +155,7 @@ export interface FREDData {
   moneyMultiplier: number | null;      // Calculated: M2 / Monetary Base
   monetaryBase: number | null;         // BOGMBASE - Monetary Base
   excessReserves: number | null;       // EXCSRESNS - Excess Reserves
+  moneyGrowthRate: number | null;      // YoY M2 Growth Rate
 
   // Exchange Rate
   usdIndex: number | null;             // DTWEXBGS - Trade Weighted USD Index
@@ -177,6 +178,7 @@ export interface FREDData {
   laborProductivity: number | null;    // OPHNFB - Nonfarm Business Productivity
   unitLaborCosts: number | null;       // ULCNFB - Unit Labor Costs
   realWageGrowth: number | null;       // Calculated: Wage Growth - Inflation
+  productivityGrowthRate: number | null; // YoY Labor Productivity Growth
 
   // Confidence & Sentiment
   consumerConfidence: number | null;   // UMCSENT - U of Michigan Consumer Sentiment
@@ -204,11 +206,13 @@ export interface FREDData {
   vix: number | null;                  // VIXCLS - CBOE Volatility Index
   financialStressIndex: number | null; // STLFSI3 - St. Louis Fed Financial Stress
   chicagoFedIndex: number | null;      // NFCI - Chicago Fed National Financial Conditions
+  financialConditionsIndex: number | null; // Composite Financial Conditions Index
 
   // Fiscal Indicators
   federalDebt: number | null;          // GFDEBTN - Federal Debt Total
   debtToGDP: number | null;            // GFDEGDQ188S - Debt to GDP Ratio
   budgetDeficit: number | null;        // FYFSD - Federal Surplus/Deficit
+  fiscalImpulse: number | null;        // Change in Structural Budget Balance
 
   // Calculated Macro Formulas
   fisherEquation: number | null;       // (1 + nominal) = (1 + real)(1 + inflation)

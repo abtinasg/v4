@@ -451,6 +451,7 @@ function getMockData(): RawFinancialData {
       yieldCurveSpread: null,
       yieldCurveSlope: null,
       termPremium: null,
+      expectedRealRate: null,
       fisherEquation: null,
       nominalRiskFreeRate: null,
       m1MoneySupply: null,

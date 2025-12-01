@@ -384,6 +384,9 @@ async function fetchFREDData(): Promise<FREDData> {
       realInterestRate: null,
       neutralRate: null,
       yieldCurveSpread: null,
+      yieldCurveSlope: null,
+      termPremium: null,
+      expectedRealRate: null,
       
       // Monetary Metrics
       m1MoneySupply: null,
@@ -392,6 +395,8 @@ async function fetchFREDData(): Promise<FREDData> {
       moneyMultiplier: null,
       monetaryBase: null,
       excessReserves: null,
+      quantityTheoryOfMoney: null,
+      moneyGrowthRate: null,
       
       // Exchange Rate
       usdIndex: null,
@@ -406,12 +411,15 @@ async function fetchFREDData(): Promise<FREDData> {
       initialClaims: null,
       continuingClaims: null,
       nonFarmPayrolls: null,
+      underemploymentRate: null,
+      naturalUnemploymentRate: null,
       
       // Wages & Productivity
       wageGrowth: null,
       laborProductivity: null,
       unitLaborCosts: null,
       realWageGrowth: null,
+      productivityGrowthRate: null,
       
       // Confidence & Sentiment
       consumerConfidence: null,
@@ -439,16 +447,17 @@ async function fetchFREDData(): Promise<FREDData> {
       vix: null,
       financialStressIndex: null,
       chicagoFedIndex: null,
+      financialConditionsIndex: null,
       
       // Fiscal Indicators
       federalDebt: null,
       debtToGDP: null,
       budgetDeficit: null,
+      fiscalImpulse: null,
       
       // Calculated Macro Formulas
       fisherEquation: null,
       nominalRiskFreeRate: null,
-      quantityTheoryOfMoney: null,
     };
   }
 }
