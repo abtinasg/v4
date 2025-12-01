@@ -132,14 +132,14 @@ export interface FMPCashFlow {
   acquisitionsNet: number;
   purchasesOfInvestments: number;
   salesMaturitiesOfInvestments: number;
-  otherInvestingActivites: number;
-  netCashUsedForInvestingActivites: number;
+  otherInvestingActivities: number;
+  netCashProvidedByInvestingActivities: number;
   debtRepayment: number;
   commonStockIssued: number;
   commonStockRepurchased: number;
   dividendsPaid: number;
-  otherFinancingActivites: number;
-  netCashUsedProvidedByFinancingActivities: number;
+  otherFinancingActivities: number;
+  netCashProvidedByFinancingActivities: number;
   netChangeInCash: number;
   cashAtEndOfPeriod: number;
   cashAtBeginningOfPeriod: number;
@@ -509,6 +509,18 @@ export async function getAllFinancialData(symbol: string): Promise<{
     getRatios(symbol, 'annual', 5),
     getHistoricalPrices(symbol, from, to),
   ]);
+
+  // Debug logging
+  console.log(`[FMP API] ${symbol} Raw Data:`, {
+    hasProfile: !!profile,
+    hasQuote: !!quote,
+    incomeStatementsCount: incomeStatements.length,
+    balanceSheetsCount: balanceSheets.length,
+    cashFlowsCount: cashFlows.length,
+    keyMetricsCount: keyMetrics.length,
+    ratiosCount: ratios.length,
+    pricesCount: historicalPrices.length,
+  });
 
   return {
     profile,

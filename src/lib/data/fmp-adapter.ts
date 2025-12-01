@@ -48,6 +48,15 @@ export async function fetchFMPData(symbol: string): Promise<FMPDataResult> {
     const ratios = fmpData.ratios[0]; // Latest
     const prices = fmpData.historicalPrices;
 
+    // Debug logging for cash flow data
+    console.log(`[FMP Adapter] ${symbol} Cash Flow Data:`, {
+      hasCashFlowData: !!cashflow,
+      cashFlowsCount: fmpData.cashFlows.length,
+      operatingCF: cashflow?.operatingCashFlow,
+      investingCF: cashflow?.netCashProvidedByInvestingActivities,
+      financingCF: cashflow?.netCashProvidedByFinancingActivities,
+    });
+
     // Build historical data arrays (reverse to get oldest first)
     const historicalRevenue = fmpData.incomeStatements
       .slice(0, 5)
@@ -141,8 +150,8 @@ export async function fetchFMPData(symbol: string): Promise<FMPDataResult> {
 
       // Cash Flow Statement
       operatingCashFlow: cashflow?.operatingCashFlow || cashflow?.netCashProvidedByOperatingActivities || 0,
-      investingCashFlow: cashflow?.netCashUsedForInvestingActivites || 0,
-      financingCashFlow: cashflow?.netCashUsedProvidedByFinancingActivities || 0,
+      investingCashFlow: cashflow?.netCashProvidedByInvestingActivities || 0,
+      financingCashFlow: cashflow?.netCashProvidedByFinancingActivities || 0,
       capitalExpenditures: Math.abs(cashflow?.capitalExpenditure || cashflow?.investmentsInPropertyPlantAndEquipment || 0),
       freeCashFlow: cashflow?.freeCashFlow || 0,
       dividendsPaid: Math.abs(cashflow?.dividendsPaid || 0),
