@@ -55,6 +55,7 @@ export async function fetchFMPData(symbol: string): Promise<FMPDataResult> {
       operatingCF: cashflow?.operatingCashFlow,
       investingCF: cashflow?.netCashProvidedByInvestingActivities,
       financingCF: cashflow?.netCashProvidedByFinancingActivities,
+      dividendsPaid: cashflow?.commonDividendsPaid || cashflow?.netDividendsPaid,
     });
 
     // Build historical data arrays (reverse to get oldest first)
@@ -75,7 +76,7 @@ export async function fetchFMPData(symbol: string): Promise<FMPDataResult> {
     
     const historicalDividends = fmpData.cashFlows
       .slice(0, 5)
-      .map(s => Math.abs(s.dividendsPaid || 0))
+      .map(s => Math.abs(s.commonDividendsPaid || s.netDividendsPaid || s.dividendsPaid || 0))
       .reverse();
     
     const historicalFCF = fmpData.cashFlows
@@ -154,7 +155,7 @@ export async function fetchFMPData(symbol: string): Promise<FMPDataResult> {
       financingCashFlow: cashflow?.netCashProvidedByFinancingActivities || 0,
       capitalExpenditures: Math.abs(cashflow?.capitalExpenditure || cashflow?.investmentsInPropertyPlantAndEquipment || 0),
       freeCashFlow: cashflow?.freeCashFlow || 0,
-      dividendsPaid: Math.abs(cashflow?.dividendsPaid || 0),
+      dividendsPaid: Math.abs(cashflow?.commonDividendsPaid || cashflow?.netDividendsPaid || cashflow?.dividendsPaid || 0),
 
       // Financial Ratios from FMP
       currentRatio: ratios?.currentRatio || metrics?.currentRatio || null,

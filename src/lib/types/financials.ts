@@ -131,6 +131,9 @@ export interface CashFlowStatement {
   commonStockIssued: number;
   commonStockRepurchased: number;
   dividendsPaid: number;
+  commonDividendsPaid: number;
+  netDividendsPaid: number;
+  preferredDividendsPaid: number;
   otherFinancingActivities: number;
   netCashProvidedByFinancingActivities: number;
   effectOfForexChangesOnCash: number;

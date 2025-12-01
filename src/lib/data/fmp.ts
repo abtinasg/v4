@@ -138,6 +138,9 @@ export interface FMPCashFlow {
   commonStockIssued: number;
   commonStockRepurchased: number;
   dividendsPaid: number;
+  commonDividendsPaid: number;
+  netDividendsPaid: number;
+  preferredDividendsPaid: number;
   otherFinancingActivities: number;
   netCashProvidedByFinancingActivities: number;
   netChangeInCash: number;
