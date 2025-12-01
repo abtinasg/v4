@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getPolygonNews, isPolygonConfigured } from '@/lib/api/polygon'
 
-// Force dynamic rendering for this API route
+// Force dynamic rendering - no caching
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 export const runtime = 'nodejs'
 export const maxDuration = 30
 
