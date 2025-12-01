@@ -29,6 +29,7 @@ const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey', 'ripHis
 // Force Node.js runtime
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes timeout for Vercel Pro
 
 // Types
 interface StockReportRequest {
@@ -337,7 +338,7 @@ ${advancedMetricsSection}
 
 === GENERATE COMPREHENSIVE RESEARCH REPORT ===
 
-Create an exceptionally detailed, institutional-grade investment research report with AT LEAST 25-30 pages of content. This must be the most comprehensive analysis possible. Cover EVERY available metric and provide deep insights.
+Create a detailed, institutional-grade investment research report with AT LEAST 15-20 pages of content. This must be a comprehensive analysis. Cover key metrics and provide actionable insights.
 
 # ${stockData.symbol} - COMPREHENSIVE EQUITY RESEARCH REPORT
 **${stockData.companyName}**
@@ -696,7 +697,7 @@ FORMATTING GUIDELINES:
 - Bold all key metrics and important findings
 - Use bullet points extensively for readability
 - Include horizontal rules between major sections
-- Make the report AT LEAST 8000-10000 words
+- Make the report AT LEAST 4000-6000 words
 - Every section must have substantial content
 - Do NOT skip any section - provide full analysis for each`;
 
@@ -713,14 +714,14 @@ FORMATTING GUIDELINES:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-opus-4.5', // Claude Opus 4.5 for highest quality
+        model: 'anthropic/claude-sonnet-4', // Claude Sonnet 4 - faster while maintaining quality
         messages: [
           {
             role: 'user',
             content: CFA_PRO_ANALYSIS_PROMPT,
           },
         ],
-        max_tokens: 32000, // Maximum output for comprehensive report
+        max_tokens: 16000, // Reduced for faster response
         temperature: 0.3,
       }),
     });
