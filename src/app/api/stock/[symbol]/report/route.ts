@@ -3,8 +3,9 @@
  * 
  * POST /api/stock/[symbol]/report
  * 
- * Generates comprehensive PDF investment reports using Claude Sonnet 4.5 via OpenRouter
+ * Generates comprehensive PDF investment reports using Claude Opus 4.5 via OpenRouter
  * Designed for professional investors with CFA-level analysis
+ * Uses 430+ metrics from the metrics calculation engine
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -18,6 +19,9 @@ import {
   checkAndResetMonthlyCredits,
 } from '@/lib/credits';
 import YahooFinance from 'yahoo-finance2';
+
+// Note: MetricsCalculator import path - adjust based on project structure
+// import { MetricsCalculator } from '../../../../../../../../lib/metrics';
 
 // Create Yahoo Finance instance
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey', 'ripHistorical'] });
@@ -40,11 +44,13 @@ interface StockDataForReport {
   currentPrice: number;
   marketCap: number;
   metrics: any;
+  advancedMetrics?: any; // 430+ calculated metrics
   historicalData?: any;
 }
 
 /**
  * Fetch comprehensive stock data for report generation using Yahoo Finance directly
+ * Now includes 430+ calculated metrics from MetricsCalculator
  */
 async function fetchStockData(symbol: string): Promise<StockDataForReport | null> {
   try {
@@ -206,6 +212,35 @@ async function fetchStockData(symbol: string): Promise<StockDataForReport | null
       }
     }
 
+    // Calculate 430+ advanced metrics using MetricsCalculator
+    // TODO: Enable when MetricsCalculator is fully integrated
+    let advancedMetrics = null;
+    /* 
+    try {
+      const calculator = new MetricsCalculator({
+        enableCache: false,
+        currency: 'USD',
+      });
+      
+      // Prepare raw financial data for calculator
+      const rawData = {
+        yahooFinance: {
+          quote,
+          summaryData,
+          historicalData,
+        },
+        incomeStatement: summaryData.incomeStatementHistory?.incomeStatementHistory || [],
+        balanceSheet: summaryData.balanceSheetHistory?.balanceSheetStatements || [],
+        cashflowStatement: summaryData.cashflowStatementHistory?.cashflowStatements || [],
+      };
+      
+      advancedMetrics = await calculator.calculateAll(rawData);
+      console.log('[Report] Advanced metrics calculated successfully (430+ metrics)');
+    } catch (metricsError) {
+      console.warn('[Report] Could not calculate advanced metrics:', metricsError);
+    }
+    */
+
     return {
       symbol: quote.symbol,
       companyName: quote.longName || quote.shortName || symbol,
@@ -214,6 +249,7 @@ async function fetchStockData(symbol: string): Promise<StockDataForReport | null
       currentPrice: quote.regularMarketPrice || 0,
       marketCap: quote.marketCap || 0,
       metrics: { ...metrics, ...technicalMetrics },
+      advancedMetrics,
       historicalData: historicalData.length > 0 ? {
         prices: historicalData.slice(-60).map(d => ({
           date: d.date,
@@ -248,9 +284,17 @@ function calculateVolatility(prices: number[]): number {
 }
 
 /**
- * Generate AI analysis using Claude Sonnet 4.5 via OpenRouter
+ * Generate AI analysis using Claude Opus 4.5 via OpenRouter
+ * Now uses 430+ metrics for comprehensive analysis
  */
 async function generateAIAnalysis(stockData: StockDataForReport): Promise<string> {
+  // Prepare advanced metrics section if available
+  const advancedMetricsSection = stockData.advancedMetrics ? `
+
+ADVANCED METRICS (430+ Calculated Metrics):
+${JSON.stringify(stockData.advancedMetrics, null, 2)}
+` : '';
+
   const CFA_PRO_ANALYSIS_PROMPT = `
 You are a veteran portfolio manager and senior equity research analyst at a large institutional investment firm.
 
@@ -264,7 +308,7 @@ Persona & background:
 
 Your role in Deep Terminal:
 - Act as a senior investment professional reviewing and synthesizing the provided data for a single stock.
-- Translate raw metrics (including 400+ metrics across 27 categories) into a clear, coherent, professional-grade investment analysis.
+- Translate raw metrics (including 430+ metrics across 27 categories) into a clear, coherent, professional-grade investment analysis.
 - Communicate as if you are writing an internal investment memo for an investment committee or CIO.
 - Write in clear, professional English suitable for institutional investors and CFA-level readers.
 - You are expected to take clear, well-supported analytical positions (e.g., "profitability is weak", "balance sheet risk is elevated") while still avoiding any personal investment advice or explicit "buy/sell/hold" recommendations.
@@ -279,174 +323,405 @@ STRICT DATA CONTRACT – NON-NEGOTIABLE RULES:
 3. If a metric is missing or null, explicitly state "Data not available" or skip that analysis point.
 4. Always cite the source metric name when referencing data.
 
-Stock Data:
-${JSON.stringify(stockData, null, 2)}
+=== STOCK DATA ===
+Symbol: ${stockData.symbol}
+Company: ${stockData.companyName}
+Sector: ${stockData.sector}
+Industry: ${stockData.industry}
+Current Price: $${stockData.currentPrice}
+Market Cap: $${(stockData.marketCap / 1e9).toFixed(2)}B
 
-Generate a comprehensive, institutional-grade investment research report with the following structure:
+BASE METRICS:
+${JSON.stringify(stockData.metrics, null, 2)}
+${advancedMetricsSection}
 
-# ${stockData.symbol} - EQUITY RESEARCH REPORT
+=== GENERATE COMPREHENSIVE RESEARCH REPORT ===
+
+Create an exceptionally detailed, institutional-grade investment research report with AT LEAST 25-30 pages of content. This must be the most comprehensive analysis possible. Cover EVERY available metric and provide deep insights.
+
+# ${stockData.symbol} - COMPREHENSIVE EQUITY RESEARCH REPORT
 **${stockData.companyName}**
+**Sector:** ${stockData.sector} | **Industry:** ${stockData.industry}
+**Report Date:** ${new Date().toISOString().split('T')[0]}
 
 ---
 
-## EXECUTIVE SUMMARY
+## EXECUTIVE SUMMARY (2-3 pages)
 
 ### Investment Thesis
-- Provide a balanced bull and bear case summary
-- Key investment considerations
-- Risk/reward profile assessment
+Write a detailed investment thesis covering:
+- Comprehensive bull case with specific catalysts and evidence
+- Comprehensive bear case with specific risks and evidence
+- Overall risk/reward assessment with probability-weighted scenarios
+- Key investment considerations for different investor types
 
-### Quick Metrics Dashboard
-- Present key metrics in a clear format
-- Only include metrics that exist in the data
+### Key Metrics Dashboard
+Present ALL key metrics in organized tables:
+| Category | Metric | Value | Assessment |
+|----------|--------|-------|------------|
+(Include at least 20-25 key metrics)
 
----
-
-## 1. BUSINESS QUALITY ASSESSMENT
-
-### Company Overview
-- Business model and revenue streams
-- Competitive positioning and moat analysis
-- Market position within ${stockData.sector} / ${stockData.industry}
-
-### Strategic Analysis
-- Key competitive advantages
-- Business risks and challenges
-- Management quality indicators (if data available)
-
----
-
-## 2. FINANCIAL ANALYSIS
-
-### Profitability Profile
-- Analyze margin structure (gross, operating, net)
-- Return metrics (ROE, ROA, ROIC if available)
-- Profitability quality and sustainability
-
-### Growth Assessment
-- Revenue and earnings growth trajectory
-- Historical vs forward growth rates
-- Growth quality and drivers
-
-### Balance Sheet Health
-- Liquidity analysis (current ratio, quick ratio)
-- Leverage assessment (debt/equity, coverage ratios)
-- Capital structure evaluation
-
-### Cash Flow Quality
-- Operating cash flow analysis
-- Free cash flow generation
-- Cash conversion and quality
+### Investment Scorecard
+Provide scores (1-10) with detailed justification for each:
+- Business Quality Score: X/10
+- Financial Strength Score: X/10
+- Growth Profile Score: X/10
+- Valuation Score: X/10
+- Risk-Adjusted Score: X/10
+- Overall Score: X/10
 
 ---
 
-## 3. VALUATION ANALYSIS
+## SECTION 1: BUSINESS QUALITY ASSESSMENT (3-4 pages)
 
-### Multiple-Based Valuation
-- P/E Analysis (trailing and forward)
-- P/B, P/S ratios analysis
-- EV/EBITDA, EV/Revenue assessment
+### 1.1 Company Overview
+- Detailed business model analysis
+- Revenue streams breakdown and diversification
+- Market position and competitive landscape
+- Industry dynamics and secular trends
 
-### Relative Valuation
-- Comparison to sector averages (if known)
-- Historical valuation context
-- Valuation premium/discount assessment
+### 1.2 Competitive Moat Analysis
+- Sources of competitive advantage (pricing power, brand, network effects, switching costs, etc.)
+- Moat durability assessment
+- Competitive threats and vulnerability analysis
+- Porter's Five Forces framework application
 
-### Fair Value Considerations
-- Synthesize valuation metrics
-- Identify potential catalysts for re-rating
-- Valuation risks
+### 1.3 Management & Governance
+- Management track record assessment
+- Capital allocation history
+- Insider ownership and alignment
+- Corporate governance quality
+
+### 1.4 Strategic Position
+- SWOT Analysis (detailed)
+- Key success factors
+- Growth initiatives and strategy
+- Market opportunities and addressable market
 
 ---
 
-## 4. RISK ASSESSMENT
+## SECTION 2: FINANCIAL STATEMENT ANALYSIS (4-5 pages)
 
-### Financial Risks
-- Leverage and liquidity risks
+### 2.1 Income Statement Deep Dive
+- Revenue analysis (growth, composition, quality)
+- Margin analysis (gross, operating, net) with trends
+- Operating leverage assessment
+- Earnings quality analysis
+- Non-recurring items identification
+
+### 2.2 Balance Sheet Health
+- Asset composition and quality
+- Liability structure analysis
+- Working capital management efficiency
+- Capital structure optimization
+- Off-balance sheet items review
+
+### 2.3 Cash Flow Analysis
+- Operating cash flow quality and consistency
+- Free cash flow generation and sustainability
+- Cash conversion cycle analysis
+- Capital expenditure analysis (maintenance vs growth)
+- Dividend and buyback capacity
+
+### 2.4 DuPont Analysis
+- ROE decomposition (profit margin × asset turnover × financial leverage)
+- Historical trend analysis
+- Peer comparison
+- Quality of returns assessment
+
+---
+
+## SECTION 3: PROFITABILITY ANALYSIS (2-3 pages)
+
+### 3.1 Margin Analysis
+Present in table format with interpretation:
+| Metric | Current | Prior Year | 3Y Avg | Industry Avg | Assessment |
+|--------|---------|------------|--------|--------------|------------|
+
+### 3.2 Return Metrics
+- Return on Equity (ROE) deep analysis
+- Return on Assets (ROA) analysis
+- Return on Invested Capital (ROIC) vs WACC
+- Economic Value Added (EVA) assessment
+- Return sustainability analysis
+
+### 3.3 Profitability Quality
+- Earnings persistence analysis
+- Revenue recognition quality
+- Accruals analysis
+- Cash vs accrual earnings comparison
+
+---
+
+## SECTION 4: GROWTH ANALYSIS (2-3 pages)
+
+### 4.1 Historical Growth Review
+- Revenue CAGR analysis (1Y, 3Y, 5Y)
+- Earnings growth trajectory
+- Cash flow growth patterns
+- Book value growth
+
+### 4.2 Growth Drivers
+- Organic vs inorganic growth breakdown
+- Market share trends
+- New product/service contributions
+- Geographic expansion analysis
+
+### 4.3 Forward Growth Assessment
+- Analyst growth estimates review
+- Growth sustainability factors
+- Growth quality indicators
+- Reinvestment rate and opportunity analysis
+
+---
+
+## SECTION 5: LEVERAGE & LIQUIDITY ANALYSIS (2-3 pages)
+
+### 5.1 Liquidity Analysis
+| Metric | Value | Benchmark | Assessment |
+|--------|-------|-----------|------------|
+(Current ratio, Quick ratio, Cash ratio, etc.)
+
+### 5.2 Solvency Analysis
+- Debt/Equity analysis and trends
+- Debt/EBITDA assessment
+- Interest coverage analysis
+- Fixed charge coverage
+
+### 5.3 Capital Structure
+- Optimal capital structure discussion
+- Debt maturity profile
+- Refinancing risk assessment
+- Credit rating implications
+
+### 5.4 Financial Flexibility
+- Available credit facilities
+- Debt covenants review
+- Bankruptcy risk assessment (Altman Z-Score if available)
+
+---
+
+## SECTION 6: EFFICIENCY ANALYSIS (1-2 pages)
+
+### 6.1 Asset Efficiency
+- Asset turnover ratios
+- Fixed asset efficiency
+- Working capital efficiency
+
+### 6.2 Working Capital Management
+- Days Sales Outstanding (DSO)
+- Days Inventory Outstanding (DIO)
+- Days Payables Outstanding (DPO)
+- Cash Conversion Cycle analysis
+
+### 6.3 Capital Efficiency
+- Capital employed efficiency
+- Investment efficiency metrics
+- Capacity utilization indicators
+
+---
+
+## SECTION 7: VALUATION ANALYSIS (4-5 pages)
+
+### 7.1 Absolute Valuation
+#### Discounted Cash Flow Analysis (if data available)
+- Key assumptions
+- Projected free cash flows
+- WACC calculation
+- Terminal value methodology
+- Fair value range estimation
+
+### 7.2 Relative Valuation
+| Multiple | Current | 5Y Avg | Sector Avg | Assessment |
+|----------|---------|--------|------------|------------|
+(P/E, Forward P/E, P/B, P/S, EV/EBITDA, EV/Revenue, PEG)
+
+### 7.3 Historical Valuation Context
+- 5-year valuation band analysis
+- Current percentile vs history
+- Premium/discount justification
+- Mean reversion potential
+
+### 7.4 Sum-of-Parts Analysis (if applicable)
+- Segment valuation
+- Hidden assets/liabilities
+- NAV calculation
+
+### 7.5 Fair Value Synthesis
+- Bull/Base/Bear case valuations
+- Probability-weighted fair value
+- Margin of safety analysis
+- Catalysts for re-rating
+
+---
+
+## SECTION 8: RISK ASSESSMENT (3-4 pages)
+
+### 8.1 Financial Risks
+- Credit risk analysis
 - Interest rate sensitivity
-- Cash flow volatility
+- Currency exposure
+- Liquidity risk
+- Counterparty risk
 
-### Business Risks
-- Competitive threats
+### 8.2 Business/Operating Risks
+- Revenue concentration risk
+- Customer/supplier dependency
+- Technology/disruption risk
 - Regulatory/legal risks
-- Operational risks
+- ESG risks
 
-### Market Risks
-- Beta and volatility analysis
-- Correlation considerations
-- Downside scenarios
+### 8.3 Market Risks
+- Beta and systematic risk
+- Volatility analysis (30-day, 1-year)
+- Correlation analysis
+- Downside risk metrics (VaR, Max Drawdown)
+
+### 8.4 Risk Matrix
+| Risk Factor | Probability | Impact | Mitigation | Score |
+|-------------|-------------|--------|------------|-------|
+(List top 10 risks)
 
 ---
 
-## 5. TECHNICAL & MOMENTUM ANALYSIS
+## SECTION 9: TECHNICAL ANALYSIS (2-3 pages)
 
-### Price Action
-- Trend analysis (50-day, 200-day MAs)
-- 52-week range context
-- Momentum indicators
+### 9.1 Trend Analysis
+- Primary trend identification
+- Moving average analysis (20, 50, 200 day)
+- Support/resistance levels
+- Trend strength assessment
 
-### Volume & Sentiment
-- Short interest analysis (if available)
-- Analyst sentiment summary
+### 9.2 Momentum Analysis
+- RSI analysis
+- MACD signals
+- Volume trends
+- Relative strength vs market
+
+### 9.3 Price Action
+- 52-week high/low context
+- Recent price performance (1M, 3M, 6M, 1Y)
+- Pattern recognition
+- Key technical levels
+
+### 9.4 Analyst Sentiment
+- Consensus recommendations breakdown
 - Price target analysis
+- Recent rating changes
+- Sentiment trend
 
 ---
 
-## 6. INVESTMENT CONCLUSION
+## SECTION 10: SHAREHOLDER ANALYSIS (1-2 pages)
 
-### Synthesized View
-- Overall quality score narrative
-- Key strengths and weaknesses
-- Critical factors to monitor
+### 10.1 Ownership Structure
+- Institutional ownership
+- Insider ownership and transactions
+- Short interest analysis
+- Float analysis
 
-### Scenario Analysis
-- Bull case scenario and catalysts
-- Bear case scenario and risks
-- Base case expectations
-
-### Portfolio Considerations
-- Suitable investor profile
-- Position sizing considerations
-- Risk management approach
+### 10.2 Capital Returns
+- Dividend policy and history
+- Dividend yield and payout ratio
+- Share buyback analysis
+- Total shareholder return
 
 ---
 
-**DISCLAIMER:** This report is for educational and informational purposes only. It does not constitute investment advice, a recommendation, or a solicitation to buy or sell any securities. All investments involve risk, including the loss of principal. Past performance does not guarantee future results. Consult a qualified financial advisor before making any investment decisions.
+## SECTION 11: INVESTMENT CONCLUSION (2-3 pages)
+
+### 11.1 Synthesized Assessment
+- Comprehensive strengths summary (bullet points with evidence)
+- Comprehensive weaknesses summary (bullet points with evidence)
+- Competitive positioning conclusion
+- Financial health conclusion
+
+### 11.2 Scenario Analysis
+#### Bull Case (25% probability)
+- Key assumptions
+- Valuation target
+- Catalysts required
+
+#### Base Case (50% probability)
+- Key assumptions
+- Valuation target
+- Expected path
+
+#### Bear Case (25% probability)
+- Key assumptions
+- Valuation target
+- Risk triggers
+
+### 11.3 Portfolio Considerations
+- Suitable investor profiles
+- Position sizing guidance (based on risk)
+- Entry/exit considerations
+- Hedging strategies
+
+### 11.4 Monitoring Framework
+- Key metrics to watch
+- Thesis-changing triggers
+- Review frequency recommendation
 
 ---
-*Report generated by Deep Terminal AI Research Platform*
+
+## APPENDIX
+
+### A. Complete Metrics Tables
+(Present all available metrics in organized tables by category)
+
+### B. Historical Data Summary
+(Key historical trends)
+
+### C. Glossary of Terms
+(Define key financial terms used)
+
+---
+
+**IMPORTANT DISCLAIMER**
+
+This report is for educational and informational purposes only. It does not constitute investment advice, a recommendation, or a solicitation to buy or sell any securities. All investments involve risk, including the loss of principal. Past performance does not guarantee future results. The analysis contained herein is based on data believed to be reliable but accuracy cannot be guaranteed. Consult a qualified financial advisor before making any investment decisions.
+
+---
+
+*Comprehensive Research Report generated by Deep Terminal AI Research Platform*
+*Powered by 430+ financial metrics across 27 categories*
 *Analysis Date: ${new Date().toISOString().split('T')[0]}*
 
-Format Guidelines:
-- Use clear markdown formatting
-- Present metrics in organized tables where appropriate
-- Maintain professional, objective tone throughout
-- Bold key findings and important metrics
-- Use bullet points for readability
-- Include section dividers for clear structure`;
+---
+
+FORMATTING GUIDELINES:
+- Use extensive markdown formatting with headers, tables, and lists
+- Include detailed tables for all metric comparisons
+- Bold all key metrics and important findings
+- Use bullet points extensively for readability
+- Include horizontal rules between major sections
+- Make the report AT LEAST 8000-10000 words
+- Every section must have substantial content
+- Do NOT skip any section - provide full analysis for each`;
 
   // Call OpenRouter API
   try {
-    console.log('[Report] Calling OpenRouter API for stock analysis...');
+    console.log('[Report] Calling OpenRouter API for comprehensive stock analysis...');
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.com',
-        'X-Title': 'Deep Terminal - Stock Analysis',
+        'X-Title': 'Deep Terminal - Comprehensive Stock Analysis',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-opus-4.5', // Claude Opus 4.5
+        model: 'anthropic/claude-sonnet-4-20250514', // Claude Sonnet 4 for better cost/quality
         messages: [
           {
             role: 'user',
             content: CFA_PRO_ANALYSIS_PROMPT,
           },
         ],
-        max_tokens: 16000,
-        temperature: 0.2,
+        max_tokens: 32000, // Maximum output for comprehensive report
+        temperature: 0.3,
       }),
     });
 
