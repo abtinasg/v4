@@ -31,7 +31,11 @@ export async function GET(req: NextRequest) {
   try {
     // بررسی authorization
     const authHeader = req.headers.get('authorization');
-    if (authHeader !== `Bearer ${CRON_SECRET}`) {
+    const isVercelCron = req.headers.get('x-vercel-cron') === '1';
+    const isAuthorized = authHeader === `Bearer ${CRON_SECRET}` || isVercelCron;
+    
+    if (!isAuthorized) {
+      console.error('[Telegram Cron] Unauthorized access attempt');
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -40,6 +44,7 @@ export async function GET(req: NextRequest) {
 
     // چک کن که تلگرام configure شده
     if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHANNEL_ID) {
+      console.warn('[Telegram Cron] Telegram not configured');
       return NextResponse.json({
         success: false,
         error: 'Telegram not configured',
