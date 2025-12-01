@@ -125,14 +125,14 @@ export interface CashFlowStatement {
   acquisitionsNet: number;
   purchasesOfInvestments: number;
   salesMaturitiesOfInvestments: number;
-  otherInvestingActivites: number;
-  netCashUsedForInvestingActivites: number;
+  otherInvestingActivities: number;
+  netCashProvidedByInvestingActivities: number;
   debtRepayment: number;
   commonStockIssued: number;
   commonStockRepurchased: number;
   dividendsPaid: number;
-  otherFinancingActivites: number;
-  netCashUsedProvidedByFinancingActivities: number;
+  otherFinancingActivities: number;
+  netCashProvidedByFinancingActivities: number;
   effectOfForexChangesOnCash: number;
   netChangeInCash: number;
   cashAtEndOfPeriod: number;

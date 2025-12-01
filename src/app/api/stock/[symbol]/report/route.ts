@@ -235,8 +235,8 @@ async function fetchStockData(symbol: string): Promise<StockDataForReport | null
           
           // Cash Flow Statement
           operatingCashFlow: latestCashFlow?.operatingCashFlow || 0,
-          investingCashFlow: latestCashFlow?.netCashUsedForInvestingActivites || 0,
-          financingCashFlow: latestCashFlow?.netCashUsedProvidedByFinancingActivities || 0,
+          investingCashFlow: latestCashFlow?.netCashProvidedByInvestingActivities || 0,
+          financingCashFlow: latestCashFlow?.netCashProvidedByFinancingActivities || 0,
           capitalExpenditures: Math.abs(latestCashFlow?.capitalExpenditure || 0),
           freeCashFlow: latestCashFlow?.freeCashFlow || 0,
           dividendsPaid: Math.abs(latestCashFlow?.dividendsPaid || 0),
