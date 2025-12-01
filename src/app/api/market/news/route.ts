@@ -310,26 +310,9 @@ export async function GET(request: Request) {
     allNews = Array.from(newsMap.values())
       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime())
     
-    // Balance sources - ensure diversity
-    const fmpNews = allNews.filter(n => n.source !== 'NewsAPI' && !['CNN', 'BBC', 'Reuters'].includes(n.source))
-    const newsApiNews = allNews.filter(n => n.source === 'NewsAPI' || ['CNN', 'BBC', 'Reuters', 'Bloomberg', 'CNBC'].some(s => n.source.includes(s)))
-    
-    let balancedNews: NewsItem[] = []
-    if (fmpNews.length > 0 && newsApiNews.length > 0) {
-      // FMP gets 60%, NewsAPI gets 40% for better stock news coverage
-      const fmpLimit = Math.ceil(limit * 0.6)
-      const newsApiLimit = Math.ceil(limit * 0.4)
-      const limitedFMP = fmpNews.slice(0, fmpLimit)
-      const limitedNewsAPI = newsApiNews.slice(0, newsApiLimit)
-      
-      balancedNews = [...limitedFMP, ...limitedNewsAPI]
-        .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime())
-        .slice(0, limit)
-    } else {
-      balancedNews = allNews.slice(0, limit)
-    }
-    
-    allNews = balancedNews
+    // Simply limit to requested amount - no complex balancing needed
+    // since NewsAPI doesn't work in production (localhost only on free tier)
+    allNews = allNews.slice(0, limit)
 
     // If no news, try Polygon as backup
     if (allNews.length === 0 && isPolygonConfigured()) {
