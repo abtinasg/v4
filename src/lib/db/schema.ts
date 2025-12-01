@@ -501,7 +501,7 @@ export const aiPrompts = pgTable('ai_prompts', {
   userPromptTemplate: text('user_prompt_template'),
   description: text('description'),
   category: varchar('category', { length: 50 }).notNull().default('general'),
-  model: varchar('model', { length: 100 }).notNull().default('claude-sonnet-4-20250514'),
+  model: varchar('model', { length: 100 }).notNull().default('anthropic/claude-sonnet-4.5'),
   temperature: decimal('temperature', { precision: 3, scale: 2 }).notNull().default('0.7'),
   maxTokens: decimal('max_tokens', { precision: 10, scale: 0 }).notNull().default('4096'),
   isActive: boolean('is_active').default(true).notNull(),

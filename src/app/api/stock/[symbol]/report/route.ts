@@ -652,7 +652,7 @@ OUTPUT FORMAT:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-sonnet-4-20250514', // Claude Sonnet 4.5 - latest and fastest
+        model: 'anthropic/claude-sonnet-4.5', // Claude Sonnet 4.5 - latest and fastest
         messages: [
           {
             role: 'user',
