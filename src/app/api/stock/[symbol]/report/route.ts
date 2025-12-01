@@ -18,13 +18,8 @@ import {
   deductCredits, 
   checkAndResetMonthlyCredits,
 } from '@/lib/credits';
-import YahooFinance from 'yahoo-finance2';
-
-// Note: MetricsCalculator import path - adjust based on project structure
-// import { MetricsCalculator } from '../../../../../../../../lib/metrics';
-
-// Create Yahoo Finance instance
-const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey', 'ripHistorical'] });
+import { getAllFinancialData } from '@/lib/data/fmp';
+import { MetricsCalculator } from '../../../../../../lib/metrics';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -50,209 +45,306 @@ interface StockDataForReport {
 }
 
 /**
- * Fetch comprehensive stock data for report generation using Yahoo Finance directly
+ * Fetch comprehensive stock data for report generation using FMP API
  * Now includes 430+ calculated metrics from MetricsCalculator
  */
 async function fetchStockData(symbol: string): Promise<StockDataForReport | null> {
   try {
-    console.log(`[Report] Fetching Yahoo Finance data for ${symbol}...`);
+    console.log(`[Report] Fetching FMP data for ${symbol}...`);
     
-    // Fetch quote data with retry logic
-    let quote: any = null;
-    let retries = 3;
+    // Fetch all financial data from FMP
+    const fmpData = await getAllFinancialData(symbol);
     
-    while (retries > 0 && !quote) {
-      try {
-        const quoteData = await yahooFinance.quote(symbol);
-        quote = quoteData as any;
-        if (quote && quote.regularMarketPrice) {
-          break;
-        }
-      } catch (quoteError: any) {
-        console.warn(`[Report] Quote attempt failed for ${symbol}, retries left: ${retries - 1}`, quoteError.message);
-        retries--;
-        if (retries > 0) {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-        }
-      }
-    }
-    
-    if (!quote || !quote.regularMarketPrice) {
-      console.error(`[Report] No quote data for ${symbol} after retries`);
+    if (!fmpData.quote || !fmpData.profile) {
+      console.error(`[Report] No quote or profile data for ${symbol}`);
       return null;
     }
 
-    // Fetch quoteSummary for detailed data
-    let summaryData: any = {};
-    try {
-      const summary = await yahooFinance.quoteSummary(symbol, {
-        modules: [
-          'summaryProfile',
-          'summaryDetail', 
-          'financialData',
-          'defaultKeyStatistics',
-          'earningsHistory',
-          'earningsTrend',
-          'industryTrend',
-          'recommendationTrend',
-          'upgradeDowngradeHistory',
-          'incomeStatementHistory',
-          'balanceSheetHistory',
-          'cashflowStatementHistory',
-        ]
-      });
-      summaryData = summary;
-    } catch (error) {
-      console.warn('[Report] Could not fetch full summary data:', error);
-    }
+    const { profile, quote, incomeStatements, balanceSheets, cashFlows, keyMetrics, ratios, historicalPrices } = fmpData;
 
-    // Fetch historical data for technical analysis
-    let historicalData: any[] = [];
-    try {
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setFullYear(startDate.getFullYear() - 1);
-      
-      const historical = await yahooFinance.chart(symbol, {
-        period1: startDate,
-        period2: endDate,
-        interval: '1d',
-      });
-      
-      if (historical && (historical as any).quotes) {
-        historicalData = (historical as any).quotes.slice(-252); // Last year of trading days
-      }
-    } catch (error) {
-      console.warn('[Report] Could not fetch historical data:', error);
-    }
+    // Get latest financial data
+    const latestIncome = incomeStatements[0];
+    const latestBalance = balanceSheets[0];
+    const latestCashFlow = cashFlows[0];
+    const latestMetrics = keyMetrics[0];
+    const latestRatios = ratios[0];
 
-    // Build comprehensive metrics object
+    // Build comprehensive metrics object from FMP data
     const metrics = {
       // Valuation
-      pe: quote.trailingPE,
-      forwardPE: quote.forwardPE,
-      peg: summaryData.defaultKeyStatistics?.pegRatio,
-      priceToBook: quote.priceToBook,
-      priceToSales: summaryData.summaryDetail?.priceToSalesTrailing12Months,
-      enterpriseValue: summaryData.defaultKeyStatistics?.enterpriseValue,
-      evToRevenue: summaryData.defaultKeyStatistics?.enterpriseToRevenue,
-      evToEbitda: summaryData.defaultKeyStatistics?.enterpriseToEbitda,
+      pe: quote.pe,
+      priceToBook: latestRatios?.priceToBookRatio,
+      priceToSales: latestRatios?.priceToSalesRatio,
+      priceToFreeCashFlow: latestRatios?.priceToFreeCashFlowRatio,
+      enterpriseValue: latestMetrics?.enterpriseValue,
+      evToRevenue: latestMetrics?.evToSales,
+      evToEbitda: latestMetrics?.evToEBITDA,
+      evToOperatingCashFlow: latestMetrics?.evToOperatingCashFlow,
+      evToFreeCashFlow: latestMetrics?.evToFreeCashFlow,
       
       // Profitability
-      profitMargin: summaryData.financialData?.profitMargins,
-      operatingMargin: summaryData.financialData?.operatingMargins,
-      grossMargin: summaryData.financialData?.grossMargins,
-      returnOnEquity: summaryData.financialData?.returnOnEquity,
-      returnOnAssets: summaryData.financialData?.returnOnAssets,
+      grossMargin: latestRatios?.grossProfitMargin,
+      operatingMargin: latestRatios?.operatingProfitMargin,
+      ebitMargin: latestRatios?.ebitMargin,
+      ebitdaMargin: latestRatios?.ebitdaMargin,
+      netProfitMargin: latestRatios?.netProfitMargin,
+      pretaxProfitMargin: latestRatios?.pretaxProfitMargin,
+      returnOnEquity: latestMetrics?.returnOnEquity,
+      returnOnAssets: latestMetrics?.returnOnAssets,
+      returnOnInvestedCapital: latestMetrics?.returnOnInvestedCapital,
+      returnOnCapitalEmployed: latestMetrics?.returnOnCapitalEmployed,
       
-      // Growth
-      revenueGrowth: summaryData.financialData?.revenueGrowth,
-      earningsGrowth: summaryData.financialData?.earningsGrowth,
-      earningsQuarterlyGrowth: summaryData.defaultKeyStatistics?.earningsQuarterlyGrowth,
+      // Growth (calculate from historical data if available)
+      revenueGrowth: incomeStatements.length >= 2 ? 
+        ((incomeStatements[0].revenue - incomeStatements[1].revenue) / incomeStatements[1].revenue) : null,
+      earningsGrowth: incomeStatements.length >= 2 ?
+        ((incomeStatements[0].netIncome - incomeStatements[1].netIncome) / incomeStatements[1].netIncome) : null,
       
       // Financial Health
-      currentRatio: summaryData.financialData?.currentRatio,
-      quickRatio: summaryData.financialData?.quickRatio,
-      debtToEquity: summaryData.financialData?.debtToEquity,
-      totalDebt: summaryData.financialData?.totalDebt,
-      totalCash: summaryData.financialData?.totalCash,
-      freeCashflow: summaryData.financialData?.freeCashflow,
-      operatingCashflow: summaryData.financialData?.operatingCashflow,
+      currentRatio: latestMetrics?.currentRatio || latestRatios?.currentRatio,
+      quickRatio: latestRatios?.quickRatio,
+      cashRatio: latestRatios?.cashRatio,
+      debtToEquity: latestRatios?.debtToEquityRatio,
+      debtToAssets: latestRatios?.debtToAssetsRatio,
+      debtToCapital: latestRatios?.debtToCapitalRatio,
+      netDebtToEBITDA: latestMetrics?.netDebtToEBITDA,
+      interestCoverage: latestRatios?.interestCoverageRatio,
+      
+      // Cash Flow
+      freeCashflow: latestCashFlow?.freeCashFlow,
+      operatingCashflow: latestCashFlow?.operatingCashFlow,
+      freeCashFlowYield: latestMetrics?.freeCashFlowYield,
+      capexToOperatingCashFlow: latestMetrics?.capexToOperatingCashFlow,
+      capexToRevenue: latestMetrics?.capexToRevenue,
+      
+      // Working Capital & Efficiency
+      workingCapital: latestMetrics?.workingCapital,
+      daysSalesOutstanding: latestMetrics?.daysOfSalesOutstanding,
+      daysInventoryOutstanding: latestMetrics?.daysOfInventoryOutstanding,
+      daysPayablesOutstanding: latestMetrics?.daysOfPayablesOutstanding,
+      operatingCycle: latestMetrics?.operatingCycle,
+      cashConversionCycle: latestMetrics?.cashConversionCycle,
+      assetTurnover: latestRatios?.assetTurnover,
+      inventoryTurnover: latestRatios?.inventoryTurnover,
+      receivablesTurnover: latestRatios?.receivablesTurnover,
+      payablesTurnover: latestRatios?.payablesTurnover,
       
       // Dividends
-      dividendYield: quote.dividendYield,
-      dividendRate: quote.dividendRate,
-      payoutRatio: summaryData.summaryDetail?.payoutRatio,
-      fiveYearAvgDividendYield: summaryData.summaryDetail?.fiveYearAvgDividendYield,
+      dividendYield: latestRatios?.dividendYield,
+      dividendPayoutRatio: latestRatios?.dividendPayoutRatio,
       
       // Risk & Volatility
-      beta: quote.beta,
-      fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
-      fiftyTwoWeekLow: quote.fiftyTwoWeekLow,
-      fiftyDayAverage: quote.fiftyDayAverage,
-      twoHundredDayAverage: quote.twoHundredDayAverage,
+      beta: profile.beta,
       
-      // Shares
-      sharesOutstanding: summaryData.defaultKeyStatistics?.sharesOutstanding,
-      floatShares: summaryData.defaultKeyStatistics?.floatShares,
-      sharesShort: summaryData.defaultKeyStatistics?.sharesShort,
-      shortRatio: summaryData.defaultKeyStatistics?.shortRatio,
-      shortPercentOfFloat: summaryData.defaultKeyStatistics?.shortPercentOfFloat,
+      // Shares & Per Share Metrics
+      sharesOutstanding: quote.sharesOutstanding,
+      eps: quote.eps,
+      revenuePerShare: latestRatios?.revenuePerShare,
+      bookValuePerShare: latestRatios?.bookValuePerShare,
+      operatingCashFlowPerShare: latestRatios?.operatingCashFlowPerShare,
+      freeCashFlowPerShare: latestRatios?.freeCashFlowPerShare,
       
-      // Analyst Ratings
-      targetHighPrice: summaryData.financialData?.targetHighPrice,
-      targetLowPrice: summaryData.financialData?.targetLowPrice,
-      targetMeanPrice: summaryData.financialData?.targetMeanPrice,
-      recommendationMean: summaryData.financialData?.recommendationMean,
-      recommendationKey: summaryData.financialData?.recommendationKey,
-      numberOfAnalystOpinions: summaryData.financialData?.numberOfAnalystOpinions,
+      // Tax & Other
+      effectiveTaxRate: latestRatios?.effectiveTaxRate,
+      incomeQuality: latestMetrics?.incomeQuality,
+      grahamNumber: latestMetrics?.grahamNumber,
       
-      // Earnings
-      trailingEps: quote.epsTrailingTwelveMonths,
-      forwardEps: quote.epsForward,
-      bookValue: summaryData.defaultKeyStatistics?.bookValue,
+      // DuPont Analysis
+      taxBurden: latestMetrics?.taxBurden,
+      interestBurden: latestMetrics?.interestBurden,
     };
 
-    // Calculate additional technical metrics from historical data
+    // Calculate technical metrics from historical data
     let technicalMetrics = {};
-    if (historicalData.length > 0) {
-      const prices = historicalData.map(d => d.close).filter(Boolean);
+    if (historicalPrices.length > 0) {
+      const prices = historicalPrices.map(d => d.close).filter(Boolean).reverse(); // Reverse to chronological order
       if (prices.length > 20) {
         const last20 = prices.slice(-20);
         const last50 = prices.slice(-50);
+        const last200 = prices.slice(-200);
         const volatility = calculateVolatility(prices.slice(-30));
         
         technicalMetrics = {
           sma20: last20.reduce((a, b) => a + b, 0) / last20.length,
           sma50: last50.length >= 50 ? last50.reduce((a, b) => a + b, 0) / 50 : null,
+          sma200: last200.length >= 200 ? last200.reduce((a, b) => a + b, 0) / 200 : null,
           volatility30Day: volatility,
-          priceChange1Month: prices.length > 21 ? ((prices[prices.length - 1] - prices[prices.length - 22]) / prices[prices.length - 22]) * 100 : null,
-          priceChange3Month: prices.length > 63 ? ((prices[prices.length - 1] - prices[prices.length - 64]) / prices[prices.length - 64]) * 100 : null,
-          priceChange1Year: prices.length > 252 ? ((prices[prices.length - 1] - prices[0]) / prices[0]) * 100 : null,
+          priceChange1Month: prices.length > 21 ? ((prices[prices.length - 1] - prices[prices.length - 22]) / prices[prices.length - 22]) : null,
+          priceChange3Month: prices.length > 63 ? ((prices[prices.length - 1] - prices[prices.length - 64]) / prices[prices.length - 64]) : null,
+          priceChange1Year: prices.length > 252 ? ((prices[prices.length - 1] - prices[0]) / prices[0]) : null,
+          fiftyTwoWeekHigh: quote.yearHigh,
+          fiftyTwoWeekLow: quote.yearLow,
         };
       }
     }
 
     // Calculate 430+ advanced metrics using MetricsCalculator
-    // TODO: Enable when MetricsCalculator is fully integrated
     let advancedMetrics = null;
-    /* 
     try {
-      const calculator = new MetricsCalculator({
-        enableCache: false,
-        currency: 'USD',
-      });
-      
-      // Prepare raw financial data for calculator
+      // Prepare raw financial data for calculator matching RawFinancialData interface
       const rawData = {
-        yahooFinance: {
-          quote,
-          summaryData,
-          historicalData,
+        yahoo: {
+          symbol: quote.symbol,
+          price: quote.price,
+          previousClose: quote.previousClose || quote.price,
+          open: quote.open || quote.price,
+          dayLow: quote.dayLow || quote.price,
+          dayHigh: quote.dayHigh || quote.price,
+          volume: quote.volume || 0,
+          averageVolume: quote.avgVolume || 0,
+          marketCap: quote.marketCap,
+          beta: profile.beta || 1,
+          pe: quote.pe || null,
+          eps: quote.eps || null,
+          forwardPE: null,
+          forwardEPS: null,
+          dividendRate: null,
+          dividendYield: latestRatios?.dividendYield || null,
+          fiftyDayAverage: quote.priceAvg50 || null,
+          twoHundredDayAverage: quote.priceAvg200 || null,
+          
+          // Income Statement
+          revenue: latestIncome?.revenue || 0,
+          costOfRevenue: latestIncome?.costOfRevenue || 0,
+          grossProfit: latestIncome?.grossProfit || 0,
+          operatingExpenses: latestIncome?.operatingExpenses || 0,
+          operatingIncome: latestIncome?.operatingIncome || 0,
+          ebitda: latestIncome?.ebitda || 0,
+          ebit: latestIncome?.ebit || 0,
+          interestExpense: latestIncome?.interestExpense || 0,
+          pretaxIncome: latestIncome?.incomeBeforeTax || 0,
+          incomeTax: latestIncome?.incomeTaxExpense || 0,
+          netIncome: latestIncome?.netIncome || 0,
+          
+          // Balance Sheet
+          totalAssets: latestBalance?.totalAssets || 0,
+          currentAssets: latestBalance?.totalCurrentAssets || 0,
+          cash: latestBalance?.cashAndCashEquivalents || 0,
+          shortTermInvestments: latestBalance?.shortTermInvestments || 0,
+          netReceivables: latestBalance?.netReceivables || 0,
+          inventory: latestBalance?.inventory || 0,
+          totalLiabilities: latestBalance?.totalLiabilities || 0,
+          currentLiabilities: latestBalance?.totalCurrentLiabilities || 0,
+          shortTermDebt: latestBalance?.shortTermDebt || 0,
+          accountsPayable: latestBalance?.accountPayables || 0,
+          longTermDebt: latestBalance?.longTermDebt || 0,
+          totalDebt: (latestBalance?.longTermDebt || 0) + (latestBalance?.shortTermDebt || 0),
+          totalEquity: latestBalance?.totalStockholdersEquity || 0,
+          retainedEarnings: latestBalance?.retainedEarnings || 0,
+          workingCapital: latestMetrics?.workingCapital || 0,
+          
+          // Cash Flow Statement
+          operatingCashFlow: latestCashFlow?.operatingCashFlow || 0,
+          investingCashFlow: latestCashFlow?.netCashUsedForInvestingActivites || 0,
+          financingCashFlow: latestCashFlow?.netCashUsedProvidedByFinancingActivities || 0,
+          capitalExpenditures: Math.abs(latestCashFlow?.capitalExpenditure || 0),
+          freeCashFlow: latestCashFlow?.freeCashFlow || 0,
+          dividendsPaid: Math.abs(latestCashFlow?.dividendsPaid || 0),
+          
+          // Financial Ratios
+          currentRatio: latestMetrics?.currentRatio || null,
+          quickRatio: latestRatios?.quickRatio || null,
+          debtToEquity: latestRatios?.debtToEquityRatio || null,
+          returnOnEquity: latestMetrics?.returnOnEquity || null,
+          returnOnAssets: latestMetrics?.returnOnAssets || null,
+          grossMargin: latestRatios?.grossProfitMargin || null,
+          operatingMargin: latestRatios?.operatingProfitMargin || null,
+          profitMargin: latestRatios?.netProfitMargin || null,
+          revenueGrowth: incomeStatements.length >= 2 ? 
+            ((incomeStatements[0].revenue - incomeStatements[1].revenue) / incomeStatements[1].revenue) : null,
+          earningsGrowth: incomeStatements.length >= 2 ?
+            ((incomeStatements[0].netIncome - incomeStatements[1].netIncome) / incomeStatements[1].netIncome) : null,
+          
+          // Company Info
+          sector: profile.sector || 'N/A',
+          industry: profile.industry || 'N/A',
+          
+          // Share Data
+          sharesOutstanding: quote.sharesOutstanding || 0,
+          floatShares: 0,
+          
+          // Historical Data
+          historicalRevenue: incomeStatements.map(is => is.revenue).reverse(),
+          historicalNetIncome: incomeStatements.map(is => is.netIncome).reverse(),
+          historicalEPS: incomeStatements.map(is => is.eps).reverse(),
+          historicalDividends: [],
+          historicalFCF: cashFlows.map(cf => cf.freeCashFlow).reverse(),
+          
+          // Price History
+          priceHistory: historicalPrices.slice(0, 252).reverse().map(hp => ({
+            date: hp.date,
+            open: hp.open,
+            high: hp.high,
+            low: hp.low,
+            close: hp.close,
+            volume: hp.volume,
+          })),
         },
-        incomeStatement: summaryData.incomeStatementHistory?.incomeStatementHistory || [],
-        balanceSheet: summaryData.balanceSheetHistory?.balanceSheetStatements || [],
-        cashflowStatement: summaryData.cashflowStatementHistory?.cashflowStatements || [],
+        fred: {
+          gdpGrowthRate: null,
+          realGDP: null,
+          nominalGDP: null,
+          gdpPerCapita: null,
+          realGDPGrowthRate: null,
+          potentialGDP: null,
+          outputGap: null,
+          cpi: null,
+          ppi: null,
+          coreInflation: null,
+          inflationRate: null,
+          pceInflation: null,
+          coreInflationRate: null,
+          breakEvenInflation5Y: null,
+          breakEvenInflation10Y: null,
+          federalFundsRate: null,
+          treasury10Y: 0.04, // Default risk-free rate
+          treasury2Y: null,
+          treasury30Y: null,
+          treasury3M: null,
+          primeRate: null,
+          interbankRate: null,
+          realInterestRate: null,
+          neutralRate: null,
+          yieldCurveSpread: null,
+          m1MoneySupply: null,
+          m2MoneySupply: null,
+        } as any, // Cast to avoid listing all 40+ FRED fields
+        industry: {
+          sectorName: profile.sector || 'N/A',
+          industryName: profile.industry || 'N/A',
+          sectorPE: null,
+          industryGrowthRate: null,
+        } as any,
+        tradeFx: {
+          usdIndex: null,
+          realEffectiveExchangeRate: null,
+        } as any,
+        timestamp: new Date(),
       };
       
-      advancedMetrics = await calculator.calculateAll(rawData);
+      const calculator = new MetricsCalculator(rawData, {
+        marketRiskPremium: 0.05,
+        terminalGrowthRate: 0.025,
+        riskFreeRate: 0.04,
+      });
+      
+      advancedMetrics = calculator.calculateAll();
       console.log('[Report] Advanced metrics calculated successfully (430+ metrics)');
     } catch (metricsError) {
       console.warn('[Report] Could not calculate advanced metrics:', metricsError);
     }
-    */
 
     return {
       symbol: quote.symbol,
-      companyName: quote.longName || quote.shortName || symbol,
-      sector: summaryData.summaryProfile?.sector || 'N/A',
-      industry: summaryData.summaryProfile?.industry || 'N/A',
-      currentPrice: quote.regularMarketPrice || 0,
+      companyName: profile.companyName,
+      sector: profile.sector || 'N/A',
+      industry: profile.industry || 'N/A',
+      currentPrice: quote.price || 0,
       marketCap: quote.marketCap || 0,
       metrics: { ...metrics, ...technicalMetrics },
       advancedMetrics,
-      historicalData: historicalData.length > 0 ? {
-        prices: historicalData.slice(-60).map(d => ({
+      historicalData: historicalPrices.length > 0 ? {
+        prices: historicalPrices.slice(0, 60).reverse().map(d => ({
           date: d.date,
           close: d.close,
           volume: d.volume,

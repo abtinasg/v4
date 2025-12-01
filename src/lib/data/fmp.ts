@@ -459,7 +459,12 @@ export async function getHistoricalPrices(
     if (from) params.from = from;
     if (to) params.to = to;
     
-    const data = await fmpFetch<{ historical: FMPHistoricalPrice[] }>('/historical-price-eod/full', params);
+    const data = await fmpFetch<FMPHistoricalPrice[] | { historical: FMPHistoricalPrice[] }>('/historical-price-eod/full', params);
+    
+    // Handle both array and object response formats
+    if (Array.isArray(data)) {
+      return data;
+    }
     return data?.historical || [];
   } catch (error) {
     console.error(`FMP getHistoricalPrices error for ${symbol}:`, error);
