@@ -93,9 +93,15 @@ export function BuyButton({ packageId, packageName, price, isPopular }: BuyButto
       const response = await fetch('/api/payments/nowpayments/currencies')
       const data = await response.json()
       
-      if (data.success && data.data?.currencies) {
+      if (data.success && data.data) {
+        // data.data is an array of currency strings like ['btc', 'eth', ...]
+        const currencyList: Currency[] = (Array.isArray(data.data) ? data.data : []).map((c: string) => ({
+          currency: c,
+          name: CURRENCY_NAMES[c.toLowerCase()] || c.toUpperCase(),
+        }))
+        
         // Sort currencies: popular first, then alphabetically
-        const sorted = data.data.currencies.sort((a: Currency, b: Currency) => {
+        const sorted = currencyList.sort((a: Currency, b: Currency) => {
           const aPopular = POPULAR_CURRENCIES.indexOf(a.currency.toLowerCase())
           const bPopular = POPULAR_CURRENCIES.indexOf(b.currency.toLowerCase())
           
