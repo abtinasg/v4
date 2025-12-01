@@ -42,17 +42,24 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 async function getNewsArticle(id: string): Promise<NewsArticle | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/market/news?limit=100`, {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.deepinhq.com';
+    const response = await fetch(`${baseUrl}/api/market/news/${id}`, {
       next: { revalidate: 300 }, // 5 minutes cache
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error(`Failed to fetch article ${id}:`, response.status);
+      return null;
+    }
 
     const data = await response.json();
-    const article = data.news?.find((n: NewsArticle) => n.id === id);
+    
+    if (!data.success || !data.article) {
+      console.error(`Article ${id} not found in response`);
+      return null;
+    }
 
-    return article || null;
+    return data.article;
   } catch (error) {
     console.error('Error fetching article:', error);
     return null;
