@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   defaultMetadata, 
   JsonLd, 
@@ -61,7 +62,7 @@ export default function MarketingLayout({
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <img src="/deep-logo.svg" alt="Deep" className="h-10 w-10" />
+            <Image src="/deep-logo.svg" alt="Deep" width={40} height={40} className="h-10 w-10" />
             <span className="text-lg font-semibold text-white">Deep</span>
           </Link>
 

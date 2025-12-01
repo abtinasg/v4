@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, LineChart, List, Terminal, Newspaper, Briefcase } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -11,7 +12,7 @@ export function DashboardSidebar() {
     <aside className="w-64 border-r bg-card flex flex-col">
       <div className="p-6 border-b">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <img src="/deep-logo.svg" alt="Deep" className="h-8 w-8" />
+          <Image src="/deep-logo.svg" alt="Deep" width={32} height={32} className="h-8 w-8" />
           <h1 className="text-2xl font-bold text-gradient">Deep</h1>
         </Link>
       </div>
