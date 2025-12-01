@@ -20,6 +20,7 @@ import {
   LogOut,
   X,
   Coins,
+  Briefcase,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -108,29 +109,35 @@ const navItems = [
     shortcut: '2',
   },
   {
+    href: '/dashboard/portfolio',
+    icon: Briefcase,
+    label: 'Portfolio',
+    shortcut: '3',
+  },
+  {
     href: '/dashboard/watchlist',
     icon: Star,
     label: 'Watchlist',
-    shortcut: '3',
+    shortcut: '4',
   },
   {
     href: '/dashboard/news',
     icon: Newspaper,
     label: 'Market News',
-    shortcut: '4',
+    shortcut: '5',
   },
   {
     href: '/dashboard/terminal-pro',
     icon: Terminal,
     label: 'Terminal Pro',
-    shortcut: '5',
+    shortcut: '6',
     badge: 'Pro',
   },
   {
     href: '/dashboard/ai-assistant',
     icon: MessageSquare,
     label: 'AI Assistant',
-    shortcut: '6',
+    shortcut: '7',
     badge: 'New',
   },
 ]
