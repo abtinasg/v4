@@ -712,6 +712,7 @@ export const cryptoPayments = pgTable('crypto_payments', {
     purchaseId?: string
     outcomeAmount?: number
     outcomeCurrency?: string
+    networkPrecision?: number
   }>(),
   
   // Timestamps

@@ -381,6 +381,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Important: include cookies for authentication
         body: JSON.stringify({
           reportType: 'full',
           includeCharts: true,

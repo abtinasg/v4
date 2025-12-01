@@ -84,6 +84,7 @@ export async function GET(
         expiresAt: payment.expiresAt,
         paidAt: payment.paidAt,
         createdAt: payment.createdAt,
+        metadata: payment.metadata,
         externalStatus: externalStatus ? {
           status: externalStatus.payment_status,
           actuallyPaid: externalStatus.actually_paid,
