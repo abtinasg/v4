@@ -68,6 +68,7 @@ export async function POST(request: Request) {
     const { userId: clerkId } = await auth();
     
     if (!clerkId) {
+      console.error('[Portfolio] No clerkId found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -76,7 +77,8 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      console.error('[Portfolio] User not found for clerkId:', clerkId);
+      return NextResponse.json({ error: 'User not found. Please complete onboarding first.' }, { status: 404 });
     }
 
     const body = await request.json();
@@ -98,6 +100,8 @@ export async function POST(request: Request) {
       where: eq(portfolios.userId, user.id),
     });
 
+    console.log('[Portfolio] Creating portfolio for user:', user.id, 'Name:', name);
+
     const [newPortfolio] = await db.insert(portfolios).values({
       userId: user.id,
       name: name.trim(),
@@ -106,9 +110,14 @@ export async function POST(request: Request) {
       isDefault: isDefault || existingPortfolios.length === 0,
     }).returning();
 
+    console.log('[Portfolio] Created successfully:', newPortfolio.id);
+
     return NextResponse.json({ portfolio: newPortfolio }, { status: 201 });
   } catch (error) {
-    console.error('Error creating portfolio:', error);
-    return NextResponse.json({ error: 'Failed to create portfolio' }, { status: 500 });
+    console.error('[Portfolio] Error creating portfolio:', error);
+    return NextResponse.json({ 
+      error: 'Failed to create portfolio',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

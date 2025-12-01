@@ -485,10 +485,12 @@ function CreatePortfolioModal({
         });
       } else {
         const data = await response.json();
-        setError(data.error || 'Failed to create portfolio');
+        console.error('Portfolio creation error:', data);
+        setError(data.details || data.error || 'Failed to create portfolio');
       }
     } catch (err) {
-      setError('Failed to create portfolio');
+      console.error('Portfolio creation exception:', err);
+      setError('Failed to create portfolio. Please try again.');
     } finally {
       setLoading(false);
     }
