@@ -810,60 +810,58 @@ export async function POST(
     let stockData;
     try {
       // Import the FMP adapter to get data directly
-      const { fetchFMPData } = await import('@/lib/data/fmp-adapter');
+      const { getFMPRawData } = await import('@/lib/data/fmp-adapter');
       
-      // Fetch comprehensive data from FMP
-      const fmpResult = await fetchFMPData(upperSymbol);
+      // Fetch comprehensive data from FMP (raw data with profile)
+      const fmpRawData = await getFMPRawData(upperSymbol);
       
-      if (!fmpResult.success || !fmpResult.data) {
-        throw new Error(fmpResult.error || 'No data returned from FMP');
+      if (!fmpRawData.profile && !fmpRawData.quote) {
+        throw new Error('No data returned from FMP');
       }
       
-      const fmpData = fmpResult.data;
       const fetchTime = Date.now() - startFetch;
       console.log(`[Report] FMP data fetched in ${fetchTime}ms`);
+      
+      const { profile, quote, keyMetrics, ratios, cashFlows } = fmpRawData;
+      const latestMetrics = keyMetrics?.[0];
+      const latestRatios = ratios?.[0];
+      const latestCashFlow = cashFlows?.[0];
       
       // Transform FMP data to stockData format
       stockData = {
         symbol: upperSymbol,
-        companyName: fmpData.sector || upperSymbol, // Note: FMP adapter uses sector field for company name
-        sector: fmpData.sector || 'N/A',
-        industry: fmpData.industry || 'N/A',
-        currentPrice: fmpData.price || 0,
-        marketCap: fmpData.marketCap || 0,
+        companyName: profile?.companyName || quote?.name || upperSymbol,
+        sector: profile?.sector || 'N/A',
+        industry: profile?.industry || 'N/A',
+        currentPrice: quote?.price || 0,
+        marketCap: quote?.marketCap || profile?.marketCap || 0,
         metrics: {
           // Basic valuation
-          pe: fmpData.pe,
-          marketCap: fmpData.marketCap,
+          pe: quote?.pe || latestRatios?.priceToEarningsRatio,
+          marketCap: quote?.marketCap,
           
           // Profitability
-          grossMargin: fmpData.grossMargin,
-          operatingMargin: fmpData.operatingMargin,
-          profitMargin: fmpData.profitMargin,
-          returnOnEquity: fmpData.returnOnEquity,
-          returnOnAssets: fmpData.returnOnAssets,
+          grossMargin: latestRatios?.grossProfitMargin,
+          operatingMargin: latestRatios?.operatingProfitMargin,
+          profitMargin: latestRatios?.netProfitMargin,
+          returnOnEquity: latestMetrics?.returnOnEquity,
+          returnOnAssets: latestMetrics?.returnOnAssets,
           
           // Financial Health
-          currentRatio: fmpData.currentRatio,
-          quickRatio: fmpData.quickRatio,
-          debtToEquity: fmpData.debtToEquity,
+          currentRatio: latestMetrics?.currentRatio || latestRatios?.currentRatio,
+          quickRatio: latestRatios?.quickRatio,
+          debtToEquity: latestRatios?.debtToEquityRatio,
           
           // Cash Flow
-          freeCashflow: fmpData.freeCashFlow,
-          operatingCashflow: fmpData.operatingCashFlow,
+          freeCashflow: latestCashFlow?.freeCashFlow,
+          operatingCashflow: latestCashFlow?.operatingCashFlow,
           
-          // Growth
-          revenueGrowth: fmpData.revenueGrowth,
-          earningsGrowth: fmpData.earningsGrowth,
+          // Growth (would need to calculate from historical)
+          revenueGrowth: null,
+          earningsGrowth: null,
         },
-        advancedMetrics: null, // Will calculate if needed
-        historicalData: fmpData.priceHistory ? {
-          prices: fmpData.priceHistory.slice(0, 60).map((d: any) => ({
-            date: d.date,
-            close: d.close,
-            volume: d.volume,
-          })),
-        } : null,
+        advancedMetrics: null,
+        historicalData: null,
       };
     } catch (error) {
       console.error(`[Report] Failed to fetch data for ${upperSymbol}:`, error);
