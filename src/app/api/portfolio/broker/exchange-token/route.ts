@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { portfolios, holdings } from '@/lib/db/schema';
+import { portfolios, portfolioHoldings } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -136,13 +136,12 @@ export async function POST(req: NextRequest) {
           ? holding.cost_basis / holding.quantity 
           : holding.institution_price;
 
-        await db.insert(holdings).values({
-          id: crypto.randomUUID(),
+        await db.insert(portfolioHoldings).values({
+          userId,
           portfolioId,
           symbol: security.ticker_symbol.toUpperCase(),
           quantity: holding.quantity.toString(),
           avgBuyPrice: avgPrice.toString(),
-          purchaseDate: new Date().toISOString(),
           notes: `Synced from ${institutionName || 'broker'}`,
         });
 

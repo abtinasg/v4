@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { portfolios, holdings } from '@/lib/db/schema';
+import { portfolios, portfolioHoldings } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -65,8 +65,8 @@ export async function POST(
     // Clear existing holdings if requested
     if (clearExisting) {
       await db
-        .delete(holdings)
-        .where(eq(holdings.portfolioId, portfolioId));
+        .delete(portfolioHoldings)
+        .where(eq(portfolioHoldings.portfolioId, portfolioId));
     }
 
     // Insert new holdings
@@ -82,13 +82,12 @@ export async function POST(
           continue;
         }
 
-        await db.insert(holdings).values({
-          id: crypto.randomUUID(),
+        await db.insert(portfolioHoldings).values({
+          userId,
           portfolioId,
           symbol: row.symbol.toUpperCase(),
           quantity: row.quantity.toString(),
           avgBuyPrice: row.avgBuyPrice.toString(),
-          purchaseDate: row.purchaseDate || new Date().toISOString(),
         });
 
         successCount++;

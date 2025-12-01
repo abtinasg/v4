@@ -241,15 +241,6 @@ export function PriceChart({ symbol, initialData }: PriceChartProps) {
     return [min - padding, max + padding];
   }, [chartData]);
 
-  // Handle timeframe change
-  const handleTimeframeChange = useCallback(async (tf: ChartTimeframe) => {
-    setIsLoading(true);
-    setTimeframe(tf);
-    // TODO: Fetch data from API
-    // const data = await fetchHistoricalData(symbol, tf);
-    setTimeout(() => setIsLoading(false), 300); // Simulate loading
-  }, []);
-
   // Get color based on price change
   const chartColor = priceChange.isPositive ? '#3FE3C2' : '#f87171';
   const chartColorLight = priceChange.isPositive ? 'rgba(63, 227, 194, 0.1)' : 'rgba(248, 113, 113, 0.1)';
