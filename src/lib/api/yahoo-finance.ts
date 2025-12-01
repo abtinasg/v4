@@ -1,5 +1,6 @@
 import YahooFinance from 'yahoo-finance2'
 import { getPolygonQuote, getPolygonHistorical, getPolygonTickerDetails, isPolygonConfigured } from '@/lib/api/polygon'
+import * as FMP from '@/lib/data/fmp'
 import type {
   StockQuote,
   HistoricalData,
@@ -10,6 +11,11 @@ import type {
   KeyStatistics,
   ApiResponse,
 } from '@/lib/types/stock'
+
+// Check if FMP is configured
+function isFMPConfigured(): boolean {
+  return !!process.env.FMP_API_KEY;
+}
 
 // Initialize Yahoo Finance v3
 const yahooFinance = new YahooFinance()
@@ -106,6 +112,7 @@ const rateLimiter = new RateLimiter(100, 60000) // 100 requests per minute
 
 /**
  * Get real-time stock quote
+ * Priority: FMP -> Yahoo Finance -> Polygon.io
  */
 export async function getStockQuote(symbol: string): Promise<ApiResponse<StockQuote>> {
   try {
@@ -121,6 +128,52 @@ export async function getStockQuote(symbol: string): Promise<ApiResponse<StockQu
       }
     }
 
+    // Try FMP first (Primary data source)
+    if (isFMPConfigured()) {
+      try {
+        const fmpQuote = await FMP.getQuote(symbol);
+        if (fmpQuote) {
+          const stockQuote: StockQuote = {
+            symbol: fmpQuote.symbol,
+            shortName: fmpQuote.name || fmpQuote.symbol,
+            longName: fmpQuote.name || fmpQuote.symbol,
+            price: fmpQuote.price || 0,
+            previousClose: fmpQuote.previousClose || 0,
+            open: fmpQuote.open || 0,
+            dayHigh: fmpQuote.dayHigh || 0,
+            dayLow: fmpQuote.dayLow || 0,
+            change: fmpQuote.change || 0,
+            changePercent: fmpQuote.changesPercentage || 0,
+            volume: fmpQuote.volume || 0,
+            avgVolume: fmpQuote.avgVolume || 0,
+            marketCap: fmpQuote.marketCap || 0,
+            peRatio: fmpQuote.pe || null,
+            eps: fmpQuote.eps || null,
+            dividend: null,
+            dividendYield: null,
+            fiftyTwoWeekHigh: fmpQuote.yearHigh || 0,
+            fiftyTwoWeekLow: fmpQuote.yearLow || 0,
+            exchange: fmpQuote.exchange || 'UNKNOWN',
+            currency: 'USD',
+            marketState: 'REGULAR' as StockQuote['marketState'],
+            timestamp: Date.now(),
+          };
+          
+          quoteCache.set(cacheKey, stockQuote, CACHE_TTL.QUOTE);
+          
+          return {
+            success: true,
+            data: stockQuote,
+            cached: false,
+            timestamp: Date.now(),
+          };
+        }
+      } catch (fmpError) {
+        console.warn(`FMP quote failed for ${symbol}, falling back to Yahoo:`, fmpError);
+      }
+    }
+
+    // Yahoo Finance fallback
     await rateLimiter.waitForSlot()
 
     const quote = await yahooFinance.quote(symbol)
@@ -224,6 +277,7 @@ export async function getStockQuote(symbol: string): Promise<ApiResponse<StockQu
 
 /**
  * Get historical stock data (OHLCV)
+ * Priority: FMP -> Yahoo Finance
  */
 export async function getHistoricalData(
   symbol: string,
@@ -247,8 +301,6 @@ export async function getHistoricalData(
         timestamp: Date.now(),
       }
     }
-
-    await rateLimiter.waitForSlot()
 
     // Calculate period1 and period2 based on range
     const period2 = options.period2 ? new Date(options.period2) : new Date()
@@ -288,6 +340,50 @@ export async function getHistoricalData(
           break
       }
     }
+
+    // Try FMP first (Primary) - only for daily intervals
+    if (isFMPConfigured() && interval === '1d') {
+      try {
+        const fromDate = period1.toISOString().split('T')[0];
+        const toDate = period2.toISOString().split('T')[0];
+        const fmpData = await FMP.getHistoricalPrices(symbol, fromDate, toDate);
+        
+        if (fmpData && fmpData.length > 0) {
+          const data: HistoricalDataPoint[] = fmpData
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .map((item) => ({
+              date: item.date,
+              open: item.open || 0,
+              high: item.high || 0,
+              low: item.low || 0,
+              close: item.close || 0,
+              volume: item.volume || 0,
+              adjClose: item.adjClose || item.close || 0,
+            }));
+          
+          const historicalData: HistoricalData = {
+            symbol: symbol.toUpperCase(),
+            data,
+            interval,
+            range,
+          };
+          
+          historicalCache.set(cacheKey, historicalData, CACHE_TTL.HISTORICAL);
+          
+          return {
+            success: true,
+            data: historicalData,
+            cached: false,
+            timestamp: Date.now(),
+          };
+        }
+      } catch (fmpError) {
+        console.warn(`FMP historical data failed for ${symbol}, falling back to Yahoo:`, fmpError);
+      }
+    }
+
+    // Yahoo Finance fallback
+    await rateLimiter.waitForSlot()
 
     // Map interval to supported values for yahoo-finance2 v3
     const supportedInterval = ['5m', '15m', '30m', '1h'].includes(interval) ? '1d' : interval
@@ -344,6 +440,7 @@ export async function getHistoricalData(
 
 /**
  * Get stock profile/info
+ * Priority: FMP -> Yahoo Finance
  */
 export async function getStockProfile(symbol: string): Promise<ApiResponse<StockProfile>> {
   try {
@@ -359,6 +456,44 @@ export async function getStockProfile(symbol: string): Promise<ApiResponse<Stock
       }
     }
 
+    // Try FMP first (Primary data source)
+    if (isFMPConfigured()) {
+      try {
+        const fmpProfile = await FMP.getProfile(symbol);
+        if (fmpProfile) {
+          const stockProfile: StockProfile = {
+            symbol: fmpProfile.symbol,
+            shortName: fmpProfile.companyName || fmpProfile.symbol,
+            longName: fmpProfile.companyName || fmpProfile.symbol,
+            sector: fmpProfile.sector || 'Unknown',
+            industry: fmpProfile.industry || 'Unknown',
+            website: fmpProfile.website || '',
+            description: fmpProfile.description || '',
+            fullTimeEmployees: fmpProfile.fullTimeEmployees || 0,
+            country: fmpProfile.country || 'Unknown',
+            city: fmpProfile.city || '',
+            state: fmpProfile.state || '',
+            address: fmpProfile.address || '',
+            zip: fmpProfile.zip || '',
+            phone: fmpProfile.phone || '',
+            ceo: fmpProfile.ceo || null,
+          };
+          
+          profileCache.set(cacheKey, stockProfile, CACHE_TTL.PROFILE);
+          
+          return {
+            success: true,
+            data: stockProfile,
+            cached: false,
+            timestamp: Date.now(),
+          };
+        }
+      } catch (fmpError) {
+        console.warn(`FMP profile failed for ${symbol}, falling back to Yahoo:`, fmpError);
+      }
+    }
+
+    // Yahoo Finance fallback
     await rateLimiter.waitForSlot()
 
     const result = await yahooFinance.quoteSummary(symbol, {
@@ -600,6 +735,7 @@ export async function getMultipleQuotes(symbols: string[]): Promise<ApiResponse<
 
 /**
  * Get key statistics for a stock
+ * Priority: FMP -> Yahoo Finance
  */
 export async function getKeyStatistics(symbol: string): Promise<ApiResponse<KeyStatistics>> {
   try {
@@ -615,6 +751,64 @@ export async function getKeyStatistics(symbol: string): Promise<ApiResponse<KeyS
       }
     }
 
+    // Try FMP first (Primary data source)
+    if (isFMPConfigured()) {
+      try {
+        const [keyMetrics, ratios, quote] = await Promise.all([
+          FMP.getKeyMetrics(symbol, 'annual', 1),
+          FMP.getRatios(symbol, 'annual', 1),
+          FMP.getQuote(symbol),
+        ]);
+        
+        const km = keyMetrics?.[0];
+        const r = ratios?.[0];
+        
+        if (km || r || quote) {
+          const keyStats: KeyStatistics = {
+            marketCap: km?.marketCap || quote?.marketCap || 0,
+            enterpriseValue: km?.enterpriseValue || 0,
+            trailingPE: r?.priceToEarningsRatio || quote?.pe || null,
+            forwardPE: null, // FMP doesn't provide forward PE in ratios
+            pegRatio: null, // FMP doesn't provide PEG in standard endpoints
+            priceToBook: r?.priceToBookRatio || null,
+            priceToSales: r?.priceToSalesRatio || null,
+            profitMargin: r?.netProfitMargin || null,
+            operatingMargin: r?.operatingProfitMargin || null,
+            returnOnAssets: km?.returnOnAssets || null,
+            returnOnEquity: km?.returnOnEquity || null,
+            revenuePerShare: r?.revenuePerShare || null,
+            quarterlyRevenueGrowth: null,
+            grossProfit: null,
+            ebitda: null,
+            debtToEquity: r?.debtToEquityRatio || null,
+            currentRatio: km?.currentRatio || r?.currentRatio || null,
+            bookValue: r?.bookValuePerShare || null,
+            beta: null, // Would need profile for beta
+            fiftyDayAverage: quote?.priceAvg50 || null,
+            twoHundredDayAverage: quote?.priceAvg200 || null,
+            sharesOutstanding: quote?.sharesOutstanding || null,
+            sharesFloat: null,
+            percentHeldByInsiders: null,
+            percentHeldByInstitutions: null,
+            shortRatio: null,
+            shortPercentOfFloat: null,
+          };
+          
+          profileCache.set(cacheKey, keyStats, CACHE_TTL.HISTORICAL);
+          
+          return {
+            success: true,
+            data: keyStats,
+            cached: false,
+            timestamp: Date.now(),
+          };
+        }
+      } catch (fmpError) {
+        console.warn(`FMP key statistics failed for ${symbol}, falling back to Yahoo:`, fmpError);
+      }
+    }
+
+    // Yahoo Finance fallback
     await rateLimiter.waitForSlot()
 
     const result = await yahooFinance.quoteSummary(symbol, {

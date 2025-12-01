@@ -29,7 +29,7 @@ const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey', 'ripHis
 // Force Node.js runtime
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes timeout for Vercel Pro
+export const maxDuration = 60; // 60 seconds timeout (Vercel Pro limit)
 
 // Types
 interface StockReportRequest {
@@ -441,24 +441,11 @@ You will receive a JSON object for a single stock, which may include:
 You MUST use metrics from these groups where relevant to support your analysis. If a group has data in the input, you should at least reflect its implications somewhere in the report.
 
 OVERALL DEPTH & LENGTH EXPECTATION:
-- This is NOT a brief summary. You are expected to produce a deep, granular, long-form analysis of the kind a senior CFA with 20+ years of experience would write for a complex, high-stakes investment decision.
-- Prefer depth over brevity. Expand on each section with detailed reasoning, cross-references between metrics, and explicit discussion of trade-offs, scenarios, and sensitivities.
-- Your response MUST be **very long and detailed**. As a target:
-  - Write **at least 12,000 words** of analysis.
-  - Aim for a typical range of **15,000–25,000 words**.
-  - Under typical institutional PDF formatting, this should correspond to roughly **30–70 pages**.
-- You are NOT limited by length and you MUST NOT intentionally shorten, compress, or summarize the discussion just to be concise.
-- Do NOT summarize sections in just one or two paragraphs. For each numbered section, provide:
-  - Multiple subheadings,
-  - Multiple paragraphs under each subheading,
-  - And, where useful, bullet points that explore:
-    - What the metrics say,
-    - Why they matter,
-    - How they interact with other parts of the story (e.g., growth vs leverage, valuation vs risk, macro vs company fundamentals).
-- You MUST behave as if you are writing a full, internal investment memo for an investment committee, not a client-facing summary. It is acceptable and expected to be dense and highly detailed.
-- If in doubt between being more detailed or more concise, you MUST choose the more detailed, CFA-style institutional approach. Do NOT skip analysis steps for the sake of brevity.
-- You are expected to frame the **core investment debate** clearly: what the stock does well, where the main vulnerabilities are, and what must go right or wrong for the bull or bear view to play out.
-- Continue the analysis until all sections are covered in depth and the overall picture is fully developed; do not end the report early or with a high-level overview only.
+- Produce a professional, institutional-quality equity research report.
+- Target length: **3,000-5,000 words** (approximately 8-15 pages when formatted).
+- Be concise but comprehensive - cover all key sections with meaningful analysis.
+- Focus on the most impactful metrics and insights rather than exhaustive detail.
+- Frame the **core investment debate** clearly: strengths, weaknesses, and key uncertainties.
 
 CFA-STYLE ANALYSIS FRAMEWORK:
 Follow this structure in your report and explicitly use metrics from the relevant groups.
@@ -674,7 +661,7 @@ OUTPUT FORMAT:
   - ...
   - "## 10. Investment Synthesis: Strengths, Weaknesses, Bull & Bear Case, Information Gaps"
 - Inside each section, you may use \`###\` subheadings and bullet points to structure the content clearly.
-- The report is expected to be **very detailed and long** (suitable for a **30–70+ page** PDF after rendering). Do NOT compress or oversimplify the analysis, and do NOT stop after only a few pages of content.
+- The report should be **concise but comprehensive** (suitable for an **8-15 page** PDF after rendering). Focus on the most important insights.
 - Always cite specific metrics when making claims and copy the exact numeric values from the input.
 - End with the disclaimer:
   _"Analysis based solely on data provided by Deep Terminal; not investment advice."_
@@ -683,7 +670,7 @@ OUTPUT FORMAT:
 
   // Call OpenRouter API with timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
+  const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout to stay within Vercel limits
   
   try {
     console.log('[Report] Calling OpenRouter API for comprehensive stock analysis...');
@@ -697,15 +684,15 @@ OUTPUT FORMAT:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-sonnet-4.5', // Claude Sonnet 4.5
+        model: 'anthropic/claude-sonnet-4', // Claude Sonnet 4 - faster
         messages: [
           {
             role: 'user',
             content: CFA_PRO_ANALYSIS_PROMPT,
           },
         ],
-        max_tokens: 16000,
-        temperature: 0.4,
+        max_tokens: 6000, // Reduced for faster response
+        temperature: 0.3,
       }),
       signal: controller.signal,
     });
