@@ -176,7 +176,13 @@ export async function GET(request: Request) {
       results.flat().forEach((item) => {
         if (!item.title) return
         
-        const id = `yahoo-${item.link || item.title.slice(0, 50)}`
+        // Create a simple hash from URL or title for cleaner IDs
+        const idSource = item.link || item.title;
+        const simpleHash = Buffer.from(idSource).toString('base64')
+          .replace(/[+/=]/g, '')
+          .slice(0, 12);
+        const id = `news-${simpleHash}`;
+        
         if (newsMap.has(id)) return
         
         const publishedDate = item.pubDate ? new Date(item.pubDate) : new Date()
@@ -277,7 +283,13 @@ export async function GET(request: Request) {
         (data.articles as NewsAPIArticle[]).forEach((article, index) => {
           if (!article.title || article.title === '[Removed]') return
           
-          const id = `newsapi-${article.url || index}`
+          // Create a simple hash for cleaner IDs
+          const idSource = article.url || `${article.title}-${index}`;
+          const simpleHash = Buffer.from(idSource).toString('base64')
+            .replace(/[+/=]/g, '')
+            .slice(0, 12);
+          const id = `news-${simpleHash}`;
+          
           if (newsMap.has(id)) return
           
           const publishedDate = new Date(article.publishedAt)
@@ -385,8 +397,13 @@ export async function GET(request: Request) {
         try {
           const polygonResult = await getPolygonNews(symbol || undefined, limit)
           if (polygonResult.success && polygonResult.data && polygonResult.data.length > 0) {
-            allNews = polygonResult.data.map((article, index) => ({
-              id: `polygon-${article.id || index}`,
+            allNews = polygonResult.data.map((article, index) => {
+              const idSource = article.id || `${article.title}-${index}`;
+              const simpleHash = Buffer.from(idSource).toString('base64')
+                .replace(/[+/=]/g, '')
+                .slice(0, 12);
+              return {
+              id: `news-${simpleHash}`,
               headline: article.title,
               summary: article.description || article.title,
               fullText: article.description || article.title,
@@ -398,7 +415,8 @@ export async function GET(request: Request) {
               url: article.article_url,
               symbol: article.tickers[0] || symbol || null,
               image: article.image_url || null,
-            }))
+            }
+            })
             console.log(`📰 Polygon.io: Fetched ${allNews.length} articles`)
           }
         } catch (err) {
