@@ -401,16 +401,20 @@ function calculateVolatility(prices: number[]): number {
  * Now uses 430+ metrics for comprehensive analysis
  */
 async function generateAIAnalysis(stockData: StockDataForReport): Promise<string> {
-  // Prepare advanced metrics section if available (summarized to reduce prompt size)
-  const advancedMetricsSection = stockData.advancedMetrics ? `
+  // Prepare a concise summary of key metrics (instead of full JSON dump)
+  const keyMetricsSummary = `
+KEY FINANCIAL METRICS:
+Valuation: PE=${stockData.metrics.pe || 'N/A'}, Market Cap=$${((stockData.marketCap || 0) / 1e9).toFixed(2)}B
+Profitability: Gross Margin=${((stockData.metrics.grossMargin || 0) * 100).toFixed(1)}%, Operating Margin=${((stockData.metrics.operatingMargin || 0) * 100).toFixed(1)}%, Net Margin=${((stockData.metrics.profitMargin || 0) * 100).toFixed(1)}%
+Returns: ROE=${((stockData.metrics.returnOnEquity || 0) * 100).toFixed(1)}%, ROA=${((stockData.metrics.returnOnAssets || 0) * 100).toFixed(1)}%
+Liquidity: Current Ratio=${(stockData.metrics.currentRatio || 0).toFixed(2)}, Quick Ratio=${(stockData.metrics.quickRatio || 0).toFixed(2)}
+Leverage: Debt/Equity=${(stockData.metrics.debtToEquity || 0).toFixed(2)}x
+Cash Flow: FCF=$${((stockData.metrics.freeCashflow || 0) / 1e9).toFixed(2)}B, Operating CF=$${((stockData.metrics.operatingCashflow || 0) / 1e9).toFixed(2)}B
+Growth: Revenue Growth=${((stockData.metrics.revenueGrowth || 0) * 100).toFixed(1)}%, Earnings Growth=${((stockData.metrics.earningsGrowth || 0) * 100).toFixed(1)}%
+`;
 
-ADVANCED METRICS AVAILABLE:
-- Valuation Metrics: ${Object.keys(stockData.advancedMetrics.valuation || {}).length} metrics
-- Profitability Metrics: ${Object.keys(stockData.advancedMetrics.profitability || {}).length} metrics
-- Liquidity & Solvency: ${Object.keys(stockData.advancedMetrics.liquidity || {}).length} metrics
-- Growth & Quality: ${Object.keys(stockData.advancedMetrics.growth || {}).length} metrics
-- Risk & Technical: Available
-(Full detailed metrics in base metrics section)
+  const advancedMetricsSection = stockData.advancedMetrics ? `
+ADVANCED METRICS AVAILABLE: Yes (430+ institutional-grade metrics calculated)
 ` : '';
 
   const CFA_PRO_ANALYSIS_PROMPT = `
@@ -418,25 +422,24 @@ You are a CFA Charterholder writing an institutional equity research report.
 
 STRICT RULES:
 - ONLY use numbers explicitly in provided data - never guess/approximate
-- Cite exact metric values from JSON
+- Cite exact metric values from data
 - If data missing: state "Data not available"
 - NO buy/sell recommendations
 
 === DATA ===
 ${stockData.symbol} - ${stockData.companyName}
 Sector: ${stockData.sector} | Industry: ${stockData.industry}
-Price: $${stockData.currentPrice} | Market Cap: $${(stockData.marketCap / 1e9).toFixed(2)}B
+Price: $${stockData.currentPrice}
 
-METRICS:
-${JSON.stringify(stockData.metrics, null, 2)}
+${keyMetricsSummary}
 ${advancedMetricsSection}
 
-=== REPORT (3000-4000 words, Markdown) ===
+=== REPORT (2500-3500 words, Markdown) ===
 
 # ${stockData.symbol} EQUITY RESEARCH REPORT
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-Write comprehensive 10-page report with these sections:
+Write comprehensive research report with these sections:
 
 ## 0. Executive Summary
 - Summarize the scope of the data you received:
@@ -680,8 +683,8 @@ OUTPUT FORMAT:
             content: CFA_PRO_ANALYSIS_PROMPT,
           },
         ],
-        max_tokens: 8000, // Increased for comprehensive report
-        temperature: 0.3,
+        max_tokens: 6000, // Optimized for faster generation (2500-3500 words)
+        temperature: 0.2, // Lower for more focused, faster responses
       }),
       signal: controller.signal,
     });
