@@ -78,11 +78,14 @@ export async function GET(req: NextRequest) {
 
     for (const item of newsToSend) {
       try {
+        // لینک به صفحه خبر در سایت خودمون
+        const newsUrl = `${baseUrl}/news/${item.id}`;
+        
         const message = formatNewsForTelegram({
           title: item.headline,
           summary: item.summary,
           source: item.source,
-          url: item.url,
+          url: newsUrl, // لینک به سایت خودمون به جای منبع اصلی
           symbol: item.symbol || undefined,
           sentiment: item.sentiment === 'bullish' ? 'positive' : 
                      item.sentiment === 'bearish' ? 'negative' : 'neutral',

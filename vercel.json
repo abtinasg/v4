@@ -3,15 +3,5 @@
     "src/app/api/stock/[symbol]/report/route.ts": {
       "maxDuration": 60
     }
-  },
-  "crons": [
-    {
-      "path": "/api/cron/telegram-news",
-      "schedule": "0 */4 * * *"
-    },
-    {
-      "path": "/api/cron/cache-warm",
-      "schedule": "*/30 * * * *"
-    }
-  ]
+  }
 }
