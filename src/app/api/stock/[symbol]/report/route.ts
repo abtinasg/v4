@@ -707,7 +707,10 @@ FORMATTING GUIDELINES:
 - Every section must have substantial content
 - Do NOT skip any section - provide full analysis for each`;
 
-  // Call OpenRouter API
+  // Call OpenRouter API with timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
+  
   try {
     console.log('[Report] Calling OpenRouter API for comprehensive stock analysis...');
     
@@ -720,17 +723,20 @@ FORMATTING GUIDELINES:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-opus-4.5', // Claude Opus 4.5 - highest quality
+        model: 'anthropic/claude-sonnet-4.5', // Claude Sonnet 4.5
         messages: [
           {
             role: 'user',
             content: CFA_PRO_ANALYSIS_PROMPT,
           },
         ],
-        max_tokens: 16000, // Reduced for faster response
-        temperature: 0.3,
+        max_tokens: 16000,
+        temperature: 0.4, // کمی بالاتر برای تحلیل خلاقانه‌تر
       }),
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -752,7 +758,11 @@ FORMATTING GUIDELINES:
 
     console.log('[Report] Analysis generated successfully');
     return data.choices[0].message.content;
-  } catch (error) {
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout - AI analysis took too long. Please try again.');
+    }
     console.error('[Report] Error in generateAIAnalysis:', error);
     throw error;
   }
