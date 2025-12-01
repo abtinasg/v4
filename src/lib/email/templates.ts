@@ -1,11 +1,11 @@
-// Email Templates for Deep Terminal
+// Email Templates for Deep
 
 export const emailStyles = `
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #0a0a0a; }
     .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
     .card { background: linear-gradient(135deg, #111827 0%, #1f2937 100%); border-radius: 16px; padding: 40px; border: 1px solid #374151; }
-    .logo { font-size: 24px; font-weight: bold; color: #06b6d4; margin-bottom: 30px; }
+    .logo { font-size: 24px; font-weight: bold; color: #06b6d4; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
     .title { font-size: 28px; font-weight: 600; color: #ffffff; margin-bottom: 16px; }
     .text { font-size: 16px; color: #9ca3af; line-height: 1.6; margin-bottom: 20px; }
     .highlight { color: #06b6d4; font-weight: 600; }
@@ -26,8 +26,8 @@ export function welcomeEmail(userName: string): string {
     <body>
       <div class="container">
         <div class="card">
-          <div class="logo">🚀 Deep Terminal</div>
-          <h1 class="title">Welcome to Deep Terminal, ${userName}!</h1>
+          <div class="logo">🚀 Deep</div>
+          <h1 class="title">Welcome to Deep, ${userName}!</h1>
           <p class="text">
             You've just joined the most powerful financial analysis platform. 
             Get ready to access real-time market data, AI-powered insights, and professional-grade tools.
@@ -46,7 +46,7 @@ export function welcomeEmail(userName: string): string {
           <a href="https://deepterminal.io/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
             <p>Need help? Reply to this email or visit our support center.</p>
-            <p>© 2025 Deep Terminal. All rights reserved.</p>
+            <p>© 2025 Deep. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@ export function trialEndingEmail(userName: string, daysLeft: number): string {
     <body>
       <div class="container">
         <div class="card">
-          <div class="logo">⏰ Deep Terminal</div>
+          <div class="logo">⏰ Deep</div>
           <h1 class="title">Your trial ends in ${daysLeft} day${daysLeft > 1 ? 's' : ''}</h1>
           <p class="text">
             Hey ${userName}, your Pro trial is almost over. Don't lose access to:
@@ -83,7 +83,7 @@ export function trialEndingEmail(userName: string, daysLeft: number): string {
           <a href="https://deepterminal.io/pricing" class="button">Upgrade Now →</a>
           <div class="footer">
             <p>Questions? We're here to help.</p>
-            <p>© 2025 Deep Terminal. All rights reserved.</p>
+            <p>© 2025 Deep. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -107,7 +107,7 @@ export function paymentReceiptEmail(
     <body>
       <div class="container">
         <div class="card">
-          <div class="logo">✅ Deep Terminal</div>
+          <div class="logo">✅ Deep</div>
           <h1 class="title">Payment Confirmed</h1>
           <p class="text">Thank you for your payment, ${userName}!</p>
           <div class="stat-box">
@@ -125,7 +125,7 @@ export function paymentReceiptEmail(
           <a href="https://deepterminal.io/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
             <p>This receipt was sent to your registered email.</p>
-            <p>© 2025 Deep Terminal. All rights reserved.</p>
+            <p>© 2025 Deep. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -143,7 +143,7 @@ export function passwordResetEmail(resetLink: string): string {
     <body>
       <div class="container">
         <div class="card">
-          <div class="logo">🔐 Deep Terminal</div>
+          <div class="logo">🔐 Deep</div>
           <h1 class="title">Reset Your Password</h1>
           <p class="text">
             We received a request to reset your password. Click the button below to create a new password.
@@ -154,7 +154,7 @@ export function passwordResetEmail(resetLink: string): string {
           </p>
           <div class="footer">
             <p>For security, this request was received from your account.</p>
-            <p>© 2025 Deep Terminal. All rights reserved.</p>
+            <p>© 2025 Deep. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -179,7 +179,7 @@ export function alertNotificationEmail(
     <body>
       <div class="container">
         <div class="card">
-          <div class="logo">🔔 Deep Terminal Alert</div>
+          <div class="logo">🔔 Deep Alert</div>
           <h1 class="title">Price Alert Triggered!</h1>
           <p class="text">Hey ${userName}, your alert for <span class="highlight">${symbol}</span> has been triggered.</p>
           <div class="stat-box">
@@ -190,7 +190,7 @@ export function alertNotificationEmail(
           <a href="https://deepterminal.io/dashboard/stock-analysis?symbol=${symbol}" class="button">View ${symbol} →</a>
           <div class="footer">
             <p>Manage your alerts in the dashboard.</p>
-            <p>© 2025 Deep Terminal. All rights reserved.</p>
+            <p>© 2025 Deep. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -214,7 +214,7 @@ export function loginNotificationEmail(
     <body>
       <div class="container">
         <div class="card">
-          <div class="logo">🔐 Deep Terminal</div>
+          <div class="logo">🔐 Deep</div>
           <h1 class="title">New Login Detected</h1>
           <p class="text">Hey ${userName}, we noticed a new login to your account.</p>
           <div class="stat-box">
@@ -236,7 +236,7 @@ export function loginNotificationEmail(
           <a href="https://deepterminal.io/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
             <p>This is an automated security notification.</p>
-            <p>© 2025 Deep Terminal. All rights reserved.</p>
+            <p>© 2025 Deep. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -258,7 +258,7 @@ export function lowCreditsEmail(
     <body>
       <div class="container">
         <div class="card">
-          <div class="logo">⚠️ Deep Terminal</div>
+          <div class="logo">⚠️ Deep</div>
           <h1 class="title">Credits Running Low</h1>
           <p class="text">Hey ${userName}, your credit balance is running low.</p>
           <div class="stat-box">
@@ -276,7 +276,7 @@ export function lowCreditsEmail(
           <a href="https://deepterminal.io/pricing" class="button">Buy Credits →</a>
           <div class="footer">
             <p>Top up now to continue using all features without interruption.</p>
-            <p>© 2025 Deep Terminal. All rights reserved.</p>
+            <p>© 2025 Deep. All rights reserved.</p>
           </div>
         </div>
       </div>

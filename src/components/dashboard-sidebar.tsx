@@ -10,8 +10,9 @@ export function DashboardSidebar() {
   return (
     <aside className="w-64 border-r bg-card flex flex-col">
       <div className="p-6 border-b">
-        <Link href="/dashboard">
-          <h1 className="text-2xl font-bold text-gradient">Deep Terminal</h1>
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <img src="/deep-logo.svg" alt="Deep" className="h-8 w-8" />
+          <h1 className="text-2xl font-bold text-gradient">Deep</h1>
         </Link>
       </div>
       

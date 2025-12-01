@@ -8,9 +8,9 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Deep Terminal - Bloomberg Terminal Alternative",
-  description: "Professional financial data terminal for modern traders and investors",
-  keywords: "financial data, stock market, trading terminal, bloomberg alternative",
+  title: "Deep - Professional Stock Analysis Platform",
+  description: "AI-powered financial analysis platform with 190+ institutional metrics",
+  keywords: "stock analysis, financial data, AI analysis, bloomberg alternative",
 };
 
 export default function RootLayout({

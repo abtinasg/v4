@@ -61,10 +61,8 @@ export default function MarketingLayout({
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-violet-600">
-              <span className="text-sm font-bold text-white">DT</span>
-            </div>
-            <span className="text-lg font-semibold text-white">Deep Terminal</span>
+            <img src="/deep-logo.svg" alt="Deep" className="h-10 w-10" />
+            <span className="text-lg font-semibold text-white">Deep</span>
           </Link>
 
           {/* Desktop Nav */}

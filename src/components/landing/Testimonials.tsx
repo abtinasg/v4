@@ -4,7 +4,7 @@ import { Quote, Star } from 'lucide-react'
 
 const testimonials = [
   {
-    quote: "Deep Terminal changed how I approach trading. The AI orchestrator catches patterns I'd never see on my own.",
+    quote: "Deep changed how I approach trading. The AI orchestrator catches patterns I'd never see on my own.",
     author: 'Michael Chen',
     role: 'Day Trader',
     avatar: 'MC',

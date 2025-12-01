@@ -32,6 +32,16 @@ interface NewsAPIArticle {
   content: string | null
 }
 
+interface FMPNewsArticle {
+  symbol: string
+  publishedDate: string
+  title: string
+  image: string | null
+  site: string
+  text: string
+  url: string
+}
+
 function getTimeAgo(date: Date): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
@@ -89,122 +99,88 @@ function extractSymbolFromText(text: string): string | null {
   return null
 }
 
-// Parse RSS XML
-function parseRSSXml(xml: string): Array<{title: string, link: string, pubDate: string, description: string, source?: string}> {
-  const items: Array<{title: string, link: string, pubDate: string, description: string, source?: string}> = []
-  
-  // Simple regex-based XML parsing
-  const itemRegex = /<item>([\s\S]*?)<\/item>/g
-  let match
-  
-  while ((match = itemRegex.exec(xml)) !== null) {
-    const itemContent = match[1]
-    
-    const titleMatch = itemContent.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/)
-    const linkMatch = itemContent.match(/<link>(.*?)<\/link>/)
-    const pubDateMatch = itemContent.match(/<pubDate>(.*?)<\/pubDate>/)
-    const descMatch = itemContent.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>|<description>(.*?)<\/description>/)
-    const sourceMatch = itemContent.match(/<source[^>]*>(.*?)<\/source>/)
-    
-    const title = titleMatch ? (titleMatch[1] || titleMatch[2] || '') : ''
-    const link = linkMatch ? linkMatch[1] : ''
-    const pubDate = pubDateMatch ? pubDateMatch[1] : ''
-    const description = descMatch ? (descMatch[1] || descMatch[2] || '') : ''
-    const source = sourceMatch ? sourceMatch[1] : undefined
-    
-    if (title && link) {
-      items.push({ title, link, pubDate, description, source })
-    }
-  }
-  
-  return items
-}
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '50') // Increased default limit
+    const limit = parseInt(searchParams.get('limit') || '50')
     const symbol = searchParams.get('symbol')
-    const source = searchParams.get('source') // 'yahoo', 'newsapi', 'all' (default)
+    const source = searchParams.get('source') // 'fmp', 'newsapi', 'all' (default)
     
     let allNews: NewsItem[] = []
     const newsMap = new Map<string, NewsItem>()
     
-    const fetchYahooNews = async (): Promise<void> => {
-      // Yahoo Finance RSS feeds - multiple feeds for more variety
-      const rssFeeds = symbol 
-        ? [`https://feeds.finance.yahoo.com/rss/2.0/headline?s=${symbol}&region=US&lang=en-US`]
-        : [
-            // Tech giants
-            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AAPL,MSFT,GOOGL,AMZN,NVDA,TSLA,META&region=US&lang=en-US',
-            // Major indices ETFs
-            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=SPY,QQQ,DIA,IWM&region=US&lang=en-US',
-            // Finance sector
-            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=JPM,GS,MS,BAC,V,MA&region=US&lang=en-US',
-            // More tech
-            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AMD,INTC,CRM,ORCL,IBM,NFLX&region=US&lang=en-US',
-            // Healthcare & Consumer
-            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=JNJ,PFE,UNH,WMT,HD,MCD&region=US&lang=en-US',
-            // Energy & Industrial
-            'https://feeds.finance.yahoo.com/rss/2.0/headline?s=XOM,CVX,BA,CAT,GE&region=US&lang=en-US',
-          ]
+    // FMP - Primary source (best quality, 50+ articles)
+    const fetchFMPNews = async (): Promise<void> => {
+      const fmpApiKey = process.env.FMP_API_KEY
+      if (!fmpApiKey) {
+        console.log('FMP_API_KEY not configured, skipping FMP')
+        return
+      }
       
-      const fetchPromises = rssFeeds.map(async (feedUrl) => {
-        try {
-          const response = await fetch(feedUrl, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            },
-            next: { revalidate: 300 },
-          })
-          
-          if (!response.ok) {
-            console.error(`RSS fetch failed: ${response.status}`)
-            return []
-          }
-          
-          const xml = await response.text()
-          return parseRSSXml(xml)
-        } catch (err) {
-          console.error('RSS fetch error:', err)
-          return []
+      try {
+        // FMP endpoints
+        let apiUrl: string
+        if (symbol) {
+          apiUrl = `https://financialmodelingprep.com/api/v3/stock_news?tickers=${symbol}&limit=50&apikey=${fmpApiKey}`
+        } else {
+          // General stock news - get 100 to ensure variety
+          apiUrl = `https://financialmodelingprep.com/api/v3/stock_news?limit=100&apikey=${fmpApiKey}`
         }
-      })
-      
-      const results = await Promise.all(fetchPromises)
-      
-      results.flat().forEach((item) => {
-        if (!item.title) return
         
-        // Create a simple hash from URL or title for cleaner IDs
-        const idSource = item.link || item.title;
-        const simpleHash = Buffer.from(idSource).toString('base64')
-          .replace(/[+/=]/g, '')
-          .slice(0, 12);
-        const id = `news-${simpleHash}`;
-        
-        if (newsMap.has(id)) return
-        
-        const publishedDate = item.pubDate ? new Date(item.pubDate) : new Date()
-        const headline = item.title
-        const summary = item.description || item.title
-        const extractedSymbol = symbol?.toUpperCase() || extractSymbolFromText(headline)
-        
-        newsMap.set(id, {
-          id,
-          headline,
-          summary: summary.replace(/<[^>]*>/g, '').slice(0, 300),
-          fullText: summary.replace(/<[^>]*>/g, ''),
-          timeAgo: getTimeAgo(publishedDate),
-          publishedDate: publishedDate.toISOString(),
-          source: item.source || 'Yahoo Finance',
-          sentiment: analyzeSentiment(headline + ' ' + summary),
-          category: extractedSymbol ? 'Stock' : categorizeNews(headline),
-          url: item.link,
-          symbol: extractedSymbol,
-          image: null,
+        const response = await fetch(apiUrl, {
+          headers: {
+            'User-Agent': 'DeepTerminal/1.0',
+          },
+          next: { revalidate: 300 },
         })
-      })
+        
+        if (!response.ok) {
+          console.error(`FMP fetch failed: ${response.status}`)
+          return
+        }
+        
+        const data = await response.json() as FMPNewsArticle[]
+        
+        if (!Array.isArray(data)) {
+          console.error('FMP error: Invalid response format')
+          return
+        }
+        
+        data.forEach((article, index) => {
+          if (!article.title) return
+          
+          const idSource = article.url || `${article.title}-${index}`
+          const simpleHash = Buffer.from(idSource).toString('base64')
+            .replace(/[+/=]/g, '')
+            .slice(0, 12)
+          const id = `news-${simpleHash}`
+          
+          if (newsMap.has(id)) return
+          
+          const publishedDate = new Date(article.publishedDate)
+          const headline = article.title
+          const summary = article.text || article.title
+          
+          newsMap.set(id, {
+            id,
+            headline,
+            summary: summary.slice(0, 300),
+            fullText: article.text || summary,
+            timeAgo: getTimeAgo(publishedDate),
+            publishedDate: publishedDate.toISOString(),
+            source: article.site || 'FMP',
+            sentiment: analyzeSentiment(headline + ' ' + summary),
+            category: article.symbol ? 'Stock' : categorizeNews(headline),
+            url: article.url,
+            symbol: article.symbol || symbol?.toUpperCase() || null,
+            image: article.image,
+          })
+        })
+        
+        console.log(`📰 FMP: Fetched ${data.length} articles`)
+      } catch (err) {
+        console.error('FMP fetch error:', err)
+      }
     }
     
     const fetchNewsAPI = async (): Promise<void> => {
@@ -215,10 +191,9 @@ export async function GET(request: Request) {
       }
       
       try {
-        // Build query based on symbol or general business news
         let apiUrl: string
         if (symbol) {
-          // Get company name for better search (map common tickers)
+          // Get company name for better search
           const companyNames: Record<string, string> = {
             'AAPL': 'Apple',
             'MSFT': 'Microsoft',
@@ -255,10 +230,14 @@ export async function GET(request: Request) {
             'SNOW': 'Snowflake',
           }
           const searchQuery = companyNames[symbol.toUpperCase()] || symbol
-          apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(searchQuery + ' stock')}&language=en&sortBy=publishedAt&pageSize=20&apiKey=${newsApiKey}`
+          apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(searchQuery + ' stock')}&language=en&sortBy=publishedAt&pageSize=30&apiKey=${newsApiKey}`
         } else {
-          // General business/finance news - increased pageSize
-          apiUrl = `https://newsapi.org/v2/top-headlines?category=business&language=en&country=us&pageSize=50&apiKey=${newsApiKey}`
+          // General business/finance news - use everything endpoint for more results
+          const fromDate = new Date()
+          fromDate.setDate(fromDate.getDate() - 7) // Last 7 days
+          const fromDateStr = fromDate.toISOString().split('T')[0]
+          
+          apiUrl = `https://newsapi.org/v2/everything?q=stock market OR earnings OR nasdaq OR S%26P 500 OR dow jones OR federal reserve&language=en&sortBy=publishedAt&from=${fromDateStr}&pageSize=50&apiKey=${newsApiKey}`
         }
         
         const response = await fetch(apiUrl, {
@@ -283,12 +262,11 @@ export async function GET(request: Request) {
         (data.articles as NewsAPIArticle[]).forEach((article, index) => {
           if (!article.title || article.title === '[Removed]') return
           
-          // Create a simple hash for cleaner IDs
-          const idSource = article.url || `${article.title}-${index}`;
+          const idSource = article.url || `${article.title}-${index}`
           const simpleHash = Buffer.from(idSource).toString('base64')
             .replace(/[+/=]/g, '')
-            .slice(0, 12);
-          const id = `news-${simpleHash}`;
+            .slice(0, 12)
+          const id = `news-${simpleHash}`
           
           if (newsMap.has(id)) return
           
@@ -319,90 +297,51 @@ export async function GET(request: Request) {
       }
     }
     
-    // Fetch from both sources based on query param
-    const shouldFetchYahoo = !source || source === 'yahoo' || source === 'all'
+    // Fetch from sources based on query param
+    const shouldFetchFMP = !source || source === 'fmp' || source === 'all'
     const shouldFetchNewsAPI = !source || source === 'newsapi' || source === 'all'
     
     await Promise.all([
-      shouldFetchYahoo ? fetchYahooNews() : Promise.resolve(),
+      shouldFetchFMP ? fetchFMPNews() : Promise.resolve(),
       shouldFetchNewsAPI ? fetchNewsAPI() : Promise.resolve(),
     ])
     
     allNews = Array.from(newsMap.values())
       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime())
     
-    // Balance sources - don't let one source dominate
-    // If both sources have news, ensure diversity
-    const yahooNews = allNews.filter(n => n.source === 'Yahoo Finance')
-    const otherNews = allNews.filter(n => n.source !== 'Yahoo Finance')
+    // Balance sources - ensure diversity
+    const fmpNews = allNews.filter(n => n.source !== 'NewsAPI' && !['CNN', 'BBC', 'Reuters'].includes(n.source))
+    const newsApiNews = allNews.filter(n => n.source === 'NewsAPI' || ['CNN', 'BBC', 'Reuters', 'Bloomberg', 'CNBC'].some(s => n.source.includes(s)))
     
     let balancedNews: NewsItem[] = []
-    if (yahooNews.length > 0 && otherNews.length > 0) {
-      // Interleave sources for better variety, with slight preference for recency
-      const maxPerSource = Math.ceil(limit / 2)
-      const limitedYahoo = yahooNews.slice(0, maxPerSource)
-      const limitedOther = otherNews.slice(0, maxPerSource)
+    if (fmpNews.length > 0 && newsApiNews.length > 0) {
+      // FMP gets 60%, NewsAPI gets 40% for better stock news coverage
+      const fmpLimit = Math.ceil(limit * 0.6)
+      const newsApiLimit = Math.ceil(limit * 0.4)
+      const limitedFMP = fmpNews.slice(0, fmpLimit)
+      const limitedNewsAPI = newsApiNews.slice(0, newsApiLimit)
       
-      // Merge and sort by date
-      balancedNews = [...limitedYahoo, ...limitedOther]
+      balancedNews = [...limitedFMP, ...limitedNewsAPI]
         .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime())
         .slice(0, limit)
     } else {
-      // If only one source, just use it
       balancedNews = allNews.slice(0, limit)
     }
     
     allNews = balancedNews
 
-    // If no news, try Finnhub as backup
-    if (allNews.length === 0) {
-      console.log('📰 No news from primary sources, trying Finnhub...')
+    // If no news, try Polygon as backup
+    if (allNews.length === 0 && isPolygonConfigured()) {
+      console.log('📰 No news from primary sources, trying Polygon.io...')
       try {
-        const finnhubKey = process.env.FINNHUB_API_KEY
-        if (finnhubKey) {
-          const finnhubUrl = symbol 
-            ? `https://finnhub.io/api/v1/company-news?symbol=${symbol}&from=${getDateString(-7)}&to=${getDateString(0)}&token=${finnhubKey}`
-            : `https://finnhub.io/api/v1/news?category=general&token=${finnhubKey}`
-          
-          const response = await fetch(finnhubUrl)
-          if (response.ok) {
-            const data = await response.json()
-            allNews = (data as any[]).slice(0, limit).map((item: any, index: number) => ({
-              id: `finnhub-${item.id?.toString() || index}`,
-              headline: item.headline || item.title || '',
-              summary: item.summary || item.headline || '',
-              fullText: item.summary || '',
-              timeAgo: getTimeAgo(new Date(item.datetime * 1000)),
-              publishedDate: new Date(item.datetime * 1000).toISOString(),
-              source: item.source || 'Finnhub',
-              sentiment: analyzeSentiment(item.headline || ''),
-              category: item.category || 'Market',
-              url: item.url || '#',
-              symbol: item.related || symbol || null,
-              image: item.image || null,
-            }))
-          }
-        }
-      } catch (err) {
-        console.error('Finnhub backup failed:', err)
-      }
-    }
-    
-    // Final fallback: Generate sample news if still empty
-    if (allNews.length === 0) {
-      console.log('📰 No news available, trying Polygon.io...')
-      
-      // Try Polygon.io as another backup
-      if (isPolygonConfigured()) {
-        try {
-          const polygonResult = await getPolygonNews(symbol || undefined, limit)
-          if (polygonResult.success && polygonResult.data && polygonResult.data.length > 0) {
-            allNews = polygonResult.data.map((article, index) => {
-              const idSource = article.id || `${article.title}-${index}`;
-              const simpleHash = Buffer.from(idSource).toString('base64')
-                .replace(/[+/=]/g, '')
-                .slice(0, 12);
-              return {
+        const polygonResult = await getPolygonNews(symbol || undefined, limit)
+        if (polygonResult.success && polygonResult.data && polygonResult.data.length > 0) {
+          allNews = polygonResult.data.map((article, index) => {
+            const idSource = article.id || `${article.title}-${index}`
+            const simpleHash = Buffer.from(idSource).toString('base64')
+              .replace(/[+/=]/g, '')
+              .slice(0, 12)
+            return {
               id: `news-${simpleHash}`,
               headline: article.title,
               summary: article.description || article.title,
@@ -416,12 +355,11 @@ export async function GET(request: Request) {
               symbol: article.tickers[0] || symbol || null,
               image: article.image_url || null,
             }
-            })
-            console.log(`📰 Polygon.io: Fetched ${allNews.length} articles`)
-          }
-        } catch (err) {
-          console.error('Polygon news failed:', err)
+          })
+          console.log(`📰 Polygon.io: Fetched ${allNews.length} articles`)
         }
+      } catch (err) {
+        console.error('Polygon news failed:', err)
       }
     }
     
@@ -433,9 +371,9 @@ export async function GET(request: Request) {
     
     // Count sources
     const sourceBreakdown = {
-      yahoo: Array.from(newsMap.values()).filter(n => n.source === 'Yahoo Finance').length,
-      newsapi: Array.from(newsMap.values()).filter(n => n.source !== 'Yahoo Finance' && n.source !== 'Finnhub').length,
-      finnhub: Array.from(newsMap.values()).filter(n => n.source === 'Finnhub').length,
+      fmp: Array.from(newsMap.values()).filter(n => !['CNN', 'BBC', 'Reuters', 'Bloomberg', 'CNBC'].some(s => n.source.includes(s))).length,
+      newsapi: Array.from(newsMap.values()).filter(n => ['CNN', 'BBC', 'Reuters', 'Bloomberg', 'CNBC'].some(s => n.source.includes(s)) || n.source === 'NewsAPI').length,
+      polygon: allNews.filter(n => n.source === 'Polygon').length,
     }
 
     console.log('📰 News API response:', { 
@@ -514,10 +452,4 @@ function generateSampleNews(count: number): NewsItem[] {
       image: null,
     }
   })
-}
-
-function getDateString(daysOffset: number): string {
-  const date = new Date()
-  date.setDate(date.getDate() + daysOffset)
-  return date.toISOString().split('T')[0]
 }

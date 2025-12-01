@@ -11,11 +11,11 @@ import { Metadata } from 'next';
 // ============================================================
 
 export const siteConfig = {
-  name: 'Deep Terminal',
+  name: 'Deep',
   description: 'Professional stock analysis platform with 190+ institutional-grade metrics, AI-powered insights, and comprehensive research tools. The affordable Bloomberg Terminal alternative.',
-  url: process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.co',
+  url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.deepinhq.com',
   ogImage: '/og-image.png',
-  twitterHandle: '@deepterminal',
+  twitterHandle: '@deepinhq',
   keywords: [
     'stock analysis',
     'financial analysis tool',

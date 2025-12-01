@@ -46,7 +46,7 @@ export function UIPreview() {
                   <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                   <div className="w-3 h-3 rounded-full bg-green-500/80" />
                 </div>
-                <span className="text-orange-400 text-xs font-mono font-semibold">DEEP TERMINAL PRO</span>
+                <span className="text-orange-400 text-xs font-mono font-semibold">DEEP PRO</span>
               </div>
               <div className="flex items-center gap-4 text-xs font-mono">
                 <div className="flex items-center gap-2">

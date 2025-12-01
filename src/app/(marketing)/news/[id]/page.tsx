@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   
   if (!article) {
     return {
-      title: 'خبر یافت نشد | Deep Terminal',
+      title: 'Article Not Found | Deep Terminal',
     };
   }
 
@@ -91,11 +91,11 @@ function getSentimentIcon(sentiment?: string) {
 function getSentimentLabel(sentiment?: string) {
   switch (sentiment) {
     case 'bullish':
-      return 'صعودی';
+      return 'Bullish';
     case 'bearish':
-      return 'نزولی';
+      return 'Bearish';
     default:
-      return 'خنثی';
+      return 'Neutral';
   }
 }
 
