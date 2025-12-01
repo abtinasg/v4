@@ -800,44 +800,70 @@ export async function POST(
     // Get request body
     const body: StockReportRequest = await request.json().catch(() => ({}));
 
-    // Use our existing metrics API endpoint for faster data fetching
-    console.log(`[Report] Fetching stock data from metrics API for ${upperSymbol}...`);
+    // Fetch stock data directly using FMP adapter (same as metrics endpoint)
+    console.log(`[Report] Fetching stock data for ${upperSymbol}...`);
     const startFetch = Date.now();
     
     let stockData;
     try {
-      // Call our own metrics endpoint which already has caching and optimizations
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      const metricsResponse = await fetch(`${baseUrl}/api/stock/${upperSymbol}/metrics`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(20000), // 20 second timeout for metrics fetch
-      });
-
-      if (!metricsResponse.ok) {
-        throw new Error(`Metrics API returned ${metricsResponse.status}`);
-      }
-
-      const metricsData = await metricsResponse.json();
-      const fetchTime = Date.now() - startFetch;
-      console.log(`[Report] Metrics fetched in ${fetchTime}ms`);
+      // Import the FMP adapter to get data directly
+      const { fetchFMPData } = await import('@/lib/data/fmp-adapter');
       
-      // Transform metrics API response to stockData format
+      // Fetch comprehensive data from FMP
+      const fmpResult = await fetchFMPData(upperSymbol);
+      
+      if (!fmpResult.success || !fmpResult.data) {
+        throw new Error(fmpResult.error || 'No data returned from FMP');
+      }
+      
+      const fmpData = fmpResult.data;
+      const fetchTime = Date.now() - startFetch;
+      console.log(`[Report] FMP data fetched in ${fetchTime}ms`);
+      
+      // Transform FMP data to stockData format
       stockData = {
         symbol: upperSymbol,
-        companyName: metricsData.companyName || upperSymbol,
-        sector: metricsData.sector || 'N/A',
-        industry: metricsData.industry || 'N/A',
-        currentPrice: metricsData.quote?.price || 0,
-        marketCap: metricsData.quote?.marketCap || 0,
-        metrics: metricsData.metrics || {},
-        advancedMetrics: metricsData.advancedMetrics || null,
-        historicalData: metricsData.historicalData || null,
+        companyName: fmpData.sector || upperSymbol, // Note: FMP adapter uses sector field for company name
+        sector: fmpData.sector || 'N/A',
+        industry: fmpData.industry || 'N/A',
+        currentPrice: fmpData.price || 0,
+        marketCap: fmpData.marketCap || 0,
+        metrics: {
+          // Basic valuation
+          pe: fmpData.pe,
+          marketCap: fmpData.marketCap,
+          
+          // Profitability
+          grossMargin: fmpData.grossMargin,
+          operatingMargin: fmpData.operatingMargin,
+          profitMargin: fmpData.profitMargin,
+          returnOnEquity: fmpData.returnOnEquity,
+          returnOnAssets: fmpData.returnOnAssets,
+          
+          // Financial Health
+          currentRatio: fmpData.currentRatio,
+          quickRatio: fmpData.quickRatio,
+          debtToEquity: fmpData.debtToEquity,
+          
+          // Cash Flow
+          freeCashflow: fmpData.freeCashFlow,
+          operatingCashflow: fmpData.operatingCashFlow,
+          
+          // Growth
+          revenueGrowth: fmpData.revenueGrowth,
+          earningsGrowth: fmpData.earningsGrowth,
+        },
+        advancedMetrics: null, // Will calculate if needed
+        historicalData: fmpData.priceHistory ? {
+          prices: fmpData.priceHistory.slice(0, 60).map((d: any) => ({
+            date: d.date,
+            close: d.close,
+            volume: d.volume,
+          })),
+        } : null,
       };
     } catch (error) {
-      console.error(`[Report] Failed to fetch metrics for ${upperSymbol}:`, error);
+      console.error(`[Report] Failed to fetch data for ${upperSymbol}:`, error);
       return NextResponse.json(
         { 
           error: `Could not retrieve market data for ${upperSymbol}`,
