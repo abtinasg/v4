@@ -713,7 +713,7 @@ FORMATTING GUIDELINES:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-sonnet-4-20250514', // Claude Sonnet 4 for better cost/quality
+        model: 'anthropic/claude-opus-4', // Claude Opus 4 for highest quality
         messages: [
           {
             role: 'user',
