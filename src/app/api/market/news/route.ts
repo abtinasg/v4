@@ -38,6 +38,7 @@ interface FMPNewsArticle {
   title: string
   image: string | null
   site: string
+  publisher: string  // New API response field
   text: string
   url: string
 }
@@ -118,13 +119,13 @@ export async function GET(request: Request) {
       }
       
       try {
-        // FMP endpoints
+        // FMP NEW stable endpoints (updated Dec 2025)
         let apiUrl: string
         if (symbol) {
-          apiUrl = `https://financialmodelingprep.com/api/v3/stock_news?tickers=${symbol}&limit=50&apikey=${fmpApiKey}`
+          apiUrl = `https://financialmodelingprep.com/stable/news/stock?symbol=${symbol}&limit=50&apikey=${fmpApiKey}`
         } else {
           // General stock news - get 100 to ensure variety
-          apiUrl = `https://financialmodelingprep.com/api/v3/stock_news?limit=100&apikey=${fmpApiKey}`
+          apiUrl = `https://financialmodelingprep.com/stable/news/stock?limit=100&apikey=${fmpApiKey}`
         }
         
         const response = await fetch(apiUrl, {
@@ -168,7 +169,7 @@ export async function GET(request: Request) {
             fullText: article.text || summary,
             timeAgo: getTimeAgo(publishedDate),
             publishedDate: publishedDate.toISOString(),
-            source: article.site || 'FMP',
+            source: article.publisher || article.site || 'FMP',
             sentiment: analyzeSentiment(headline + ' ' + summary),
             category: article.symbol ? 'Stock' : categorizeNews(headline),
             url: article.url,
