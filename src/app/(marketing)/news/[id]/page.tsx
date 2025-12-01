@@ -107,7 +107,7 @@ export default async function NewsArticlePage({ params }: { params: { id: string
   }
 
   const publishedDate = new Date(article.publishedDate);
-  const formattedDate = new Intl.DateTimeFormat('fa-IR', {
+  const formattedDate = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -116,102 +116,103 @@ export default async function NewsArticlePage({ params }: { params: { id: string
   }).format(publishedDate);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header با دکمه برگشت */}
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+      <div className="container mx-auto px-4 py-12 max-w-5xl">
+        {/* Header with back button */}
         <div className="mb-8">
           <Link href="/dashboard/news">
-            <Button variant="ghost" size="sm" className="mb-4">
-              <ArrowLeft className="ml-2 h-4 w-4" />
-              بازگشت به خبرها
+            <Button variant="ghost" size="sm" className="mb-6 hover:bg-muted/50 transition-colors">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to News
             </Button>
           </Link>
         </div>
 
         {/* Article Card */}
-        <article className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+        <article className="bg-card rounded-2xl shadow-xl border border-border/50 overflow-hidden backdrop-blur-sm">
           {/* Image Header */}
           {article.image && (
-            <div className="relative h-64 md:h-96 w-full overflow-hidden bg-muted">
+            <div className="relative h-72 md:h-[32rem] w-full overflow-hidden bg-gradient-to-b from-muted/50 to-muted">
               <img
                 src={article.image}
                 alt={article.headline}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
             </div>
           )}
 
-          <div className="p-6 md:p-8">
+          <div className="p-8 md:p-12">
             {/* Meta Information */}
-            <div className="flex flex-wrap items-center gap-3 mb-6">
+            <div className="flex flex-wrap items-center gap-3 mb-8">
               {article.symbol && (
                 <Link href={`/dashboard/stock-analysis/${article.symbol}`}>
-                  <Badge variant="outline" className="hover:bg-primary/10 cursor-pointer">
-                    <Tag className="ml-1 h-3 w-3" />
+                  <Badge variant="outline" className="hover:bg-primary/10 cursor-pointer transition-colors text-base px-3 py-1">
+                    <Tag className="mr-1.5 h-3.5 w-3.5" />
                     {article.symbol}
                   </Badge>
                 </Link>
               )}
               
               {article.sentiment && (
-                <Badge className={getSentimentColor(article.sentiment)}>
+                <Badge className={`${getSentimentColor(article.sentiment)} text-base px-3 py-1`}>
                   {getSentimentIcon(article.sentiment)}
                   {getSentimentLabel(article.sentiment)}
                 </Badge>
               )}
 
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Calendar className="ml-2 h-4 w-4" />
-                {formattedDate}
+              <div className="flex items-center text-sm text-muted-foreground gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>{formattedDate}</span>
               </div>
 
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="text-base px-3 py-1">
                 {article.source}
               </Badge>
 
-              <Badge variant="outline">
+              <Badge variant="outline" className="text-base px-3 py-1">
                 {article.category}
               </Badge>
             </div>
 
             {/* Headline */}
-            <h1 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">
+            <h1 className="text-4xl md:text-5xl font-bold mb-8 leading-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
               {article.headline}
             </h1>
 
             {/* Summary */}
-            <div className="bg-muted/50 rounded-lg p-6 mb-8 border-r-4 border-primary">
-              <p className="text-lg leading-relaxed text-foreground/90">
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-8 mb-10 border-l-4 border-primary shadow-sm">
+              <p className="text-xl leading-relaxed text-foreground/90 font-medium">
                 {article.summary}
               </p>
             </div>
 
             {/* Full Content */}
             {article.fullText && (
-              <div className="prose prose-lg dark:prose-invert max-w-none mb-8">
-                <div className="text-foreground/80 leading-relaxed space-y-4">
+              <div className="prose prose-xl dark:prose-invert max-w-none mb-12">
+                <div className="text-foreground/85 leading-relaxed space-y-6">
                   {article.fullText.split('\n\n').map((paragraph, index) => (
-                    <p key={index}>{paragraph}</p>
+                    <p key={index} className="text-lg">{paragraph}</p>
                   ))}
                 </div>
               </div>
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-border">
+            <div className="flex flex-col sm:flex-row gap-4 pt-10 border-t border-border/50">
               <Button
                 asChild
                 size="lg"
-                className="flex-1"
+                className="flex-1 h-14 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
               >
                 <a
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center"
+                  className="flex items-center justify-center gap-2"
                 >
-                  مشاهده در منبع اصلی
-                  <ExternalLink className="mr-2 h-5 w-5" />
+                  <ExternalLink className="h-5 w-5" />
+                  Read Full Article
                 </a>
               </Button>
 
@@ -220,14 +221,14 @@ export default async function NewsArticlePage({ params }: { params: { id: string
                   asChild
                   variant="outline"
                   size="lg"
-                  className="flex-1"
+                  className="flex-1 h-14 text-base font-semibold border-2 hover:bg-muted/50 transition-all"
                 >
                   <Link
                     href={`/dashboard/stock-analysis/${article.symbol}`}
-                    className="flex items-center justify-center"
+                    className="flex items-center justify-center gap-2"
                   >
-                    تحلیل {article.symbol}
-                    <Tag className="mr-2 h-5 w-5" />
+                    <Tag className="h-5 w-5" />
+                    Analyze {article.symbol}
                   </Link>
                 </Button>
               )}
@@ -236,8 +237,13 @@ export default async function NewsArticlePage({ params }: { params: { id: string
         </article>
 
         {/* Source Credit */}
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          منبع: {article.source} | این خبر از منابع معتبر جمع‌آوری شده است
+        <div className="mt-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            Source: <span className="font-medium text-foreground/70">{article.source}</span>
+          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1">
+            Aggregated from trusted financial news sources
+          </p>
         </div>
       </div>
     </div>

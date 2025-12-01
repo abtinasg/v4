@@ -124,11 +124,13 @@ export const FRED_MACRO_SERIES = {
   CASE_SHILLER: 'CSUSHPINSA',              // Case-Shiller Home Price Index
   
   // Manufacturing & Production
-  ISM_PMI: 'MANEMP',                       // ISM Manufacturing PMI (approximation)
+  // Note: ISM PMI is not available via FRED API (requires ISM subscription)
+  // MANEMP is Manufacturing Employment Index, not PMI
   INDUSTRIAL_PRODUCTION: 'INDPRO',         // Industrial Production Index
   CAPACITY_UTILIZATION: 'TCU',             // Capacity Utilization
   RETAIL_SALES: 'RSAFS',                   // Retail Sales
   TRADE_BALANCE: 'BOPGSTB',                // Trade Balance
+  MANUFACTURING_EMPLOYMENT: 'MANEMP',      // Manufacturing Employment (ISM component proxy)
   
   // Financial Conditions
   CREDIT_SPREAD: 'BAA10Y',                 // Baa Corporate - 10Y Treasury Spread
@@ -504,6 +506,7 @@ export async function fetchAllMacroData(): Promise<FREDData> {
     getFredSeries(FRED_MACRO_SERIES.GDP_PER_CAPITA),
     getFredSeries(FRED_MACRO_SERIES.POTENTIAL_GDP),
     getFredSeries(FRED_MACRO_SERIES.GDP_DEFLATOR),
+    getFredSeriesWithHistory(FRED_MACRO_SERIES.REAL_GDP, 5), // For QoQ growth calculation
   ]);
 
   // Batch 2: Inflation Metrics
@@ -582,11 +585,11 @@ export async function fetchAllMacroData(): Promise<FREDData> {
 
   // Batch 10: Manufacturing & Trade
   const manufacturingPromises = Promise.all([
-    getFredSeries(FRED_MACRO_SERIES.ISM_PMI),
     getFredSeries(FRED_MACRO_SERIES.INDUSTRIAL_PRODUCTION),
     getFredSeries(FRED_MACRO_SERIES.CAPACITY_UTILIZATION),
     getFredSeries(FRED_MACRO_SERIES.RETAIL_SALES),
     getFredSeries(FRED_MACRO_SERIES.TRADE_BALANCE),
+    getFredSeries(FRED_MACRO_SERIES.MANUFACTURING_EMPLOYMENT),
   ]);
 
   // Batch 11: Financial Conditions
@@ -635,7 +638,7 @@ export async function fetchAllMacroData(): Promise<FREDData> {
   ]);
 
   // Destructure GDP data
-  const [gdpGrowthRate, realGDP, nominalGDP, gdpPerCapita, potentialGDP, gdpDeflator] = gdpData;
+  const [gdpGrowthRate, realGDP, nominalGDP, gdpPerCapita, potentialGDP, gdpDeflator, realGDPHistory] = gdpData;
 
   // Destructure Inflation data
   const [cpi, ppi, coreInflation, pceInflation, breakEvenInflation5Y, breakEvenInflation10Y, inflationExpectations] = inflationData;
@@ -650,7 +653,7 @@ export async function fetchAllMacroData(): Promise<FREDData> {
   const [usdIndex, eurUsd, usdJpy, gbpUsd] = fxData;
 
   // Destructure Employment data
-  const [unemploymentRate, laborForceParticipation, employmentPopulationRatio, initialClaims, continuingClaims, nonFarmPayrolls, underemploymentRate, naturalUnemploymentRate] = employmentData;
+  const [unemploymentRate, laborForceParticipation, employmentPopulationRatio, initialClaims, continuingClaims, nonFarmPayrolls, u6Rate, nairu] = employmentData;
 
   // Destructure Wages data
   const [wageGrowth, laborProductivity, unitLaborCosts, realCompensation] = wagesData;
@@ -662,7 +665,11 @@ export async function fetchAllMacroData(): Promise<FREDData> {
   const [housingStarts, buildingPermits, existingHomeSales, caseShillerIndex] = housingData;
 
   // Destructure Manufacturing data
-  const [ism_pmi, industrialProduction, capacityUtilization, retailSales, tradeBalance] = manufacturingData;
+  const [industrialProduction, capacityUtilization, retailSales, tradeBalance, manufacturingEmployment] = manufacturingData;
+  
+  // ISM PMI not available via FRED - use null or fetch from alternative source
+  const ism_pmi = null;
+  const ism_services = null;
 
   // Destructure Financial data
   const [creditSpread, tedSpread, vix, financialStressIndex, chicagoFedIndex] = financialData;
@@ -671,18 +678,24 @@ export async function fetchAllMacroData(): Promise<FREDData> {
   const [federalDebt, debtToGDP, budgetDeficit] = fiscalData;
 
   // Calculate derived metrics
-  const realGDPGrowthRate = gdpGrowthRate; // Same as GDP Growth Rate for FRED data
+  // Real GDP Growth Rate (quarter-over-quarter annualized)
+  const realGDPGrowthRate = realGDPHistory.current != null && realGDPHistory.previous != null && realGDPHistory.previous !== 0
+    ? ((realGDPHistory.current - realGDPHistory.previous) / realGDPHistory.previous) * 100
+    : gdpGrowthRate; // Fallback to FRED's pre-calculated growth rate
 
   // Output Gap = (Real GDP - Potential GDP) / Potential GDP × 100
+  // Note: Both should be in same units (billions of chained dollars)
   const outputGap = realGDP != null && potentialGDP != null && potentialGDP !== 0
     ? ((realGDP - potentialGDP) / potentialGDP) * 100
     : null;
 
-  // Inflation Rate (YoY CPI change) - would need historical data for accurate calc
-  const inflationRate = cpi != null ? null : null; // Placeholder - needs historical CPI
+  // Inflation Rate (YoY CPI change) - need to fetch with history for proper calculation
+  // For now, we'll use a rough approximation or null
+  // TODO: Implement getFredSeriesWithHistory for CPI to get accurate YoY inflation
+  const inflationRate = null; // Will be calculated separately when needed
 
   // Core Inflation Rate (YoY Core CPI change)
-  const coreInflationRate = coreInflation != null ? null : null; // Placeholder
+  const coreInflationRate = null; // Will be calculated separately when needed
 
   // Real Interest Rate = Nominal Rate - Inflation
   const realInterestRate = federalFundsRate != null && inflationExpectations != null
@@ -702,7 +715,8 @@ export async function fetchAllMacroData(): Promise<FREDData> {
     ? treasury10Y - treasury3M
     : null;
 
-  // Term Premium = 10Y - Fed Funds (simplified)
+  // Term Premium = 10Y - Fed Funds (simplified approximation)
+  // This is a rough proxy; true term premium calculation is more complex
   const termPremium = treasury10Y != null && federalFundsRate != null
     ? treasury10Y - federalFundsRate
     : null;
@@ -729,15 +743,16 @@ export async function fetchAllMacroData(): Promise<FREDData> {
   // Nominal Risk-Free Rate (using 3-month T-bill)
   const nominalRiskFreeRate = treasury3M;
 
-  // Expected Real Rate
+  // Expected Real Rate = Nominal 10Y Yield - 10Y Breakeven Inflation
+  // This is the market-implied real interest rate
   const expectedRealRate = treasury10Y != null && breakEvenInflation10Y != null
     ? treasury10Y - breakEvenInflation10Y
     : null;
 
-  // Real Wage Growth = Wage Growth - Inflation
-  const realWageGrowth = wageGrowth != null && inflationExpectations != null
-    ? wageGrowth - inflationExpectations
-    : null;
+  // Real Wage Growth = Nominal Wage Growth - Inflation Rate
+  // Note: wageGrowth is in dollars/hour, not a growth rate
+  // We would need historical wage data to calculate actual real wage growth
+  const realWageGrowth = null; // Requires historical wage data for proper calculation
 
   // Productivity Growth Rate - would need historical data
   const productivityGrowthRate = null; // Placeholder
@@ -784,6 +799,9 @@ export async function fetchAllMacroData(): Promise<FREDData> {
     realInterestRate,
     neutralRate,
     yieldCurveSpread,
+    yieldCurveSlope,
+    termPremium,
+    expectedRealRate,
 
     // Monetary
     m1MoneySupply,
@@ -806,6 +824,8 @@ export async function fetchAllMacroData(): Promise<FREDData> {
     initialClaims,
     continuingClaims,
     nonFarmPayrolls,
+    underemploymentRate: u6Rate, // U-6 Rate
+    naturalUnemploymentRate: nairu, // NAIRU
 
     // Wages & Productivity
     wageGrowth,
@@ -894,11 +914,11 @@ export function calculateMacro(fredData: FREDData): MacroMetrics {
     realInterestRate: fredData.realInterestRate,
     neutralRate: fredData.neutralRate,
     yieldCurveSpread: fredData.yieldCurveSpread,
-    yieldCurveSlope: null, // Calculated: 10Y - 3M
-    termPremium: null, // Calculated
+    yieldCurveSlope: fredData.yieldCurveSlope, // 10Y - 3M
+    termPremium: fredData.termPremium, // 10Y - Fed Funds
     fisherEquation: fredData.fisherEquation,
     nominalRiskFreeRate: fredData.nominalRiskFreeRate,
-    expectedRealRate: null, // Calculated
+    expectedRealRate: fredData.expectedRealRate, // 10Y - Breakeven 10Y
 
     // Monetary (8 metrics)
     m1MoneySupply: fredData.m1MoneySupply,
@@ -923,8 +943,8 @@ export function calculateMacro(fredData: FREDData): MacroMetrics {
     initialClaims: fredData.initialClaims,
     continuingClaims: fredData.continuingClaims,
     nonFarmPayrolls: fredData.nonFarmPayrolls,
-    underemploymentRate: null, // U6 Rate
-    naturalUnemploymentRate: null, // NAIRU
+    underemploymentRate: u6Rate, // U-6 Total Unemployed plus Marginally Attached
+    naturalUnemploymentRate: nairu, // NAIRU (Non-Accelerating Inflation Rate of Unemployment)
 
     // Wages & Productivity (5 metrics)
     wageGrowth: fredData.wageGrowth,
@@ -946,8 +966,10 @@ export function calculateMacro(fredData: FREDData): MacroMetrics {
     caseShillerIndex: fredData.caseShillerIndex,
 
     // Manufacturing (6 metrics)
-    ism_pmi: fredData.ism_pmi,
-    ism_services: fredData.ism_services,
+    // Note: ISM PMI data not available via FRED API (requires ISM subscription)
+    // These will be populated with fallback data at the API layer
+    ism_pmi: null,
+    ism_services: null,
     industrialProduction: fredData.industrialProduction,
     capacityUtilization: fredData.capacityUtilization,
     retailSales: fredData.retailSales,

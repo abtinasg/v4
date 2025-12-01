@@ -51,22 +51,25 @@ function parseValue(value: string): number | null {
 function calculateYoYChange(
   observations: { date: string; value: string }[]
 ): { current: number | null; previous: number | null; change: number | null } {
+  // Need at least 13 observations to get 12 months ago (0-indexed)
   if (observations.length < 13) {
     return { current: null, previous: null, change: null };
   }
 
   const currentValue = parseValue(observations[observations.length - 1].value);
+  // 12 months ago is at index length-13 (since we need 0-indexed and 12 full months)
   const yearAgoValue = parseValue(observations[observations.length - 13].value);
 
   if (currentValue === null || yearAgoValue === null || yearAgoValue === 0) {
     return { current: currentValue, previous: yearAgoValue, change: null };
   }
 
+  // YoY percentage change formula: ((current - previous) / previous) * 100
   const yoyChange = ((currentValue - yearAgoValue) / yearAgoValue) * 100;
   return {
     current: currentValue,
     previous: yearAgoValue,
-    change: Math.round(yoyChange * 100) / 100,
+    change: Math.round(yoyChange * 100) / 100, // Round to 2 decimal places
   };
 }
 
@@ -83,9 +86,9 @@ export async function getFredSeries(seriesId: string): Promise<EconomicIndicator
   const apiKey = getApiKey();
 
   // Determine how much historical data to fetch based on series
-  // For CPI, we need at least 13 months for YoY calculation
+  // For CPI, we need at least 13 observations (12 months + current) for YoY calculation
   const isCPI = seriesId === FRED_SERIES.CPI_INFLATION;
-  const limit = isCPI ? 15 : 5;
+  const limit = isCPI ? 14 : 5; // 14 to ensure we have 13 complete months
 
   const params = new URLSearchParams({
     series_id: seriesId,
@@ -120,15 +123,30 @@ export async function getFredSeries(seriesId: string): Promise<EconomicIndicator
   if (isCPI) {
     // For CPI, calculate YoY inflation rate
     const { current, previous, change } = calculateYoYChange(observations);
+    
+    // Also calculate month-over-month change for context
+    const latestObs = observations[observations.length - 1];
+    const previousMonthObs = observations[observations.length - 2];
+    const currentCPI = latestObs ? parseValue(latestObs.value) : null;
+    const previousCPI = previousMonthObs ? parseValue(previousMonthObs.value) : null;
+    
+    let momChange: number | null = null;
+    if (currentCPI !== null && previousCPI !== null && previousCPI !== 0) {
+      momChange = ((currentCPI - previousCPI) / previousCPI) * 100;
+      momChange = Math.round(momChange * 100) / 100;
+    }
+    
     indicator = {
       seriesId,
       name: metadata.name,
-      value: change, // YoY inflation rate
-      previousValue: previous,
-      change: null,
-      changePercent: null,
+      value: change, // YoY inflation rate as percentage
+      previousValue: previous, // CPI value from 12 months ago
+      change: momChange, // Month-over-month change
+      changePercent: change !== null && previous !== null && previous !== 0 
+        ? Math.round(((change) / Math.abs(change)) * 10000) / 100 // Trend direction
+        : null,
       date: observations.length > 0 ? observations[observations.length - 1].date : '',
-      unit: '%', // Override to percentage for inflation rate
+      unit: '%', // Percentage for inflation rate
       frequency: metadata.frequency,
     };
   } else {

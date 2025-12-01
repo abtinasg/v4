@@ -144,6 +144,9 @@ export interface FREDData {
   realInterestRate: number | null;     // Calculated: Nominal Rate - Inflation
   neutralRate: number | null;          // Natural Rate of Interest (r*)
   yieldCurveSpread: number | null;     // Calculated: 10Y - 2Y Spread
+  yieldCurveSlope: number | null;      // Calculated: 10Y - 3M Spread
+  termPremium: number | null;          // Calculated: 10Y - Fed Funds
+  expectedRealRate: number | null;     // Calculated: 10Y - 10Y Breakeven Inflation
 
   // Monetary Metrics
   m1MoneySupply: number | null;        // M1SL - M1 Money Stock
@@ -166,6 +169,8 @@ export interface FREDData {
   initialClaims: number | null;        // ICSA - Initial Jobless Claims
   continuingClaims: number | null;     // CCSA - Continuing Claims
   nonFarmPayrolls: number | null;      // PAYEMS - Total Nonfarm Payrolls
+  underemploymentRate: number | null;  // U6RATE - Total Unemployed plus Marginally Attached
+  naturalUnemploymentRate: number | null; // NROU - NAIRU (Natural Rate of Unemployment)
 
   // Wages & Productivity
   wageGrowth: number | null;           // CES0500000003 - Average Hourly Earnings
