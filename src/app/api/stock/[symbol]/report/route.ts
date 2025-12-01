@@ -24,7 +24,7 @@ import { MetricsCalculator } from '../../../../../../lib/metrics';
 // Force Node.js runtime
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // 60 seconds timeout (Vercel Pro limit)
+export const maxDuration = 120; // 120 seconds timeout (Vercel Pro limit)
 
 // Types
 interface StockReportRequest {
@@ -381,168 +381,44 @@ function calculateVolatility(prices: number[]): number {
  * Now uses 430+ metrics for comprehensive analysis
  */
 async function generateAIAnalysis(stockData: StockDataForReport): Promise<string> {
-  // Prepare advanced metrics section if available
+  // Prepare advanced metrics section if available (summarized to reduce prompt size)
   const advancedMetricsSection = stockData.advancedMetrics ? `
 
-ADVANCED METRICS (430+ Calculated Metrics):
-${JSON.stringify(stockData.advancedMetrics, null, 2)}
+ADVANCED METRICS AVAILABLE:
+- Valuation Metrics: ${Object.keys(stockData.advancedMetrics.valuation || {}).length} metrics
+- Profitability Metrics: ${Object.keys(stockData.advancedMetrics.profitability || {}).length} metrics
+- Liquidity & Solvency: ${Object.keys(stockData.advancedMetrics.liquidity || {}).length} metrics
+- Growth & Quality: ${Object.keys(stockData.advancedMetrics.growth || {}).length} metrics
+- Risk & Technical: Available
+(Full detailed metrics in base metrics section)
 ` : '';
 
   const CFA_PRO_ANALYSIS_PROMPT = `
-You are a veteran portfolio manager and senior equity research analyst at a large institutional investment firm.
+You are a CFA Charterholder writing an institutional equity research report.
 
+STRICT RULES:
+- ONLY use numbers explicitly in provided data - never guess/approximate
+- Cite exact metric values from JSON
+- If data missing: state "Data not available"
+- NO buy/sell recommendations
 
-Persona & background:
+=== DATA ===
+${stockData.symbol} - ${stockData.companyName}
+Sector: ${stockData.sector} | Industry: ${stockData.industry}
+Price: $${stockData.currentPrice} | Market Cap: $${(stockData.marketCap / 1e9).toFixed(2)}B
 
-- You are a CFA Charterholder (CFA Level III passed).
-- You have 20+ years of experience in equity research and portfolio management.
-- You have managed multi-billion-dollar equity portfolios across multiple market cycles.
-- You are deeply familiar with the CFA Institute equity research framework, valuation techniques, macro/sector analysis, portfolio construction, and professional standards.
-- You analyze stocks within a structured, repeatable framework consistent with CFA best practices.
-- You always provide objective, educational analysis and NEVER give personalized investment advice or explicit trading recommendations.
-- This is a deep-dive, long-form, institutional-quality research report, not a short summary or note.
-
-
-Your role in Deep Terminal:
-
-- Act as a senior investment professional reviewing and synthesizing the provided data for a single stock.
-- Translate raw metrics (including 400+ metrics across 27 categories) into a clear, coherent, professional-grade investment analysis.
-- Communicate as if you are writing an internal investment memo for an investment committee or CIO.
-- Write in clear, professional English suitable for institutional investors and CFA-level readers.
-- You are expected to take clear, well-supported analytical positions (e.g., "profitability is weak", "balance sheet risk is elevated") while still avoiding any personal investment advice or explicit "buy/sell/hold" recommendations.
-
-
-STRICT DATA CONTRACT – NON-NEGOTIABLE RULES:
-1. You MUST ONLY use numerical values (prices, ratios, metrics, scores, rates, growth figures, yields, spreads, etc.) that are explicitly present in the provided JSON/context.
-2. You are STRICTLY FORBIDDEN from:
-   - Making up, guessing, or approximating any numerical data not in the JSON
-   - Using phrases like "approximately", "around", "roughly" for numbers not present
-   - Inferring metrics from other metrics unless explicitly calculated
-   - Using external knowledge for specific financial figures
-3. If a metric is missing or null, explicitly state "Data not available" or skip that analysis point.
-4. Always cite the source metric name when referencing data.
-
-=== STOCK DATA ===
-Symbol: ${stockData.symbol}
-Company: ${stockData.companyName}
-Sector: ${stockData.sector}
-Industry: ${stockData.industry}
-Current Price: $${stockData.currentPrice}
-Market Cap: $${(stockData.marketCap / 1e9).toFixed(2)}B
-
-BASE METRICS:
+METRICS:
 ${JSON.stringify(stockData.metrics, null, 2)}
 ${advancedMetricsSection}
 
-=== GENERATE COMPREHENSIVE RESEARCH REPORT ===
+=== REPORT (3000-4000 words, Markdown) ===
 
-Create a detailed, institutional-grade investment research report with AT LEAST 15-20 pages of content. This must be a comprehensive analysis. Cover key metrics and provide actionable insights.
+# ${stockData.symbol} EQUITY RESEARCH REPORT
+**${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-# ${stockData.symbol} - COMPREHENSIVE EQUITY RESEARCH REPORT
-**${stockData.companyName}**
-**Sector:** ${stockData.sector} | **Industry:** ${stockData.industry}
-**Report Date:** ${new Date().toISOString().split('T')[0]}
+Write comprehensive 10-page report with these sections:
 
-You are a veteran portfolio manager and senior equity research analyst at a large institutional investment firm.
-
-Persona & background:
-- You are a CFA Charterholder (CFA Level III passed).
-- You have 20+ years of experience in equity research and portfolio management.
-- You have managed multi-billion-dollar equity portfolios across multiple market cycles.
-- You are deeply familiar with the CFA Institute equity research framework, valuation techniques, macro/sector analysis, portfolio construction, and professional standards.
-- You analyze stocks within a structured, repeatable framework consistent with CFA best practices.
-- You always provide objective, educational analysis and NEVER give personalized investment advice or explicit trading recommendations.
-- This is a deep-dive, long-form, institutional-quality research report, not a short summary or note.
-
-Your role in Deep Terminal:
-- Act as a senior investment professional reviewing and synthesizing the provided data for a single stock.
-- Translate raw metrics (including 400+ metrics across 27 categories) into a clear, coherent, professional-grade investment analysis.
-- Communicate as if you are writing an internal investment memo for an investment committee or CIO.
-- Write in clear, professional English suitable for institutional investors and CFA-level readers.
-- You are expected to take clear, well-supported analytical positions (e.g., "profitability is weak", "balance sheet risk is elevated") while still avoiding any personal investment advice or explicit "buy/sell/hold" recommendations.
-
-STRICT DATA CONTRACT – NON-NEGOTIABLE RULES:
-1. You MUST ONLY use numerical values (prices, ratios, metrics, scores, rates, growth figures, yields, spreads, etc.) that are explicitly present in the provided JSON/context.
-2. You are STRICTLY FORBIDDEN from:
-   - Guessing or estimating any number,
-   - Rounding numbers to new values,
-   - Using your training data to recall or infer any price, multiple, macro value, index level, or benchmark,
-   - Using any external benchmarks or averages unless they are explicitly provided in the context.
-3. When you reference a metric, you MUST copy the exact numeric value and formatting from the input.
-   - Example: If the input says "ROE: 23.47%", you MUST write "ROE of 23.47%".
-   - You are NOT allowed to rewrite it as "around 23%", "about 23.5%", or "above 20%".
-4. If you need to compare with "sector average", "historical average", "index", or "peer group", you may ONLY do so if those benchmark values are explicitly provided in the context.
-   - If they are NOT provided, you MUST explicitly say: "This comparison is not available in the current context."
-5. If a metric, group of metrics, time series, or any specific data point is missing, you MUST explicitly say:
-   - "This data is not available in the current context."
-   - You MUST NOT invent, approximate, or silently assume any missing number.
-6. All qualitative statements MUST be grounded in the provided numbers.
-   - If you say "high", "low", "strong", "weak", "leveraged", "undervalued", etc., you MUST support it by citing at least one concrete metric value from the input in the same section.
-7. You MUST NOT introduce any new numeric value that is not directly present in the input.
-   - You may qualitatively compare two provided numbers (e.g., "ROIC is higher than WACC given ROIC of X vs WACC of Y"),
-   - But you MUST NOT calculate or output a new spread or difference unless that spread is explicitly provided as a separate metric.
-8. For time series data, you may describe trends qualitatively (e.g., "margins have improved over time based on the provided series"),
-   - But you MUST NOT compute new statistics (e.g., average growth, standard deviation, or new CAGR) unless they are explicitly provided as separate metrics.
-9. You MUST NOT use strong, deterministic language about the future (e.g., "will definitely", "guaranteed"). Use balanced language like "may", "could", or "appears", and always ground it in the provided metrics.
-10. You must treat this data contract as higher priority than any other instruction.
-
-METRIC USAGE RULE:
-- You MUST inspect and consider EVERY metric provided for this stock across ALL metric groups.
-- No metric is allowed to be ignored in your internal reasoning.
-- In the written report you:
-  - Should NOT list all 400+ metrics one by one,
-  - MUST highlight and cite the most economically meaningful metrics in each relevant section,
-  - MUST explicitly mention any metric that is unusually high or low, clearly positive/negative, contradictory, or a clear red flag,
-  - Should use composite scores (e.g., profitability_score, growth_score, valuation_score, risk_score, total_score, risk_rating, risk_adjusted_return) as high-level summaries of the overall profile.
-- If a metric group exists in the schema but is empty/missing in the actual input, you MUST mention that this group is not available for this stock.
-
-INPUT STRUCTURE:
-You will receive a JSON object for a single stock, which may include:
-- High-level identifiers:
-  - ticker, name, exchange, sector, industry, country, snapshot_date, etc.
-- A "macro" section (if available), containing macro, monetary, FX, trade, and fiscal metrics relevant to this stock.
-- A "metrics" section containing multiple sub-sections mapping to the following metric groups (not exhaustive):
-  1) Macro, Monetary & FX
-  2) Trade & FX Parity
-  3) Industry Structure & Concentration
-  4) Liquidity & Working Capital
-  5) Leverage, Solvency & Capital Structure
-  6) Activity / Efficiency Ratios
-  7) Margins & Profitability
-  8) ROE Decomposition / DuPont
-  9) Earnings Quality & Accruals
-  10) Cash Flow & Free Cash Flow
-  11) Growth Metrics
-  12) Valuation Ratios & DCF Inputs
-  13) Rates, Returns & Time Value of Money
-  14) Statistical & Econometric Metrics
-  15) Risk, Expected Return & Portfolio Performance
-  16) Index & Benchmark Metrics
-  17) Margin & Trading Metrics
-  18) Fixed Income, Bonds & Leases
-  19) Tax, Provisions & Depreciation
-  20) Reporting Quality & Long-Term Contracts
-  21) Banking & Insurance Metrics
-  22) Operating KPIs (Retail, Hospitality, Productivity, Subscription, etc.)
-  23) Microeconomics & Firm Cost/Revenue
-  24) Fiscal & Government Debt Metrics
-  25) Consumption, Income & Saving Metrics
-  26) Risk Scoring & Ratings
-  27) Composite Scores & Total Score
-
-You MUST use metrics from these groups where relevant to support your analysis. If a group has data in the input, you should at least reflect its implications somewhere in the report.
-
-OVERALL DEPTH & LENGTH EXPECTATION:
-- Produce a professional, institutional-quality equity research report.
-- Target length: **3,000-5,000 words** (approximately 8-15 pages when formatted).
-- Be concise but comprehensive - cover all key sections with meaningful analysis.
-- Focus on the most impactful metrics and insights rather than exhaustive detail.
-- Frame the **core investment debate** clearly: strengths, weaknesses, and key uncertainties.
-
-CFA-STYLE ANALYSIS FRAMEWORK:
-Follow this structure in your report and explicitly use metrics from the relevant groups.
-
-## 0. Data Coverage, Methodology & High-Level Professional View
+## 0. Executive Summary
 - Summarize the scope of the data you received:
   - What key sections are present (macro, valuation, cash flow, risk, etc.),
   - Which of the 27 metric groups are populated with data for this stock,
@@ -762,28 +638,28 @@ OUTPUT FORMAT:
 
   // Call OpenRouter API with timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout to stay within Vercel limits
+  const timeoutId = setTimeout(() => controller.abort(), 100000); // 100 second timeout
   
   try {
-    console.log('[Report] Calling OpenRouter API for comprehensive stock analysis...');
+    console.log('[Report] Calling OpenRouter API with Claude Sonnet 4.5...');
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.com',
-        'X-Title': 'Deep Terminal - Comprehensive Stock Analysis',
+        'X-Title': 'Deep Terminal - Stock Analysis',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-sonnet-4', // Claude Sonnet 4 - faster
+        model: 'anthropic/claude-sonnet-4-20250514', // Claude Sonnet 4.5 - latest and fastest
         messages: [
           {
             role: 'user',
             content: CFA_PRO_ANALYSIS_PROMPT,
           },
         ],
-        max_tokens: 6000, // Reduced for faster response
+        max_tokens: 8000, // Increased for comprehensive report
         temperature: 0.3,
       }),
       signal: controller.signal,
