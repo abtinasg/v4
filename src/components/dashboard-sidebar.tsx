@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, LineChart, List, Terminal, Newspaper } from 'lucide-react'
+import { LayoutDashboard, LineChart, List, Terminal, Newspaper, Briefcase } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface DashboardSidebarProps {
@@ -27,6 +27,9 @@ export function DashboardSidebar({ subscriptionTier }: DashboardSidebarProps) {
         </NavLink>
         <NavLink href="/dashboard/stock-analysis" icon={<LineChart className="w-5 h-5" />}>
           Stock Analysis
+        </NavLink>
+        <NavLink href="/dashboard/portfolio" icon={<Briefcase className="w-5 h-5" />}>
+          Portfolio
         </NavLink>
         <NavLink href="/dashboard/watchlist" icon={<List className="w-5 h-5" />}>
           Watchlist

@@ -182,7 +182,7 @@ export const WatchlistCard = memo(function WatchlistCard({
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <Link
-            href={`/dashboard/stock-analysis?symbol=${stock.symbol}`}
+            href={`/dashboard/stock-analysis/${stock.symbol}`}
             className="flex items-center gap-3 group/link"
           >
             {/* Symbol badge */}
@@ -235,7 +235,7 @@ export const WatchlistCard = memo(function WatchlistCard({
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
-                  href={`/dashboard/stock-analysis?symbol=${stock.symbol}`}
+                  href={`/dashboard/stock-analysis/${stock.symbol}`}
                   className="text-white/80 hover:text-white focus:text-white"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />

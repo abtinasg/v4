@@ -46,14 +46,14 @@ export function MobileSearch({
   const handleSearch = (searchQuery: string) => {
     if (searchQuery.trim()) {
       onSearch?.(searchQuery)
-      router.push(`/dashboard/stock-analysis?symbol=${searchQuery.toUpperCase()}`)
+      router.push(`/dashboard/stock-analysis/${searchQuery.trim().toUpperCase()}`)
       setIsOpen(false)
       setQuery('')
     }
   }
 
   const handleSymbolClick = (symbol: string) => {
-    router.push(`/dashboard/stock-analysis?symbol=${symbol}`)
+    router.push(`/dashboard/stock-analysis/${symbol}`)
     setIsOpen(false)
     setQuery('')
   }

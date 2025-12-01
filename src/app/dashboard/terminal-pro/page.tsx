@@ -76,20 +76,6 @@ export default function TerminalProPage() {
   const { setIsCollapsed, isCollapsed, setIsMobileOpen } = useSidebar()
   const previousCollapseState = useRef<boolean>(isCollapsed)
   const inputRef = useRef<HTMLInputElement>(null)
-  const notificationSentRef = useRef(false)
-
-  // Send notification email when user visits Terminal Pro
-  useEffect(() => {
-    if (notificationSentRef.current) return
-    notificationSentRef.current = true
-    
-    // Send notification in background (don't await)
-    fetch('/api/notifications/terminal-pro-visit', {
-      method: 'POST',
-    }).catch((err) => {
-      console.error('Failed to send Terminal Pro visit notification:', err)
-    })
-  }, [])
 
   // Fetch real market status
   useEffect(() => {
@@ -206,7 +192,7 @@ F11 - Fullscreen`)
       // Stock lookup: AAPL GO or AAPL EQUITY GO
       const symbol = parts[0].replace(/[^A-Z]/g, '')
       if (symbol) {
-        router.push(`/dashboard/stock-analysis?symbol=${symbol}`)
+        router.push(`/dashboard/stock-analysis/${symbol}`)
       }
     } else if (mainCmd === 'SEARCH' && parts.length > 1) {
       // Search for stocks
@@ -235,7 +221,7 @@ F11 - Fullscreen`)
       // Try as stock symbol
       const symbol = mainCmd.replace(/[^A-Z]/g, '')
       if (symbol && symbol.length <= 5) {
-        router.push(`/dashboard/stock-analysis?symbol=${symbol}`)
+        router.push(`/dashboard/stock-analysis/${symbol}`)
       }
     }
 
@@ -483,7 +469,7 @@ F11 - Fullscreen`)
                 <SearchResultsPanel 
                   results={searchResults} 
                   loading={searchLoading}
-                  onSelectStock={(symbol) => router.push(`/dashboard/stock-analysis?symbol=${symbol}`)}
+                  onSelectStock={(symbol) => router.push(`/dashboard/stock-analysis/${symbol}`)}
                 />
               </div>
             )}

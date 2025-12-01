@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, timestamp, real, boolean, index, jsonb, serial, decimal, pgEnum } from 'drizzle-orm/pg-core'
+import { pgTable, text, varchar, timestamp, real, boolean, index, jsonb, serial, decimal, pgEnum, date, integer, uniqueIndex } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 // Enums for type safety
@@ -9,6 +9,8 @@ export const chartTypeEnum = pgEnum('chart_type', ['line', 'candlestick', 'bar',
 export const riskToleranceEnum = pgEnum('risk_tolerance', ['conservative', 'moderate', 'aggressive'])
 export const investmentHorizonEnum = pgEnum('investment_horizon', ['short_term', 'medium_term', 'long_term'])
 export const investmentExperienceEnum = pgEnum('investment_experience', ['beginner', 'intermediate', 'advanced'])
+export const portfolioTransactionTypeEnum = pgEnum('portfolio_transaction_type', ['buy', 'sell', 'dividend', 'split', 'transfer_in', 'transfer_out'])
+export const portfolioAlertTypeEnum = pgEnum('portfolio_alert_type', ['price_above', 'price_below', 'percent_change', 'portfolio_value', 'daily_gain_loss', 'news'])
 
 // ==================== USERS TABLE ====================
 export const users = pgTable('users', {
@@ -113,18 +115,107 @@ export const chatHistory = pgTable('chat_history', {
 export const portfolioHoldings = pgTable('portfolio_holdings', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  portfolioId: text('portfolio_id').references(() => portfolios.id, { onDelete: 'cascade' }),
   symbol: varchar('symbol', { length: 10 }).notNull(),
   quantity: decimal('quantity', { precision: 15, scale: 4 }).notNull(),
   avgBuyPrice: decimal('avg_buy_price', { precision: 15, scale: 2 }).notNull(),
   currentValue: decimal('current_value', { precision: 15, scale: 2 }),
+  notes: text('notes'),
+  targetPrice: decimal('target_price', { precision: 15, scale: 2 }),
+  stopLoss: decimal('stop_loss', { precision: 15, scale: 2 }),
   lastUpdated: timestamp('last_updated', { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index('portfolio_holdings_user_id_idx').on(table.userId),
+  portfolioIdIdx: index('portfolio_holdings_portfolio_id_idx').on(table.portfolioId),
   symbolIdx: index('portfolio_holdings_symbol_idx').on(table.symbol),
   userSymbolIdx: index('portfolio_holdings_user_symbol_idx').on(table.userId, table.symbol),
   lastUpdatedIdx: index('portfolio_holdings_last_updated_idx').on(table.lastUpdated),
+}))
+
+// ==================== PORTFOLIOS TABLE ====================
+export const portfolios = pgTable('portfolios', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  isDefault: boolean('is_default').default(false).notNull(),
+  currency: varchar('currency', { length: 3 }).notNull().default('USD'),
+  initialValue: decimal('initial_value', { precision: 15, scale: 2 }).notNull().default('0'),
+  isPublic: boolean('is_public').default(false).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('portfolios_user_id_idx').on(table.userId),
+  isDefaultIdx: index('portfolios_is_default_idx').on(table.isDefault),
+}))
+
+// ==================== PORTFOLIO TRANSACTIONS TABLE ====================
+export const portfolioTransactions = pgTable('portfolio_transactions', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  portfolioId: text('portfolio_id').notNull().references(() => portfolios.id, { onDelete: 'cascade' }),
+  holdingId: text('holding_id').references(() => portfolioHoldings.id, { onDelete: 'set null' }),
+  symbol: varchar('symbol', { length: 10 }).notNull(),
+  type: portfolioTransactionTypeEnum('type').notNull(),
+  quantity: decimal('quantity', { precision: 15, scale: 4 }).notNull(),
+  price: decimal('price', { precision: 15, scale: 2 }).notNull(),
+  totalAmount: decimal('total_amount', { precision: 15, scale: 2 }).notNull(),
+  fees: decimal('fees', { precision: 10, scale: 2 }).default('0'),
+  notes: text('notes'),
+  executedAt: timestamp('executed_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  portfolioIdIdx: index('portfolio_transactions_portfolio_id_idx').on(table.portfolioId),
+  holdingIdIdx: index('portfolio_transactions_holding_id_idx').on(table.holdingId),
+  symbolIdx: index('portfolio_transactions_symbol_idx').on(table.symbol),
+  typeIdx: index('portfolio_transactions_type_idx').on(table.type),
+  executedAtIdx: index('portfolio_transactions_executed_at_idx').on(table.executedAt),
+}))
+
+// ==================== PORTFOLIO ALERTS TABLE ====================
+export const portfolioAlerts = pgTable('portfolio_alerts', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  portfolioId: text('portfolio_id').references(() => portfolios.id, { onDelete: 'cascade' }),
+  holdingId: text('holding_id').references(() => portfolioHoldings.id, { onDelete: 'cascade' }),
+  symbol: varchar('symbol', { length: 10 }),
+  alertType: portfolioAlertTypeEnum('alert_type').notNull(),
+  conditionValue: decimal('condition_value', { precision: 15, scale: 2 }),
+  conditionPercent: decimal('condition_percent', { precision: 8, scale: 4 }),
+  message: text('message'),
+  isActive: boolean('is_active').default(true).notNull(),
+  isEmailEnabled: boolean('is_email_enabled').default(true).notNull(),
+  isPushEnabled: boolean('is_push_enabled').default(true).notNull(),
+  lastTriggeredAt: timestamp('last_triggered_at', { withTimezone: true }),
+  triggerCount: integer('trigger_count').default(0).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('portfolio_alerts_user_id_idx').on(table.userId),
+  portfolioIdIdx: index('portfolio_alerts_portfolio_id_idx').on(table.portfolioId),
+  holdingIdIdx: index('portfolio_alerts_holding_id_idx').on(table.holdingId),
+  isActiveIdx: index('portfolio_alerts_is_active_idx').on(table.isActive),
+  symbolIdx: index('portfolio_alerts_symbol_idx').on(table.symbol),
+}))
+
+// ==================== PORTFOLIO SNAPSHOTS TABLE ====================
+export const portfolioSnapshots = pgTable('portfolio_snapshots', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  portfolioId: text('portfolio_id').notNull().references(() => portfolios.id, { onDelete: 'cascade' }),
+  totalValue: decimal('total_value', { precision: 15, scale: 2 }).notNull(),
+  totalCost: decimal('total_cost', { precision: 15, scale: 2 }).notNull(),
+  totalGainLoss: decimal('total_gain_loss', { precision: 15, scale: 2 }).notNull(),
+  totalGainLossPercent: decimal('total_gain_loss_percent', { precision: 8, scale: 4 }).notNull(),
+  dayChange: decimal('day_change', { precision: 15, scale: 2 }),
+  dayChangePercent: decimal('day_change_percent', { precision: 8, scale: 4 }),
+  holdingsCount: integer('holdings_count').notNull(),
+  snapshotDate: date('snapshot_date').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  portfolioIdIdx: index('portfolio_snapshots_portfolio_id_idx').on(table.portfolioId),
+  dateIdx: index('portfolio_snapshots_date_idx').on(table.snapshotDate),
+  portfolioDateIdx: uniqueIndex('portfolio_snapshots_portfolio_date_idx').on(table.portfolioId, table.snapshotDate),
 }))
 
 // ==================== RISK PROFILE TABLE ====================
@@ -171,7 +262,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   stockAlerts: many(stockAlerts),
   preferences: one(userPreferences),
   chatHistory: many(chatHistory),
+  portfolios: many(portfolios),
   portfolioHoldings: many(portfolioHoldings),
+  portfolioAlerts: many(portfolioAlerts),
   riskProfile: one(riskProfiles),
   credits: one(userCredits),
   creditTransactions: many(creditTransactions),
@@ -213,10 +306,60 @@ export const chatHistoryRelations = relations(chatHistory, ({ one }) => ({
   }),
 }))
 
-export const portfolioHoldingsRelations = relations(portfolioHoldings, ({ one }) => ({
+export const portfolioHoldingsRelations = relations(portfolioHoldings, ({ one, many }) => ({
   user: one(users, {
     fields: [portfolioHoldings.userId],
     references: [users.id],
+  }),
+  portfolio: one(portfolios, {
+    fields: [portfolioHoldings.portfolioId],
+    references: [portfolios.id],
+  }),
+  transactions: many(portfolioTransactions),
+  alerts: many(portfolioAlerts),
+}))
+
+export const portfoliosRelations = relations(portfolios, ({ one, many }) => ({
+  user: one(users, {
+    fields: [portfolios.userId],
+    references: [users.id],
+  }),
+  holdings: many(portfolioHoldings),
+  transactions: many(portfolioTransactions),
+  alerts: many(portfolioAlerts),
+  snapshots: many(portfolioSnapshots),
+}))
+
+export const portfolioTransactionsRelations = relations(portfolioTransactions, ({ one }) => ({
+  portfolio: one(portfolios, {
+    fields: [portfolioTransactions.portfolioId],
+    references: [portfolios.id],
+  }),
+  holding: one(portfolioHoldings, {
+    fields: [portfolioTransactions.holdingId],
+    references: [portfolioHoldings.id],
+  }),
+}))
+
+export const portfolioAlertsRelations = relations(portfolioAlerts, ({ one }) => ({
+  user: one(users, {
+    fields: [portfolioAlerts.userId],
+    references: [users.id],
+  }),
+  portfolio: one(portfolios, {
+    fields: [portfolioAlerts.portfolioId],
+    references: [portfolios.id],
+  }),
+  holding: one(portfolioHoldings, {
+    fields: [portfolioAlerts.holdingId],
+    references: [portfolioHoldings.id],
+  }),
+}))
+
+export const portfolioSnapshotsRelations = relations(portfolioSnapshots, ({ one }) => ({
+  portfolio: one(portfolios, {
+    fields: [portfolioSnapshots.portfolioId],
+    references: [portfolios.id],
   }),
 }))
 
@@ -514,6 +657,14 @@ export type ChatHistory = typeof chatHistory.$inferSelect
 export type NewChatHistory = typeof chatHistory.$inferInsert
 export type PortfolioHolding = typeof portfolioHoldings.$inferSelect
 export type NewPortfolioHolding = typeof portfolioHoldings.$inferInsert
+export type Portfolio = typeof portfolios.$inferSelect
+export type NewPortfolio = typeof portfolios.$inferInsert
+export type PortfolioTransaction = typeof portfolioTransactions.$inferSelect
+export type NewPortfolioTransaction = typeof portfolioTransactions.$inferInsert
+export type PortfolioAlert = typeof portfolioAlerts.$inferSelect
+export type NewPortfolioAlert = typeof portfolioAlerts.$inferInsert
+export type PortfolioSnapshot = typeof portfolioSnapshots.$inferSelect
+export type NewPortfolioSnapshot = typeof portfolioSnapshots.$inferInsert
 export type RiskProfile = typeof riskProfiles.$inferSelect
 export type NewRiskProfile = typeof riskProfiles.$inferInsert
 

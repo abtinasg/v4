@@ -199,11 +199,13 @@ export function alertNotificationEmail(
   `
 }
 
-// Terminal Pro Visit Notification
-export function terminalProVisitEmail(
+// Login Notification Email
+export function loginNotificationEmail(
   userName: string, 
-  userEmail: string, 
-  visitTime: string
+  loginTime: string,
+  device: string,
+  location: string,
+  ipAddress: string
 ): string {
   return `
     <!DOCTYPE html>
@@ -212,20 +214,68 @@ export function terminalProVisitEmail(
     <body>
       <div class="container">
         <div class="card">
-          <div class="logo">bos be mehdi Deep Terminal</div>
-          <h1 class="title">Terminal Pro Access</h1>
-          <p class="text">A user accessed Terminal Pro:</p>
+          <div class="logo">🔐 Deep Terminal</div>
+          <h1 class="title">New Login Detected</h1>
+          <p class="text">Hey ${userName}, we noticed a new login to your account.</p>
           <div class="stat-box">
-            <div class="stat-label">User</div>
-            <div class="stat-value" style="font-size: 18px;">${userName}</div>
-            <p style="color: #9ca3af; font-size: 14px; margin: 8px 0 0 0;">${userEmail}</p>
+            <div class="stat-label">Time</div>
+            <div class="stat-value" style="font-size: 16px; color: #06b6d4;">${loginTime}</div>
           </div>
           <div class="stat-box">
-            <div class="stat-label">Access Time</div>
-            <div class="stat-value" style="font-size: 16px; color: #06b6d4;">${visitTime}</div>
+            <div class="stat-label">Device</div>
+            <div class="stat-value" style="font-size: 16px;">${device}</div>
           </div>
+          <div class="stat-box">
+            <div class="stat-label">Location</div>
+            <div class="stat-value" style="font-size: 16px;">${location}</div>
+            <p style="color: #6b7280; font-size: 12px; margin: 8px 0 0 0;">IP: ${ipAddress}</p>
+          </div>
+          <p class="text" style="font-size: 14px; color: #f59e0b;">
+            ⚠️ If this wasn't you, please secure your account immediately by changing your password.
+          </p>
+          <a href="https://deepterminal.io/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
-            <p>This is an automated notification.</p>
+            <p>This is an automated security notification.</p>
+            <p>© 2025 Deep Terminal. All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Low Credits Warning Email
+export function lowCreditsEmail(
+  userName: string, 
+  currentCredits: number,
+  threshold: number
+): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>${emailStyles}</head>
+    <body>
+      <div class="container">
+        <div class="card">
+          <div class="logo">⚠️ Deep Terminal</div>
+          <h1 class="title">Credits Running Low</h1>
+          <p class="text">Hey ${userName}, your credit balance is running low.</p>
+          <div class="stat-box">
+            <div class="stat-label">Current Balance</div>
+            <div class="stat-value" style="color: #f59e0b;">${currentCredits} Credits</div>
+            <p style="color: #9ca3af; font-size: 14px; margin: 8px 0 0 0;">Below ${threshold} credits threshold</p>
+          </div>
+          <p class="text">Don't lose access to:</p>
+          <ul class="text">
+            <li>🤖 AI-powered stock analysis</li>
+            <li>📊 Real-time market insights</li>
+            <li>📈 Advanced charting tools</li>
+            <li>💼 Terminal Pro features</li>
+          </ul>
+          <a href="https://deepterminal.io/pricing" class="button">Buy Credits →</a>
+          <div class="footer">
+            <p>Top up now to continue using all features without interruption.</p>
             <p>© 2025 Deep Terminal. All rights reserved.</p>
           </div>
         </div>

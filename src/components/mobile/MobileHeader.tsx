@@ -160,7 +160,7 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
                     {searchResults.map((result: any) => (
                       <Link
                         key={result.symbol}
-                        href={`/dashboard/stock-analysis?symbol=${result.symbol}`}
+                        href={`/dashboard/stock-analysis/${result.symbol}`}
                         onClick={() => setIsSearchOpen(false)}
                         className="flex items-center justify-between px-4 py-3 hover:bg-white/5 active:bg-white/10 transition-colors"
                       >

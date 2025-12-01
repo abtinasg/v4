@@ -363,7 +363,7 @@ const StockRow = memo(function StockRow({
       {/* Symbol & Name */}
       <td className="px-4 py-3">
         <Link
-          href={`/dashboard/stock-analysis?symbol=${stock.symbol}`}
+          href={`/dashboard/stock-analysis/${stock.symbol}`}
           className="flex items-center gap-3 group/link"
         >
           {/* Symbol badge */}
@@ -465,7 +465,7 @@ const StockRow = memo(function StockRow({
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link
-                href={`/dashboard/stock-analysis?symbol=${stock.symbol}`}
+                href={`/dashboard/stock-analysis/${stock.symbol}`}
                 className="text-white/80 hover:text-white focus:text-white"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
