@@ -200,11 +200,16 @@ export async function deductCredits(
 export async function addCredits(
   userId: string,
   amount: number,
-  type: 'purchase' | 'refund' | 'bonus' | 'monthly_reset' | 'admin_adjust',
+  type: 'purchase' | 'refund' | 'bonus' | 'monthly_reset' | 'admin_adjust' | 'promo',
   description: string,
   metadata?: {
     packageId?: string
     stripePaymentId?: string
+    orderId?: string
+    paymentId?: string
+    payCurrency?: string
+    actuallyPaid?: number
+    promoCode?: string
   }
 ): Promise<CreditAddResult> {
   // Ensure credit record exists

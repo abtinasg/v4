@@ -270,6 +270,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   riskProfile: one(riskProfiles),
   credits: one(userCredits),
   creditTransactions: many(creditTransactions),
+  cryptoPayments: many(cryptoPayments),
 }))
 
 export const watchlistsRelations = relations(watchlists, ({ one, many }) => ({
@@ -645,6 +646,100 @@ export const promoCodeUsageRelations = relations(promoCodeUsage, ({ one }) => ({
   }),
 }))
 
+// ==================== PAYMENT STATUS ENUM ====================
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'pending',
+  'waiting',
+  'confirming',
+  'confirmed',
+  'sending',
+  'partially_paid',
+  'finished',
+  'failed',
+  'refunded',
+  'expired'
+])
+
+export const paymentProviderEnum = pgEnum('payment_provider', [
+  'nowpayments',
+  'stripe',
+  'manual'
+])
+
+// ==================== CRYPTO PAYMENTS TABLE ====================
+export const cryptoPayments = pgTable('crypto_payments', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  packageId: text('package_id').notNull().references(() => creditPackages.id),
+  
+  // Payment Provider Info
+  provider: paymentProviderEnum('provider').notNull().default('nowpayments'),
+  externalPaymentId: varchar('external_payment_id', { length: 255 }),
+  externalInvoiceId: varchar('external_invoice_id', { length: 255 }),
+  
+  // Order Info
+  orderId: varchar('order_id', { length: 100 }).notNull().unique(),
+  orderDescription: text('order_description'),
+  
+  // Price Info
+  priceAmount: decimal('price_amount', { precision: 15, scale: 2 }).notNull(),
+  priceCurrency: varchar('price_currency', { length: 10 }).notNull().default('USD'),
+  
+  // Crypto Payment Info
+  payAmount: decimal('pay_amount', { precision: 20, scale: 8 }),
+  payCurrency: varchar('pay_currency', { length: 20 }),
+  payAddress: varchar('pay_address', { length: 255 }),
+  actuallyPaid: decimal('actually_paid', { precision: 20, scale: 8 }),
+  
+  // Status
+  status: paymentStatusEnum('status').notNull().default('pending'),
+  
+  // Credits to be added
+  creditsAmount: decimal('credits_amount', { precision: 15, scale: 2 }).notNull(),
+  bonusCredits: decimal('bonus_credits', { precision: 15, scale: 2 }).notNull().default('0'),
+  creditsAdded: boolean('credits_added').default(false).notNull(),
+  
+  // URLs
+  invoiceUrl: varchar('invoice_url', { length: 500 }),
+  successUrl: varchar('success_url', { length: 500 }),
+  cancelUrl: varchar('cancel_url', { length: 500 }),
+  
+  // Metadata
+  metadata: jsonb('metadata').$type<{
+    ipAddress?: string
+    userAgent?: string
+    network?: string
+    purchaseId?: string
+    outcomeAmount?: number
+    outcomeCurrency?: string
+  }>(),
+  
+  // Timestamps
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('crypto_payments_user_id_idx').on(table.userId),
+  packageIdIdx: index('crypto_payments_package_id_idx').on(table.packageId),
+  orderIdIdx: index('crypto_payments_order_id_idx').on(table.orderId),
+  externalPaymentIdIdx: index('crypto_payments_external_payment_id_idx').on(table.externalPaymentId),
+  statusIdx: index('crypto_payments_status_idx').on(table.status),
+  createdAtIdx: index('crypto_payments_created_at_idx').on(table.createdAt),
+}))
+
+// ==================== CRYPTO PAYMENTS RELATIONS ====================
+export const cryptoPaymentsRelations = relations(cryptoPayments, ({ one }) => ({
+  user: one(users, {
+    fields: [cryptoPayments.userId],
+    references: [users.id],
+  }),
+  package: one(creditPackages, {
+    fields: [cryptoPayments.packageId],
+    references: [creditPackages.id],
+  }),
+}))
+
 // ==================== TYPE EXPORTS ====================
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -696,3 +791,7 @@ export type PromoCode = typeof promoCodes.$inferSelect
 export type NewPromoCode = typeof promoCodes.$inferInsert
 export type PromoCodeUsage = typeof promoCodeUsage.$inferSelect
 export type NewPromoCodeUsage = typeof promoCodeUsage.$inferInsert
+
+// Crypto Payment Types
+export type CryptoPayment = typeof cryptoPayments.$inferSelect
+export type NewCryptoPayment = typeof cryptoPayments.$inferInsert

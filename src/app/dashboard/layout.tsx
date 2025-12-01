@@ -7,6 +7,7 @@ import { MainContent } from '@/components/dashboard/MainContent'
 import { Topbar } from '@/components/dashboard/Topbar'
 import { AIChatWrapper } from '@/components/ai'
 import { BottomNavigation, MobileHeader } from '@/components/mobile'
+import { PaymentToast } from '@/components/payments'
 
 export default async function DashboardLayout({
   children,
@@ -90,6 +91,9 @@ export default async function DashboardLayout({
         <div className="hidden md:block">
           <AIChatWrapper position="right" />
         </div>
+
+        {/* Payment Success/Error Toast */}
+        <PaymentToast />
       </div>
     </SidebarProvider>
   )

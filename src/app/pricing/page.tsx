@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { Metadata } from 'next'
-import { ArrowLeft, Check, Coins, Gift } from 'lucide-react'
+import { ArrowLeft, Check, Coins, Gift, Bitcoin } from 'lucide-react'
 import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { creditPackages } from '@/lib/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { CREDIT_COSTS } from '@/lib/credits/config'
 import { generatePageMetadata } from '@/lib/seo'
+import { BuyButton } from '@/components/payments'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Pricing - Affordable Stock Analysis Credits',
@@ -138,15 +139,12 @@ export default async function PricingPage() {
                   ${pricePerCredit.toFixed(4)}/credit
                 </div>
 
-                <button
-                  className={`w-full py-2 text-sm rounded-lg font-medium transition-colors ${
-                    pkg.isPopular
-                      ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                      : 'bg-accent text-foreground hover:bg-accent/80'
-                  }`}
-                >
-                  Buy Now
-                </button>
+                <BuyButton 
+                  packageId={pkg.id}
+                  packageName={pkg.name}
+                  price={price}
+                  isPopular={pkg.isPopular}
+                />
               </div>
             )
           })}
