@@ -109,6 +109,75 @@ const CRYPTO_LOGOS: Record<string, string> = {
   DOGE: 'Ð',
 }
 
+// Generate payment URI with amount for QR code
+// This allows wallets to auto-fill the amount when scanned
+const generatePaymentUri = (currency: string, address: string, amount: string): string => {
+  const curr = currency.toLowerCase()
+  
+  // BIP-21 for Bitcoin
+  if (curr === 'btc') {
+    return `bitcoin:${address}?amount=${amount}`
+  }
+  
+  // EIP-681 for Ethereum and ERC-20 tokens
+  if (curr === 'eth') {
+    return `ethereum:${address}?value=${amount}e18` // Convert to wei notation
+  }
+  
+  // Litecoin
+  if (curr === 'ltc') {
+    return `litecoin:${address}?amount=${amount}`
+  }
+  
+  // Dogecoin
+  if (curr === 'doge') {
+    return `dogecoin:${address}?amount=${amount}`
+  }
+  
+  // Bitcoin Cash
+  if (curr === 'bch') {
+    return `bitcoincash:${address}?amount=${amount}`
+  }
+  
+  // TRON / TRC20
+  if (curr === 'trx' || curr.includes('trc20')) {
+    return `tron:${address}?amount=${amount}`
+  }
+  
+  // Solana
+  if (curr === 'sol') {
+    return `solana:${address}?amount=${amount}`
+  }
+  
+  // BNB / BSC
+  if (curr === 'bnb') {
+    return `bnb:${address}?amount=${amount}`
+  }
+  
+  // Polygon / MATIC
+  if (curr === 'matic') {
+    return `polygon:${address}?amount=${amount}`
+  }
+  
+  // For USDT/USDC on various networks, include amount in simple format
+  // Most wallets will show the address, user copies amount separately
+  if (curr.includes('usdt') || curr.includes('usdc')) {
+    // Check network from currency name
+    if (curr.includes('trc20') || curr.includes('trx')) {
+      return `tron:${address}?amount=${amount}`
+    }
+    if (curr.includes('erc20') || curr.includes('eth')) {
+      return `ethereum:${address}?value=${amount}`
+    }
+    if (curr.includes('bep20') || curr.includes('bsc')) {
+      return `bnb:${address}?amount=${amount}`
+    }
+  }
+  
+  // Default: just return address (wallet won't auto-fill amount)
+  return address
+}
+
 export default function CryptoPaymentPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -327,11 +396,11 @@ export default function CryptoPaymentPage() {
             {/* Payment Details for Pending Status */}
             {isPending && payment.payAddress && (
               <>
-                {/* QR Code */}
+                {/* QR Code with Payment URI (includes amount) */}
                 <div className="flex flex-col items-center">
                   <div className="bg-white p-4 rounded-xl shadow-sm">
                     <QRCodeSVG
-                      value={payment.payAddress}
+                      value={generatePaymentUri(payment.payCurrency, payment.payAddress, payment.payAmount)}
                       size={180}
                       level="H"
                       includeMargin={true}
@@ -341,6 +410,9 @@ export default function CryptoPaymentPage() {
                     <Wallet className="h-3 w-3 mr-1" />
                     {payment.payCurrency} {payment.metadata?.network ? `(${payment.metadata.network})` : ''}
                   </Badge>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    Scan with your wallet app to auto-fill address & amount
+                  </p>
                 </div>
                 
                 {/* Amount to Send */}
