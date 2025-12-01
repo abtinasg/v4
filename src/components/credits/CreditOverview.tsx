@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { 
   Coins, 
   History, 
@@ -28,9 +28,14 @@ export function CreditOverview({
   onViewHistory,
   className 
 }: CreditOverviewProps) {
-  const { credits, loading, isLowBalance } = useCredits()
+  const { credits, loading, isLowBalance, fetchCredits } = useCredits()
   
-  if (loading) {
+  // Refetch on mount to ensure fresh data
+  useEffect(() => {
+    fetchCredits()
+  }, [fetchCredits])
+  
+  if (loading || !credits) {
     return (
       <Card className={cn('animate-pulse', className)}>
         <CardHeader>

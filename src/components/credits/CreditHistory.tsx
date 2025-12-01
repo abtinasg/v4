@@ -45,12 +45,18 @@ export function CreditHistory({
   showLoadMore = true,
   className 
 }: CreditHistoryProps) {
-  const { history, fetchHistory, loading } = useCredits()
+  const { history, fetchHistory } = useCredits()
+  const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   
   useEffect(() => {
-    fetchHistory(limit, 0)
+    const load = async () => {
+      setIsLoading(true)
+      await fetchHistory(limit, 0)
+      setIsLoading(false)
+    }
+    load()
   }, [fetchHistory, limit])
   
   const loadMore = async () => {
@@ -70,7 +76,7 @@ export function CreditHistory({
     }).format(date)
   }
   
-  if (loading && history.length === 0) {
+  if (isLoading && history.length === 0) {
     return (
       <Card className={className}>
         <CardHeader>
