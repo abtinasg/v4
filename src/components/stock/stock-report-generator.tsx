@@ -366,7 +366,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
   };
 
   /**
-   * Handle report generation
+   * Handle report generation with streaming
    */
   const handleGenerateReport = async () => {
     setIsGenerating(true);
@@ -374,64 +374,100 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
     setProgress('Initializing...');
 
     try {
-      // Step 1: Generate report with AI
-      setProgress('Analyzing stock data with AI...');
+      setProgress('Connecting to AI...');
       
-      // Add a client-side timeout warning (show warning at 90s)
-      const warningTimeout = setTimeout(() => {
-        setProgress('Analysis is taking longer than usual... Please wait...');
-      }, 90000); // Show warning after 90 seconds
-      
-      const response = await fetch(`/api/stock/${symbol}/report`, {
+      // Use streaming endpoint for faster perceived performance
+      const response = await fetch(`/api/stock/${symbol}/report/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important: include cookies for authentication
-        body: JSON.stringify({
-          reportType: 'full',
-          includeCharts: true,
-        }),
+        credentials: 'include',
+        body: JSON.stringify({ reportType: 'full' }),
       });
-      
-      clearTimeout(warningTimeout);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error || `Server error: ${response.status}`;
-        const errorDetails = errorData.details || '';
-        
-        // Log detailed error for debugging
-        console.error('Report generation failed:', {
-          status: response.status,
-          error: errorMessage,
-          details: errorDetails,
-        });
-        
-        // Provide specific error messages based on status code
-        if (response.status === 408 || response.status === 504) {
-          throw new Error(
-            `Report generation timed out. This can happen with complex analyses. ` +
-            `Please try again. If the issue persists, the stock may have limited data available.`
-          );
-        }
         
         if (response.status === 402) {
-          throw new Error(errorDetails || 'Insufficient credits. Please purchase more credits to generate reports.');
+          throw new Error('Insufficient credits. Please purchase more credits to generate reports.');
         }
         
-        // Throw user-friendly error message
-        throw new Error(errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage);
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
 
-      const reportData: ReportResponse = await response.json();
-
-      if (!reportData.success || !reportData.report) {
-        throw new Error('Invalid report data received from server');
+      // Process streaming response
+      setProgress('Analyzing stock data with AI...');
+      
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Unable to read response stream');
       }
 
-      // Step 2: Generate PDF
-      setProgress('Generating PDF document...');
+      const decoder = new TextDecoder();
+      let reportContent = '';
+      let metadata: any = null;
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            
+            try {
+              const parsed = JSON.parse(data);
+              
+              if (parsed.type === 'metadata') {
+                metadata = parsed;
+                setProgress('Generating report...');
+              } else if (parsed.type === 'content' && parsed.content) {
+                reportContent += parsed.content;
+                // Update progress based on content length
+                const wordCount = reportContent.split(/\s+/).length;
+                if (wordCount < 500) {
+                  setProgress('Writing executive summary...');
+                } else if (wordCount < 1000) {
+                  setProgress('Analyzing financials...');
+                } else if (wordCount < 1500) {
+                  setProgress('Assessing risks...');
+                } else {
+                  setProgress('Finalizing report...');
+                }
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+
+      if (!reportContent) {
+        throw new Error('No report content received');
+      }
+
+      // Build report data for PDF generation
+      const reportData: ReportResponse = {
+        success: true,
+        symbol: metadata?.symbol || symbol,
+        companyName: metadata?.companyName || companyName,
+        generatedAt: metadata?.generatedAt || new Date().toISOString(),
+        report: reportContent,
+        metadata: {
+          reportType: 'full',
+          includeCharts: false,
+        },
+      };
+
+      // Generate PDF
+      setProgress('Creating PDF document...');
       await generatePDF(reportData);
 
       // Success
@@ -441,16 +477,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
     } catch (err) {
       console.error('Report generation error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Failed to generate report';
-      
-      // Show helpful timeout message
-      if (errorMsg.toLowerCase().includes('timeout') || errorMsg.toLowerCase().includes('timed out')) {
-        setError(
-          'Report generation timed out. AI analysis can take 1-2 minutes for complex stocks. ' +
-          'Please try again. If the issue persists, try again in a few minutes.'
-        );
-      } else {
-        setError(errorMsg);
-      }
+      setError(errorMsg);
     } finally {
       setIsGenerating(false);
     }
