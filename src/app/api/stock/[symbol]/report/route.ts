@@ -45,11 +45,15 @@ interface StockDataForReport {
 }
 
 /**
+ * DEPRECATED: This function is no longer used. We now fetch data from /api/stock/[symbol]/metrics
+ * for faster performance and better caching.
+ * 
  * Fetch comprehensive stock data for report generation using FMP API
  * Now includes 430+ calculated metrics from MetricsCalculator
  * @param symbol Stock ticker symbol
  * @param timeoutMs Maximum time allowed for data fetching (default: 30 seconds)
  */
+/*
 async function fetchStockData(symbol: string, timeoutMs = 30000): Promise<StockDataForReport | null> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -371,6 +375,7 @@ async function fetchStockData(symbol: string, timeoutMs = 30000): Promise<StockD
     return null;
   }
 }
+*/
 
 /**
  * Calculate annualized volatility from price array
@@ -795,15 +800,48 @@ export async function POST(
     // Get request body
     const body: StockReportRequest = await request.json().catch(() => ({}));
 
-    // Fetch comprehensive stock data directly from Yahoo Finance
-    console.log(`[Report] Fetching stock data for ${upperSymbol}...`);
-    const stockData = await fetchStockData(upperSymbol);
-    if (!stockData) {
-      console.error(`[Report] Failed to fetch data for ${upperSymbol}`);
+    // Use our existing metrics API endpoint for faster data fetching
+    console.log(`[Report] Fetching stock data from metrics API for ${upperSymbol}...`);
+    const startFetch = Date.now();
+    
+    let stockData;
+    try {
+      // Call our own metrics endpoint which already has caching and optimizations
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const metricsResponse = await fetch(`${baseUrl}/api/stock/${upperSymbol}/metrics`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(20000), // 20 second timeout for metrics fetch
+      });
+
+      if (!metricsResponse.ok) {
+        throw new Error(`Metrics API returned ${metricsResponse.status}`);
+      }
+
+      const metricsData = await metricsResponse.json();
+      const fetchTime = Date.now() - startFetch;
+      console.log(`[Report] Metrics fetched in ${fetchTime}ms`);
+      
+      // Transform metrics API response to stockData format
+      stockData = {
+        symbol: upperSymbol,
+        companyName: metricsData.companyName || upperSymbol,
+        sector: metricsData.sector || 'N/A',
+        industry: metricsData.industry || 'N/A',
+        currentPrice: metricsData.quote?.price || 0,
+        marketCap: metricsData.quote?.marketCap || 0,
+        metrics: metricsData.metrics || {},
+        advancedMetrics: metricsData.advancedMetrics || null,
+        historicalData: metricsData.historicalData || null,
+      };
+    } catch (error) {
+      console.error(`[Report] Failed to fetch metrics for ${upperSymbol}:`, error);
       return NextResponse.json(
         { 
           error: `Could not retrieve market data for ${upperSymbol}`,
-          details: 'Yahoo Finance API may be temporarily unavailable. Please try again in a few moments. If the problem persists, the stock symbol may be invalid or delisted.',
+          details: 'Market data API may be temporarily unavailable. Please try again in a few moments. If the problem persists, the stock symbol may be invalid or delisted.',
           suggestion: 'Try refreshing the page or wait a minute before retrying.'
         },
         { status: 503 } // Service Unavailable - better status code for temporary issues
