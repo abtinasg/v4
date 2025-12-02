@@ -123,9 +123,9 @@ export async function GET(request: Request) {
         // FMP NEW stable endpoints (updated Dec 2025)
         let apiUrl: string
         if (symbol) {
-          apiUrl = `https://financialmodelingprep.com/stable/news/stock?symbol=${symbol}&limit=50&apikey=${fmpApiKey}`
+          apiUrl = `https://financialmodelingprep.com/stable/news/stock?symbol=${symbol}&limit=100&apikey=${fmpApiKey}`
         } else {
-          // General stock news - get 100 to ensure variety
+          // General stock news - get 100 articles
           apiUrl = `https://financialmodelingprep.com/stable/news/stock?limit=100&apikey=${fmpApiKey}`
         }
         
@@ -133,7 +133,6 @@ export async function GET(request: Request) {
           headers: {
             'User-Agent': 'DeepTerminal/1.0',
           },
-          next: { revalidate: 300 },
         })
         
         if (!response.ok) {
@@ -141,23 +140,40 @@ export async function GET(request: Request) {
           return
         }
         
-        const data = await response.json() as FMPNewsArticle[]
+        const allArticles = await response.json() as FMPNewsArticle[]
         
-        if (!Array.isArray(data)) {
+        console.log(`📰 FMP RAW: Got ${allArticles?.length || 0} articles from API`)
+        
+        if (!Array.isArray(allArticles)) {
           console.error('FMP error: Invalid response format')
           return
         }
         
-        data.forEach((article, index) => {
-          if (!article.title) return
+        if (allArticles.length === 0) {
+          console.error('FMP error: No articles returned')
+          return
+        }
+        
+        let added = 0
+        let skipped = 0
+        allArticles.forEach((article, index) => {
+          if (!article.title) {
+            skipped++
+            return
+          }
           
-          const idSource = article.url || `${article.title}-${index}`
+          // Use index + title for unique ID since URLs might be duplicated
+          const idSource = `${article.title}-${article.publishedDate}-${index}`
           const simpleHash = Buffer.from(idSource).toString('base64')
             .replace(/[+/=]/g, '')
             .slice(0, 12)
           const id = `news-${simpleHash}`
           
-          if (newsMap.has(id)) return
+          if (newsMap.has(id)) {
+            skipped++
+            return
+          }
+          added++
           
           const publishedDate = new Date(article.publishedDate)
           const headline = article.title
@@ -179,7 +195,7 @@ export async function GET(request: Request) {
           })
         })
         
-        console.log(`📰 FMP: Fetched ${data.length} articles`)
+        console.log(`📰 FMP: Fetched ${allArticles.length} articles, Added: ${added}, Skipped: ${skipped}`)
       } catch (err) {
         console.error('FMP fetch error:', err)
       }
@@ -308,6 +324,8 @@ export async function GET(request: Request) {
       shouldFetchNewsAPI ? fetchNewsAPI() : Promise.resolve(),
     ])
     
+    console.log(`📰 newsMap size after fetch: ${newsMap.size}`)
+    
     allNews = Array.from(newsMap.values())
       .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime())
     
@@ -354,10 +372,10 @@ export async function GET(request: Request) {
       allNews = generateSampleNews(limit)
     }
     
-    // Count sources
+    // Count sources from allNews (after limit applied)
     const sourceBreakdown = {
-      fmp: Array.from(newsMap.values()).filter(n => !['CNN', 'BBC', 'Reuters', 'Bloomberg', 'CNBC'].some(s => n.source.includes(s))).length,
-      newsapi: Array.from(newsMap.values()).filter(n => ['CNN', 'BBC', 'Reuters', 'Bloomberg', 'CNBC'].some(s => n.source.includes(s)) || n.source === 'NewsAPI').length,
+      fmp: allNews.filter(n => !['NewsAPI'].includes(n.source)).length,
+      newsapi: allNews.filter(n => n.source === 'NewsAPI').length,
       polygon: allNews.filter(n => n.source === 'Polygon').length,
     }
 
