@@ -72,7 +72,7 @@ const searchCache = new SimpleCache() // 15 minutes for search
 
 // Cache TTLs in milliseconds
 const CACHE_TTL = {
-  QUOTE: 5 * 60 * 1000, // 5 minutes
+  QUOTE: 1 * 60 * 1000, // 1 minute for quotes (reduced for fresh data)
   HISTORICAL: 60 * 60 * 1000, // 1 hour
   PROFILE: 24 * 60 * 60 * 1000, // 24 hours
   SEARCH: 15 * 60 * 1000, // 15 minutes
@@ -131,7 +131,9 @@ export async function getStockQuote(symbol: string): Promise<ApiResponse<StockQu
     // Try FMP first (Primary data source)
     if (isFMPConfigured()) {
       try {
+        console.log(`[getStockQuote] Trying FMP for ${symbol}...`);
         const fmpQuote = await FMP.getQuote(symbol);
+        console.log(`[getStockQuote] FMP response for ${symbol}:`, fmpQuote ? `price=${fmpQuote.price}` : 'null');
         if (fmpQuote) {
           const stockQuote: StockQuote = {
             symbol: fmpQuote.symbol,
@@ -169,11 +171,58 @@ export async function getStockQuote(symbol: string): Promise<ApiResponse<StockQu
           };
         }
       } catch (fmpError) {
-        console.warn(`FMP quote failed for ${symbol}, falling back to Yahoo:`, fmpError);
+        console.warn(`FMP quote failed for ${symbol}, trying Polygon next:`, fmpError);
       }
     }
 
-    // Yahoo Finance fallback
+    // Try Polygon.io as second option
+    if (isPolygonConfigured()) {
+      try {
+        console.log(`Trying Polygon.io for ${symbol}...`);
+        const polygonResult = await getPolygonQuote(symbol);
+        if (polygonResult.success && polygonResult.data) {
+          const pq = polygonResult.data;
+          const stockQuote: StockQuote = {
+            symbol: pq.symbol,
+            shortName: pq.name,
+            longName: pq.name,
+            price: pq.price,
+            previousClose: pq.previousClose,
+            open: pq.open,
+            dayHigh: pq.high,
+            dayLow: pq.low,
+            change: pq.change,
+            changePercent: pq.changePercent,
+            volume: pq.volume,
+            avgVolume: 0,
+            marketCap: 0,
+            peRatio: null,
+            eps: null,
+            dividend: null,
+            dividendYield: null,
+            fiftyTwoWeekHigh: 0,
+            fiftyTwoWeekLow: 0,
+            exchange: 'UNKNOWN',
+            currency: 'USD',
+            marketState: 'REGULAR' as StockQuote['marketState'],
+            timestamp: Date.now(),
+          };
+          
+          quoteCache.set(cacheKey, stockQuote, CACHE_TTL.QUOTE);
+          
+          return {
+            success: true,
+            data: stockQuote,
+            cached: false,
+            timestamp: Date.now(),
+          };
+        }
+      } catch (polygonError) {
+        console.warn(`Polygon quote failed for ${symbol}, falling back to Yahoo:`, polygonError);
+      }
+    }
+
+    // Yahoo Finance fallback (last resort)
     await rateLimiter.waitForSlot()
 
     const quote = await yahooFinance.quote(symbol)
