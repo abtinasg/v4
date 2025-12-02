@@ -123,10 +123,11 @@ export async function GET(request: Request) {
         // FMP NEW stable endpoints (updated Dec 2025)
         let apiUrl: string
         if (symbol) {
+          // Symbol-specific news
           apiUrl = `https://financialmodelingprep.com/stable/news/stock?symbol=${symbol}&limit=100&apikey=${fmpApiKey}`
         } else {
-          // General stock news - get 100 articles
-          apiUrl = `https://financialmodelingprep.com/stable/news/stock?limit=100&apikey=${fmpApiKey}`
+          // Latest stock news from all symbols (diverse coverage)
+          apiUrl = `https://financialmodelingprep.com/stable/news/stock-latest?limit=100&apikey=${fmpApiKey}`
         }
         
         const response = await fetch(apiUrl, {
