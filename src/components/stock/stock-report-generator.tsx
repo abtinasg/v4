@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Download, FileText, Loader2, AlertCircle, Sparkles, Shield, TrendingUp, BarChart3, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 
 interface StockReportGeneratorProps {
@@ -24,19 +25,19 @@ interface ReportResponse {
 
 const loadingStages = [
   {
-    label: 'Market Data Sync',
+    label: 'Market Data',
     description: 'Fetching real-time market data & financials',
     keywords: ['initializing', 'fetching'],
     icon: BarChart3,
   },
   {
-    label: 'AI Analysis Engine',
+    label: 'AI Analysis',
     description: 'Processing 400+ metrics with Claude AI',
     keywords: ['analyzing', 'processing'],
     icon: Sparkles,
   },
   {
-    label: 'Report Generation',
+    label: 'Report Gen',
     description: 'Crafting institutional-grade insights',
     keywords: ['generating', 'creating'],
     icon: TrendingUp,
@@ -73,15 +74,14 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
    * Convert markdown to formatted text for PDF
    */
   const markdownToText = (markdown: string): string => {
-    // Remove markdown formatting but keep structure
     return markdown
-      .replace(/^#{1,6}\s+/gm, '') // Remove headers
-      .replace(/\*\*(.+?)\*\*/g, '$1') // Remove bold
-      .replace(/\*(.+?)\*/g, '$1') // Remove italic
-      .replace(/`(.+?)`/g, '$1') // Remove code
-      .replace(/\[(.+?)\]\(.+?\)/g, '$1') // Remove links
-      .replace(/^\s*[-*+]\s+/gm, '• ') // Convert lists to bullets
-      .replace(/^\s*\d+\.\s+/gm, '• '); // Convert numbered lists
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/`(.+?)`/g, '$1')
+      .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+      .replace(/^\s*[-*+]\s+/gm, '• ')
+      .replace(/^\s*\d+\.\s+/gm, '• ');
   };
 
   /**
@@ -99,381 +99,177 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
 
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 18;
-      const contentWidth = pageWidth - 2 * margin;
+      const margin = 20;
+      const contentWidth = pageWidth - margin * 2;
       let yPosition = margin;
 
-      // Color palette
-      const colors = {
-        primary: [6, 182, 212] as [number, number, number],      // Cyan
-        secondary: [139, 92, 246] as [number, number, number],   // Violet
-        dark: [10, 13, 18] as [number, number, number],          // Dark background
-        slate900: [15, 23, 42] as [number, number, number],
-        slate800: [30, 41, 59] as [number, number, number],
-        slate700: [51, 65, 85] as [number, number, number],
-        slate600: [71, 85, 105] as [number, number, number],
-        slate400: [148, 163, 184] as [number, number, number],
-        white: [255, 255, 255] as [number, number, number],
-      };
+      // Colors
+      const primaryColor: [number, number, number] = [139, 92, 246]; // Violet
+      const secondaryColor: [number, number, number] = [34, 211, 238]; // Cyan
+      const textDark: [number, number, number] = [30, 41, 59];
+      const textMuted: [number, number, number] = [100, 116, 139];
 
-      // Helper to add new page if needed
-      const checkPageBreak = (requiredSpace: number = 12) => {
-        if (yPosition + requiredSpace > pageHeight - 25) {
+      // Helper function to add new page
+      const checkNewPage = (neededSpace: number = 20) => {
+        if (yPosition + neededSpace > pageHeight - margin) {
           doc.addPage();
           yPosition = margin;
-          // Add page header
-          doc.setFillColor(...colors.slate900);
-          doc.rect(0, 0, pageWidth, 12, 'F');
-          doc.setFontSize(8);
-          doc.setTextColor(...colors.slate400);
-          doc.text(`${symbol} | Deep Terminal Research Report`, margin, 8);
-          doc.text(`Page ${doc.getNumberOfPages()}`, pageWidth - margin - 15, 8);
-          yPosition = 20;
           return true;
         }
         return false;
       };
 
       // ===== COVER PAGE =====
-      // Full dark background
-      doc.setFillColor(...colors.dark);
-      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      // Header gradient bar
+      doc.setFillColor(...primaryColor);
+      doc.rect(0, 0, pageWidth, 3, 'F');
 
-      // Gradient accent bar
-      doc.setFillColor(...colors.primary);
-      doc.rect(0, 0, pageWidth, 4, 'F');
-
-      // Logo and branding
-      yPosition = 35;
-      doc.setTextColor(...colors.primary);
-      doc.setFontSize(28);
+      // Title section
+      yPosition = 40;
       doc.setFont('helvetica', 'bold');
-      doc.text('DEEP TERMINAL', margin, yPosition);
+      doc.setFontSize(32);
+      doc.setTextColor(...textDark);
+      doc.text(reportData.symbol, margin, yPosition);
 
-      doc.setFontSize(10);
-      doc.setTextColor(...colors.slate400);
+      yPosition += 12;
       doc.setFont('helvetica', 'normal');
-      doc.text('Institutional-Grade Equity Research', margin, yPosition + 8);
-
-      // Main symbol display
-      yPosition = 80;
-      doc.setTextColor(...colors.white);
-      doc.setFontSize(48);
-      doc.setFont('helvetica', 'bold');
-      doc.text(symbol, margin, yPosition);
-
-      // Company name
-      doc.setFontSize(16);
-      doc.setTextColor(...colors.slate400);
-      doc.setFont('helvetica', 'normal');
-      doc.text(companyName, margin, yPosition + 12);
+      doc.setFontSize(14);
+      doc.setTextColor(...textMuted);
+      doc.text(reportData.companyName, margin, yPosition);
 
       // Report type badge
-      yPosition = 110;
-      doc.setFillColor(...colors.secondary);
-      doc.roundedRect(margin, yPosition, 55, 8, 2, 2, 'F');
-      doc.setFontSize(8);
-      doc.setTextColor(...colors.white);
+      yPosition += 20;
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.roundedRect(margin, yPosition - 5, 60, 8, 2, 2, 'F');
       doc.setFont('helvetica', 'bold');
-      doc.text('EQUITY RESEARCH REPORT', margin + 3, yPosition + 5.5);
-
-      // Report features
-      yPosition = 135;
-      const features = ['CFA-Level Framework', 'AI-Powered Analysis', '400+ Metrics Analyzed', 'DCF & Relative Valuation'];
-      doc.setFontSize(10);
-      doc.setTextColor(...colors.slate400);
-      features.forEach((feature, idx) => {
-        doc.setTextColor(...colors.primary);
-        doc.text('●', margin, yPosition + idx * 8);
-        doc.setTextColor(...colors.slate400);
-        doc.text(feature, margin + 5, yPosition + idx * 8);
-      });
-
-      // Generation info
-      yPosition = pageHeight - 50;
-      doc.setDrawColor(...colors.slate700);
-      doc.setLineWidth(0.3);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      
-      yPosition += 8;
       doc.setFontSize(9);
-      doc.setTextColor(...colors.slate600);
-      doc.text(`Report Generated: ${new Date(reportData.generatedAt).toLocaleString()}`, margin, yPosition);
-      doc.text('Analysis Engine: Claude AI', margin, yPosition + 6);
+      doc.setTextColor(255, 255, 255);
+      doc.text('EQUITY RESEARCH REPORT', margin + 3, yPosition);
 
-      // Disclaimer on cover
-      yPosition = pageHeight - 20;
-      doc.setFontSize(7);
-      doc.setTextColor(...colors.slate600);
-      doc.setFont('helvetica', 'italic');
-      const disclaimer = 'This report is for informational purposes only and does not constitute investment advice.';
-      doc.text(disclaimer, margin, yPosition);
-
-      // ===== CONTENT PAGES =====
-      doc.addPage();
-      
-      // Page background
-      doc.setFillColor(252, 252, 253);
-      doc.rect(0, 0, pageWidth, pageHeight, 'F');
-
-      // Header bar
-      doc.setFillColor(...colors.slate900);
-      doc.rect(0, 0, pageWidth, 15, 'F');
-      doc.setFontSize(9);
-      doc.setTextColor(...colors.white);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${symbol} - Investment Research Report`, margin, 10);
+      // Metadata
+      yPosition += 20;
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...colors.slate400);
-      doc.text('Deep Terminal', pageWidth - margin - 25, 10);
+      doc.setFontSize(10);
+      doc.setTextColor(...textMuted);
+      doc.text(
+        `Generated: ${new Date(reportData.generatedAt).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}`,
+        margin,
+        yPosition,
+      );
 
-      yPosition = 25;
+      yPosition += 8;
+      doc.text('Powered by Claude AI • Institutional-Grade Analysis', margin, yPosition);
 
-      // Parse and render markdown
-      doc.setTextColor(...colors.slate900);
-      
-      const sections = reportData.report.split(/(?=^#{1,2}\s)/gm);
-      
+      // Divider
+      yPosition += 15;
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+
+      // ===== REPORT CONTENT =====
+      yPosition += 15;
+      const reportText = markdownToText(reportData.report);
+      const sections = reportText.split(/\n{2,}/);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...textDark);
+
       for (const section of sections) {
-        if (!section.trim()) continue;
+        const trimmedSection = section.trim();
+        if (!trimmedSection) continue;
 
-        const lines = section.split('\n');
-        
-        for (const line of lines) {
-          if (!line.trim()) {
-            yPosition += 2;
-            continue;
-          }
+        // Check if this looks like a header (all caps or short line)
+        const isHeader =
+          trimmedSection === trimmedSection.toUpperCase() && trimmedSection.length < 60;
 
-          checkPageBreak(12);
-
-          // Main headers (# )
-          if (line.match(/^#\s+/)) {
+        if (isHeader) {
+          checkNewPage(25);
+          yPosition += 8;
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(12);
+          doc.setTextColor(...primaryColor);
+          doc.text(trimmedSection, margin, yPosition);
+          yPosition += 8;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(...textDark);
+        } else {
+          // Regular paragraph
+          const lines = doc.splitTextToSize(trimmedSection, contentWidth);
+          for (const line of lines) {
+            checkNewPage(8);
+            doc.text(line, margin, yPosition);
             yPosition += 6;
-            doc.setFillColor(...colors.slate900);
-            doc.rect(margin - 2, yPosition - 5, contentWidth + 4, 10, 'F');
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...colors.white);
-            const text = line.replace(/^#\s+/, '').toUpperCase();
-            doc.text(text, margin, yPosition);
-            yPosition += 10;
           }
-          // Section headers (## )
-          else if (line.match(/^#{2}\s+/)) {
-            yPosition += 5;
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...colors.primary);
-            const text = line.replace(/^#{2}\s+/, '');
-            doc.text(text, margin, yPosition);
-            yPosition += 3;
-            doc.setDrawColor(...colors.primary);
-            doc.setLineWidth(0.5);
-            doc.line(margin, yPosition, margin + 40, yPosition);
-            yPosition += 5;
-          }
-          // Sub-section headers (### )
-          else if (line.match(/^#{3}\s+/)) {
-            yPosition += 3;
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...colors.slate800);
-            const text = line.replace(/^#{3}\s+/, '');
-            doc.text(text, margin, yPosition);
-            yPosition += 5;
-          }
-          // Bold text with **
-          else if (line.match(/^\*\*(.+?)\*\*$/)) {
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...colors.slate700);
-            const text = line.replace(/\*\*/g, '');
-            const splitText = doc.splitTextToSize(text, contentWidth);
-            doc.text(splitText, margin, yPosition);
-            yPosition += splitText.length * 5;
-          }
-          // Horizontal rule ---
-          else if (line.match(/^---+$/)) {
-            yPosition += 2;
-            doc.setDrawColor(...colors.slate400);
-            doc.setLineWidth(0.2);
-            doc.line(margin, yPosition, pageWidth - margin, yPosition);
-            yPosition += 4;
-          }
-          // Bullet points
-          else if (line.match(/^\s*[-*•]\s+/)) {
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...colors.slate700);
-            const text = line.replace(/^\s*[-*•]\s+/, '');
-            const splitText = doc.splitTextToSize(text, contentWidth - 6);
-            doc.setTextColor(...colors.primary);
-            doc.text('▸', margin, yPosition);
-            doc.setTextColor(...colors.slate700);
-            doc.text(splitText, margin + 5, yPosition);
-            yPosition += splitText.length * 4.2;
-          }
-          // Table-like data (lines starting with |)
-          else if (line.match(/^\|/)) {
-            doc.setFontSize(8);
-            doc.setFont('courier', 'normal');
-            doc.setTextColor(...colors.slate600);
-            const text = line.replace(/\|/g, '  ');
-            doc.text(text, margin, yPosition);
-            yPosition += 4;
-          }
-          // Regular text
-          else {
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...colors.slate700);
-            // Handle inline bold
-            let text = line.trim().replace(/\*\*(.+?)\*\*/g, '$1');
-            if (text) {
-              const splitText = doc.splitTextToSize(text, contentWidth);
-              doc.text(splitText, margin, yPosition);
-              yPosition += splitText.length * 4.5;
-            }
-          }
+          yPosition += 4;
         }
       }
 
-      // Final page footer
-      const totalPages = doc.getNumberOfPages();
-      for (let i = 2; i <= totalPages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(...colors.slate400);
-        doc.text(
-          `© ${new Date().getFullYear()} Deep Terminal | Page ${i - 1} of ${totalPages - 1}`,
-          pageWidth / 2,
-          pageHeight - 8,
-          { align: 'center' }
-        );
-      }
+      // ===== FOOTER ON LAST PAGE =====
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...textMuted);
+      doc.text('This report is for informational purposes only and does not constitute financial advice.', margin, pageHeight - 15);
+      doc.text(`© ${new Date().getFullYear()} AI Research Platform`, margin, pageHeight - 10);
 
-      // Save PDF
-      const fileName = `${symbol}_Research_Report_${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
-
-      setProgress('Report downloaded!');
-      return true;
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      throw new Error('Failed to create PDF document');
+      // Save the PDF
+      const filename = `${reportData.symbol}_Research_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
+      setProgress('PDF downloaded successfully!');
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      throw new Error('Failed to generate PDF');
     }
   };
 
-  /**
-   * Handle report generation with streaming
-   */
   const handleGenerateReport = async () => {
     setIsGenerating(true);
     setError(null);
-    setProgress('Initializing...');
+    setProgress('Initializing report generation...');
 
     try {
-      setProgress('Connecting to AI...');
-      
-      // Use streaming endpoint for faster perceived performance
-      const response = await fetch(`/api/stock/${symbol}/report/stream`, {
+      // Step 1: Fetch market data
+      setProgress('Fetching market data...');
+      const marketResponse = await fetch(`/api/stock/${symbol}/all`);
+      if (!marketResponse.ok) {
+        throw new Error('Failed to fetch market data');
+      }
+      const marketData = await marketResponse.json();
+
+      // Step 2: Generate AI report
+      setProgress('Analyzing with Claude AI...');
+      const reportResponse = await fetch(`/api/stock/${symbol}/report`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
-        body: JSON.stringify({ reportType: 'full' }),
+        body: JSON.stringify({
+          companyName,
+          marketData,
+        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        
-        if (response.status === 402) {
-          throw new Error('Insufficient credits. Please purchase more credits to generate reports.');
-        }
-        
-        throw new Error(errorData.error || `Server error: ${response.status}`);
+      if (!reportResponse.ok) {
+        const errorData = await reportResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate report');
       }
 
-      // Process streaming response
-      setProgress('Analyzing stock data with AI...');
-      
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('Unable to read response stream');
-      }
+      const reportData: ReportResponse = await reportResponse.json();
 
-      const decoder = new TextDecoder();
-      let reportContent = '';
-      let metadata: any = null;
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            
-            try {
-              const parsed = JSON.parse(data);
-              
-              if (parsed.type === 'metadata') {
-                metadata = parsed;
-                setProgress('Generating report...');
-              } else if (parsed.type === 'content' && parsed.content) {
-                reportContent += parsed.content;
-                // Update progress based on content length
-                const wordCount = reportContent.split(/\s+/).length;
-                if (wordCount < 500) {
-                  setProgress('Writing executive summary...');
-                } else if (wordCount < 1000) {
-                  setProgress('Analyzing financials...');
-                } else if (wordCount < 1500) {
-                  setProgress('Assessing risks...');
-                } else {
-                  setProgress('Finalizing report...');
-                }
-              }
-            } catch (e) {
-              // Skip invalid JSON
-            }
-          }
-        }
-      }
-
-      if (!reportContent) {
-        throw new Error('No report content received');
-      }
-
-      // Build report data for PDF generation
-      const reportData: ReportResponse = {
-        success: true,
-        symbol: metadata?.symbol || symbol,
-        companyName: metadata?.companyName || companyName,
-        generatedAt: metadata?.generatedAt || new Date().toISOString(),
-        report: reportContent,
-        metadata: {
-          reportType: 'full',
-          includeCharts: false,
-        },
-      };
-
-      // Generate PDF
-      setProgress('Creating PDF document...');
+      // Step 3: Generate PDF
+      setProgress('Generating PDF document...');
       await generatePDF(reportData);
 
-      // Success
-      setProgress('Report downloaded successfully!');
-      setTimeout(() => setProgress(''), 3000);
-
+      // Clear progress after success
+      setTimeout(() => {
+        setProgress('');
+      }, 3000);
     } catch (err) {
       console.error('Report generation error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Failed to generate report';
@@ -484,139 +280,171 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
   };
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-br from-[#0a0d12] to-[#0f1419] backdrop-blur-sm">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.03] via-transparent to-cyan-500/[0.03]" />
-      <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0A0C10]/80 backdrop-blur-xl"
+    >
+      {/* Subtle top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
       
-      <div className="relative p-5">
+      {/* Background ambient effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.02] via-transparent to-cyan-500/[0.02]" />
+      <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
+      
+      <div className="relative p-6 lg:p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center border border-white/10">
-              <FileText className="h-5 w-5 text-violet-400" />
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/15 to-violet-600/10 flex items-center justify-center border border-violet-500/20">
+              <FileText className="h-6 w-6 text-violet-400" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-white">AI Research Report</h3>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-violet-500/20 to-cyan-500/20 text-violet-300 border border-violet-500/30">
-                  PRO
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold text-white tracking-tight">AI Research Report</h3>
+                <span className="px-2.5 py-1 text-[10px] font-semibold rounded-full bg-gradient-to-r from-violet-500/20 to-cyan-500/15 text-violet-300 border border-violet-500/25 uppercase tracking-wide">
+                  Pro
                 </span>
               </div>
-              <p className="text-[11px] text-white/40 mt-0.5">Powered by Claude AI</p>
+              <p className="text-sm text-white/40 mt-1">Powered by Claude AI</p>
             </div>
           </div>
         </div>
 
-        {/* Features */}
-        <div className="flex items-center gap-3 mb-4">
+        {/* Features Pills */}
+        <div className="flex flex-wrap items-center gap-2 mb-6">
           {reportFeatures.map((feature, idx) => (
-            <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
-              <feature.icon className="h-3 w-3 text-cyan-400/80" />
-              <span className="text-[10px] text-white/50">{feature.text}</span>
+            <div 
+              key={idx} 
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06] transition-colors hover:bg-white/[0.05]"
+            >
+              <feature.icon className="h-3.5 w-3.5 text-cyan-400/70" />
+              <span className="text-xs text-white/50 font-medium">{feature.text}</span>
             </div>
           ))}
         </div>
 
         {/* Description */}
-        <p className="text-xs text-white/50 mb-4 leading-relaxed">
+        <p className="text-sm text-white/45 mb-6 leading-relaxed max-w-lg">
           Generate a comprehensive equity research report with institutional-grade analysis, 
           valuation models, risk assessment, and AI-powered insights.
         </p>
 
-        {/* Error state */}
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-xs font-medium text-red-400">Report Generation Failed</p>
-                <p className="text-[11px] text-red-400/70 mt-0.5">{error}</p>
+        {/* Error State */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20"
+            >
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-rose-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-rose-400">Report Generation Failed</p>
+                  <p className="text-xs text-rose-400/70 mt-1">{error}</p>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Loading state - Enhanced */}
-        {isGenerating && !error && (
-          <div className="mb-4 p-4 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-            {/* Progress bar */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-white/60">{progressMessage}</span>
-                <span className="text-[10px] text-violet-400">{Math.round(animatedWidth)}%</span>
+        {/* Loading State */}
+        <AnimatePresence>
+          {isGenerating && !error && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-6 p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]"
+            >
+              {/* Progress bar */}
+              <div className="mb-5">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-sm text-white/60 font-medium">{progressMessage}</span>
+                  <span className="text-xs text-violet-400 font-semibold tabular-nums">{Math.round(animatedWidth)}%</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.05]">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${animatedWidth}%` }}
+                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                  />
+                </div>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.05]">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500 transition-all duration-700 ease-out"
-                  style={{ width: `${animatedWidth}%` }}
-                />
+              
+              {/* Stage indicators */}
+              <div className="grid grid-cols-4 gap-2">
+                {loadingStages.map((stage, idx) => {
+                  const StageIcon = stage.icon;
+                  const isActive = idx === activeStageIndex;
+                  const isComplete = idx < activeStageIndex;
+                  
+                  return (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className={`flex flex-col items-center p-3 rounded-xl transition-all duration-300 ${
+                        isActive 
+                          ? 'bg-violet-500/10 border border-violet-500/30' 
+                          : isComplete 
+                            ? 'bg-emerald-500/5 border border-emerald-500/20' 
+                            : 'bg-white/[0.02] border border-white/[0.05]'
+                      }`}
+                    >
+                      {isComplete ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 mb-1.5" />
+                      ) : (
+                        <StageIcon className={`h-4 w-4 mb-1.5 transition-all ${isActive ? 'text-violet-400 animate-pulse' : 'text-white/25'}`} />
+                      )}
+                      <span className={`text-[10px] font-medium text-center leading-tight ${
+                        isActive ? 'text-violet-300' : isComplete ? 'text-emerald-400/70' : 'text-white/25'
+                      }`}>
+                        {stage.label}
+                      </span>
+                    </motion.div>
+                  );
+                })}
               </div>
-            </div>
-            
-            {/* Stage indicators */}
-            <div className="grid grid-cols-4 gap-2">
-              {loadingStages.map((stage, idx) => {
-                const StageIcon = stage.icon;
-                const isActive = idx === activeStageIndex;
-                const isComplete = idx < activeStageIndex;
-                
-                return (
-                  <div
-                    key={idx}
-                    className={`flex flex-col items-center p-2 rounded-lg transition-all ${
-                      isActive 
-                        ? 'bg-violet-500/10 border border-violet-500/30' 
-                        : isComplete 
-                          ? 'bg-cyan-500/5 border border-cyan-500/20' 
-                          : 'bg-white/[0.02] border border-white/[0.05]'
-                    }`}
-                  >
-                    {isComplete ? (
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400 mb-1" />
-                    ) : (
-                      <StageIcon className={`h-4 w-4 mb-1 ${isActive ? 'text-violet-400 animate-pulse' : 'text-white/30'}`} />
-                    )}
-                    <span className={`text-[9px] text-center ${isActive ? 'text-violet-300' : isComplete ? 'text-cyan-400/70' : 'text-white/30'}`}>
-                      {stage.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Generate Button - Enhanced */}
+        {/* Generate Button */}
         <Button
           onClick={handleGenerateReport}
           disabled={isGenerating}
           size="lg"
-          className="w-full h-11 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white border-0 font-semibold text-sm transition-all shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-12 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white border-0 font-semibold text-sm transition-all duration-300 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl"
         >
           {isGenerating ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2.5 h-4 w-4 animate-spin" />
               Generating Report...
             </>
           ) : (
             <>
-              <Download className="mr-2 h-4 w-4" />
+              <Download className="mr-2.5 h-4 w-4" />
               Generate PDF Report
             </>
           )}
         </Button>
 
         {/* Footer info */}
-        <div className="mt-3 flex items-center justify-center gap-4">
-          <span className="text-[10px] text-white/30 flex items-center gap-1">
-            <Sparkles className="h-3 w-3" />
+        <div className="mt-4 flex items-center justify-center gap-4">
+          <span className="text-xs text-white/30 flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5" />
             30-60 seconds
           </span>
-          <span className="text-[10px] text-white/30">•</span>
-          <span className="text-[10px] text-white/30">Professional PDF Export</span>
+          <span className="text-xs text-white/20">•</span>
+          <span className="text-xs text-white/30">Professional PDF Export</span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

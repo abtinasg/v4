@@ -8,8 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
   Bell,
-  Sun,
-  Moon,
   ChevronRight,
   Command,
   X,
@@ -20,7 +18,6 @@ import {
   Terminal,
   Loader2,
   Menu,
-  Coins,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSidebar } from './Sidebar'
@@ -35,13 +32,15 @@ interface StockSearchResult {
   type: string
 }
 
-// Breadcrumb mapping
+// Breadcrumb mapping - cleaner labels
 const breadcrumbMap: Record<string, string> = {
-  dashboard: 'Dashboard',
-  'stock-analysis': 'Stock Analysis',
+  dashboard: 'Overview',
+  'stock-analysis': 'Analysis',
   watchlist: 'Watchlist',
-  'terminal-pro': 'Terminal Pro',
-  'ai-assistant': 'AI Assistant',
+  'terminal-pro': 'Terminal',
+  'ai-assistant': 'Assistant',
+  portfolio: 'Portfolio',
+  news: 'News',
 }
 
 // Credit-based system - no subscription tier needed
@@ -50,7 +49,6 @@ export function Topbar() {
   const router = useRouter()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [isDarkMode, setIsDarkMode] = useState(true)
   const [hasNotifications, setHasNotifications] = useState(true)
   const [searchResults, setSearchResults] = useState<StockSearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -58,13 +56,14 @@ export function Topbar() {
   const debounceRef = useRef<NodeJS.Timeout>()
   const { toggleMobileSidebar } = useSidebar()
 
-  // Generate breadcrumbs from pathname
+  // Generate breadcrumbs from pathname - skip 'dashboard' as it's implied
   const breadcrumbs = pathname
     .split('/')
     .filter(Boolean)
+    .filter(segment => segment !== 'dashboard') // Remove 'dashboard' from breadcrumbs
     .map((segment, index, arr) => ({
-      label: breadcrumbMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1),
-      href: '/' + arr.slice(0, index + 1).join('/'),
+      label: breadcrumbMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' '),
+      href: '/dashboard/' + arr.slice(0, index + 1).join('/'),
       isLast: index === arr.length - 1,
     }))
 
@@ -138,173 +137,182 @@ export function Topbar() {
     }
   }, [])
 
-  // Toggle theme
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-    // In a real app, this would toggle the actual theme
-    document.documentElement.classList.toggle('dark')
-  }
-
   return (
     <>
-      <header className="h-12 sm:h-14 md:h-16 bg-[#0d0d0f] border-b border-white/5 flex items-center justify-between px-2 sm:px-4 md:px-6">
-        {/* Left: Hamburger Menu + Breadcrumbs */}
-        <div className="flex items-center gap-1.5 sm:gap-3 md:gap-4">
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMobileSidebar}
-            className="lg:hidden p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-            aria-label="Open menu"
-          >
-            <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
+      {/* Premium Glass Navbar */}
+      <header className="h-[72px] relative">
+        {/* Glass background with refined blur */}
+        <div className="absolute inset-0 bg-[#0a0c10]/70 backdrop-blur-[8px] border-b border-white/[0.06]" />
+        
+        {/* Subtle top highlight for depth */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+        
+        {/* Content container with generous padding */}
+        <div className="relative h-full px-6 lg:px-8 flex items-center">
           
-          {/* Breadcrumbs - Hidden on small mobile */}
-          <nav className="hidden sm:flex items-center gap-1.5 text-xs sm:text-sm">
-          {breadcrumbs.map((crumb, index) => (
-            <div key={crumb.href} className="flex items-center gap-2">
-              {index > 0 && <ChevronRight className="w-4 h-4 text-gray-600" />}
-              {crumb.isLast ? (
-                <span className="text-white font-medium">{crumb.label}</span>
-              ) : (
-                <Link
-                  href={crumb.href}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  {crumb.label}
-                </Link>
-              )}
-            </div>
-          ))}
-        </nav>
-        </div>
-
-        {/* Right: Actions */}
-        <div className="flex items-center gap-0.5 sm:gap-1.5 md:gap-2">
-          {/* Search Button */}
-          <button
-            onClick={() => setIsSearchOpen(true)}
-            className="flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-          >
-            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="text-sm hidden md:inline">Search stocks...</span>
-            <kbd className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-gray-500">
-              <Command className="w-3 h-3" />K
-            </kbd>
-          </button>
-
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-1.5 sm:p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-            aria-label="Toggle theme"
-          >
-            {isDarkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
-          </button>
-
-          {/* Credit Badge */}
-          <CreditModal 
-            trigger={
-              <button className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg transition-colors">
-                <CreditBadge showIcon={true} size="sm" className="border-0 bg-transparent p-0" />
-              </button>
-            }
-          />
-
-          {/* Notifications */}
-          <button
-            className="relative p-1.5 sm:p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-            aria-label="Notifications"
-          >
-            <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-            {hasNotifications && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
-            )}
-          </button>
-
-          {/* User Button */}
-          <div className="ml-0.5 sm:ml-1.5 md:ml-2 pl-1.5 sm:pl-2 md:pl-4 border-l border-white/10">
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: 'w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 ring-2 ring-white/10',
-                  userButtonPopoverCard: 'bg-[#1a1a1f] border border-white/10 shadow-xl',
-                  userButtonPopoverActionButton: 'hover:bg-white/5 text-gray-300',
-                  userButtonPopoverActionButtonText: 'text-gray-300',
-                  userButtonPopoverActionButtonIcon: 'text-gray-400',
-                  userButtonPopoverFooter: 'hidden',
-                },
-              }}
+          {/* Left Section: Mobile Menu + Breadcrumbs */}
+          <div className="flex items-center gap-4">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleMobileSidebar}
+              className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-white/[0.04] text-white/50 hover:text-white/80 transition-all duration-200"
+              aria-label="Open menu"
             >
-              <UserButton.MenuItems>
-                <UserButton.Link
-                  label="Dashboard"
-                  labelIcon={<LayoutDashboard className="w-4 h-4" />}
-                  href="/dashboard"
-                />
-                <UserButton.Link
-                  label="Upgrade"
-                  labelIcon={<Terminal className="w-4 h-4" />}
-                  href="/pricing"
-                />
-                <UserButton.Action label="signOut" />
-              </UserButton.MenuItems>
-            </UserButton>
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Breadcrumbs - Clean, subtle typography */}
+            <nav className="hidden md:flex items-center gap-2">
+              {breadcrumbs.map((crumb, index) => (
+                <div key={crumb.href} className="flex items-center gap-2">
+                  {index > 0 && (
+                    <ChevronRight className="w-3.5 h-3.5 text-white/20" strokeWidth={1.5} />
+                  )}
+                  {crumb.isLast ? (
+                    <span className="text-[15px] font-medium text-white/90 tracking-[-0.01em] leading-[1.4]">
+                      {crumb.label}
+                    </span>
+                  ) : (
+                    <Link
+                      href={crumb.href}
+                      className="text-[15px] font-normal text-white/40 hover:text-white/70 transition-colors duration-200 tracking-[-0.01em] leading-[1.4]"
+                    >
+                      {crumb.label}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </nav>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Right Section: Search → Notifications → User */}
+          <div className="flex items-center gap-3">
+            {/* Search Button - Premium, wider design */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="group flex items-center gap-3 h-11 px-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/[0.10] rounded-xl transition-all duration-200"
+            >
+              <Search className="w-[18px] h-[18px] text-white/40 group-hover:text-white/60 transition-colors" strokeWidth={1.5} />
+              <span className="hidden md:block text-[15px] text-white/40 group-hover:text-white/60 transition-colors tracking-[-0.01em] min-w-[140px] text-left">
+                Search stocks...
+              </span>
+              <kbd className="hidden lg:flex items-center gap-1 h-6 px-2 bg-white/[0.04] border border-white/[0.06] rounded-md text-[11px] text-white/30 font-medium">
+                <Command className="w-3 h-3" strokeWidth={1.5} />
+                <span>K</span>
+              </kbd>
+            </button>
+
+            {/* Credit Badge - Subtle integration */}
+            <CreditModal 
+              trigger={
+                <button className="hidden sm:flex items-center gap-2 h-10 px-4 bg-emerald-500/[0.06] hover:bg-emerald-500/[0.10] border border-emerald-500/[0.12] hover:border-emerald-500/[0.20] rounded-xl transition-all duration-200">
+                  <CreditBadge showIcon={true} size="sm" className="border-0 bg-transparent p-0" />
+                </button>
+              }
+            />
+
+            {/* Notifications - Minimal, refined */}
+            <button
+              className="relative p-2.5 rounded-xl hover:bg-white/[0.04] text-white/40 hover:text-white/70 transition-all duration-200"
+              aria-label="Notifications"
+            >
+              <Bell className="w-[18px] h-[18px]" strokeWidth={1.5} />
+              {hasNotifications && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#0a0c10]" />
+              )}
+            </button>
+
+            {/* User Button - Premium spacing */}
+            <div className="ml-2 pl-4 border-l border-white/[0.06]">
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: 'w-9 h-9 ring-2 ring-white/[0.08] ring-offset-2 ring-offset-[#0a0c10]',
+                    userButtonPopoverCard: 'bg-[#12141a] border border-white/[0.08] shadow-2xl shadow-black/40 rounded-2xl',
+                    userButtonPopoverActionButton: 'hover:bg-white/[0.04] text-white/70 rounded-xl',
+                    userButtonPopoverActionButtonText: 'text-white/70 font-normal',
+                    userButtonPopoverActionButtonIcon: 'text-white/40',
+                    userButtonPopoverFooter: 'hidden',
+                  },
+                }}
+              >
+                <UserButton.MenuItems>
+                  <UserButton.Link
+                    label="Dashboard"
+                    labelIcon={<LayoutDashboard className="w-4 h-4" />}
+                    href="/dashboard"
+                  />
+                  <UserButton.Link
+                    label="Upgrade"
+                    labelIcon={<Terminal className="w-4 h-4" />}
+                    href="/pricing"
+                  />
+                  <UserButton.Action label="signOut" />
+                </UserButton.MenuItems>
+              </UserButton>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Search Modal */}
+      {/* Search Modal - Premium Glass Design */}
       <AnimatePresence>
         {isSearchOpen && (
           <>
-            {/* Backdrop */}
+            {/* Backdrop with subtle blur */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
               onClick={() => setIsSearchOpen(false)}
             />
 
-            {/* Search Panel */}
+            {/* Search Panel - Centered, floating glass card */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -20 }}
+              initial={{ opacity: 0, scale: 0.96, y: -8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -20 }}
-              transition={{ duration: 0.2 }}
-              className="fixed top-[10%] sm:top-[15%] left-1/2 -translate-x-1/2 w-[95%] sm:w-full max-w-2xl z-50"
+              exit={{ opacity: 0, scale: 0.96, y: -8 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed top-[12%] left-1/2 -translate-x-1/2 w-[92%] sm:w-full max-w-[640px] z-50"
             >
-              <div className="bg-[#0d0d0f] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-                {/* Search Input */}
-                <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-                  <Search className="w-5 h-5 text-gray-400" />
+              <div className="relative bg-[#0c0e14]/95 backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
+                {/* Top highlight */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
+                
+                {/* Search Input - Larger, premium feel */}
+                <div className="flex items-center gap-4 px-6 py-5 border-b border-white/[0.06]">
+                  <Search className="w-5 h-5 text-white/30 flex-shrink-0" strokeWidth={1.5} />
                   <input
                     ref={searchInputRef}
                     type="text"
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
-                    placeholder="Search for stocks, ETFs, or crypto..."
-                    className="flex-1 bg-transparent text-white placeholder-gray-500 outline-none text-lg"
+                    placeholder="Search stocks, ETFs, or crypto..."
+                    className="flex-1 bg-transparent text-white/90 placeholder-white/30 outline-none text-[17px] font-normal tracking-[-0.01em] leading-[1.4]"
                   />
-                  {isSearching && <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />}
+                  {isSearching && <Loader2 className="w-5 h-5 text-cyan-400/70 animate-spin flex-shrink-0" />}
                   <button
                     onClick={() => setIsSearchOpen(false)}
-                    className="p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+                    className="p-2 -mr-2 rounded-xl hover:bg-white/[0.04] text-white/30 hover:text-white/60 transition-all duration-200"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" strokeWidth={1.5} />
                   </button>
                 </div>
 
-                {/* Quick Actions */}
+                {/* Quick Actions - Clean grid */}
                 {!searchQuery && (
-                  <div className="p-4">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Quick Actions</p>
+                  <div className="p-5">
+                    <p className="text-[11px] font-medium text-white/30 uppercase tracking-[0.08em] mb-4">Quick Actions</p>
                     <div className="grid grid-cols-2 gap-2">
                       <QuickAction
                         icon={<LayoutDashboard className="w-4 h-4" />}
-                        label="Go to Overview"
+                        label="Overview"
                         shortcut="⌘1"
                         onClick={() => {
                           router.push('/dashboard')
@@ -313,7 +321,7 @@ export function Topbar() {
                       />
                       <QuickAction
                         icon={<LineChart className="w-4 h-4" />}
-                        label="Stock Analysis"
+                        label="Analysis"
                         shortcut="⌘2"
                         onClick={() => {
                           router.push('/dashboard/stock-analysis')
@@ -331,7 +339,7 @@ export function Topbar() {
                       />
                       <QuickAction
                         icon={<Terminal className="w-4 h-4" />}
-                        label="Terminal Pro"
+                        label="Terminal"
                         shortcut="⌘4"
                         onClick={() => {
                           router.push('/dashboard/terminal-pro')
@@ -342,44 +350,17 @@ export function Topbar() {
                   </div>
                 )}
 
-                {/* Popular Stocks - show when no search query */}
+                {/* Popular Stocks - Refined list */}
                 {!searchQuery && (
-                  <div className="p-4 border-t border-white/5">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Popular Stocks</p>
-                    <div className="space-y-1">
+                  <div className="px-5 pb-5">
+                    <p className="text-[11px] font-medium text-white/30 uppercase tracking-[0.08em] mb-3">Trending</p>
+                    <div className="space-y-0.5">
                       <PopularStockItem 
                         symbol="AAPL" 
                         name="Apple Inc." 
                         exchange="NASDAQ"
                         onClick={() => {
                           router.push('/dashboard/stock-analysis?symbol=AAPL')
-                          setIsSearchOpen(false)
-                        }}
-                      />
-                      <PopularStockItem 
-                        symbol="GOOGL" 
-                        name="Alphabet Inc." 
-                        exchange="NASDAQ"
-                        onClick={() => {
-                          router.push('/dashboard/stock-analysis?symbol=GOOGL')
-                          setIsSearchOpen(false)
-                        }}
-                      />
-                      <PopularStockItem 
-                        symbol="MSFT" 
-                        name="Microsoft Corporation" 
-                        exchange="NASDAQ"
-                        onClick={() => {
-                          router.push('/dashboard/stock-analysis?symbol=MSFT')
-                          setIsSearchOpen(false)
-                        }}
-                      />
-                      <PopularStockItem 
-                        symbol="AMZN" 
-                        name="Amazon.com Inc." 
-                        exchange="NASDAQ"
-                        onClick={() => {
-                          router.push('/dashboard/stock-analysis?symbol=AMZN')
                           setIsSearchOpen(false)
                         }}
                       />
@@ -402,20 +383,11 @@ export function Topbar() {
                         }}
                       />
                       <PopularStockItem 
-                        symbol="META" 
-                        name="Meta Platforms Inc." 
+                        symbol="MSFT" 
+                        name="Microsoft Corporation" 
                         exchange="NASDAQ"
                         onClick={() => {
-                          router.push('/dashboard/stock-analysis?symbol=META')
-                          setIsSearchOpen(false)
-                        }}
-                      />
-                      <PopularStockItem 
-                        symbol="JPM" 
-                        name="JPMorgan Chase & Co." 
-                        exchange="NYSE"
-                        onClick={() => {
-                          router.push('/dashboard/stock-analysis?symbol=JPM')
+                          router.push('/dashboard/stock-analysis?symbol=MSFT')
                           setIsSearchOpen(false)
                         }}
                       />
@@ -423,19 +395,19 @@ export function Topbar() {
                   </div>
                 )}
 
-                {/* Search Results */}
+                {/* Search Results - Clean, scannable */}
                 {searchQuery && (
-                  <div className="p-4 max-h-80 overflow-y-auto">
+                  <div className="p-5 max-h-[360px] overflow-y-auto">
                     {isSearching ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-6 h-6 text-cyan-400/60 animate-spin" />
                       </div>
                     ) : searchResults.length > 0 ? (
                       <>
-                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">
-                          Results for "{searchQuery}"
+                        <p className="text-[11px] font-medium text-white/30 uppercase tracking-[0.08em] mb-3">
+                          Results
                         </p>
-                        <div className="space-y-1">
+                        <div className="space-y-0.5">
                           {searchResults.map((stock) => (
                             <SearchResult
                               key={stock.symbol}
@@ -453,29 +425,24 @@ export function Topbar() {
                         </div>
                       </>
                     ) : (
-                      <div className="text-center py-8 text-gray-400">
-                        No stocks found for "{searchQuery}"
+                      <div className="text-center py-12">
+                        <p className="text-[14px] text-white/40">No results found</p>
+                        <p className="text-[13px] text-white/25 mt-1">Try a different search term</p>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Footer */}
-                <div className="px-4 py-3 bg-white/5 border-t border-white/5 flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded">↑↓</kbd>
-                      Navigate
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded">↵</kbd>
-                      Select
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded">Esc</kbd>
-                      Close
-                    </span>
-                  </div>
+                {/* Footer - Minimal keyboard hints */}
+                <div className="px-5 py-3.5 bg-white/[0.02] border-t border-white/[0.04] flex items-center gap-6">
+                  <span className="flex items-center gap-2 text-[11px] text-white/25">
+                    <kbd className="px-1.5 py-0.5 bg-white/[0.04] border border-white/[0.06] rounded text-[10px]">↵</kbd>
+                    Select
+                  </span>
+                  <span className="flex items-center gap-2 text-[11px] text-white/25">
+                    <kbd className="px-1.5 py-0.5 bg-white/[0.04] border border-white/[0.06] rounded text-[10px]">esc</kbd>
+                    Close
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -500,13 +467,13 @@ function QuickAction({
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-colors text-left"
+      className="group flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] hover:border-white/[0.08] transition-all duration-200 text-left"
     >
       <div className="flex items-center gap-3">
-        <span className="text-gray-400">{icon}</span>
-        <span className="text-sm text-white">{label}</span>
+        <span className="text-white/40 group-hover:text-white/60 transition-colors">{icon}</span>
+        <span className="text-[14px] text-white/70 group-hover:text-white/90 font-normal tracking-[-0.01em] transition-colors">{label}</span>
       </div>
-      <kbd className="text-[10px] text-gray-500 font-mono">{shortcut}</kbd>
+      <kbd className="text-[10px] text-white/25 font-mono">{shortcut}</kbd>
     </button>
   )
 }
@@ -525,18 +492,20 @@ function PopularStockItem({
   return (
     <button 
       onClick={onClick}
-      className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors text-left group"
+      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] transition-all duration-200 text-left group"
     >
       <div className="flex items-center gap-3">
-        <Star className="w-4 h-4 text-yellow-500" />
-        <div>
-          <span className="text-sm font-medium text-white">{symbol}</span>
-          <span className="text-sm text-gray-500 ml-2">{name}</span>
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/10 flex items-center justify-center">
+          <Star className="w-3.5 h-3.5 text-amber-500/70" strokeWidth={1.5} />
+        </div>
+        <div className="flex items-baseline gap-2">
+          <span className="text-[14px] font-medium text-white/90 tracking-[-0.01em]">{symbol}</span>
+          <span className="text-[13px] text-white/40 font-normal">{name}</span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-500 px-2 py-1 bg-white/5 rounded">{exchange}</span>
-        <ArrowRight className="w-4 h-4 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="flex items-center gap-3">
+        <span className="text-[11px] text-white/30 font-normal">{exchange}</span>
+        <ArrowRight className="w-3.5 h-3.5 text-white/20 opacity-0 group-hover:opacity-100 transition-all duration-200" strokeWidth={1.5} />
       </div>
     </button>
   )
@@ -556,20 +525,20 @@ function SearchResult({
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors text-left group"
+      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] transition-all duration-200 text-left group"
     >
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-          <span className="text-sm font-bold text-white">{symbol.charAt(0)}</span>
+        <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+          <span className="text-[13px] font-medium text-white/60">{symbol.charAt(0)}</span>
         </div>
         <div>
-          <p className="text-sm font-medium text-white">{symbol}</p>
-          <p className="text-xs text-gray-500">{name}</p>
+          <p className="text-[14px] font-medium text-white/90 tracking-[-0.01em]">{symbol}</p>
+          <p className="text-[12px] text-white/40 font-normal mt-0.5 leading-[1.35]">{name}</p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-500 px-2 py-1 bg-white/5 rounded">{exchange}</span>
-        <ArrowRight className="w-4 h-4 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="flex items-center gap-3">
+        <span className="text-[11px] text-white/30 font-normal">{exchange}</span>
+        <ArrowRight className="w-3.5 h-3.5 text-white/20 opacity-0 group-hover:opacity-100 transition-all duration-200" strokeWidth={1.5} />
       </div>
     </button>
   )

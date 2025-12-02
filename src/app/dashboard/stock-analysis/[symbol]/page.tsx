@@ -279,21 +279,20 @@ export default async function StockAnalysisPage({ params }: PageProps) {
   const upperSymbol = symbol.toUpperCase();
 
   return (
-    <div className="relative min-h-screen">
-      {/* AI Context Updater - Fetches full stock data for AI */}
+    <div className="relative min-h-screen bg-[#04060A]">
+      {/* AI Context Updater */}
       <StockContextUpdater symbol={upperSymbol} />
       
-      {/* Cinematic Background */}
-      <div className="fixed inset-0 -z-10 bg-cinematic" />
-      
-      {/* Radial glow accents */}
-      <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
-      <div className="fixed top-1/3 right-0 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[100px] -z-10" />
-      <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[80px] -z-10" />
+      {/* Subtle Ambient Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-10%] left-1/3 w-[600px] h-[400px] bg-[#00C9E4]/[0.02] rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-[#9B87F5]/[0.02] rounded-full blur-[100px]" />
+      </div>
 
-      {/* Content */}
-      <div className="relative space-y-7 pb-12 px-1">
-        {/* Company Header with error handling */}
+      {/* Content - Premium Spacing */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 space-y-8 lg:space-y-12">
+        
+        {/* Company Header */}
         <Suspense fallback={<CompanyHeaderSkeleton />}>
           <CompanyHeaderServer symbol={upperSymbol} />
         </Suspense>
@@ -303,7 +302,7 @@ export default async function StockAnalysisPage({ params }: PageProps) {
           <PriceChartServer symbol={upperSymbol} />
         </Suspense>
 
-        {/* AI Report Generator - Below Chart */}
+        {/* AI Research Report */}
         <StockReportGenerator 
           symbol={upperSymbol} 
           companyName={upperSymbol} 
@@ -314,8 +313,11 @@ export default async function StockAnalysisPage({ params }: PageProps) {
           <MetricsTabsServer symbol={upperSymbol} />
         </Suspense>
 
-        {/* News & Filings Tabs */}
+        {/* News & Filings */}
         <StockNewsTabs symbol={upperSymbol} />
+        
+        {/* Bottom Spacing */}
+        <div className="h-8 lg:h-12" />
       </div>
     </div>
   );

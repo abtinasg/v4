@@ -4,7 +4,7 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 // ============================================
-// GLASS CARD
+// GLASS CARD - Premium Fintech Style
 // ============================================
 
 interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -24,18 +24,32 @@ export function GlassCard({
   return (
     <div
       className={cn(
-        'relative rounded-xl overflow-hidden',
-        // Base glass styles by variant
-        variant === 'default' && 'bg-[#0C1017]/60 backdrop-blur-xl border border-white/[0.08]',
-        variant === 'elevated' && 'bg-[#0F1318]/70 backdrop-blur-2xl border border-white/[0.1] shadow-depth-2',
-        variant === 'subtle' && 'bg-white/[0.02] backdrop-blur-md border border-white/[0.05]',
-        // Glow effects
-        glow === 'cyan' && 'glow-cyan-soft',
-        glow === 'violet' && 'glow-violet',
-        glow === 'green' && 'glow-green-soft',
-        glow === 'red' && 'glow-red-soft',
+        'relative rounded-2xl overflow-hidden',
+        // Premium glass styles by variant
+        variant === 'default' && [
+          'bg-gradient-to-b from-white/[0.03] to-white/[0.01]',
+          'backdrop-blur-2xl',
+          'border border-white/[0.06]',
+          'shadow-[0_4px_24px_rgba(0,0,0,0.2)]',
+        ],
+        variant === 'elevated' && [
+          'bg-gradient-to-b from-white/[0.04] to-white/[0.02]',
+          'backdrop-blur-3xl',
+          'border border-white/[0.08]',
+          'shadow-[0_8px_32px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.04)]',
+        ],
+        variant === 'subtle' && [
+          'bg-white/[0.02]',
+          'backdrop-blur-xl',
+          'border border-white/[0.04]',
+        ],
+        // Subtle glow effects
+        glow === 'cyan' && 'shadow-[0_0_32px_rgba(0,201,228,0.06)]',
+        glow === 'violet' && 'shadow-[0_0_32px_rgba(155,135,245,0.06)]',
+        glow === 'green' && 'shadow-[0_0_32px_rgba(16,185,129,0.06)]',
+        glow === 'red' && 'shadow-[0_0_32px_rgba(244,63,94,0.06)]',
         // Hover effect
-        hover && 'transition-all duration-300 hover:border-[#00D4FF]/30 hover:shadow-[0_0_30px_rgba(0,212,255,0.1)]',
+        hover && 'transition-all duration-300 hover:border-white/[0.1] hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]',
         className
       )}
       {...props}
@@ -46,7 +60,7 @@ export function GlassCard({
 }
 
 // ============================================
-// PULSING DOT (for LIVE indicators)
+// PULSING DOT (for LIVE indicators) - Refined
 // ============================================
 
 interface PulsingDotProps {

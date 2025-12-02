@@ -7,20 +7,11 @@ import {
   TrendingDown,
   Activity,
   BarChart3,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   RefreshCw,
-  Clock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { GlassCard, PulsingDot } from '@/components/ui/cinematic'
-import { useHaptic } from '@/lib/hooks'
+import { GlassCard } from '@/components/ui/cinematic'
 
-type SortField = 'symbol' | 'price' | 'change' | 'changePercent' | 'volume' | 'marketCap'
-type SortDirection = 'asc' | 'desc'
 type TabValue = 'gainers' | 'losers' | 'active' | 'unusual'
 
 interface StockData {
@@ -31,15 +22,12 @@ interface StockData {
   changePercent: number
   volume: number
   marketCap: number
-  avgVolume?: number // Average 10-day volume
-  volumeRatio?: number // Current volume / Average volume
 }
 
 interface TopMoversSectionProps {
   className?: string
 }
 
-// Format helpers
 const formatVolume = (vol: number) => {
   if (vol >= 1000000000) return `${(vol / 1000000000).toFixed(1)}B`
   if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`
@@ -55,12 +43,8 @@ const formatMarketCap = (cap: number) => {
 }
 
 export function TopMoversSection({ className }: TopMoversSectionProps) {
-  const { triggerHaptic } = useHaptic()
   const [activeTab, setActiveTab] = useState<TabValue>('gainers')
-  const [sortField, setSortField] = useState<SortField>('changePercent')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [isLoading, setIsLoading] = useState(true)
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [data, setData] = useState<{
     gainers: StockData[]
     losers: StockData[]
@@ -73,7 +57,6 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
     unusualVolume: [],
   })
 
-  // Fetch real data from API
   const fetchData = async () => {
     setIsLoading(true)
     try {
@@ -86,7 +69,6 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
           mostActive: result.mostActive || [],
           unusualVolume: result.unusualVolume || [],
         })
-        setLastUpdated(new Date(result.lastUpdated))
       }
     } catch (error) {
       console.error('Error fetching movers:', error)
@@ -97,346 +79,171 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
 
   useEffect(() => {
     fetchData()
-    // Refresh every 30 seconds
     const interval = setInterval(fetchData, 30000)
     return () => clearInterval(interval)
   }, [])
 
-  // Get data based on active tab
   const getData = () => {
     switch (activeTab) {
       case 'gainers': return data.gainers
       case 'losers': return data.losers
       case 'active': return data.mostActive
-      case 'unusual': return data.unusualVolume // Real unusual volume (1.5x+ average)
+      case 'unusual': return data.unusualVolume
       default: return data.gainers
     }
   }
 
-  // Sorted data
   const sortedData = useMemo(() => {
-    const items = [...getData()]
-    items.sort((a, b) => {
-      let comparison = 0
-      switch (sortField) {
-        case 'symbol': comparison = a.symbol.localeCompare(b.symbol); break
-        case 'price': comparison = a.price - b.price; break
-        case 'change': comparison = a.change - b.change; break
-        case 'changePercent': comparison = a.changePercent - b.changePercent; break
-        case 'volume': comparison = a.volume - b.volume; break
-        case 'marketCap': comparison = a.marketCap - b.marketCap; break
-      }
-      return sortDirection === 'asc' ? comparison : -comparison
-    })
-    return items.slice(0, 6) // Only show 6 rows
-  }, [activeTab, data, sortField, sortDirection])
+    return [...getData()].slice(0, 6)
+  }, [activeTab, data])
 
-  const handleSort = (field: SortField) => {
-    triggerHaptic('light')
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortDirection(field === 'symbol' ? 'asc' : 'desc')
-    }
-  }
-
-  const getSortIcon = (field: SortField) => {
-    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 text-gray-600" />
-    return sortDirection === 'asc' 
-      ? <ArrowUp className="w-3 h-3 text-cyan-400" />
-      : <ArrowDown className="w-3 h-3 text-cyan-400" />
-  }
-
-  const getTimeAgo = () => {
-    const seconds = Math.floor((new Date().getTime() - lastUpdated.getTime()) / 1000)
-    if (seconds < 60) return 'Just now'
-    const minutes = Math.floor(seconds / 60)
-    return `${minutes}m ago`
-  }
-
-  const handleRefresh = () => {
-    triggerHaptic('light')
-    fetchData()
-  }
+  const tabs = [
+    { value: 'gainers', label: 'Gainers', icon: TrendingUp, color: 'emerald' },
+    { value: 'losers', label: 'Losers', icon: TrendingDown, color: 'rose' },
+    { value: 'active', label: 'Most Active', icon: Activity, color: 'cyan' },
+    { value: 'unusual', label: 'Unusual Vol', icon: BarChart3, color: 'amber' },
+  ]
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.3 }}
-      className={className}
+      transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className={cn('h-full', className)}
     >
       <GlassCard className="h-full overflow-hidden">
         {/* Header */}
-        <div className="p-3 sm:p-5 border-b border-white/[0.06]">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-transparent blur-lg opacity-50" />
-                <h3 className="relative text-sm sm:text-base font-semibold text-white">Top Movers</h3>
-              </div>
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20">
-                <PulsingDot color="cyan" size="sm" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Live</span>
-              </div>
+        <div className="p-6 pb-0">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-base font-medium text-white">Top Movers</h3>
+              <p className="text-xs text-white/35 mt-0.5">Real-time market activity</p>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                <Clock className="w-3 h-3" />
-                <span className="hidden sm:inline">{getTimeAgo()}</span>
-              </div>
-              <button
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className={cn(
-                  'p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]',
-                  'hover:bg-white/[0.06] hover:border-cyan-500/30',
-                  'text-gray-400 hover:text-cyan-400 transition-all duration-300',
-                  'disabled:opacity-50'
-                )}
-              >
-                <RefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
-              </button>
-            </div>
+            <button
+              onClick={fetchData}
+              disabled={isLoading}
+              className={cn(
+                'p-2 rounded-xl bg-white/[0.03] border border-white/[0.06]',
+                'hover:bg-white/[0.06] transition-all duration-200',
+                'disabled:opacity-40'
+              )}
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5 text-white/40', isLoading && 'animate-spin')} />
+            </button>
           </div>
 
-          {/* Tabs - Scrollable on mobile */}
-          <Tabs value={activeTab} onValueChange={(v) => {
-            triggerHaptic('light')
-            setActiveTab(v as TabValue)
-          }}>
-            <TabsList className="bg-white/[0.03] border border-white/[0.06] p-1 h-auto overflow-x-auto flex-nowrap">
-              <TabsTrigger
-                value="gainers"
+          {/* Tabs */}
+          <div className="flex gap-1 p-1 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+            {tabs.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value as TabValue)}
                 className={cn(
-                  'text-xs px-3 py-1.5 rounded-md transition-all',
-                  'data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400',
-                  'data-[state=active]:border-emerald-500/30 data-[state=active]:shadow-[0_0_12px_rgba(34,197,94,0.2)]',
-                  'text-gray-400 border border-transparent'
+                  'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg',
+                  'text-xs font-medium transition-all duration-200',
+                  activeTab === tab.value
+                    ? `bg-${tab.color}-500/10 text-${tab.color}-400 border border-${tab.color}-500/20`
+                    : 'text-white/40 hover:text-white/60 border border-transparent'
                 )}
+                style={activeTab === tab.value ? {
+                  backgroundColor: tab.color === 'emerald' ? 'rgba(16, 185, 129, 0.1)' :
+                                   tab.color === 'rose' ? 'rgba(244, 63, 94, 0.1)' :
+                                   tab.color === 'cyan' ? 'rgba(0, 201, 228, 0.1)' :
+                                   'rgba(245, 158, 11, 0.1)',
+                  color: tab.color === 'emerald' ? '#10B981' :
+                         tab.color === 'rose' ? '#F43F5E' :
+                         tab.color === 'cyan' ? '#00C9E4' :
+                         '#F59E0B',
+                  borderColor: tab.color === 'emerald' ? 'rgba(16, 185, 129, 0.2)' :
+                               tab.color === 'rose' ? 'rgba(244, 63, 94, 0.2)' :
+                               tab.color === 'cyan' ? 'rgba(0, 201, 228, 0.2)' :
+                               'rgba(245, 158, 11, 0.2)',
+                } : {}}
               >
-                <TrendingUp className="w-3.5 h-3.5 mr-1.5" />
-                Gainers
-              </TabsTrigger>
-              <TabsTrigger
-                value="losers"
-                className={cn(
-                  'text-xs px-3 py-1.5 rounded-md transition-all',
-                  'data-[state=active]:bg-red-500/15 data-[state=active]:text-red-400',
-                  'data-[state=active]:border-red-500/30 data-[state=active]:shadow-[0_0_12px_rgba(239,68,68,0.2)]',
-                  'text-gray-400 border border-transparent'
-                )}
-              >
-                <TrendingDown className="w-3.5 h-3.5 mr-1.5" />
-                Losers
-              </TabsTrigger>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="active"
-                      className={cn(
-                        'text-xs px-3 py-1.5 rounded-md transition-all',
-                        'data-[state=active]:bg-cyan-500/15 data-[state=active]:text-cyan-400',
-                        'data-[state=active]:border-cyan-500/30 data-[state=active]:shadow-[0_0_12px_rgba(0,212,255,0.2)]',
-                        'text-gray-400 border border-transparent'
-                      )}
-                    >
-                      <Activity className="w-3.5 h-3.5 mr-1.5" />
-                      Most Active
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p className="text-xs">Stocks with the highest trading volume today</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="unusual"
-                      className={cn(
-                        'text-xs px-3 py-1.5 rounded-md transition-all',
-                        'data-[state=active]:bg-amber-500/15 data-[state=active]:text-amber-400',
-                        'data-[state=active]:border-amber-500/30 data-[state=active]:shadow-[0_0_12px_rgba(245,158,11,0.2)]',
-                        'text-gray-400 border border-transparent'
-                      )}
-                    >
-                      <BarChart3 className="w-3.5 h-3.5 mr-1.5" />
-                      Unusual Volume
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p className="text-xs">Stocks trading at 1.2x or more their 10-day average volume — potential breakout signals</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </TabsList>
-          </Tabs>
+                <tab.icon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Table - Hidden on mobile, shown on sm and up */}
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="w-full min-w-[600px]">
-            <thead>
-              <tr className="border-b border-white/[0.06]">
-                {[
-                  { field: 'symbol' as SortField, label: 'Symbol' },
-                  { field: 'price' as SortField, label: 'Price' },
-                  { field: 'change' as SortField, label: 'Change $' },
-                  { field: 'changePercent' as SortField, label: 'Change %' },
-                  { field: 'volume' as SortField, label: 'Volume' },
-                  { field: 'marketCap' as SortField, label: 'Market Cap' },
-                ].map(({ field, label }) => (
-                  <th
-                    key={field}
-                    onClick={() => handleSort(field)}
-                    className={cn(
-                      'px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-500',
-                      'cursor-pointer hover:text-white transition-colors',
-                      'first:pl-5 last:pr-5'
-                    )}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      {label}
-                      {getSortIcon(field)}
+        {/* Table */}
+        <div className="p-6 pt-4">
+          {/* Table Header */}
+          <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs text-white/30 uppercase tracking-wide font-medium border-b border-white/[0.04]">
+            <div className="col-span-4">Symbol</div>
+            <div className="col-span-2 text-right">Price</div>
+            <div className="col-span-2 text-right">Change</div>
+            <div className="col-span-2 text-right hidden sm:block">Volume</div>
+            <div className="col-span-2 text-right hidden sm:block">Mkt Cap</div>
+          </div>
+
+          {/* Table Body */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="divide-y divide-white/[0.04]"
+            >
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="grid grid-cols-12 gap-4 px-4 py-3 animate-pulse">
+                    <div className="col-span-4 flex items-center gap-3">
+                      <div className="h-4 w-12 bg-white/[0.06] rounded" />
+                      <div className="h-3 w-20 bg-white/[0.04] rounded hidden sm:block" />
                     </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <AnimatePresence mode="wait">
-                {sortedData.map((stock, index) => (
-                  <motion.tr
+                    <div className="col-span-2"><div className="h-4 w-16 bg-white/[0.06] rounded ml-auto" /></div>
+                    <div className="col-span-2"><div className="h-4 w-14 bg-white/[0.06] rounded ml-auto" /></div>
+                    <div className="col-span-2 hidden sm:block"><div className="h-4 w-12 bg-white/[0.04] rounded ml-auto" /></div>
+                    <div className="col-span-2 hidden sm:block"><div className="h-4 w-14 bg-white/[0.04] rounded ml-auto" /></div>
+                  </div>
+                ))
+              ) : sortedData.length === 0 ? (
+                <div className="px-4 py-8 text-center text-white/40 text-sm">
+                  No data available
+                </div>
+              ) : (
+                sortedData.map((stock, index) => (
+                  <motion.div
                     key={stock.symbol}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    transition={{ duration: 0.2, delay: index * 0.05 }}
-                    onClick={() => {
-                      triggerHaptic('light')
-                      window.location.href = `/dashboard/stock-analysis?symbol=${stock.symbol}`
-                    }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
                     className={cn(
-                      'border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors',
-                      'cursor-pointer group'
+                      'grid grid-cols-12 gap-4 px-4 py-3',
+                      'hover:bg-white/[0.02] transition-colors duration-150 cursor-pointer'
                     )}
                   >
-                    {/* Symbol */}
-                    <td className="px-4 py-3 pl-5">
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold',
-                          stock.changePercent >= 0 
-                            ? 'bg-emerald-500/10 text-emerald-400' 
-                            : 'bg-red-500/10 text-red-400'
-                        )}>
-                          {stock.symbol.slice(0, 2)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors">
-                            {stock.symbol}
-                          </p>
-                          <p className="text-[10px] text-gray-500 truncate max-w-[120px]">
-                            {stock.name}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    
-                    {/* Price */}
-                    <td className="px-4 py-3">
-                      <span className="text-sm font-medium text-white tabular-nums">
-                        ${stock.price.toFixed(2)}
+                    <div className="col-span-4 flex items-center gap-3 min-w-0">
+                      <span className="text-sm font-medium text-white">{stock.symbol}</span>
+                      <span className="text-xs text-white/30 truncate hidden sm:block">{stock.name}</span>
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <span className="text-sm text-white tabular-nums">
+                        ${stock.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
-                    </td>
-                    
-                    {/* Change $ */}
-                    <td className="px-4 py-3">
+                    </div>
+                    <div className="col-span-2 text-right">
                       <span className={cn(
                         'text-sm font-medium tabular-nums',
-                        stock.change >= 0 ? 'text-emerald-400' : 'text-red-400'
-                      )}>
-                        {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}
-                      </span>
-                    </td>
-                    
-                    {/* Change % */}
-                    <td className="px-4 py-3">
-                      <span className={cn(
-                        'inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold',
-                        stock.changePercent >= 0 
-                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' 
-                          : 'bg-red-500/15 text-red-400 border border-red-500/20'
+                        stock.changePercent >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       )}>
                         {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
                       </span>
-                    </td>
-                    
-                    {/* Volume */}
-                    <td className="px-4 py-3">
-                      <span className="text-sm text-gray-400 tabular-nums">
-                        {formatVolume(stock.volume)}
-                      </span>
-                    </td>
-                    
-                    {/* Market Cap */}
-                    <td className="px-4 py-3 pr-5">
-                      <span className="text-sm text-gray-400 tabular-nums">
-                        {formatMarketCap(stock.marketCap)}
-                      </span>
-                    </td>
-                  </motion.tr>
-                ))}
-              </AnimatePresence>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Card View */}
-        <div className="sm:hidden p-3 space-y-2">
-          <AnimatePresence mode="wait">
-            {sortedData.map((stock, index) => (
-              <motion.div
-                key={stock.symbol}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2, delay: index * 0.05 }}
-                onClick={() => {
-                  triggerHaptic('light')
-                  window.location.href = `/dashboard/stock-analysis?symbol=${stock.symbol}`
-                }}
-                className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] active:bg-white/[0.05] transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    'w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold',
-                    stock.changePercent >= 0 
-                      ? 'bg-emerald-500/10 text-emerald-400' 
-                      : 'bg-red-500/10 text-red-400'
-                  )}>
-                    {stock.symbol.slice(0, 2)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{stock.symbol}</p>
-                    <p className="text-xs text-gray-500 truncate max-w-[120px]">{stock.name}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">${stock.price.toFixed(2)}</p>
-                  <span className={cn(
-                    'text-xs font-medium',
-                    stock.changePercent >= 0 ? 'text-emerald-400' : 'text-red-400'
-                  )}>
-                    {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
-                  </span>
-                </div>
-              </motion.div>
-            ))}
+                    </div>
+                    <div className="col-span-2 text-right hidden sm:block">
+                      <span className="text-sm text-white/50 tabular-nums">{formatVolume(stock.volume)}</span>
+                    </div>
+                    <div className="col-span-2 text-right hidden sm:block">
+                      <span className="text-sm text-white/40 tabular-nums">{formatMarketCap(stock.marketCap)}</span>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </motion.div>
           </AnimatePresence>
         </div>
       </GlassCard>

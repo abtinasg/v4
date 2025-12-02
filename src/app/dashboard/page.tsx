@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { RefreshCw, Loader2 } from 'lucide-react'
 import {
   TopMoversSection,
-  AIInsightBox,
   SectorHeatmap,
   MarketNewsFeed,
   DashboardHero,
@@ -17,7 +16,6 @@ export default function DashboardPage() {
   const [refreshKey, setRefreshKey] = useState(0)
   
   const handleRefresh = async () => {
-    // Refresh data by triggering re-render
     await new Promise(resolve => setTimeout(resolve, 1000))
     setRefreshKey(prev => prev + 1)
   }
@@ -29,8 +27,8 @@ export default function DashboardPage() {
   })
   
   return (
-    <div className="min-h-screen bg-[#030508] relative">
-      {/* Pull to Refresh Indicator */}
+    <div className="min-h-screen bg-[#04060A] relative">
+      {/* Pull to Refresh Indicator - Premium Style */}
       <AnimatePresence>
         {(isPulling || isRefreshing) && (
           <motion.div
@@ -39,23 +37,23 @@ export default function DashboardPage() {
             exit={{ opacity: 0, y: -40 }}
             className="fixed top-14 md:top-0 left-1/2 -translate-x-1/2 z-50 pt-4"
           >
-            <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[#0a0d12]/95 backdrop-blur-xl border border-white/10 shadow-xl">
+            <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[#0C1017]/90 backdrop-blur-2xl border border-white/[0.06] shadow-xl">
               {isRefreshing ? (
                 <>
-                  <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
-                  <span className="text-xs text-white font-medium">Refreshing...</span>
+                  <Loader2 className="w-3.5 h-3.5 text-[#00C9E4] animate-spin" />
+                  <span className="text-xs text-white/80 font-medium">Refreshing</span>
                 </>
               ) : (
                 <>
                   <RefreshCw 
-                    className="w-4 h-4 text-cyan-400 transition-transform duration-200"
+                    className="w-3.5 h-3.5 text-[#00C9E4] transition-transform duration-200"
                     style={{ 
                       transform: `rotate(${Math.min(pullDistance * 2, 360)}deg)`,
                       opacity: Math.min(pullDistance / 80, 1),
                     }}
                   />
-                  <span className="text-xs text-white font-medium">
-                    {shouldRefresh ? 'Release to refresh' : 'Pull to refresh'}
+                  <span className="text-xs text-white/80 font-medium">
+                    {shouldRefresh ? 'Release' : 'Pull'}
                   </span>
                 </>
               )}
@@ -64,45 +62,51 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
 
-      {/* Cinematic Background - Simplified for mobile */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.03] via-transparent to-violet-500/[0.03]" />
-        <div className="hidden md:block absolute top-0 left-1/4 w-[600px] h-[600px] bg-cyan-500/[0.05] rounded-full blur-[120px]" />
-        <div className="hidden md:block absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-500/[0.05] rounded-full blur-[100px]" />
+      {/* Subtle Ambient Background - Refined */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {/* Very subtle gradient wash */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0C1017] via-[#04060A] to-[#04060A]" />
+        {/* Single soft glow - top center */}
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#00C9E4]/[0.02] rounded-full blur-[120px]" />
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - Premium Spacing */}
       <div 
         key={refreshKey}
-        className="relative z-10 px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-5 lg:py-8 space-y-4 md:space-y-6 lg:space-y-10 max-w-[1800px] mx-auto"
+        className="relative z-10 max-w-[1600px] mx-auto"
       >
-        {/* Hero Section */}
-        <DashboardHero />
-
-        {/* Market Status Banner */}
-        <MarketStatusBanner />
-
-        {/* Mobile-first Grid */}
-        <section className="space-y-4 md:space-y-0 md:grid md:grid-cols-12 md:gap-6">
-          {/* Main Content - Top Movers & News */}
-          <div className="space-y-4 md:space-y-6 md:col-span-8">
-            <TopMoversSection />
-            <MarketNewsFeed />
-          </div>
+        {/* Content Container with generous padding */}
+        <div className="px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 lg:py-10">
           
-          {/* Sidebar - AI */}
-          <div className="space-y-4 md:space-y-6 md:col-span-4">
-            <AIInsightBox />
-          </div>
-        </section>
+          {/* Market Status - Minimal top bar */}
+          <section className="mb-6 lg:mb-8">
+            <MarketStatusBanner />
+          </section>
 
-        {/* Sector Heatmap - Hidden on mobile */}
-        <section className="hidden sm:block">
-          <SectorHeatmap />
-        </section>
+          {/* Hero Section - Primary Focus */}
+          <section className="mb-8 lg:mb-12">
+            <DashboardHero />
+          </section>
 
-        {/* Extra padding for bottom navigation on mobile */}
-        <div className="h-4 md:h-8" />
+          {/* Main Grid - Information Hierarchy */}
+          {/* Top Movers - Full Width */}
+          <section className="mb-8 lg:mb-12">
+            <TopMoversSection />
+          </section>
+
+          {/* News Feed - Full Width with 4 cards */}
+          <section className="mb-8 lg:mb-12">
+            <MarketNewsFeed />
+          </section>
+
+          {/* Sector Heatmap - Full Width at Bottom */}
+          <section className="mb-8 lg:mb-12">
+            <SectorHeatmap />
+          </section>
+
+          {/* Bottom Spacing */}
+          <div className="h-8 lg:h-12" />
+        </div>
       </div>
     </div>
   )
