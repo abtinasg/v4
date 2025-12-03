@@ -11,6 +11,7 @@ import {
   MarketStatusBanner,
 } from "@/components/dashboard"
 import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh'
+import { FullDataButton } from '@/components/mobile/full-data-button'
 
 export default function DashboardPage() {
   const [refreshKey, setRefreshKey] = useState(0)
@@ -108,6 +109,9 @@ export default function DashboardPage() {
           <div className="h-8 lg:h-12" />
         </div>
       </div>
+
+      {/* Full Data Button for Mobile */}
+      <FullDataButton />
     </div>
   )
 }

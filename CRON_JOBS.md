@@ -4,13 +4,19 @@
 
 ## 📋 لیست Cron Jobs
 
-### 1. Check Price Alerts (`/api/cron/check-alerts`) ⭐ NEW
+### 1. Check Price Alerts (`/api/cron/check-alerts`) ⭐
 - **زمان‌بندی**: هر 5 دقیقه یکبار (`*/5 * * * *`)
-- **وظیفه**: چک کردن price alerts و ارسال ایمیل
-  - دریافت قیمت فعلی سهام
-  - مقایسه با target price
-  - ارسال ایمیل به کاربر اگر شرط برقرار شد
-  - غیرفعال کردن alert بعد از trigger
+- **وظیفه**: چک کردن همه price alerts (watchlist + portfolio) و ارسال ایمیل
+  - **Stock Alerts** (watchlist):
+    - دریافت قیمت فعلی سهام
+    - مقایسه با target price
+    - ارسال ایمیل به کاربر اگر شرط برقرار شد
+    - غیرفعال کردن alert بعد از trigger
+  - **Portfolio Alerts**:
+    - دریافت قیمت فعلی سهام در portfolio
+    - چک کردن شرایط alert (price_above, price_below, percent_change)
+    - ارسال ایمیل اگر `isEmailEnabled = true`
+    - بروز کردن `lastTriggeredAt` و `triggerCount` (alert فعال می‌ماند)
 - **مدت زمان**: تا 60 ثانیه
 
 ### 2. Telegram News (`/api/cron/telegram-news`)

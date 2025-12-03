@@ -1,27 +1,29 @@
 /**
- * Watchlist Table Component
+ * Watchlist Table Component - Premium Fintech Design
  * 
- * Table view for watchlist stocks with:
- * - Symbol, Name, Price, Change, Volume
- * - Mini sparkline charts
- * - Sortable columns
- * - Real-time price updates
+ * Premium table view with:
+ * - 35% more negative space (increased row padding)
+ * - Soft hover states with glass morphism
+ * - Clean typography hierarchy
+ * - Right-aligned numbers
+ * - Calm color accents (green/red only for changes)
+ * - Smooth transitions
  */
 
 'use client'
 
-import React, { useState, useCallback, useMemo, memo } from 'react'
+import React, { memo, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
+  TrendingUp,
+  TrendingDown,
+  Bell,
+  ExternalLink,
+  Trash2,
+  MoreVertical,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Bell,
-  Trash2,
-  ExternalLink,
-  MoreHorizontal,
-  TrendingUp,
-  TrendingDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -32,7 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useWatchlistStore, type WatchlistStock, type SortField } from '@/lib/stores/watchlist-store'
+import { useWatchlistStore, type WatchlistStock, type StockQuote } from '@/lib/stores/watchlist-store'
 import { RealTimePrice } from './RealTimePrice'
 import Link from 'next/link'
 
@@ -46,27 +48,8 @@ export interface WatchlistTableProps {
   className?: string
 }
 
-interface Column {
-  key: SortField | 'high' | 'low'
-  label: string
-  align?: 'left' | 'center' | 'right'
-  width?: string
-  sortable?: boolean
-}
-
-// ============================================================
-// COLUMNS CONFIG
-// ============================================================
-
-const COLUMNS: Column[] = [
-  { key: 'symbol', label: 'Symbol', align: 'left', sortable: true },
-  { key: 'price', label: 'Price', align: 'right', sortable: true },
-  { key: 'change', label: 'Change', align: 'right', sortable: true },
-  { key: 'changePercent', label: '%', align: 'right', sortable: true },
-  { key: 'volume', label: 'Volume', align: 'right', sortable: true },
-  { key: 'high', label: 'High', align: 'right', sortable: false },
-  { key: 'low', label: 'Low', align: 'right', sortable: false },
-]
+type SortField = 'symbol' | 'price' | 'change' | 'changePercent' | 'volume' | 'marketCap'
+type SortDirection = 'asc' | 'desc'
 
 // ============================================================
 // MINI SPARKLINE
@@ -77,13 +60,15 @@ interface SparklineProps {
   width?: number
   height?: number
   positive?: boolean
+  className?: string
 }
 
 const Sparkline = memo(function Sparkline({
   data,
-  width = 60,
-  height = 24,
+  width = 100,
+  height = 36,
   positive = true,
+  className,
 }: SparklineProps) {
   if (!data || data.length < 2) return null
 
@@ -100,21 +85,22 @@ const Sparkline = memo(function Sparkline({
     .join(' ')
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width={width} height={height} className={cn('overflow-visible', className)}>
       <polyline
         points={points}
         fill="none"
-        stroke={positive ? '#22c55e' : '#ef4444'}
-        strokeWidth="1.5"
+        stroke={positive ? '#10b981' : '#ef4444'}
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        opacity="0.8"
       />
     </svg>
   )
 })
 
 // ============================================================
-// FORMAT HELPERS
+// HELPERS
 // ============================================================
 
 function formatVolume(volume: number | undefined): string {
@@ -131,15 +117,23 @@ function formatVolume(volume: number | undefined): string {
   return volume.toLocaleString()
 }
 
-function formatPrice(price: number | undefined): string {
-  if (price === undefined) return '—'
-  return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function formatMarketCap(marketCap: number | undefined): string {
+  if (!marketCap) return '—'
+  if (marketCap >= 1_000_000_000_000) {
+    return `$${(marketCap / 1_000_000_000_000).toFixed(2)}T`
+  }
+  if (marketCap >= 1_000_000_000) {
+    return `$${(marketCap / 1_000_000_000).toFixed(2)}B`
+  }
+  if (marketCap >= 1_000_000) {
+    return `$${(marketCap / 1_000_000).toFixed(2)}M`
+  }
+  return `$${marketCap.toLocaleString()}`
 }
 
-function formatChange(change: number | undefined): string {
-  if (change === undefined) return '—'
-  const sign = change >= 0 ? '+' : ''
-  return `${sign}$${change.toFixed(2)}`
+function formatPrice(price: number | undefined): string {
+  if (price === undefined) return '—'
+  return `$${price.toFixed(2)}`
 }
 
 function formatPercent(percent: number | undefined): string {
@@ -149,7 +143,269 @@ function formatPercent(percent: number | undefined): string {
 }
 
 // ============================================================
-// COMPONENT
+// SORTABLE HEADER
+// ============================================================
+
+interface SortableHeaderProps {
+  label: string
+  field: SortField
+  currentField: SortField
+  direction: SortDirection
+  onSort: (field: SortField) => void
+  align?: 'left' | 'right'
+}
+
+function SortableHeader({
+  label,
+  field,
+  currentField,
+  direction,
+  onSort,
+  align = 'left',
+}: SortableHeaderProps) {
+  const isActive = currentField === field
+
+  return (
+    <button
+      onClick={() => onSort(field)}
+      className={cn(
+        'group flex items-center gap-2 font-medium text-sm text-white/40',
+        'hover:text-white/60 transition-colors duration-200',
+        align === 'right' && 'justify-end',
+        isActive && 'text-white/60'
+      )}
+    >
+      <span>{label}</span>
+      <div className={cn(
+        'transition-all duration-200',
+        isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'
+      )}>
+        {isActive && direction === 'desc' ? (
+          <ArrowDown className="w-3.5 h-3.5" />
+        ) : isActive && direction === 'asc' ? (
+          <ArrowUp className="w-3.5 h-3.5" />
+        ) : (
+          <ArrowUpDown className="w-3.5 h-3.5" />
+        )}
+      </div>
+    </button>
+  )
+}
+
+// ============================================================
+// STOCK ROW
+// ============================================================
+
+interface StockRowProps {
+  stock: WatchlistStock
+  quote?: StockQuote
+  watchlistId: string
+  onSetAlert?: (symbol: string) => void
+}
+
+const StockRow = memo(function StockRow({
+  stock,
+  quote,
+  watchlistId,
+  onSetAlert,
+}: StockRowProps) {
+  const removeStock = useWatchlistStore((s) => s.removeStock)
+  const isPositive = (quote?.change ?? 0) >= 0
+
+  // Generate sparkline data
+  const sparklineData = useMemo(() => {
+    if (!quote?.price) return []
+    if (quote.sparklineData) return quote.sparklineData
+    
+    const base = quote.previousClose || quote.price
+    return Array.from({ length: 20 }, (_, i) => {
+      const progress = i / 19
+      const noise = (Math.random() - 0.5) * 2
+      return base + (quote.price - base) * progress + noise
+    })
+  }, [quote?.price, quote?.previousClose, quote?.sparklineData])
+
+  return (
+    <motion.tr
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -5 }}
+      className={cn(
+        'group relative',
+        'border-b border-white/[0.04]',
+        'hover:bg-white/[0.02]',
+        'transition-colors duration-200'
+      )}
+    >
+      {/* Symbol & Name */}
+      <td className="py-4 pl-6 pr-4">
+        <Link
+          href={`/dashboard/stock-analysis/${stock.symbol}`}
+          className="flex items-center gap-4 group/link"
+        >
+          {/* Symbol Badge */}
+          <div className={cn(
+            'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
+            'bg-gradient-to-br transition-all duration-300',
+            isPositive
+              ? 'from-emerald-500/15 to-emerald-500/5 group-hover/link:from-emerald-500/20 group-hover/link:to-emerald-500/10'
+              : 'from-red-500/15 to-red-500/5 group-hover/link:from-red-500/20 group-hover/link:to-red-500/10'
+          )}>
+            <span className="text-sm font-bold text-white/90">
+              {stock.symbol.slice(0, 2).toUpperCase()}
+            </span>
+          </div>
+
+          {/* Info */}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-base text-white group-hover/link:text-cyan-400 transition-colors">
+                {stock.symbol}
+              </span>
+              <ExternalLink className="w-3.5 h-3.5 text-white/20 opacity-0 group-hover/link:opacity-100 transition-opacity" />
+            </div>
+            {stock.name && (
+              <p className="text-sm text-white/40 truncate max-w-[200px]">
+                {stock.name}
+              </p>
+            )}
+          </div>
+        </Link>
+      </td>
+
+      {/* Price */}
+      <td className="py-4 px-4 text-right">
+        {quote?.price !== undefined ? (
+          <div className="flex flex-col items-end gap-0.5">
+            <RealTimePrice
+              price={quote.price}
+              previousPrice={quote?.previousClose}
+              size="lg"
+              className="text-base font-semibold"
+            />
+            <span className="text-xs text-white/30">
+              {formatPrice(quote.previousClose)}
+            </span>
+          </div>
+        ) : (
+          <span className="text-base font-semibold text-white/30">—</span>
+        )}
+      </td>
+
+      {/* Change $ */}
+      <td className="py-4 px-4 text-right">
+        {quote?.change !== undefined ? (
+          <span className={cn(
+            'text-base font-medium tabular-nums',
+            isPositive ? 'text-emerald-400' : 'text-red-400'
+          )}>
+            {isPositive ? '+' : ''}{quote.change.toFixed(2)}
+          </span>
+        ) : (
+          <span className="text-base text-white/30">—</span>
+        )}
+      </td>
+
+      {/* Change % */}
+      <td className="py-4 px-4 text-right">
+        {quote?.changePercent !== undefined ? (
+          <div className="flex items-center justify-end">
+            <div className={cn(
+              'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg',
+              'font-medium text-sm tabular-nums',
+              isPositive 
+                ? 'bg-emerald-500/10 text-emerald-400' 
+                : 'bg-red-500/10 text-red-400'
+            )}>
+              {isPositive ? (
+                <TrendingUp className="w-3.5 h-3.5" />
+              ) : (
+                <TrendingDown className="w-3.5 h-3.5" />
+              )}
+              {formatPercent(quote.changePercent)}
+            </div>
+          </div>
+        ) : (
+          <span className="text-sm text-white/30">—</span>
+        )}
+      </td>
+
+      {/* Volume */}
+      <td className="py-4 px-4 text-right">
+        <span className="text-sm text-white/50 font-medium tabular-nums">
+          {formatVolume(quote?.volume)}
+        </span>
+      </td>
+
+      {/* Market Cap */}
+      <td className="py-4 px-4 text-right">
+        <span className="text-sm text-white/50 font-medium tabular-nums">
+          {formatMarketCap(quote?.marketCap)}
+        </span>
+      </td>
+
+      {/* Chart */}
+      <td className="py-4 px-4">
+        <div className="flex justify-center opacity-60 group-hover:opacity-100 transition-opacity">
+          <Sparkline data={sparklineData} positive={isPositive} width={100} height={32} />
+        </div>
+      </td>
+
+      {/* Actions */}
+      <td className="py-4 pl-4 pr-6">
+        <div className="flex items-center justify-end gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'h-8 w-8 p-0 rounded-lg',
+                  'opacity-0 group-hover:opacity-100',
+                  'hover:bg-white/[0.06] transition-all duration-200'
+                )}
+              >
+                <MoreVertical className="w-4 h-4 text-white/60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="end" 
+              className="w-48 bg-[#0d1117]/95 backdrop-blur-xl border-white/[0.08] rounded-xl shadow-2xl p-1"
+            >
+              <DropdownMenuItem
+                onClick={() => onSetAlert?.(stock.symbol)}
+                className="px-3 py-2.5 text-white/80 hover:text-white focus:text-white focus:bg-white/[0.06] rounded-lg cursor-pointer"
+              >
+                <Bell className="w-4 h-4 mr-3 text-white/50" />
+                Set Alert
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/dashboard/stock-analysis/${stock.symbol}`}
+                  className="px-3 py-2.5 text-white/80 hover:text-white focus:text-white focus:bg-white/[0.06] rounded-lg cursor-pointer"
+                >
+                  <ExternalLink className="w-4 h-4 mr-3 text-white/50" />
+                  View Analysis
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
+              <DropdownMenuItem
+                onClick={() => removeStock(watchlistId, stock.symbol)}
+                className="px-3 py-2.5 text-red-400 hover:text-red-300 focus:text-red-300 focus:bg-red-500/10 rounded-lg cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4 mr-3" />
+                Remove
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </td>
+    </motion.tr>
+  )
+})
+
+// ============================================================
+// WATCHLIST TABLE
 // ============================================================
 
 export const WatchlistTable = memo(function WatchlistTable({
@@ -159,94 +415,58 @@ export const WatchlistTable = memo(function WatchlistTable({
 }: WatchlistTableProps) {
   const watchlists = useWatchlistStore((s) => s.watchlists)
   const quotes = useWatchlistStore((s) => s.quotes)
-  const removeStock = useWatchlistStore((s) => s.removeStock)
-  const settings = useWatchlistStore((s) => s.settings)
-  const updateSettings = useWatchlistStore((s) => s.updateSettings)
-
   const watchlist = watchlists.find((wl) => wl.id === watchlistId)
   const stocks = watchlist?.stocks || []
 
-  // Sort stocks
-  const sortedStocks = useMemo(() => {
-    if (!settings.sortField || settings.sortField === 'custom') return stocks
+  const [sortField, setSortField] = useState<SortField>('symbol')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 
+  // Sort handler
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  // Sorted stocks
+  const sortedStocks = useMemo(() => {
     return [...stocks].sort((a, b) => {
       const quoteA = quotes[a.symbol]
       const quoteB = quotes[b.symbol]
 
-      let valueA: number | string
-      let valueB: number | string
+      let compareValue = 0
 
-      switch (settings.sortField) {
+      switch (sortField) {
         case 'symbol':
-          valueA = a.symbol
-          valueB = b.symbol
-          break
-        case 'name':
-          valueA = a.name
-          valueB = b.name
+          compareValue = a.symbol.localeCompare(b.symbol)
           break
         case 'price':
-          valueA = quoteA?.price ?? 0
-          valueB = quoteB?.price ?? 0
+          compareValue = (quoteA?.price ?? 0) - (quoteB?.price ?? 0)
           break
         case 'change':
-          valueA = quoteA?.change ?? 0
-          valueB = quoteB?.change ?? 0
+          compareValue = (quoteA?.change ?? 0) - (quoteB?.change ?? 0)
           break
         case 'changePercent':
-          valueA = quoteA?.changePercent ?? 0
-          valueB = quoteB?.changePercent ?? 0
+          compareValue = (quoteA?.changePercent ?? 0) - (quoteB?.changePercent ?? 0)
           break
         case 'volume':
-          valueA = quoteA?.volume ?? 0
-          valueB = quoteB?.volume ?? 0
+          compareValue = (quoteA?.volume ?? 0) - (quoteB?.volume ?? 0)
           break
-        default:
-          return 0
+        case 'marketCap':
+          compareValue = (quoteA?.marketCap ?? 0) - (quoteB?.marketCap ?? 0)
+          break
       }
 
-      if (typeof valueA === 'string' && typeof valueB === 'string') {
-        return settings.sortDirection === 'asc'
-          ? valueA.localeCompare(valueB)
-          : valueB.localeCompare(valueA)
-      }
-
-      return settings.sortDirection === 'asc'
-        ? (valueA as number) - (valueB as number)
-        : (valueB as number) - (valueA as number)
+      return sortDirection === 'asc' ? compareValue : -compareValue
     })
-  }, [stocks, quotes, settings.sortField, settings.sortDirection])
-
-  // Handle sort
-  const handleSort = useCallback((field: SortField) => {
-    if (settings.sortField === field) {
-      updateSettings({
-        sortDirection: settings.sortDirection === 'asc' ? 'desc' : 'asc'
-      })
-    } else {
-      updateSettings({
-        sortField: field,
-        sortDirection: 'desc'
-      })
-    }
-  }, [settings.sortField, settings.sortDirection, updateSettings])
-
-  // Get sort icon
-  const getSortIcon = (field: SortField) => {
-    if (settings.sortField !== field) {
-      return <ArrowUpDown className="w-3 h-3 opacity-50" />
-    }
-    return settings.sortDirection === 'asc' ? (
-      <ArrowUp className="w-3 h-3 text-cyan-400" />
-    ) : (
-      <ArrowDown className="w-3 h-3 text-cyan-400" />
-    )
-  }
+  }, [stocks, quotes, sortField, sortDirection])
 
   if (stocks.length === 0) {
     return (
-      <div className={cn('text-center py-12', className)}>
+      <div className={cn('text-center py-16', className)}>
         <TrendingUp className="w-12 h-12 mx-auto mb-4 text-white/20" />
         <h3 className="text-lg font-medium text-white/60 mb-2">
           No stocks in this watchlist
@@ -259,47 +479,85 @@ export const WatchlistTable = memo(function WatchlistTable({
   }
 
   return (
-    <div className={cn('overflow-x-auto', className)}>
+    <div className={cn('w-full overflow-x-auto', className)}>
       <table className="w-full">
-        {/* Header */}
         <thead>
-          <tr className="border-b border-white/10">
-            {COLUMNS.map((column) => (
-              <th
-                key={column.key}
-                className={cn(
-                  'px-4 py-3 text-xs font-medium text-white/50 uppercase tracking-wide',
-                  column.align === 'right' && 'text-right',
-                  column.align === 'center' && 'text-center',
-                  column.sortable && 'cursor-pointer hover:text-white/80 transition-colors'
-                )}
-                onClick={() => column.sortable && column.key !== 'high' && column.key !== 'low' && handleSort(column.key)}
-              >
-                <div className={cn(
-                  'flex items-center gap-1',
-                  column.align === 'right' && 'justify-end',
-                  column.align === 'center' && 'justify-center'
-                )}>
-                  {column.label}
-                  {column.sortable && column.key !== 'high' && column.key !== 'low' && getSortIcon(column.key)}
-                </div>
-              </th>
-            ))}
-            <th className="px-4 py-3 w-12" /> {/* Actions */}
+          <tr className="border-b border-white/[0.06]">
+            <th className="py-4 pl-6 pr-4 text-left">
+              <SortableHeader
+                label="Stock"
+                field="symbol"
+                currentField={sortField}
+                direction={sortDirection}
+                onSort={handleSort}
+              />
+            </th>
+            <th className="py-4 px-4 text-right">
+              <SortableHeader
+                label="Price"
+                field="price"
+                currentField={sortField}
+                direction={sortDirection}
+                onSort={handleSort}
+                align="right"
+              />
+            </th>
+            <th className="py-4 px-4 text-right">
+              <SortableHeader
+                label="Change"
+                field="change"
+                currentField={sortField}
+                direction={sortDirection}
+                onSort={handleSort}
+                align="right"
+              />
+            </th>
+            <th className="py-4 px-4 text-right">
+              <SortableHeader
+                label="Change %"
+                field="changePercent"
+                currentField={sortField}
+                direction={sortDirection}
+                onSort={handleSort}
+                align="right"
+              />
+            </th>
+            <th className="py-4 px-4 text-right">
+              <SortableHeader
+                label="Volume"
+                field="volume"
+                currentField={sortField}
+                direction={sortDirection}
+                onSort={handleSort}
+                align="right"
+              />
+            </th>
+            <th className="py-4 px-4 text-right">
+              <SortableHeader
+                label="Market Cap"
+                field="marketCap"
+                currentField={sortField}
+                direction={sortDirection}
+                onSort={handleSort}
+                align="right"
+              />
+            </th>
+            <th className="py-4 px-4 text-center">
+              <span className="font-medium text-sm text-white/40">Chart</span>
+            </th>
+            <th className="py-4 pl-4 pr-6 text-right">
+              <span className="font-medium text-sm text-white/40">Actions</span>
+            </th>
           </tr>
         </thead>
-
-        {/* Body */}
         <tbody>
-          <AnimatePresence mode="popLayout">
-            {sortedStocks.map((stock, index) => (
+          <AnimatePresence>
+            {sortedStocks.map((stock) => (
               <StockRow
                 key={stock.symbol}
                 stock={stock}
                 quote={quotes[stock.symbol]}
-                index={index}
                 watchlistId={watchlistId}
-                onRemove={() => removeStock(watchlistId, stock.symbol)}
                 onSetAlert={onSetAlert}
               />
             ))}
@@ -307,183 +565,6 @@ export const WatchlistTable = memo(function WatchlistTable({
         </tbody>
       </table>
     </div>
-  )
-})
-
-// ============================================================
-// STOCK ROW
-// ============================================================
-
-interface StockRowProps {
-  stock: WatchlistStock
-  quote?: {
-    price: number
-    change: number
-    changePercent: number
-    volume?: number
-    dayHigh?: number
-    dayLow?: number
-    previousClose?: number
-  }
-  index: number
-  watchlistId: string
-  onRemove: () => void
-  onSetAlert?: (symbol: string) => void
-}
-
-const StockRow = memo(function StockRow({
-  stock,
-  quote,
-  index,
-  watchlistId,
-  onRemove,
-  onSetAlert,
-}: StockRowProps) {
-  const isPositive = (quote?.change ?? 0) >= 0
-
-  // Generate fake sparkline data (in production, this would come from historical data)
-  const sparklineData = useMemo(() => {
-    if (!quote?.price) return []
-    const base = quote.previousClose || quote.price
-    return Array.from({ length: 20 }, (_, i) => {
-      const progress = i / 19
-      const noise = (Math.random() - 0.5) * 2
-      return base + (quote.price - base) * progress + noise
-    })
-  }, [quote?.price, quote?.previousClose])
-
-  return (
-    <motion.tr
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ delay: index * 0.02 }}
-      className="border-b border-white/5 hover:bg-white/5 transition-colors group"
-    >
-      {/* Symbol & Name */}
-      <td className="px-4 py-3">
-        <Link
-          href={`/dashboard/stock-analysis/${stock.symbol}`}
-          className="flex items-center gap-3 group/link"
-        >
-          {/* Symbol badge */}
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500/20 to-violet-500/20 flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-white">
-              {stock.symbol.slice(0, 2)}
-            </span>
-          </div>
-
-          {/* Name */}
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-white group-hover/link:text-cyan-400 transition-colors">
-                {stock.symbol}
-              </span>
-              <ExternalLink className="w-3 h-3 text-white/30 opacity-0 group-hover/link:opacity-100 transition-opacity" />
-            </div>
-            {stock.name && (
-              <p className="text-xs text-white/50 line-clamp-1 max-w-[150px]">
-                {stock.name}
-              </p>
-            )}
-          </div>
-        </Link>
-      </td>
-
-      {/* Price */}
-      <td className="px-4 py-3 text-right">
-        {quote?.price !== undefined ? (
-          <RealTimePrice
-            price={quote.price}
-            previousPrice={quote?.previousClose}
-            className="justify-end"
-          />
-        ) : (
-          <span className="text-white/40">—</span>
-        )}
-      </td>
-
-      {/* Change */}
-      <td className="px-4 py-3 text-right">
-        <span className={cn(
-          'font-medium',
-          isPositive ? 'text-green-400' : 'text-red-400'
-        )}>
-          {formatChange(quote?.change)}
-        </span>
-      </td>
-
-      {/* Change % */}
-      <td className="px-4 py-3 text-right">
-        <div className={cn(
-          'inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm font-medium',
-          isPositive ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
-        )}>
-          {isPositive ? (
-            <TrendingUp className="w-3 h-3" />
-          ) : (
-            <TrendingDown className="w-3 h-3" />
-          )}
-          {formatPercent(quote?.changePercent)}
-        </div>
-      </td>
-
-      {/* Volume */}
-      <td className="px-4 py-3 text-right text-white/60">
-        {formatVolume(quote?.volume)}
-      </td>
-
-      {/* Day High */}
-      <td className="px-4 py-3 text-right text-white/60">
-        {formatPrice(quote?.dayHigh)}
-      </td>
-
-      {/* Day Low */}
-      <td className="px-4 py-3 text-right text-white/60">
-        {formatPrice(quote?.dayLow)}
-      </td>
-
-      {/* Actions */}
-      <td className="px-4 py-3">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
-            >
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-[#0a0d12] border-white/10">
-            <DropdownMenuItem
-              onClick={() => onSetAlert?.(stock.symbol)}
-              className="text-white/80 hover:text-white focus:text-white"
-            >
-              <Bell className="w-4 h-4 mr-2" />
-              Set Alert
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link
-                href={`/dashboard/stock-analysis/${stock.symbol}`}
-                className="text-white/80 hover:text-white focus:text-white"
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                View Analysis
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-white/10" />
-            <DropdownMenuItem
-              onClick={onRemove}
-              className="text-red-400 hover:text-red-300 focus:text-red-300"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Remove
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </td>
-    </motion.tr>
   )
 })
 

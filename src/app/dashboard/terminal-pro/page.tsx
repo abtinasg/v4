@@ -36,25 +36,7 @@ import {
   PortfolioPanel, 
   ComparePanel 
 } from '@/components/terminal'
-
-// Mobile blocker component
-function MobileBlocker() {
-  return (
-    <div className="md:hidden fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-6 text-center">
-      <Monitor className="w-16 h-16 text-orange-500 mb-6" />
-      <h1 className="text-2xl font-bold text-white mb-3">Desktop Required</h1>
-      <p className="text-gray-400 text-sm max-w-xs">
-        Terminal Pro is designed for desktop use only. Please access this page from a computer with a larger screen for the best experience.
-      </p>
-      <a 
-        href="/dashboard" 
-        className="mt-6 px-6 py-2 bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium rounded transition-colors"
-      >
-        Back to Dashboard
-      </a>
-    </div>
-  )
-}
+import { DesktopOnlyNotice } from '@/components/mobile/desktop-only-notice'
 
 // View types for sidebar navigation
 type ViewType = 'MRKT' | 'EQ' | 'FX' | 'GOVT' | 'CMDTY' | 'NEWS' | 'SRCH' | 'IPO' | 'DIV' | 'INSDR' | 'ANLYST' | 'OPTS' | 'CHART' | 'ALRTS' | 'PORT' | 'COMP'
@@ -341,8 +323,8 @@ F11 - Fullscreen`)
 
   return (
     <>
-      {/* Mobile blocker */}
-      <MobileBlocker />
+      {/* Desktop only notice for mobile devices */}
+      <DesktopOnlyNotice />
       
       {/* Update AI context with terminal data */}
       <TerminalContextUpdater refreshInterval={30000} />

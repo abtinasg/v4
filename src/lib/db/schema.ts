@@ -271,6 +271,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   credits: one(userCredits),
   creditTransactions: many(creditTransactions),
   cryptoPayments: many(cryptoPayments),
+  pushSubscriptions: many(pushSubscriptions),
 }))
 
 export const watchlistsRelations = relations(watchlists, ({ one, many }) => ({
@@ -741,6 +742,31 @@ export const cryptoPaymentsRelations = relations(cryptoPayments, ({ one }) => ({
   }),
 }))
 
+// ==================== PUSH SUBSCRIPTIONS TABLE ====================
+export const pushSubscriptions = pgTable('push_subscriptions', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  endpoint: text('endpoint').notNull(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  userAgent: text('user_agent'),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('push_subscriptions_user_id_idx').on(table.userId),
+  isActiveIdx: index('push_subscriptions_is_active_idx').on(table.isActive),
+  endpointIdx: uniqueIndex('push_subscriptions_endpoint_idx').on(table.endpoint),
+}))
+
+// ==================== PUSH SUBSCRIPTIONS RELATIONS ====================
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [pushSubscriptions.userId],
+    references: [users.id],
+  }),
+}))
+
 // ==================== TYPE EXPORTS ====================
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -796,3 +822,7 @@ export type NewPromoCodeUsage = typeof promoCodeUsage.$inferInsert
 // Crypto Payment Types
 export type CryptoPayment = typeof cryptoPayments.$inferSelect
 export type NewCryptoPayment = typeof cryptoPayments.$inferInsert
+
+// Push Subscription Types
+export type PushSubscription = typeof pushSubscriptions.$inferSelect
+export type NewPushSubscription = typeof pushSubscriptions.$inferInsert
