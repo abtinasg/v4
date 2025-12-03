@@ -1,7 +1,8 @@
 /**
- * AI Market Report API - Simplified Edition
+ * AI Market Report API - GPT-4.1 Powered
  * 
- * Returns a simple AI-generated market overview
+ * Fetches latest news and generates intelligent market analysis
+ * using OpenRouter GPT-4.1
  */
 
 import { NextResponse } from 'next/server'
@@ -20,52 +21,137 @@ import {
 } from '@/lib/credits'
 
 export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'  // Explicitly use Node.js runtime
-export const maxDuration = 30
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
-// Simple static responses for now (can be made dynamic later)
-const generateSimpleReport = () => {
-  const marketMoods = ['bullish', 'bearish', 'neutral', 'mixed'] as const
-  const randomMood = marketMoods[Math.floor(Math.random() * marketMoods.length)]
+// Fetch latest news for analysis
+async function fetchLatestNews(): Promise<string[]> {
+  try {
+    // Fetch from FMP News API
+    const FMP_API_KEY = process.env.FMP_API_KEY
+    if (!FMP_API_KEY) {
+      console.warn('[AI Report] FMP API key not configured')
+      return []
+    }
+
+    const response = await fetch(
+      `https://financialmodelingprep.com/api/v3/stock_news?limit=15&apikey=${FMP_API_KEY}`,
+      { next: { revalidate: 0 } }
+    )
+
+    if (!response.ok) {
+      console.error('[AI Report] Failed to fetch news:', response.status)
+      return []
+    }
+
+    const news = await response.json()
+    
+    // Extract headlines and summaries
+    return news.slice(0, 10).map((item: { title: string; text: string; symbol?: string }) => 
+      `${item.symbol ? `[${item.symbol}] ` : ''}${item.title}: ${item.text?.substring(0, 200) || ''}`
+    )
+  } catch (error) {
+    console.error('[AI Report] Error fetching news:', error)
+    return []
+  }
+}
+
+// Generate AI analysis using OpenRouter GPT-4.1
+async function generateAIAnalysis(newsItems: string[]): Promise<{
+  marketMood: 'bullish' | 'bearish' | 'neutral' | 'mixed'
+  summary: string
+  keyHighlights: string[]
+}> {
+  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
   
-  const summaries: Record<typeof marketMoods[number], string> = {
-    bullish: "Markets are showing positive momentum with strong buyer interest. Major indices are trending upward with healthy volume. Risk appetite remains elevated as investors rotate into growth sectors.",
-    bearish: "Markets are experiencing downward pressure as sellers dominate. Defensive sectors are outperforming while growth stocks face headwinds. Caution is advised as volatility increases.",
-    neutral: "Markets are trading in a tight range with mixed signals. Neither bulls nor bears have clear control. Investors are waiting for clearer direction before making significant moves.",
-    mixed: "Markets are showing divergent trends across sectors. While some areas demonstrate strength, others face challenges. Selective positioning is recommended in this environment."
+  if (!OPENROUTER_API_KEY) {
+    throw new Error('OpenRouter API key not configured')
   }
 
-  const highlights: Record<typeof marketMoods[number], string[]> = {
-    bullish: [
-      "Strong technical momentum across major indices",
-      "Positive earnings surprises driving sentiment",
-      "Improving economic indicators support growth"
-    ],
-    bearish: [
-      "Increased volatility and risk-off sentiment",
-      "Profit-taking after recent rallies",
-      "Concerns about economic headwinds"
-    ],
-    neutral: [
-      "Consolidation phase after recent moves",
-      "Awaiting key economic data releases",
-      "Balanced risk-reward setup"
-    ],
-    mixed: [
-      "Sector rotation creating opportunities",
-      "Stock-specific performance varies widely",
-      "Mixed signals from technical indicators"
-    ]
-  }
+  const newsContext = newsItems.length > 0 
+    ? newsItems.join('\n\n')
+    : 'No recent news available'
 
-  return {
-    success: true,
-    report: {
-      marketMood: randomMood,
-      summary: summaries[randomMood],
-      keyHighlights: highlights[randomMood]
-    },
-    generatedAt: new Date().toISOString()
+  const systemPrompt = `You are an elite financial analyst at a top Wall Street firm. Analyze the latest market news and provide a concise, professional market overview.
+
+Your response MUST be valid JSON in this exact format:
+{
+  "marketMood": "bullish" | "bearish" | "neutral" | "mixed",
+  "summary": "2-3 sentence professional market summary",
+  "keyHighlights": ["highlight 1", "highlight 2", "highlight 3"]
+}
+
+Guidelines:
+- Be concise but insightful
+- Focus on actionable market intelligence
+- Identify key themes and trends
+- Use professional financial language
+- Provide 3 key highlights maximum
+- Summary should be 2-3 sentences max`
+
+  const userPrompt = `Analyze these latest market news headlines and provide your market assessment:
+
+${newsContext}
+
+Current date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+
+Respond with valid JSON only.`
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterminal.io',
+        'X-Title': 'Deep Terminal - AI Market Report',
+      },
+      body: JSON.stringify({
+        model: 'openai/gpt-4.1',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
+        response_format: { type: 'json_object' }
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[AI Report] OpenRouter error:', response.status, errorText)
+      throw new Error(`OpenRouter API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    const content = data.choices?.[0]?.message?.content
+
+    if (!content) {
+      throw new Error('No content in AI response')
+    }
+
+    // Parse JSON response
+    const parsed = JSON.parse(content)
+    
+    return {
+      marketMood: parsed.marketMood || 'neutral',
+      summary: parsed.summary || 'Market analysis in progress.',
+      keyHighlights: parsed.keyHighlights || []
+    }
+  } catch (error) {
+    console.error('[AI Report] AI generation error:', error)
+    
+    // Fallback response
+    return {
+      marketMood: 'neutral',
+      summary: 'Market conditions are being evaluated. Check back shortly for updated analysis.',
+      keyHighlights: [
+        'Market data is being processed',
+        'Analysis will be available soon',
+        'Refresh for latest insights'
+      ]
+    }
   }
 }
 
@@ -108,7 +194,7 @@ export async function GET(request: Request) {
       )
     }
     
-    // === Credit Check for news_fetch (5 credits) ===
+    // === Credit Check (5 credits for AI report) ===
     const creditCheck = await checkCredits(user.id, 'news_fetch')
     if (!creditCheck.success) {
       return createInsufficientCreditsResponse(
@@ -118,7 +204,15 @@ export async function GET(request: Request) {
       )
     }
 
-    const report = generateSimpleReport()
+    // Fetch latest news
+    console.log('[AI Report] Fetching latest news...')
+    const newsItems = await fetchLatestNews()
+    console.log(`[AI Report] Got ${newsItems.length} news items`)
+
+    // Generate AI analysis
+    console.log('[AI Report] Generating AI analysis with GPT-4.1...')
+    const analysis = await generateAIAnalysis(newsItems)
+    console.log('[AI Report] Analysis complete:', analysis.marketMood)
     
     // === Deduct Credits after successful report generation ===
     await deductCredits(user.id, 'news_fetch', {
@@ -126,7 +220,13 @@ export async function GET(request: Request) {
       ipAddress,
     })
     
-    const response = NextResponse.json(report, {
+    const response = NextResponse.json({
+      success: true,
+      report: analysis,
+      generatedAt: new Date().toISOString(),
+      newsCount: newsItems.length,
+      model: 'gpt-4.1'
+    }, {
       headers: {
         'Cache-Control': 'no-store, max-age=0',
       },
@@ -138,11 +238,12 @@ export async function GET(request: Request) {
     
     return response
   } catch (error) {
-    console.error('AI Report error:', error)
+    console.error('[AI Report] Error:', error)
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to generate market report' 
+        error: 'Failed to generate market report',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )

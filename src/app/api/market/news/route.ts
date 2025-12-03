@@ -157,14 +157,15 @@ export async function GET(request: Request) {
         
         let added = 0
         let skipped = 0
-        allArticles.forEach((article, index) => {
+        allArticles.forEach((article) => {
           if (!article.title) {
             skipped++
             return
           }
           
-          // Use index + title for unique ID since URLs might be duplicated
-          const idSource = `${article.title}-${article.publishedDate}-${index}`
+          // Use URL as primary source for unique ID (most stable)
+          // Fallback to title + publishedDate if URL is missing
+          const idSource = article.url || `${article.title}-${article.publishedDate}`
           const simpleHash = Buffer.from(idSource).toString('base64')
             .replace(/[+/=]/g, '')
             .slice(0, 12)

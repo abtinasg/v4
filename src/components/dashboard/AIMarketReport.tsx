@@ -109,12 +109,12 @@ export function AIMarketReport({ className }: AIMarketReportProps) {
     <GlassCard className={cn('p-6', className)}>
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-violet-500/20 border border-purple-500/30">
             <Brain className="w-5 h-5 text-purple-400" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">AI Market Overview</h3>
-            <p className="text-xs text-white/50">Powered by AI Analysis</p>
+            <p className="text-xs text-white/50">Powered by GPT-4.1</p>
           </div>
         </div>
         <button
@@ -286,9 +286,9 @@ export function AIMarketReport({ className }: AIMarketReportProps) {
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
-            <span className="text-xs text-gray-500 flex items-center gap-1">
-              <Brain className="w-3 h-3" />
-              AI-Powered Analysis
+            <span className="text-xs text-gray-500 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>GPT-4.1</span>
             </span>
             <span className="text-xs text-gray-500">
               {new Date(report.generatedAt).toLocaleTimeString()}
