@@ -24,19 +24,22 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-// Fetch latest news for analysis
+// Fetch latest news for analysis (using same endpoint as market news page)
 async function fetchLatestNews(): Promise<string[]> {
   try {
-    // Fetch from FMP News API
     const FMP_API_KEY = process.env.FMP_API_KEY
     if (!FMP_API_KEY) {
       console.warn('[AI Report] FMP API key not configured')
       return []
     }
 
+    // Use the STABLE endpoint that works (same as market/news)
     const response = await fetch(
-      `https://financialmodelingprep.com/api/v3/stock_news?limit=15&apikey=${FMP_API_KEY}`,
-      { next: { revalidate: 0 } }
+      `https://financialmodelingprep.com/stable/news/stock-latest?limit=20&apikey=${FMP_API_KEY}`,
+      { 
+        headers: { 'User-Agent': 'DeepTerminal/1.0' },
+        cache: 'no-store'
+      }
     )
 
     if (!response.ok) {
@@ -46,9 +49,16 @@ async function fetchLatestNews(): Promise<string[]> {
 
     const news = await response.json()
     
+    if (!Array.isArray(news) || news.length === 0) {
+      console.error('[AI Report] No news returned from API')
+      return []
+    }
+
+    console.log(`[AI Report] Fetched ${news.length} news items`)
+    
     // Extract headlines and summaries
-    return news.slice(0, 10).map((item: { title: string; text: string; symbol?: string }) => 
-      `${item.symbol ? `[${item.symbol}] ` : ''}${item.title}: ${item.text?.substring(0, 200) || ''}`
+    return news.slice(0, 12).map((item: { title: string; text: string; symbol?: string }) => 
+      `${item.symbol ? `[${item.symbol}] ` : ''}${item.title}${item.text ? `: ${item.text.substring(0, 150)}` : ''}`
     )
   } catch (error) {
     console.error('[AI Report] Error fetching news:', error)
