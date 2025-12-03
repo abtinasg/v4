@@ -56,11 +56,6 @@ export function CreditOverview({
   const balance = credits?.balance ?? 0
   const todayUsage = credits?.stats?.todayUsage ?? 0
   const monthUsage = credits?.stats?.monthUsage ?? 0
-  const tier = credits?.tier ?? 'free'
-  
-  // Calculate monthly usage percentage
-  const monthlyLimit = credits?.limits?.monthlyCredits ?? 100
-  const usagePercent = monthlyLimit > 0 ? (monthUsage / monthlyLimit) * 100 : 0
   
   return (
     <div className={cn(
@@ -84,11 +79,6 @@ export function CreditOverview({
             <p className="text-sm font-medium text-white/40 uppercase tracking-wider">
               Credit Balance
             </p>
-            <div className="flex items-center gap-2">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-white/50 capitalize">
-                {tier} Plan
-              </span>
-            </div>
           </div>
           
           {isLowBalance && (
@@ -145,35 +135,9 @@ export function CreditOverview({
               <span className="text-sm font-medium text-white/40">This Month</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-semibold text-white/90">{monthUsage}</span>
-              <span className="text-sm text-white/25">/ {monthlyLimit}</span>
+              <span className="text-2xl font-semibold text-white/90">{monthUsage.toLocaleString()}</span>
+              <span className="text-sm text-white/25">used</span>
             </div>
-          </div>
-        </div>
-        
-        {/* Monthly Usage Progress */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-white/40">Monthly Usage</span>
-            <span className={cn(
-              'text-sm font-medium',
-              usagePercent > 80 ? 'text-rose-400' : usagePercent > 50 ? 'text-amber-400' : 'text-emerald-400'
-            )}>
-              {usagePercent.toFixed(0)}%
-            </span>
-          </div>
-          <div className="relative h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-            <div 
-              className={cn(
-                'absolute left-0 top-0 h-full rounded-full transition-all duration-500 ease-out',
-                usagePercent > 80 
-                  ? 'bg-gradient-to-r from-rose-500 to-rose-400' 
-                  : usagePercent > 50 
-                    ? 'bg-gradient-to-r from-amber-500 to-amber-400' 
-                    : 'bg-gradient-to-r from-emerald-500 to-teal-400'
-              )}
-              style={{ width: `${Math.min(usagePercent, 100)}%` }}
-            />
           </div>
         </div>
         

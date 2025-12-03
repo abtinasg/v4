@@ -27,12 +27,10 @@ export interface CreditData {
     todayUsage: number
     monthUsage: number
   }
-  tier: string
   limits: {
     requestsPerMinute: number
     requestsPerHour: number
     requestsPerDay: number
-    monthlyCredits: number
   }
   creditCosts: typeof CREDIT_COSTS
 }
