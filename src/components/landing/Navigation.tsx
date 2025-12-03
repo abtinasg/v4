@@ -27,12 +27,13 @@ export function Navigation() {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-[#05070B]/80 backdrop-blur-xl border-b border-white/[0.05]'
+            ? 'bg-[#05070B]/90 backdrop-blur-2xl border-b border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
             : 'bg-transparent'
         }`}
       >
         <div className="mx-auto max-w-7xl px-6">
-          <div className="flex h-16 items-center justify-between">
+          <div className="relative flex h-16 items-center justify-between">
+            <div className="pointer-events-none absolute inset-0 rounded-full bg-white/[0.01] blur-3xl" />
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#3B82F6] flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
@@ -49,7 +50,7 @@ export function Navigation() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+                  className="text-[13px] text-gray-400 hover:text-white transition-colors duration-200 tracking-wide"
                 >
                   {link.name}
                 </Link>
@@ -57,16 +58,16 @@ export function Navigation() {
             </div>
 
             {/* Auth Buttons */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-3">
               <Link
                 href="/sign-in"
-                className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+                className="text-[13px] text-gray-300 hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg border border-white/[0.05] bg-white/[0.01] backdrop-blur-xl"
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
-                className="inline-flex items-center rounded-lg bg-gradient-to-r from-[#00D4FF] to-[#3B82F6] px-4 py-2 text-sm font-medium text-[#05070B] transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,212,255,0.3)] hover:scale-[1.02]"
+                className="inline-flex items-center rounded-xl bg-gradient-to-r from-[#00D4FF] via-[#4C7DFF] to-[#7C4DFF] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,212,255,0.4)] hover:scale-[1.02]"
               >
                 Get Started
               </Link>

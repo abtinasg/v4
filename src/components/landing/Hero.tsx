@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Zap, BrainCircuit, BarChart3, Activity } from 'lucide-react'
+import { ArrowRight, Zap, BrainCircuit, BarChart3, Activity, ShieldCheck } from 'lucide-react'
 
 // Sparkline SVG component
 function Sparkline({ data, color, positive }: { data: number[]; color: string; positive: boolean }) {
@@ -41,6 +41,13 @@ const featurePills = [
   { icon: Zap, label: 'Real-time Data' },
   { icon: BrainCircuit, label: 'AI Orchestration' },
   { icon: BarChart3, label: '150+ Metrics' },
+  { icon: ShieldCheck, label: 'Bank-grade Security' },
+]
+
+const heroHighlights = [
+  { label: 'Start Free', value: '$0/mo', sublabel: 'No credit card', color: '#00D4FF' },
+  { label: 'Metrics', value: '150+', sublabel: 'Institutional-grade', color: '#22C55E' },
+  { label: 'AI Models', value: '3', sublabel: 'Running in parallel', color: '#8B5CF6' },
 ]
 
 export function Hero() {
@@ -48,9 +55,9 @@ export function Hero() {
     <section className="relative min-h-screen overflow-hidden bg-[#05070B] pt-28 pb-20">
       {/* Ambient Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-30%] left-[5%] w-[700px] h-[700px] rounded-full bg-[#00D4FF]/[0.08] blur-[150px]" />
-        <div className="absolute top-[10%] right-[-15%] w-[600px] h-[600px] rounded-full bg-[#8B5CF6]/[0.06] blur-[130px]" />
-        <div className="absolute bottom-[-20%] left-[40%] w-[500px] h-[500px] rounded-full bg-[#3B82F6]/[0.05] blur-[120px]" />
+        <div className="absolute top-[-30%] left-[5%] w-[700px] h-[700px] rounded-full bg-[#00D4FF]/[0.08] blur-[160px]" />
+        <div className="absolute top-[10%] right-[-15%] w-[600px] h-[600px] rounded-full bg-[#8B5CF6]/[0.06] blur-[150px]" />
+        <div className="absolute bottom-[-20%] left-[40%] w-[520px] h-[520px] rounded-full bg-[#3B82F6]/[0.05] blur-[140px]" />
         
         {/* Grid */}
         <div 
@@ -103,19 +110,41 @@ export function Hero() {
             </p>
 
             {/* Value Props */}
-            <div className="grid grid-cols-3 gap-4 max-w-lg">
-              <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                <div className="text-2xl font-bold text-[#00D4FF] mb-1">$0</div>
-                <div className="text-xs text-gray-500">Start Free</div>
-              </div>
-              <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                <div className="text-2xl font-bold text-[#22C55E] mb-1">150+</div>
-                <div className="text-xs text-gray-500">Metrics</div>
-              </div>
-              <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                <div className="text-2xl font-bold text-[#8B5CF6] mb-1">AI</div>
-                <div className="text-xs text-gray-500">Powered</div>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl">
+              {heroHighlights.map((highlight) => (
+                <div
+                  key={highlight.label}
+                  className="group relative overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.01] p-5"
+                >
+                  <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    style={{ background: `linear-gradient(135deg, ${highlight.color}15, transparent)` }}
+                  />
+                  <div className="relative">
+                    <div className="text-xs font-medium text-gray-500 mb-1">{highlight.label}</div>
+                    <div
+                      className="text-3xl font-semibold text-white tracking-tight"
+                      style={{ color: highlight.color, textShadow: `0 0 15px ${highlight.color}40` }}
+                    >
+                      {highlight.value}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">{highlight.sublabel}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Feature pills */}
+            <div className="flex flex-wrap gap-3 pt-2">
+              {featurePills.map((pill) => (
+                <div
+                  key={pill.label}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/[0.05] bg-white/[0.02] px-3.5 py-1.5 text-xs text-gray-300"
+                >
+                  <pill.icon className="h-3.5 w-3.5 text-[#00D4FF]" />
+                  {pill.label}
+                </div>
+              ))}
             </div>
 
             {/* CTAs */}
@@ -155,9 +184,7 @@ export function Hero() {
           </div>
 
           {/* Right: Terminal Mockup */}
-          <div
-            className="relative hidden lg:block"
-          >
+          <div className="relative hidden lg:block">
             {/* Glow behind */}
             <div className="absolute inset-0 bg-gradient-to-tr from-[#00D4FF]/15 via-[#3B82F6]/10 to-[#8B5CF6]/15 blur-3xl rounded-full scale-110 animate-pulse-soft" />
             
@@ -231,6 +258,23 @@ export function Hero() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Floating stat cards */}
+            <div className="pointer-events-none absolute -left-10 top-12 w-40 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 backdrop-blur-xl shadow-2xl">
+              <div className="text-xs text-gray-500 mb-1">Session Score</div>
+              <div className="text-3xl font-semibold text-white">92</div>
+              <div className="text-xs text-[#22C55E]">+12 vs avg</div>
+            </div>
+            <div className="pointer-events-none absolute -right-8 bottom-10 w-44 rounded-2xl border border-white/[0.08] bg-[#05070B]/80 px-4 py-3 backdrop-blur-xl shadow-2xl">
+              <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                <span>AI Confidence</span>
+                <span className="text-[#8B5CF6]">87%</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
+                <div className="h-full w-[87%] rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#00D4FF]" />
+              </div>
+              <div className="mt-3 text-[11px] text-gray-500">Monitoring 847 signals</div>
             </div>
           </div>
         </div>
