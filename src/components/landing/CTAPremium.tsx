@@ -5,40 +5,44 @@ import { ArrowRight } from 'lucide-react'
 
 export function CTAPremium() {
   return (
-    <section className="relative py-32 bg-[#030407] overflow-hidden">
-      {/* Ambient glow */}
+    <section className="relative py-20 bg-[#030407] overflow-hidden">
+      {/* Ambient glow - stronger */}
       <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] opacity-50 pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] opacity-60 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(99, 102, 241, 0.1) 0%, transparent 60%)',
+          background: 'radial-gradient(ellipse at center, rgba(99, 102, 241, 0.12) 0%, transparent 60%)',
         }}
       />
 
       <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-white mb-6">
+        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
           Ready to elevate your
-          <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6366F1] to-[#22D3EE]">
+          <span 
+            className="text-transparent bg-clip-text ml-2"
+            style={{
+              backgroundImage: 'linear-gradient(135deg, #818CF8 0%, #6366F1 50%, #22D3EE 100%)',
+            }}
+          >
             investment research?
           </span>
         </h2>
         
-        <p className="text-lg text-[#64748B] font-light mb-10 max-w-xl mx-auto">
-          Join thousands of investors who've upgraded to institutional-grade intelligence.
+        <p className="text-base text-[#64748B] mb-8 max-w-lg mx-auto">
+          Join thousands of investors using institutional-grade intelligence.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href="/sign-up"
             className="
-              group inline-flex items-center gap-2.5
-              px-8 py-4 rounded-xl
-              bg-[#6366F1] text-white
-              text-[15px] font-medium
-              transition-all duration-300
-              hover:bg-[#5457E5]
-              hover:shadow-[0_0_32px_rgba(99,102,241,0.3)]
+              group inline-flex items-center gap-2
+              px-7 py-3 rounded-lg
+              bg-gradient-to-r from-[#6366F1] to-[#818CF8]
+              text-white text-sm font-semibold
+              transition-all duration-200
+              hover:shadow-[0_0_32px_rgba(99,102,241,0.4)]
               hover:scale-[1.02]
+              active:scale-[0.98]
             "
           >
             Get Started Free
@@ -46,7 +50,7 @@ export function CTAPremium() {
           </Link>
         </div>
 
-        <p className="text-sm text-[#475569] mt-8">
+        <p className="text-xs text-[#475569] mt-6">
           No credit card required • 14-day free trial
         </p>
       </div>
