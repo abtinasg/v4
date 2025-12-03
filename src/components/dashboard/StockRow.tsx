@@ -61,7 +61,7 @@ export function StockRow({ stock, index }: StockRowProps) {
   const isPositive = stock.change >= 0
 
   const handleClick = () => {
-    router.push(`/dashboard/stock-analysis?symbol=${stock.symbol}`)
+    router.push(`/dashboard/stock-analysis/${stock.symbol}`)
   }
 
   return (

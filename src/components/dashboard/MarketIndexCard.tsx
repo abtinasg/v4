@@ -30,7 +30,7 @@ export function MarketIndexCard({
 
   const handleClick = () => {
     triggerHaptic('light')
-    window.location.href = `/dashboard/stock-analysis?symbol=${symbol}`
+    window.location.href = `/dashboard/stock-analysis/${symbol}`
   }
   
   // Generate sparkline path

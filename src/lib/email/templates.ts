@@ -187,7 +187,7 @@ export function alertNotificationEmail(
             <div class="stat-value" style="color: ${isPositive ? '#10b981' : '#ef4444'};">${currentValue}</div>
             <p style="color: #9ca3af; font-size: 14px; margin: 8px 0 0 0;">${condition}</p>
           </div>
-          <a href="https://deepterminal.io/dashboard/stock-analysis?symbol=${symbol}" class="button">View ${symbol} →</a>
+          <a href="https://deepterminal.io/dashboard/stock-analysis/${symbol}" class="button">View ${symbol} →</a>
           <div class="footer">
             <p>Manage your alerts in the dashboard.</p>
             <p>© 2025 Deep. All rights reserved.</p>

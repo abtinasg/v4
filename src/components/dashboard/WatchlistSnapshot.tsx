@@ -254,7 +254,7 @@ export function WatchlistSnapshot({ className }: WatchlistSnapshotProps) {
                   transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
                   onClick={() => {
                     triggerHaptic('light')
-                    window.location.href = `/dashboard/stock-analysis?symbol=${stock.symbol}`
+                    window.location.href = `/dashboard/stock-analysis/${stock.symbol}`
                   }}
                   className={cn(
                     'flex items-center justify-between p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl',

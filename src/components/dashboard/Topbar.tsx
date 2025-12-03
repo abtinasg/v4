@@ -445,7 +445,7 @@ export function Topbar() {
                         name="Apple Inc." 
                         exchange="NASDAQ"
                         onClick={() => {
-                          router.push('/dashboard/stock-analysis?symbol=AAPL')
+                          router.push('/dashboard/stock-analysis/AAPL')
                           setIsSearchOpen(false)
                         }}
                       />
@@ -454,7 +454,7 @@ export function Topbar() {
                         name="NVIDIA Corporation" 
                         exchange="NASDAQ"
                         onClick={() => {
-                          router.push('/dashboard/stock-analysis?symbol=NVDA')
+                          router.push('/dashboard/stock-analysis/NVDA')
                           setIsSearchOpen(false)
                         }}
                       />
@@ -463,7 +463,7 @@ export function Topbar() {
                         name="Tesla Inc." 
                         exchange="NASDAQ"
                         onClick={() => {
-                          router.push('/dashboard/stock-analysis?symbol=TSLA')
+                          router.push('/dashboard/stock-analysis/TSLA')
                           setIsSearchOpen(false)
                         }}
                       />
@@ -472,7 +472,7 @@ export function Topbar() {
                         name="Microsoft Corporation" 
                         exchange="NASDAQ"
                         onClick={() => {
-                          router.push('/dashboard/stock-analysis?symbol=MSFT')
+                          router.push('/dashboard/stock-analysis/MSFT')
                           setIsSearchOpen(false)
                         }}
                       />
@@ -500,7 +500,7 @@ export function Topbar() {
                               name={stock.longName || stock.shortName}
                               exchange={stock.exchange}
                               onClick={() => {
-                                router.push(`/dashboard/stock-analysis?symbol=${stock.symbol}`)
+                                router.push(`/dashboard/stock-analysis/${stock.symbol}`)
                                 setIsSearchOpen(false)
                                 setSearchQuery('')
                                 setSearchResults([])
