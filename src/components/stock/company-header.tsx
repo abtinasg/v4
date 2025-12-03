@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { 
@@ -9,9 +9,13 @@ import {
   TrendingUp, 
   TrendingDown, 
   Building2,
-  Bell
+  Bell,
+  Check,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useWatchlistStore } from '@/lib/stores/watchlist-store';
+import { PriceAlertModal } from '@/components/watchlist/PriceAlertModal';
 import type { CompanyHeaderProps } from './types';
 
 function formatLargeNumber(value: number): string {
@@ -92,7 +96,51 @@ export function CompanyHeader({
 }: CompanyHeaderProps) {
   const [isWatched, setIsWatched] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [isAddingToWatchlist, setIsAddingToWatchlist] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [alertModalOpen, setAlertModalOpen] = useState(false);
   const isPositive = change >= 0;
+  
+  // Watchlist store
+  const watchlists = useWatchlistStore((s) => s.watchlists);
+  const addStock = useWatchlistStore((s) => s.addStock);
+  
+  // Check if stock is in any watchlist
+  useEffect(() => {
+    const inWatchlist = watchlists.some(wl => 
+      wl.stocks.some(s => s.symbol.toUpperCase() === symbol.toUpperCase())
+    );
+    setIsWatched(inWatchlist);
+  }, [watchlists, symbol]);
+  
+  // Handle add/remove from watchlist
+  const handleWatchlistClick = useCallback(async () => {
+    if (isAddingToWatchlist) return;
+    
+    setIsAddingToWatchlist(true);
+    try {
+      // Find default watchlist or first one
+      const defaultWatchlist = watchlists.find(wl => wl.isDefault) || watchlists[0];
+      if (defaultWatchlist) {
+        if (isWatched) {
+          // Remove from watchlist - can be done via store's removeStock
+          const existingStock = defaultWatchlist.stocks.find(
+            s => s.symbol.toUpperCase() === symbol.toUpperCase()
+          );
+          if (existingStock) {
+            useWatchlistStore.getState().removeStock(defaultWatchlist.id, symbol.toUpperCase());
+          }
+        } else {
+          // Add to watchlist
+          addStock(defaultWatchlist.id, symbol, companyName);
+        }
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2000);
+      }
+    } finally {
+      setIsAddingToWatchlist(false);
+    }
+  }, [isWatched, watchlists, symbol, companyName, addStock, isAddingToWatchlist]);
 
   return (
     <motion.div
@@ -209,17 +257,30 @@ export function CompanyHeader({
               {/* Action Buttons */}
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setIsWatched(!isWatched)}
+                  onClick={handleWatchlistClick}
+                  disabled={isAddingToWatchlist}
                   className={cn(
-                    'h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-200',
+                    'h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-200 relative',
                     isWatched
                       ? 'bg-[#00C9E4] text-[#04060A]'
-                      : 'bg-white/[0.04] border border-white/[0.06] text-white/50 hover:bg-white/[0.08] hover:text-white'
+                      : 'bg-white/[0.04] border border-white/[0.06] text-white/50 hover:bg-white/[0.08] hover:text-white',
+                    isAddingToWatchlist && 'opacity-50 cursor-not-allowed'
                   )}
+                  title={isWatched ? 'Remove from watchlist' : 'Add to watchlist'}
                 >
-                  <Star className={cn('h-4 w-4', isWatched && 'fill-current')} />
+                  {isAddingToWatchlist ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : showSuccess ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Star className={cn('h-4 w-4', isWatched && 'fill-current')} />
+                  )}
                 </button>
-                <button className="h-10 w-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/50 hover:bg-white/[0.08] hover:text-white transition-all duration-200">
+                <button 
+                  onClick={() => setAlertModalOpen(true)}
+                  className="h-10 w-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/50 hover:bg-white/[0.08] hover:text-white transition-all duration-200"
+                  title="Set price alert"
+                >
                   <Bell className="h-4 w-4" />
                 </button>
                 <button className="h-10 w-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/50 hover:bg-white/[0.08] hover:text-white transition-all duration-200">
@@ -230,6 +291,14 @@ export function CompanyHeader({
           </div>
         </div>
       </div>
+      
+      {/* Price Alert Modal */}
+      <PriceAlertModal
+        open={alertModalOpen}
+        onOpenChange={setAlertModalOpen}
+        symbol={symbol}
+        currentPrice={price}
+      />
     </motion.div>
   );
 }

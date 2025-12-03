@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { 
-  ArrowUpRight, 
   ArrowDownRight,
   Coins,
   Gift,
@@ -11,10 +10,9 @@ import {
   Loader2,
   ChevronDown
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useCredits, type CreditTransaction } from '@/lib/hooks/use-credits'
+import { useCredits } from '@/lib/hooks/use-credits'
 
 interface CreditHistoryProps {
   limit?: number
@@ -23,12 +21,12 @@ interface CreditHistoryProps {
 }
 
 const transactionIcons: Record<string, React.ReactNode> = {
-  purchase: <Coins className="w-4 h-4 text-emerald-500" />,
-  usage: <ArrowDownRight className="w-4 h-4 text-red-400" />,
-  refund: <RefreshCw className="w-4 h-4 text-blue-500" />,
-  bonus: <Gift className="w-4 h-4 text-purple-500" />,
-  monthly_reset: <RefreshCw className="w-4 h-4 text-emerald-500" />,
-  admin_adjust: <Settings className="w-4 h-4 text-orange-500" />,
+  purchase: <Coins className="w-4 h-4 text-emerald-400" />,
+  usage: <ArrowDownRight className="w-4 h-4 text-rose-400" />,
+  refund: <RefreshCw className="w-4 h-4 text-cyan-400" />,
+  bonus: <Gift className="w-4 h-4 text-violet-400" />,
+  monthly_reset: <RefreshCw className="w-4 h-4 text-emerald-400" />,
+  admin_adjust: <Settings className="w-4 h-4 text-amber-400" />,
 }
 
 const transactionLabels: Record<string, string> = {
@@ -78,67 +76,92 @@ export function CreditHistory({
   
   if (isLoading && history.length === 0) {
     return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 animate-pulse">
-                <div className="w-10 h-10 rounded-full bg-muted"></div>
-                <div className="flex-1">
-                  <div className="h-4 bg-muted rounded w-32 mb-2"></div>
-                  <div className="h-3 bg-muted rounded w-24"></div>
-                </div>
-                <div className="h-6 bg-muted rounded w-16"></div>
+      <div className={cn(
+        'relative rounded-2xl overflow-hidden',
+        'bg-gradient-to-br from-white/[0.03] to-white/[0.01]',
+        'backdrop-blur-xl border border-white/[0.06]',
+        'p-8',
+        className
+      )}>
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-5 h-5 bg-white/[0.06] rounded animate-pulse" />
+          <div className="h-5 bg-white/[0.06] rounded-lg w-40 animate-pulse" />
+        </div>
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] animate-pulse">
+              <div className="w-10 h-10 rounded-full bg-white/[0.06]" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-white/[0.06] rounded w-32" />
+                <div className="h-3 bg-white/[0.04] rounded w-24" />
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="h-5 bg-white/[0.06] rounded w-16" />
+            </div>
+          ))}
+        </div>
+      </div>
     )
   }
   
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <RefreshCw className="w-5 h-5" />
-          Transaction History
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
+    <div className={cn(
+      'relative rounded-2xl overflow-hidden',
+      'bg-gradient-to-br from-white/[0.03] to-white/[0.01]',
+      'backdrop-blur-xl border border-white/[0.06]',
+      'shadow-[0_8px_32px_rgba(0,0,0,0.12)]',
+      className
+    )}>
+      {/* Header */}
+      <div className="px-8 pt-8 pb-6">
+        <div className="flex items-center gap-3">
+          <RefreshCw className="w-5 h-5 text-white/40" />
+          <h3 className="text-lg font-semibold text-white/90">Transaction History</h3>
+        </div>
+      </div>
+      
+      {/* Content */}
+      <div className="px-8 pb-8 space-y-2">
         {history.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Coins className="w-12 h-12 mx-auto mb-3 opacity-20" />
-            <p>No transactions yet</p>
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/[0.03] flex items-center justify-center">
+              <Coins className="w-8 h-8 text-white/20" />
+            </div>
+            <p className="text-white/40 text-sm">No transactions yet</p>
           </div>
         ) : (
           <>
             {history.map((tx) => (
               <div 
                 key={tx.id}
-                className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors"
+                className={cn(
+                  'flex items-center gap-4 p-4 rounded-xl',
+                  'bg-white/[0.02] hover:bg-white/[0.04]',
+                  'border border-transparent hover:border-white/[0.04]',
+                  'transition-all duration-300',
+                  'group'
+                )}
               >
                 {/* Icon */}
                 <div className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center',
-                  tx.amount >= 0 ? 'bg-emerald-500/10' : 'bg-red-500/10'
+                  'w-10 h-10 rounded-xl flex items-center justify-center',
+                  'transition-all duration-300',
+                  tx.amount >= 0 
+                    ? 'bg-emerald-500/10 group-hover:bg-emerald-500/15' 
+                    : 'bg-rose-500/10 group-hover:bg-rose-500/15'
                 )}>
-                  {transactionIcons[tx.type] || <Coins className="w-4 h-4" />}
+                  {transactionIcons[tx.type] || <Coins className="w-4 h-4 text-white/40" />}
                 </div>
                 
                 {/* Details */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">
+                  <div className="font-medium text-white/85 truncate text-sm">
                     {tx.description || transactionLabels[tx.type] || tx.type}
                   </div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-2">
+                  <div className="text-xs text-white/35 flex items-center gap-2 mt-0.5">
                     <span>{formatDate(tx.createdAt)}</span>
                     {tx.action && (
                       <>
-                        <span>•</span>
+                        <span className="w-1 h-1 rounded-full bg-white/20" />
                         <span className="capitalize">{tx.action.replace('_', ' ')}</span>
                       </>
                     )}
@@ -147,8 +170,8 @@ export function CreditHistory({
                 
                 {/* Amount */}
                 <div className={cn(
-                  'font-bold text-right',
-                  tx.amount >= 0 ? 'text-emerald-500' : 'text-red-400'
+                  'font-semibold text-right tabular-nums',
+                  tx.amount >= 0 ? 'text-emerald-400' : 'text-rose-400'
                 )}>
                   {tx.amount >= 0 ? '+' : ''}{tx.amount.toLocaleString()}
                 </div>
@@ -158,10 +181,16 @@ export function CreditHistory({
             {/* Load More Button */}
             {showLoadMore && hasMore && (
               <Button 
-                variant="ghost" 
+                variant="ghost"
                 onClick={loadMore}
                 disabled={isLoadingMore}
-                className="w-full mt-2"
+                className={cn(
+                  'w-full mt-4 h-12 rounded-xl',
+                  'bg-white/[0.02] hover:bg-white/[0.04]',
+                  'border border-white/[0.04]',
+                  'text-white/50 hover:text-white/70',
+                  'transition-all duration-300'
+                )}
               >
                 {isLoadingMore ? (
                   <>
@@ -178,7 +207,7 @@ export function CreditHistory({
             )}
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

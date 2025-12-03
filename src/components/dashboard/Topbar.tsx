@@ -18,10 +18,14 @@ import {
   Terminal,
   Loader2,
   Menu,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSidebar } from './Sidebar'
 import { CreditBadge, CreditModal } from '@/components/credits'
+import { useWatchlistStore, type PriceAlert } from '@/lib/stores/watchlist-store'
 
 // Search result type
 interface StockSearchResult {
@@ -49,12 +53,30 @@ export function Topbar() {
   const router = useRouter()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [hasNotifications, setHasNotifications] = useState(true)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [searchResults, setSearchResults] = useState<StockSearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const notificationsRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<NodeJS.Timeout>()
   const { toggleMobileSidebar } = useSidebar()
+  
+  // Get alerts from watchlist store
+  const alerts = useWatchlistStore((s) => s.alerts)
+  const activeAlerts = alerts.filter(a => a.isActive)
+  const hasNotifications = activeAlerts.length > 0
+  
+  // Close notifications when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false)
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Generate breadcrumbs from pathname - skip 'dashboard' as it's implied
   const breadcrumbs = pathname
@@ -214,16 +236,79 @@ export function Topbar() {
               }
             />
 
-            {/* Notifications - Minimal, refined */}
-            <button
-              className="relative p-2.5 rounded-xl hover:bg-white/[0.04] text-white/40 hover:text-white/70 transition-all duration-200"
-              aria-label="Notifications"
-            >
-              <Bell className="w-[18px] h-[18px]" strokeWidth={1.5} />
-              {hasNotifications && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#0a0c10]" />
-              )}
-            </button>
+            {/* Notifications - With dropdown */}
+            <div className="relative" ref={notificationsRef}>
+              <button
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className="relative p-2.5 rounded-xl hover:bg-white/[0.04] text-white/40 hover:text-white/70 transition-all duration-200"
+                aria-label="Notifications"
+              >
+                <Bell className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                {hasNotifications && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#0a0c10]" />
+                )}
+              </button>
+              
+              {/* Notifications Dropdown */}
+              <AnimatePresence>
+                {isNotificationsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-2 w-80 bg-[#0c0e14]/95 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50"
+                  >
+                    {/* Header */}
+                    <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                      <h3 className="text-sm font-medium text-white/90">Price Alerts</h3>
+                      <Link 
+                        href="/dashboard/watchlist"
+                        onClick={() => setIsNotificationsOpen(false)}
+                        className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                      >
+                        Manage
+                      </Link>
+                    </div>
+                    
+                    {/* Alerts List */}
+                    <div className="max-h-80 overflow-y-auto">
+                      {activeAlerts.length === 0 ? (
+                        <div className="p-6 text-center">
+                          <Bell className="w-8 h-8 text-white/20 mx-auto mb-2" />
+                          <p className="text-sm text-white/40">No active alerts</p>
+                          <p className="text-xs text-white/25 mt-1">Set alerts from stock analysis pages</p>
+                        </div>
+                      ) : (
+                        <div className="py-2">
+                          {activeAlerts.slice(0, 5).map((alert) => (
+                            <AlertItem 
+                              key={alert.id} 
+                              alert={alert}
+                              onClick={() => {
+                                router.push(`/dashboard/stock-analysis/${alert.symbol}`)
+                                setIsNotificationsOpen(false)
+                              }}
+                            />
+                          ))}
+                          {activeAlerts.length > 5 && (
+                            <div className="px-4 py-2 text-center">
+                              <Link 
+                                href="/dashboard/watchlist"
+                                onClick={() => setIsNotificationsOpen(false)}
+                                className="text-xs text-white/40 hover:text-white/60 transition-colors"
+                              >
+                                +{activeAlerts.length - 5} more alerts
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* User Button - Premium spacing */}
             <div className="ml-2 pl-4 border-l border-white/[0.06]">
@@ -540,6 +625,62 @@ function SearchResult({
         <span className="text-[11px] text-white/30 font-normal">{exchange}</span>
         <ArrowRight className="w-3.5 h-3.5 text-white/20 opacity-0 group-hover:opacity-100 transition-all duration-200" strokeWidth={1.5} />
       </div>
+    </button>
+  )
+}
+
+function AlertItem({
+  alert,
+  onClick,
+}: {
+  alert: PriceAlert
+  onClick: () => void
+}) {
+  const getConditionIcon = () => {
+    switch (alert.condition) {
+      case 'above':
+      case 'crosses_above':
+        return <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+      case 'below':
+      case 'crosses_below':
+        return <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+      default:
+        return <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+    }
+  }
+  
+  const getConditionText = () => {
+    switch (alert.condition) {
+      case 'above':
+        return `Above $${alert.targetValue}`
+      case 'below':
+        return `Below $${alert.targetValue}`
+      case 'crosses_above':
+        return `Crosses above $${alert.targetValue}`
+      case 'crosses_below':
+        return `Crosses below $${alert.targetValue}`
+      case 'percent_change':
+        return `${alert.targetValue}% change`
+      case 'volume_spike':
+        return `Volume spike ${alert.targetValue}x`
+      default:
+        return `$${alert.targetValue}`
+    }
+  }
+  
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.03] transition-all duration-200 text-left"
+    >
+      <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+        {getConditionIcon()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-white/90">{alert.symbol}</p>
+        <p className="text-xs text-white/40 truncate">{getConditionText()}</p>
+      </div>
+      <ArrowRight className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
     </button>
   )
 }

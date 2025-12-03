@@ -36,9 +36,7 @@ export function Navigation() {
             <div className="pointer-events-none absolute inset-0 rounded-full bg-white/[0.01] blur-3xl" />
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#3B82F6] flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-                <Terminal className="h-4 w-4 text-[#05070B]" />
-              </div>
+              <img src="/logo.jpeg" alt="Deep" className="h-8 w-8 rounded-lg object-cover transition-transform duration-300 group-hover:scale-105" />
               <span className="text-lg font-semibold text-white">
                 Deep<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D4FF] to-[#3B82F6]">Terminal</span>
               </span>

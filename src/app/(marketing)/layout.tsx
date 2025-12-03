@@ -61,7 +61,7 @@ export default function MarketingLayout({
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <img src="/deep-logo.svg" alt="Deep" className="h-10 w-10" />
+            <img src="/logo.jpeg" alt="Deep" className="h-10 w-10 rounded-lg object-cover" />
             <span className="text-lg font-semibold text-white">Deep</span>
           </Link>
 

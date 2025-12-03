@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Coins, AlertCircle, Check } from 'lucide-react'
 import { 
   Tooltip,
@@ -20,8 +19,8 @@ interface CreditCostIndicatorProps {
 }
 
 /**
- * نشان‌دهنده هزینه کردیت یک عملیات
- * می‌توان کنار دکمه‌ها قرار داد
+ * Credit cost indicator for actions
+ * Can be placed next to buttons
  */
 export function CreditCostIndicator({ 
   action, 
@@ -34,26 +33,27 @@ export function CreditCostIndicator({
   const canAfford = hasEnoughCredits(action)
   
   const sizeClasses = {
-    sm: 'text-xs px-1.5 py-0.5 gap-1',
-    md: 'text-sm px-2 py-1 gap-1.5',
+    sm: 'text-xs px-2 py-0.5 gap-1',
+    md: 'text-sm px-2.5 py-1 gap-1.5',
   }
   
   const iconSizes = {
     sm: 'w-3 h-3',
-    md: 'w-4 h-4',
+    md: 'w-3.5 h-3.5',
   }
   
   const badge = (
     <div className={cn(
-      'inline-flex items-center rounded-full font-medium',
+      'inline-flex items-center rounded-full font-medium transition-all duration-300',
+      'backdrop-blur-sm',
       canAfford 
-        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
-        : 'bg-red-500/10 text-red-500 border border-red-500/20',
+        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
       sizeClasses[size],
       className
     )}>
       <Coins className={iconSizes[size]} />
-      <span>{cost}</span>
+      <span className="tabular-nums">{cost}</span>
     </div>
   )
   
@@ -67,15 +67,22 @@ export function CreditCostIndicator({
         <TooltipTrigger asChild>
           {badge}
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent 
+          className={cn(
+            'bg-[#0c1017]/95 backdrop-blur-xl',
+            'border border-white/[0.08]',
+            'shadow-[0_8px_32px_rgba(0,0,0,0.3)]',
+            'rounded-xl px-3 py-2'
+          )}
+        >
           <div className="text-sm">
             {canAfford ? (
-              <div className="flex items-center gap-1 text-emerald-500">
+              <div className="flex items-center gap-1.5 text-emerald-400">
                 <Check className="w-4 h-4" />
                 <span>This action costs {cost} credits</span>
               </div>
             ) : (
-              <div className="flex items-center gap-1 text-red-500">
+              <div className="flex items-center gap-1.5 text-rose-400">
                 <AlertCircle className="w-4 h-4" />
                 <span>Not enough credits (need {cost}, have {balance})</span>
               </div>
@@ -95,7 +102,7 @@ interface CreditGateProps {
 }
 
 /**
- * کامپوننت Gate که محتوا را بر اساس کردیت نمایش می‌دهد
+ * Gate component that shows content based on credit availability
  */
 export function CreditGate({ 
   action, 
@@ -113,7 +120,11 @@ export function CreditGate({
   
   if (!canAfford) {
     return fallback || (
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
+      <div className={cn(
+        'flex items-center gap-2.5 p-4 rounded-xl text-sm',
+        'bg-rose-500/[0.06] border border-rose-500/20',
+        'text-rose-400'
+      )}>
         <AlertCircle className="w-4 h-4" />
         <span>Requires {cost} credits</span>
       </div>
@@ -124,7 +135,7 @@ export function CreditGate({
     <div className="relative">
       {children}
       {showCost && (
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-3 right-3">
           <CreditCostIndicator action={action} size="sm" />
         </div>
       )}

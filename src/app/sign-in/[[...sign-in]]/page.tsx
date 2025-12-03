@@ -40,9 +40,7 @@ export default function SignInPage() {
             <div className="relative">
               {/* Soft ambient glow behind logo */}
               <div className="absolute inset-0 w-14 h-14 bg-[#00C9E4]/20 rounded-2xl blur-xl" />
-              <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00C9E4] to-[#00C9E4]/70 flex items-center justify-center shadow-[0_8px_32px_rgba(0,201,228,0.15)]">
-                <Terminal className="w-7 h-7 text-[#04060A]" />
-              </div>
+              <img src="/logo.jpeg" alt="Deep" className="relative w-14 h-14 rounded-2xl object-cover shadow-[0_8px_32px_rgba(0,201,228,0.15)]" />
             </div>
           </div>
 

@@ -172,7 +172,7 @@ export function generateOrganizationSchema() {
     '@type': 'Organization',
     name: siteConfig.name,
     url: siteConfig.url,
-    logo: `${siteConfig.url}/logo.png`,
+    logo: `${siteConfig.url}/logo.jpeg`,
     description: siteConfig.description,
     sameAs: [
       'https://twitter.com/deepterminal',
@@ -263,7 +263,7 @@ export function generateBlogPostSchema({
       name: siteConfig.name,
       logo: {
         '@type': 'ImageObject',
-        url: `${siteConfig.url}/logo.png`,
+        url: `${siteConfig.url}/logo.jpeg`,
       },
     },
     image: image || siteConfig.ogImage,
@@ -326,7 +326,7 @@ export function generateArticleSchema({
       name: siteConfig.name,
       logo: {
         '@type': 'ImageObject',
-        url: `${siteConfig.url}/logo.png`,
+        url: `${siteConfig.url}/logo.jpeg`,
       },
     },
     mainEntityOfPage: {

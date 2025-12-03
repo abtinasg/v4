@@ -55,9 +55,7 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
           <div className="flex items-center justify-between h-16 px-5">
             {/* Logo */}
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="relative w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400/20 to-violet-500/20 border border-white/[0.08] flex items-center justify-center">
-                <span className="text-sm font-semibold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">V</span>
-              </div>
+              <img src="/logo.jpeg" alt="Deep" className="w-8 h-8 rounded-xl object-cover" />
               {title ? (
                 <span className="text-[15px] font-medium text-white/90 tracking-[-0.01em]">{title}</span>
               ) : (

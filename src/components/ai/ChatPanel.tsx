@@ -180,9 +180,38 @@ export const ChatPanel = memo(function ChatPanel({
   
   const { sendMessage, abort } = useChatApi()
   
-  // Auto-scroll to bottom
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  // Track if user is near bottom for auto-scroll
+  const isNearBottomRef = useRef(true)
+  
+  // Check if user is near bottom of scroll container
+  const checkIfNearBottom = useCallback(() => {
+    const container = messagesContainerRef.current
+    if (!container) return true
+    const threshold = 100 // pixels from bottom
+    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold
+  }, [])
+  
+  // Handle scroll to update isNearBottom
+  useEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+    
+    const handleScroll = () => {
+      isNearBottomRef.current = checkIfNearBottom()
+    }
+    
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [checkIfNearBottom])
+  
+  // Auto-scroll to bottom (only if user is near bottom)
+  const scrollToBottom = useCallback((force = false) => {
+    if (!force && !isNearBottomRef.current) return
+    const container = messagesContainerRef.current
+    if (container) {
+      // Use instant scroll during streaming to prevent jitter
+      container.scrollTop = container.scrollHeight
+    }
   }, [])
   
   useEffect(() => {
@@ -326,48 +355,83 @@ export const ChatPanel = memo(function ChatPanel({
 
   return (
     <>
-      {/* Floating Trigger Button */}
+      {/* Floating Trigger Button - Premium Fintech Design */}
       <AnimatePresence>
         {!isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             className={cn(
-              'fixed bottom-4 sm:bottom-6 z-50',
-              position === 'right' ? 'right-4 sm:right-6' : 'left-4 sm:left-6',
+              'fixed z-50',
+              'bottom-6 sm:bottom-8',
+              position === 'right' ? 'right-6 sm:right-8' : 'left-6 sm:left-8',
             )}
           >
-            <TooltipProvider delayDuration={300}>
+            <TooltipProvider delayDuration={400}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     onClick={() => {
                       toggleOpen();
-                      if (navigator.vibrate) navigator.vibrate(20);
+                      if (navigator.vibrate) navigator.vibrate(10);
                     }}
                     className={cn(
-                      'h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-xl',
-                      'bg-gradient-to-br from-cyan-500 to-violet-600',
-                      'hover:from-cyan-400 hover:to-violet-500',
-                      'transition-all duration-300 hover:scale-110',
-                      'group relative overflow-hidden touch-manipulation',
+                      // Base sizing with comfortable internal padding
+                      'h-12 w-12 sm:h-[52px] sm:w-[52px] p-3 sm:p-3.5',
+                      'rounded-full',
+                      // Premium glassmorphism background
+                      'bg-gradient-to-br from-slate-800/90 via-slate-900/95 to-indigo-950/90',
+                      'backdrop-blur-md',
+                      // Subtle depth shadow (blur 18px, low alpha)
+                      'shadow-[0_8px_20px_-4px_rgba(0,0,0,0.35),0_4px_8px_-2px_rgba(0,0,0,0.2)]',
+                      // Thin premium border
+                      'border border-white/[0.06]',
+                      'ring-1 ring-white/[0.04] ring-inset',
+                      // Smooth hover - no aggressive scale
+                      'hover:bg-gradient-to-br hover:from-slate-700/90 hover:via-slate-800/95 hover:to-indigo-900/90',
+                      'hover:border-white/[0.08]',
+                      'hover:shadow-[0_10px_24px_-4px_rgba(0,0,0,0.4),0_6px_12px_-2px_rgba(0,0,0,0.25)]',
+                      'transition-all duration-300 ease-out',
+                      // Focus state for accessibility
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
+                      'group relative touch-manipulation',
                     )}
                   >
-                    <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    {/* Clean icon with thin stroke and muted opacity */}
+                    <MessageCircle 
+                      className="w-5 h-5 sm:w-[22px] sm:h-[22px] text-white/85 group-hover:text-white/95 transition-colors duration-300" 
+                      strokeWidth={1.5}
+                    />
                     
-                    {/* Pulse animation */}
-                    <span className="absolute inset-0 rounded-full bg-white/20 animate-ping" />
-                    
-                    {/* Unread indicator */}
+                    {/* Premium notification badge - subtle and refined */}
                     {messages.length > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
+                      <span 
+                        className={cn(
+                          'absolute -top-0.5 -right-0.5',
+                          'min-w-[18px] h-[18px] px-1',
+                          'rounded-full',
+                          // Soft red with low saturation
+                          'bg-gradient-to-br from-rose-500/90 to-red-600/85',
+                          'shadow-[0_2px_6px_-1px_rgba(220,38,38,0.35),inset_0_1px_1px_rgba(255,255,255,0.15)]',
+                          'border border-slate-900/60',
+                          // Typography
+                          'text-[10px] font-medium text-white/90',
+                          'flex items-center justify-center',
+                          'transition-transform duration-200',
+                        )}
+                      >
                         {messages.length > 9 ? '9+' : messages.length}
                       </span>
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="left">
+                <TooltipContent 
+                  side="left" 
+                  sideOffset={12}
+                  className="bg-slate-900/95 backdrop-blur-sm border-white/[0.06] text-white/90 text-xs font-medium px-3 py-1.5"
+                >
                   <p>AI Assistant</p>
                 </TooltipContent>
               </Tooltip>

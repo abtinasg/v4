@@ -4,12 +4,21 @@
 
 ## 📋 لیست Cron Jobs
 
-### 1. Telegram News (`/api/cron/telegram-news`)
+### 1. Check Price Alerts (`/api/cron/check-alerts`) ⭐ NEW
+- **زمان‌بندی**: هر 5 دقیقه یکبار (`*/5 * * * *`)
+- **وظیفه**: چک کردن price alerts و ارسال ایمیل
+  - دریافت قیمت فعلی سهام
+  - مقایسه با target price
+  - ارسال ایمیل به کاربر اگر شرط برقرار شد
+  - غیرفعال کردن alert بعد از trigger
+- **مدت زمان**: تا 60 ثانیه
+
+### 2. Telegram News (`/api/cron/telegram-news`)
 - **زمان‌بندی**: هر 4 ساعت یکبار (`0 */4 * * *`)
 - **وظیفه**: ارسال خبرهای جدید به کانال تلگرام
 - **مدت زمان**: تا 60 ثانیه
 
-### 2. Database Cleanup (`/api/cron/cleanup`)
+### 3. Database Cleanup (`/api/cron/cleanup`)
 - **زمان‌بندی**: هر روز ساعت 2 صبح UTC (`0 2 * * *`)
 - **وظیفه**: پاکسازی دیتاهای قدیمی
   - Activity logs بیشتر از 90 روز
@@ -17,12 +26,35 @@
   - Rate limit records منقضی شده
 - **مدت زمان**: تا 60 ثانیه
 
-### 3. Cache Warming (`/api/cron/cache-warm`)
+### 4. Cache Warming (`/api/cron/cache-warm`)
 - **زمان‌بندی**: هر 15 دقیقه یکبار (`*/15 * * * *`)
 - **وظیفه**: Pre-warm cache برای دیتاهای پرکاربرد
   - Market indices (S&P 500, DOW, NASDAQ, etc.)
   - 10 سهام محبوب (AAPL, MSFT, GOOGL, etc.)
 - **مدت زمان**: تا 60 ثانیه
+
+## 🔔 استفاده از سرویس خارجی Cron (مثل cron-job.org)
+
+اگه از Vercel Free Tier استفاده می‌کنی یا می‌خوای کنترل بیشتری داشته باشی:
+
+### تنظیم در cron-job.org:
+1. ثبت‌نام در https://cron-job.org
+2. Create New Cron Job
+3. تنظیمات:
+   - **URL**: `https://your-domain.com/api/cron/check-alerts`
+   - **Schedule**: Every 5 minutes
+   - **Request Method**: GET
+   - **Headers**: 
+     ```
+     Authorization: Bearer YOUR_CRON_SECRET
+     ```
+4. Enable و Save
+
+### تست manual:
+```bash
+curl -X GET "https://your-domain.com/api/cron/check-alerts" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
 
 ## 🔒 امنیت
 
@@ -48,6 +80,7 @@ CRON_SECRET=your-secure-random-string
 فرمت: `minute hour day month weekday`
 
 مثال‌ها:
+- `*/5 * * * *` - هر 5 دقیقه
 - `0 */4 * * *` - هر 4 ساعت یکبار
 - `0 2 * * *` - هر روز ساعت 2 صبح
 - `*/15 * * * *` - هر 15 دقیقه
@@ -81,6 +114,10 @@ git push
 می‌توانید از Vercel Dashboard یا curl تست کنید:
 
 ```bash
+# تست Check Alerts
+curl -X GET "https://your-domain.com/api/cron/check-alerts" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+
 # تست Telegram News
 curl -X GET "https://your-domain.com/api/cron/telegram-news" \
   -H "Authorization: Bearer YOUR_CRON_SECRET"

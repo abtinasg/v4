@@ -39,19 +39,7 @@ export function NavigationPremium() {
               href="/" 
               className="flex items-center gap-2 group"
             >
-              <div className="relative">
-                <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#818CF8] flex items-center justify-center shadow-[0_2px_8px_rgba(99,102,241,0.3)]">
-                  <svg 
-                    className="h-3.5 w-3.5 text-white" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2.5"
-                  >
-                    <path d="M4 17l6-6-6-6M12 19h8" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-              </div>
+              <img src="/logo.jpeg" alt="Deep" className="h-7 w-7 rounded-lg object-cover shadow-[0_2px_8px_rgba(99,102,241,0.3)]" />
               <span className="text-sm font-bold text-white tracking-tight">
                 DeepIn
               </span>

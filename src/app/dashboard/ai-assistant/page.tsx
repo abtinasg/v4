@@ -274,9 +274,39 @@ export default function AIAssistantPage() {
     return () => clearInterval(interval)
   }, [fetchMarketContext])
 
-  // Auto-scroll
+  // Track if user is near bottom for auto-scroll
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const isNearBottomRef = useRef(true)
+  
+  // Check if user is near bottom of scroll container
+  const checkIfNearBottom = useCallback(() => {
+    const container = messagesContainerRef.current
+    if (!container) return true
+    const threshold = 100 // pixels from bottom
+    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold
+  }, [])
+  
+  // Handle scroll to update isNearBottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const container = messagesContainerRef.current
+    if (!container) return
+    
+    const handleScroll = () => {
+      isNearBottomRef.current = checkIfNearBottom()
+    }
+    
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [checkIfNearBottom])
+  
+  // Auto-scroll to bottom (only if user is near bottom)
+  useEffect(() => {
+    if (!isNearBottomRef.current) return
+    const container = messagesContainerRef.current
+    if (container) {
+      // Use instant scroll to prevent jitter during streaming
+      container.scrollTop = container.scrollHeight
+    }
   }, [messages])
 
   // Handle sending
@@ -378,7 +408,10 @@ export default function AIAssistantPage() {
         className="flex-1 bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-2xl overflow-hidden flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
       >
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+        <div 
+          ref={messagesContainerRef}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6"
+        >
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 lg:py-16">
               {/* AI Avatar - Large */}

@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   title: "Deep - Professional Stock Analysis Platform",
   description: "AI-powered financial analysis platform with 190+ institutional metrics",
   keywords: "stock analysis, financial data, AI analysis, bloomberg alternative",
+  icons: {
+    icon: '/logo.jpeg',
+    shortcut: '/logo.jpeg',
+    apple: '/logo.jpeg',
+  },
 };
 
 export default function RootLayout({

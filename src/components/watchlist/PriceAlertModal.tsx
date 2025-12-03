@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   Check,
   Plus,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -98,6 +99,9 @@ export const PriceAlertModal = memo(function PriceAlertModal({
     value: '',
   })
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [dbAlerts, setDbAlerts] = useState<any[]>([])
+  const [isLoadingAlerts, setIsLoadingAlerts] = useState(false)
 
   const alerts = useWatchlistStore((s) => s.alerts)
   const createAlert = useWatchlistStore((s) => s.createAlert)
@@ -107,7 +111,30 @@ export const PriceAlertModal = memo(function PriceAlertModal({
   // Get current price from quotes if not provided
   const price = currentPrice ?? (symbol ? quotes[symbol]?.price : undefined)
 
-  // Filter alerts for this symbol
+  // Fetch alerts from database when modal opens
+  useEffect(() => {
+    if (open && symbol) {
+      fetchAlerts()
+    }
+  }, [open, symbol])
+  
+  const fetchAlerts = async () => {
+    if (!symbol) return
+    setIsLoadingAlerts(true)
+    try {
+      const response = await fetch(`/api/stock-alerts?symbol=${symbol}&active=true`)
+      if (response.ok) {
+        const data = await response.json()
+        setDbAlerts(data.alerts || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch alerts:', err)
+    } finally {
+      setIsLoadingAlerts(false)
+    }
+  }
+
+  // Filter alerts for this symbol (from local store)
   const symbolAlerts = symbol
     ? alerts.filter((alert) => alert.symbol === symbol)
     : alerts
@@ -139,8 +166,8 @@ export const PriceAlertModal = memo(function PriceAlertModal({
     }
   }, [newAlert.type, price])
 
-  // Create alert handler
-  const handleCreateAlert = useCallback(() => {
+  // Create alert handler - saves to database
+  const handleCreateAlert = useCallback(async () => {
     if (!symbol) {
       setError('Please select a stock')
       return
@@ -152,24 +179,77 @@ export const PriceAlertModal = memo(function PriceAlertModal({
       return
     }
 
-    // Map alert type to AlertCondition
-    const conditionMap: Record<AlertType, AlertCondition> = {
+    // Map alert type to condition
+    const conditionMap: Record<AlertType, string> = {
       above: 'above',
       below: 'below',
-      change_percent: 'percent_change',
-      volume_spike: 'volume_spike',
+      change_percent: 'above', // Not supported in DB yet
+      volume_spike: 'above', // Not supported in DB yet
     }
 
-    createAlert({
-      symbol,
-      condition: conditionMap[newAlert.type],
-      targetValue: value,
-      delivery: ['in_app'],
-    })
-
-    setNewAlert({ type: 'above', value: '' })
+    setIsLoading(true)
     setError('')
+    
+    try {
+      // Save to database (for email notifications)
+      const response = await fetch('/api/stock-alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          symbol: symbol.toUpperCase(),
+          condition: conditionMap[newAlert.type],
+          targetPrice: value,
+        }),
+      })
+      
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to create alert')
+      }
+      
+      // Also save to local store for immediate display
+      createAlert({
+        symbol,
+        condition: conditionMap[newAlert.type] as AlertCondition,
+        targetValue: value,
+        delivery: ['in_app', 'email'],
+      })
+
+      setNewAlert({ type: 'above', value: '' })
+      
+      // Refresh alerts from DB
+      await fetchAlerts()
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create alert')
+    } finally {
+      setIsLoading(false)
+    }
   }, [symbol, newAlert, createAlert])
+  
+  // Delete alert handler
+  const handleDeleteAlert = useCallback(async (alertId: string, isDbAlert: boolean) => {
+    try {
+      if (isDbAlert) {
+        // Delete from database
+        const response = await fetch(`/api/stock-alerts/${alertId}`, {
+          method: 'DELETE',
+        })
+        
+        if (!response.ok) {
+          throw new Error('Failed to delete alert')
+        }
+        
+        // Refresh alerts
+        await fetchAlerts()
+      } else {
+        // Delete from local store
+        deleteAlert(alertId)
+      }
+    } catch (err) {
+      console.error('Failed to delete alert:', err)
+    }
+  }, [deleteAlert])
 
   // Format alert condition text
   const formatAlertCondition = (alert: PriceAlert) => {
@@ -311,27 +391,87 @@ export const PriceAlertModal = memo(function PriceAlertModal({
             {/* Create Button */}
             <Button
               onClick={handleCreateAlert}
+              disabled={isLoading}
               className="w-full bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-600 hover:to-violet-600 text-white"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Alert
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4 mr-2" />
+              )}
+              {isLoading ? 'Creating...' : 'Create Alert'}
             </Button>
+            
+            {/* Email notification info */}
+            <div className="text-xs text-white/40 text-center">
+              📧 You'll receive an email when this alert is triggered
+            </div>
           </div>
         )}
 
-        {/* Existing Alerts */}
+        {/* Existing Alerts (from database) */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-white/60">
               {symbol ? 'Active Alerts' : 'All Alerts'}
             </span>
             <span className="text-xs text-white/40">
-              {symbolAlerts.length} alert{symbolAlerts.length !== 1 ? 's' : ''}
+              {dbAlerts.length + symbolAlerts.length} alert{(dbAlerts.length + symbolAlerts.length) !== 1 ? 's' : ''}
             </span>
           </div>
 
           <div className="max-h-[200px] overflow-y-auto space-y-2">
+            {isLoadingAlerts ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-white/40" />
+              </div>
+            ) : (
             <AnimatePresence mode="popLayout">
+              {/* Database alerts */}
+              {dbAlerts.map((alert) => (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className={cn(
+                    'flex items-center justify-between p-3 rounded-lg',
+                    'bg-white/5 border border-white/10',
+                    alert.triggeredAt && 'border-yellow-500/50 bg-yellow-500/5'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn('p-2 rounded-lg', getAlertTypeColor(alert.condition))}>
+                      {alert.condition === 'above' || alert.condition === 'crosses_above' ? (
+                        <TrendingUp className="w-4 h-4" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-sm text-white font-medium">
+                        {alert.symbol} {alert.condition === 'above' ? '>' : '<'} ${parseFloat(alert.targetPrice).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-white/40 flex items-center gap-1">
+                        📧 Email enabled
+                        {alert.triggeredAt && (
+                          <span className="text-yellow-400 ml-2">Triggered</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteAlert(alert.id, true)}
+                    className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </motion.div>
+              ))}
+              
+              {/* Local store alerts */}
               {symbolAlerts.length > 0 ? (
                 symbolAlerts.map((alert) => (
                   <motion.div
@@ -390,14 +530,14 @@ export const PriceAlertModal = memo(function PriceAlertModal({
 
                     {/* Delete button */}
                     <button
-                      onClick={() => deleteAlert(alert.id)}
+                      onClick={() => handleDeleteAlert(alert.id, false)}
                       className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </motion.div>
                 ))
-              ) : (
+              ) : dbAlerts.length === 0 ? (
                 <div className="text-center py-8 text-white/40">
                   <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   <p>No active alerts</p>
@@ -407,8 +547,9 @@ export const PriceAlertModal = memo(function PriceAlertModal({
                     </p>
                   )}
                 </div>
-              )}
+              ) : null}
             </AnimatePresence>
+            )}
           </div>
         </div>
 
