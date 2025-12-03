@@ -159,7 +159,7 @@ export function PriceChart({ symbol, initialData }: PriceChartProps) {
   }, [symbol]);
 
   useEffect(() => {
-    if (initialData?.length > 0) {
+    if (initialData && initialData.length > 0) {
       setChartData(initialData);
       setIsLoading(false);
     } else {
