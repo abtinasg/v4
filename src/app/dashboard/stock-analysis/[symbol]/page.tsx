@@ -13,6 +13,7 @@ import {
   MetricsSkeleton,
 } from '@/components/stock/skeletons';
 import { StockContextUpdater } from '@/components/ai';
+import { FullDataButton } from '@/components/mobile';
 import type { AllMetrics } from '../../../../../lib/metrics/types';
 
 // Force dynamic rendering to allow API calls during request time
@@ -319,6 +320,9 @@ export default async function StockAnalysisPage({ params }: PageProps) {
         {/* Bottom Spacing */}
         <div className="h-8 lg:h-12" />
       </div>
+
+      {/* Full Data Button for Mobile */}
+      <FullDataButton />
     </div>
   );
 }

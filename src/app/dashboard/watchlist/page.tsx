@@ -412,7 +412,7 @@ export default function WatchlistPage() {
           >
             <StatCard
               label="Total Stocks"
-              value={stats.total}
+              value={stats.total || 0}
               icon={<TrendingUp className="w-5 h-5" />}
             />
             <StatCard

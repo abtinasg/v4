@@ -18,7 +18,6 @@ import { stockAlerts, portfolioAlerts, users } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { sendEmail } from '@/lib/email'
 import { alertNotificationEmail } from '@/lib/email/templates'
-import { sendPushNotification } from '@/lib/notifications/push'
 
 // Verify cron authorization
 function verifyCronAuth(request: NextRequest): boolean {
@@ -261,6 +260,8 @@ export async function GET(request: NextRequest) {
             }
             
             // Send push notification
+            // TODO: Re-enable when push notifications are implemented
+            /*
             try {
               await sendPushNotification(user.id, {
                 title: `🔔 ${symbol} Alert`,
@@ -276,6 +277,7 @@ export async function GET(request: NextRequest) {
             } catch (pushError) {
               console.error(`Failed to send push for stock alert ${alert.id}:`, pushError)
             }
+            */
           }
         }
         
@@ -371,6 +373,8 @@ export async function GET(request: NextRequest) {
             }
             
             // Send push notification
+            // TODO: Re-enable when push notifications are implemented
+            /*
             if (alert.isPushEnabled) {
               try {
                 await sendPushNotification(user.id, {
@@ -389,6 +393,7 @@ export async function GET(request: NextRequest) {
                 console.error(`Failed to send push for portfolio alert ${alert.id}:`, pushError)
               }
             }
+            */
           }
         }
         

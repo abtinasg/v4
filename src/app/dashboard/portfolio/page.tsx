@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { CSVImport } from '@/components/portfolio/csv-import';
 import { motion } from 'framer-motion';
+import { FullDataButton } from '@/components/mobile';
 
 interface Portfolio {
   id: string;
@@ -402,6 +403,9 @@ export default function PortfolioPage() {
           }}
         />
       )}
+
+      {/* Full Data Button for Mobile */}
+      <FullDataButton />
     </div>
   );
 }

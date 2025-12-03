@@ -274,7 +274,7 @@ export const WatchlistCard = memo(function WatchlistCard({
               <RealTimePrice
                 price={quote.price}
                 previousPrice={quote?.previousClose}
-                size="xl"
+                size="lg"
                 className="text-2xl font-semibold tracking-tight"
               />
             ) : (
