@@ -18,6 +18,7 @@ import { stockAlerts, portfolioAlerts, users } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { sendEmail } from '@/lib/email'
 import { alertNotificationEmail } from '@/lib/email/templates'
+import { sendPushNotification } from '@/lib/notifications/push'
 
 // Verify cron authorization
 function verifyCronAuth(request: NextRequest): boolean {
@@ -233,10 +234,12 @@ export async function GET(request: NextRequest) {
               })
               .where(eq(stockAlerts.id, alert.id))
             
+            // Send notifications
+            const conditionText = formatStockCondition(alert.condition, targetPrice)
+            
             // Send email notification
             if (user.email) {
               try {
-                const conditionText = formatStockCondition(alert.condition, targetPrice)
                 const emailHtml = alertNotificationEmail(
                   user.email.split('@')[0],
                   alert.condition,
@@ -255,6 +258,23 @@ export async function GET(request: NextRequest) {
               } catch (emailError) {
                 results.errors.push(`Failed to send email for stock alert ${alert.id}: ${emailError}`)
               }
+            }
+            
+            // Send push notification
+            try {
+              await sendPushNotification(user.id, {
+                title: `🔔 ${symbol} Alert`,
+                body: `${conditionText} - Current price: $${currentPrice.toFixed(2)}`,
+                tag: `stock-alert-${alert.id}`,
+                data: {
+                  type: 'stock_alert',
+                  symbol,
+                  price: currentPrice,
+                  alertId: alert.id,
+                },
+              })
+            } catch (pushError) {
+              console.error(`Failed to send push for stock alert ${alert.id}:`, pushError)
             }
           }
         }
@@ -320,14 +340,16 @@ export async function GET(request: NextRequest) {
               })
               .where(eq(portfolioAlerts.id, alert.id))
             
+            // Send notifications
+            const conditionText = formatPortfolioCondition(
+              alert.alertType,
+              alert.conditionValue,
+              alert.conditionPercent
+            )
+            
             // Send email notification
-            if (user.email) {
+            if (user.email && alert.isEmailEnabled) {
               try {
-                const conditionText = formatPortfolioCondition(
-                  alert.alertType,
-                  alert.conditionValue,
-                  alert.conditionPercent
-                )
                 const emailHtml = alertNotificationEmail(
                   user.email.split('@')[0],
                   alert.alertType,
@@ -345,6 +367,26 @@ export async function GET(request: NextRequest) {
                 results.portfolioAlerts.emailsSent++
               } catch (emailError) {
                 results.errors.push(`Failed to send email for portfolio alert ${alert.id}: ${emailError}`)
+              }
+            }
+            
+            // Send push notification
+            if (alert.isPushEnabled) {
+              try {
+                await sendPushNotification(user.id, {
+                  title: `📊 ${symbol} Portfolio Alert`,
+                  body: `${conditionText} - Current price: $${currentPrice.toFixed(2)}`,
+                  tag: `portfolio-alert-${alert.id}`,
+                  data: {
+                    type: 'portfolio_alert',
+                    symbol,
+                    price: currentPrice,
+                    alertId: alert.id,
+                    portfolioId: alert.portfolioId,
+                  },
+                })
+              } catch (pushError) {
+                console.error(`Failed to send push for portfolio alert ${alert.id}:`, pushError)
               }
             }
           }

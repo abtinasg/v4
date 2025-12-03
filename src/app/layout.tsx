@@ -5,6 +5,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from "@/components/theme-provider";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { IOSInstallPrompt } from '@/components/mobile/ios-install-prompt';
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -110,6 +111,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <IOSInstallPrompt />
             <Analytics />
             <SpeedInsights />
           </ThemeProvider>
