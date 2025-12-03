@@ -65,14 +65,14 @@ function OverviewTab({ metrics }: { metrics: AllMetrics }) {
   const { scores, valuation, profitability, growth, leverage, liquidity } = metrics;
 
   return (
-    <div className="space-y-7">
-      {/* Score Cards Row - with stagger animation */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
+    <div className="space-y-8">
+      {/* Score Cards Row - Premium grid with generous spacing */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5 lg:gap-6">
         <div style={{ animationDelay: '0ms' }} className="animate-fade-up">
           <ScoreCard
             title="Overall"
             score={scores.totalScore}
-            icon={<Target className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+            icon={<Target className="h-3.5 w-3.5" />}
             description="Composite score"
           />
         </div>
@@ -80,35 +80,35 @@ function OverviewTab({ metrics }: { metrics: AllMetrics }) {
           <ScoreCard
             title="Profitability"
             score={scores.profitabilityScore}
-            icon={<PiggyBank className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+            icon={<PiggyBank className="h-3.5 w-3.5" />}
           />
         </div>
         <div style={{ animationDelay: '100ms' }} className="animate-fade-up">
           <ScoreCard
             title="Growth"
             score={scores.growthScore}
-            icon={<Sprout className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+            icon={<Sprout className="h-3.5 w-3.5" />}
           />
         </div>
         <div style={{ animationDelay: '150ms' }} className="animate-fade-up">
           <ScoreCard
             title="Valuation"
             score={scores.valuationScore}
-            icon={<Calculator className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+            icon={<Calculator className="h-3.5 w-3.5" />}
           />
         </div>
         <div style={{ animationDelay: '200ms' }} className="animate-fade-up">
           <ScoreCard
             title="Risk"
             score={scores.riskScore}
-            icon={<Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+            icon={<Shield className="h-3.5 w-3.5" />}
           />
         </div>
         <div style={{ animationDelay: '250ms' }} className="animate-fade-up">
           <ScoreCard
             title="Health"
             score={scores.healthScore}
-            icon={<Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+            icon={<Activity className="h-3.5 w-3.5" />}
           />
         </div>
       </div>

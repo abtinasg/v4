@@ -230,7 +230,8 @@ export function MetricCard({ title, description, metrics, icon, className }: Met
 }
 
 // ============================================================================
-// PREMIUM 3D NEON SCORE GAUGE
+// PREMIUM SCORE GAUGE - Fintech Design System
+// Inspired by: Robinhood, Public.com, Finary, Koyfin
 // ============================================================================
 
 export function ScoreCard({
@@ -271,9 +272,8 @@ export function ScoreCard({
 
   useEffect(() => {
     if (isVisible && score !== null) {
-      // Animate score number
-      const duration = 1500;
-      const steps = 60;
+      const duration = 1200;
+      const steps = 50;
       const increment = score / steps;
       let current = 0;
       const timer = setInterval(() => {
@@ -294,37 +294,34 @@ export function ScoreCard({
 
   const percentage = Math.min((score / maxScore) * 100, 100);
   
-  // Color based on score
+  // Refined color palette - softer, more premium
   const getScoreColors = () => {
     if (percentage >= 70) {
       return {
-        stroke: 'url(#gradient-high)',
-        glow: 'rgba(63, 227, 194, 0.6)',
-        text: 'text-[#3FE3C2]',
-        ring: '#3FE3C2',
-        class: 'score-high'
+        stroke: 'url(#scoreGradientHigh)',
+        glow: 'rgba(16, 185, 129, 0.15)',
+        text: 'text-emerald-400',
+        ring: '#10B981',
       };
     }
     if (percentage >= 40) {
       return {
-        stroke: 'url(#gradient-medium)',
-        glow: 'rgba(245, 158, 11, 0.6)',
+        stroke: 'url(#scoreGradientMid)',
+        glow: 'rgba(245, 158, 11, 0.15)',
         text: 'text-amber-400',
         ring: '#F59E0B',
-        class: 'score-medium'
       };
     }
     return {
-      stroke: 'url(#gradient-low)',
-      glow: 'rgba(239, 68, 68, 0.6)',
-      text: 'text-red-400',
+      stroke: 'url(#scoreGradientLow)',
+      glow: 'rgba(239, 68, 68, 0.15)',
+      text: 'text-rose-400',
       ring: '#EF4444',
-      class: 'score-low'
     };
   };
 
   const colors = getScoreColors();
-  const radius = 42;
+  const radius = 38;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
@@ -332,122 +329,112 @@ export function ScoreCard({
     <div
       ref={cardRef}
       className={cn(
-        'relative overflow-hidden rounded-2xl p-5 flex flex-col items-center text-center',
-        'glass-premium animate-fade-up',
-        'hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]',
-        'transition-all duration-300 group cursor-pointer',
-        colors.class,
+        // Premium glass card with generous padding
+        'relative overflow-hidden rounded-2xl',
+        'p-6 sm:p-7 lg:p-8',
+        'flex flex-col items-center text-center',
+        // Glass background with soft blur
+        'bg-white/[0.02] backdrop-blur-[8px]',
+        'border border-white/[0.06]',
+        // Subtle shadow for depth
+        'shadow-[0_4px_24px_rgba(0,0,0,0.12)]',
+        // Smooth hover transition
+        'hover:bg-white/[0.03] hover:border-white/[0.10]',
+        'hover:shadow-[0_8px_32px_rgba(0,0,0,0.16)]',
+        'transition-all duration-300 ease-out',
         className
       )}
     >
-      {/* Radial gradient background glow */}
+      {/* Subtle radial glow - reduced intensity */}
       <div 
-        className="absolute inset-0 opacity-30 transition-opacity duration-300 group-hover:opacity-50"
+        className="absolute inset-0 opacity-40 pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 50% 40%, ${colors.glow}, transparent 70%)`
+          background: `radial-gradient(circle at 50% 30%, ${colors.glow}, transparent 60%)`
         }}
       />
 
-      {/* 3D Neon Gauge */}
-      <div className="relative w-28 h-28 mb-4">
-        {/* Outer glow ring */}
-        <div 
-          className="absolute inset-0 rounded-full animate-gauge-glow-pulse"
-          style={{ 
-            '--glow-color': colors.glow,
-            filter: `drop-shadow(0 0 12px ${colors.glow})`
-          } as React.CSSProperties}
-        />
-        
+      {/* Circular Gauge - Robinhood-inspired thin stroke */}
+      <div className="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mb-5 sm:mb-6">
         <svg 
-          className="w-28 h-28 transform -rotate-90"
+          className="w-full h-full transform -rotate-90"
           viewBox="0 0 100 100"
         >
           {/* Gradient definitions */}
           <defs>
-            <linearGradient id="gradient-high" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#3FE3C2" />
-              <stop offset="100%" stopColor="#00D4FF" />
+            <linearGradient id="scoreGradientHigh" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#10B981" />
+              <stop offset="100%" stopColor="#34D399" />
             </linearGradient>
-            <linearGradient id="gradient-medium" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="scoreGradientMid" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#F59E0B" />
-              <stop offset="100%" stopColor="#FB923C" />
+              <stop offset="100%" stopColor="#FBBF24" />
             </linearGradient>
-            <linearGradient id="gradient-low" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="scoreGradientLow" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#EF4444" />
-              <stop offset="100%" stopColor="#F472B6" />
+              <stop offset="100%" stopColor="#F87171" />
             </linearGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
           </defs>
 
-          {/* Background track */}
+          {/* Background track - very subtle */}
           <circle
             cx="50"
             cy="50"
             r={radius}
-            stroke="rgba(255, 255, 255, 0.05)"
-            strokeWidth="6"
-            fill="none"
-          />
-          
-          {/* Inner shadow for depth */}
-          <circle
-            cx="50"
-            cy="50"
-            r={radius - 4}
-            stroke="rgba(0, 0, 0, 0.3)"
-            strokeWidth="1"
+            stroke="rgba(255, 255, 255, 0.04)"
+            strokeWidth="3"
             fill="none"
           />
 
-          {/* Animated progress arc */}
+          {/* Progress arc - thinner, elegant stroke */}
           <circle
             cx="50"
             cy="50"
             r={radius}
             stroke={colors.stroke}
-            strokeWidth="6"
+            strokeWidth="3"
             fill="none"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={isVisible ? strokeDashoffset : circumference}
-            filter="url(#glow)"
-            className="transition-all duration-[1500ms] ease-out"
+            className="transition-all duration-[1200ms] ease-out"
             style={{
-              filter: `drop-shadow(0 0 6px ${colors.ring})`
+              filter: `drop-shadow(0 0 4px ${colors.ring}40)`
             }}
           />
         </svg>
 
-        {/* Center score display - floating card effect */}
+        {/* Center score display - clean typography */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="glass-premium rounded-xl px-3 py-2 shadow-xl">
-            <span className={cn('text-2xl font-bold', colors.text)}>
-              {Math.round(animatedScore)}
-            </span>
-            <span className="text-xs text-gray-500 block">/ {maxScore}</span>
-          </div>
+          <span className={cn(
+            'text-[28px] sm:text-[32px] lg:text-[36px] font-medium tracking-tight leading-none',
+            colors.text
+          )}>
+            {Math.round(animatedScore)}
+          </span>
+          <span className="text-[11px] sm:text-[12px] text-white/30 font-normal mt-1">
+            /{maxScore}
+          </span>
         </div>
       </div>
 
-      {/* Title & Description */}
-      <div className="relative flex items-center gap-2 mb-1">
-        {icon && (
-          <span className={cn('transition-colors duration-300', colors.text)}>
-            {icon}
-          </span>
+      {/* Category label - clean hierarchy */}
+      <div className="flex flex-col items-center gap-1.5">
+        <div className="flex items-center gap-2">
+          {icon && (
+            <span className="text-white/40">
+              {icon}
+            </span>
+          )}
+          <h3 className="text-[14px] sm:text-[15px] font-medium text-white/90 tracking-[-0.01em] leading-[1.4]">
+            {title}
+          </h3>
+        </div>
+        {description && (
+          <p className="text-[11px] sm:text-[12px] text-white/35 font-normal leading-[1.4]">
+            {description}
+          </p>
         )}
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
       </div>
-      {description && (
-        <p className="text-xs text-gray-500">{description}</p>
-      )}
     </div>
   );
 }
