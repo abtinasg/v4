@@ -31,14 +31,14 @@ const getHeatmapStyle = (change: number) => {
   
   if (change >= 0) {
     return {
-      background: `rgba(16, 185, 129, ${0.1 + intensity * 0.25})`,
-      border: `rgba(16, 185, 129, ${0.1 + intensity * 0.15})`,
+      background: `rgba(16, 185, 129, ${0.12 + intensity * 0.3})`,
+      border: `rgba(16, 185, 129, ${0.15 + intensity * 0.2})`,
       text: change > 1 ? 'text-emerald-300' : 'text-emerald-400',
     }
   } else {
     return {
-      background: `rgba(244, 63, 94, ${0.1 + intensity * 0.25})`,
-      border: `rgba(244, 63, 94, ${0.1 + intensity * 0.15})`,
+      background: `rgba(244, 63, 94, ${0.12 + intensity * 0.3})`,
+      border: `rgba(244, 63, 94, ${0.15 + intensity * 0.2})`,
       text: change < -1 ? 'text-rose-300' : 'text-rose-400',
     }
   }
@@ -138,7 +138,7 @@ export function SectorHeatmap({ className }: SectorHeatmapProps) {
         </div>
 
         {/* Heatmap Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
           {sortedSectors.map((sector, index) => {
             const style = getHeatmapStyle(sector.change)
             
@@ -149,7 +149,7 @@ export function SectorHeatmap({ className }: SectorHeatmapProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: index * 0.03 }}
                 className={cn(
-                  'relative rounded-xl p-3 sm:p-4 cursor-pointer',
+                  'relative rounded-xl p-2.5 sm:p-3 cursor-pointer',
                   'border transition-all duration-200',
                   'hover:scale-[1.02]'
                 )}
@@ -162,7 +162,7 @@ export function SectorHeatmap({ className }: SectorHeatmapProps) {
                   <span className="text-[10px] sm:text-xs text-white/60 font-medium block mb-1 truncate">
                     {sector.name}
                   </span>
-                  <span className={cn('text-sm sm:text-base font-semibold tabular-nums', style.text)}>
+                  <span className={cn('text-base sm:text-lg font-semibold tabular-nums', style.text)}>
                     {sector.change >= 0 ? '+' : ''}{sector.change.toFixed(2)}%
                   </span>
                 </div>
@@ -172,14 +172,14 @@ export function SectorHeatmap({ className }: SectorHeatmapProps) {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-white/[0.04]">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded bg-emerald-500/30" />
-            <span className="text-xs text-white/40">Gainers</span>
+        <div className="flex items-center justify-center gap-8 mt-6 pt-4 border-t border-white/[0.04]">
+          <div className="flex items-center gap-2.5">
+            <span className="w-3.5 h-3.5 rounded bg-emerald-500/40" />
+            <span className="text-sm text-white/50 font-light">Gainers</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded bg-rose-500/30" />
-            <span className="text-xs text-white/40">Losers</span>
+          <div className="flex items-center gap-2.5">
+            <span className="w-3.5 h-3.5 rounded bg-rose-500/40" />
+            <span className="text-sm text-white/50 font-light">Losers</span>
           </div>
         </div>
       </GlassCard>

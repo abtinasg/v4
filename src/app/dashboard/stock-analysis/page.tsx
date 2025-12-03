@@ -45,8 +45,8 @@ export default function StockAnalysisPage() {
           className="mb-16 lg:mb-20"
         >
           {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white tracking-tight mb-4">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white tracking-tight mb-3">
               Stock Analysis
             </h1>
             <p className="text-base sm:text-lg text-white/40 font-light max-w-xl mx-auto leading-relaxed">
@@ -74,8 +74,8 @@ export default function StockAnalysisPage() {
                 onBlur={() => setIsFocused(false)}
                 placeholder="Search any stock (AAPL, MSFT, TSLA...)"
                 className={cn(
-                  'w-full bg-transparent pl-14 pr-32 py-5',
-                  'text-base text-white placeholder:text-white/30',
+                  'w-full bg-transparent pl-14 pr-36 py-5',
+                  'text-lg text-white placeholder:text-white/40',
                   'focus:outline-none'
                 )}
               />
@@ -83,9 +83,9 @@ export default function StockAnalysisPage() {
                 type="submit"
                 className={cn(
                   'absolute right-3 top-1/2 -translate-y-1/2',
-                  'flex items-center gap-2 px-5 py-2.5 rounded-xl',
+                  'flex items-center gap-2 px-6 py-3 rounded-xl',
                   'bg-gradient-to-r from-[#00C9E4] to-[#00C9E4]/80',
-                  'text-sm font-medium text-[#04060A]',
+                  'text-sm font-semibold text-[#04060A]',
                   'hover:shadow-[0_0_24px_rgba(0,201,228,0.3)]',
                   'transition-all duration-200'
                 )}
@@ -108,7 +108,7 @@ export default function StockAnalysisPage() {
             <h2 className="text-lg font-medium text-white/90">Popular Stocks</h2>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {popularStocks.map((stock, index) => (
               <motion.button
                 key={stock.symbol}
@@ -117,19 +117,20 @@ export default function StockAnalysisPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.04 }}
                 className={cn(
-                  'group relative p-5 rounded-xl text-left',
+                  'group relative p-4 rounded-xl text-left',
                   'bg-white/[0.02] border border-white/[0.04]',
-                  'hover:bg-white/[0.04] hover:border-white/[0.08]',
-                  'transition-all duration-200'
+                  'hover:bg-white/[0.05] hover:border-white/[0.1]',
+                  'hover:shadow-[0_4px_20px_rgba(255,255,255,0.03)]',
+                  'transition-all duration-200 backdrop-blur-sm'
                 )}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-lg font-semibold text-white tracking-tight">
                     {stock.symbol}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-white/40 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-white/50 group-hover:translate-x-0.5 transition-all" />
                 </div>
-                <span className="text-sm text-white/35 font-light">
+                <span className="text-sm text-white/45 font-light">
                   {stock.name}
                 </span>
               </motion.button>
@@ -147,19 +148,19 @@ export default function StockAnalysisPage() {
             <h2 className="text-lg font-medium text-white/90">Tools</h2>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Compare Tool */}
             <button
               onClick={() => router.push('/dashboard/stock-analysis/compare')}
               className={cn(
-                'group relative p-6 rounded-xl text-left',
+                'group relative p-5 rounded-xl text-left',
                 'bg-white/[0.02] border border-white/[0.04]',
                 'hover:bg-white/[0.04] hover:border-white/[0.08]',
                 'transition-all duration-200'
               )}
             >
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-[#00C9E4]/[0.08] border border-[#00C9E4]/[0.12]">
+                <div className="p-2.5 rounded-xl bg-[#00C9E4]/[0.08] border border-[#00C9E4]/[0.12]">
                   <GitCompareArrows className="w-5 h-5 text-[#00C9E4]" />
                 </div>
                 <div className="flex-1">
@@ -167,7 +168,7 @@ export default function StockAnalysisPage() {
                     <span className="text-base font-medium text-white">Compare Stocks</span>
                     <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-white/40 group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <p className="text-sm text-white/35 font-light leading-relaxed">
+                  <p className="text-sm text-white/45 font-light leading-relaxed">
                     Side-by-side comparison of up to 5 stocks
                   </p>
                 </div>
@@ -178,14 +179,14 @@ export default function StockAnalysisPage() {
             <button
               onClick={() => router.push('/dashboard/stock-analysis/screener')}
               className={cn(
-                'group relative p-6 rounded-xl text-left',
+                'group relative p-5 rounded-xl text-left',
                 'bg-white/[0.02] border border-white/[0.04]',
                 'hover:bg-white/[0.04] hover:border-white/[0.08]',
                 'transition-all duration-200'
               )}
             >
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-[#10B981]/[0.08] border border-[#10B981]/[0.12]">
+                <div className="p-2.5 rounded-xl bg-[#10B981]/[0.08] border border-[#10B981]/[0.12]">
                   <SlidersHorizontal className="w-5 h-5 text-[#10B981]" />
                 </div>
                 <div className="flex-1">
@@ -193,7 +194,7 @@ export default function StockAnalysisPage() {
                     <span className="text-base font-medium text-white">Stock Screener</span>
                     <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-white/40 group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <p className="text-sm text-white/35 font-light leading-relaxed">
+                  <p className="text-sm text-white/45 font-light leading-relaxed">
                     Filter by metrics, sectors, and quality scores
                   </p>
                 </div>

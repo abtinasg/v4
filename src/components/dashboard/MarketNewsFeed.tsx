@@ -88,10 +88,11 @@ export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
               className={cn(
-                'group relative rounded-xl overflow-hidden',
+                'group relative rounded-[14px] overflow-hidden',
                 'bg-white/[0.02] border border-white/[0.04]',
                 'hover:bg-white/[0.04] hover:border-white/[0.08]',
-                'transition-all duration-300'
+                'transition-all duration-300',
+                'shadow-[0_2px_12px_rgba(0,0,0,0.15)]'
               )}
             >
               {/* Image */}
@@ -100,23 +101,23 @@ export function MarketNewsFeed({ className }: MarketNewsFeedProps) {
                   <img
                     src={item.image}
                     alt=""
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 brightness-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#04060A] via-[#04060A]/50 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#04060A] via-[#04060A]/30 to-transparent" />
                 </div>
               )}
               
               {/* Content */}
               <div className="p-4">
-                <h4 className="text-sm font-medium text-white/90 line-clamp-2 mb-3 group-hover:text-white transition-colors leading-relaxed">
+                <h4 className="text-sm font-medium text-white line-clamp-2 mb-3 group-hover:text-white transition-colors leading-relaxed">
                   {item.headline}
                 </h4>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-white/40 uppercase tracking-wide truncate max-w-[60%]">
+                  <span className="text-[10px] text-white/50 uppercase tracking-wide truncate max-w-[60%]">
                     {item.source}
                   </span>
-                  <div className="flex items-center gap-1 text-white/30">
+                  <div className="flex items-center gap-1 text-white/40">
                     <Clock className="w-3 h-3" />
                     <span className="text-[10px]">{item.timeAgo || 'Now'}</span>
                   </div>
