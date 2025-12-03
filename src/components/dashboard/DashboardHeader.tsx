@@ -53,10 +53,16 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
               appearance={{
                 elements: {
                   avatarBox: 'w-9 h-9',
-                  userButtonPopoverCard: 'bg-[#1a1a1a] border border-white/10',
-                  userButtonPopoverActionButton: 'hover:bg-white/10',
-                  userButtonPopoverActionButtonText: 'text-white',
+                  userButtonPopoverCard: 'bg-[#12141a] border border-white/[0.08] shadow-2xl shadow-black/40 rounded-2xl',
+                  userButtonPopoverActionButton: 'hover:bg-white/[0.06] text-white/80 rounded-xl',
+                  userButtonPopoverActionButtonText: 'text-white/80 font-normal',
+                  userButtonPopoverActionButtonIcon: 'text-white/50',
                   userButtonPopoverFooter: 'hidden',
+                  userPreviewMainIdentifier: 'text-white font-medium',
+                  userPreviewSecondaryIdentifier: 'text-white/60',
+                  userPreview: 'border-b border-white/[0.06] pb-3 mb-1',
+                  userPreviewAvatarBox: 'w-11 h-11',
+                  userPreviewTextContainer: 'gap-0.5',
                 },
               }}
             />
