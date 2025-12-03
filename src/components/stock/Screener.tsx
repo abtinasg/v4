@@ -19,11 +19,12 @@ import {
   X,
   Loader2,
   RefreshCw,
+  ChevronRight,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Types
 export interface ScreenerFilters {
@@ -113,10 +114,10 @@ const DEFAULT_FILTERS: ScreenerFilters = {
 const PRESET_SCREENS: ScreenerPreset[] = [
   {
     id: 'value',
-    name: 'Value Stocks',
-    description: 'Low P/E, high dividend yield stocks',
-    icon: <Target className="h-5 w-5" />,
-    color: '#22C55E',
+    name: 'Value',
+    description: 'Low P/E, high dividends',
+    icon: <Target className="h-4 w-4" />,
+    color: '#10B981',
     filters: {
       peRatio: { min: null, max: 15 },
       dividendYield: { min: 2, max: null },
@@ -125,9 +126,9 @@ const PRESET_SCREENS: ScreenerPreset[] = [
   },
   {
     id: 'growth',
-    name: 'Growth Stocks',
-    description: 'High growth, strong momentum',
-    icon: <TrendingUp className="h-5 w-5" />,
+    name: 'Growth',
+    description: 'High growth, momentum',
+    icon: <TrendingUp className="h-4 w-4" />,
     color: '#3B82F6',
     filters: {
       revenueGrowth: { min: 15, max: null },
@@ -137,9 +138,9 @@ const PRESET_SCREENS: ScreenerPreset[] = [
   },
   {
     id: 'quality',
-    name: 'Quality Stocks',
-    description: 'High Piotroski score, strong fundamentals',
-    icon: <Award className="h-5 w-5" />,
+    name: 'Quality',
+    description: 'Strong fundamentals',
+    icon: <Award className="h-4 w-4" />,
     color: '#F59E0B',
     filters: {
       piotroskiScore: { min: 7, max: null },
@@ -149,9 +150,9 @@ const PRESET_SCREENS: ScreenerPreset[] = [
   },
   {
     id: 'momentum',
-    name: 'Momentum Stocks',
-    description: 'Strong RSI, bullish MACD',
-    icon: <Zap className="h-5 w-5" />,
+    name: 'Momentum',
+    description: 'Bullish signals',
+    icon: <Zap className="h-4 w-4" />,
     color: '#EC4899',
     filters: {
       rsi: { min: 55, max: 75 },
@@ -385,174 +386,205 @@ export function Screener({ initialFilters }: ScreenerProps) {
   }, [filters]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-10">
+      {/* Header - Premium & Clean */}
+      <motion.header
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6"
+      >
         <div>
-          <h1 className="text-2xl font-bold text-white">Stock Screener</h1>
-          <p className="text-gray-400 text-sm mt-1">
-            Find stocks matching your criteria • {isLoading ? 'Loading...' : `${filteredStocks.length} of ${totalStocks} stocks`}
+          <h1 className="text-3xl sm:text-4xl font-semibold text-white tracking-tight">
+            Stock Screener
+          </h1>
+          <p className="text-base text-white/40 font-light mt-2 leading-relaxed">
+            {isLoading ? 'Loading stocks...' : `${filteredStocks.length.toLocaleString()} of ${totalStocks.toLocaleString()} stocks`}
           </p>
-          {lastUpdated && (
-            <p className="text-gray-500 text-xs mt-0.5">
-              Last updated: {new Date(lastUpdated).toLocaleTimeString()}
-            </p>
-          )}
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex items-center gap-3">
+          <button
             onClick={() => fetchStocks()}
             disabled={isLoading}
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl transition-all duration-200"
           >
-            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-            Refresh
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
+            <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+          <button
             onClick={() => setSavingScreen(true)}
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl transition-all duration-200"
           >
-            <Save className="h-4 w-4 mr-2" />
-            Save Screen
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
+            <Save className="w-4 h-4" />
+            <span className="hidden sm:inline">Save</span>
+          </button>
+          <button
             onClick={() => setShowFilters(!showFilters)}
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className={cn(
+              "flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl transition-all duration-200",
+              showFilters 
+                ? "bg-white/[0.08] text-white border border-white/[0.08]" 
+                : "text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06]"
+            )}
           >
-            <SlidersHorizontal className="h-4 w-4 mr-2" />
-            Filters
+            <SlidersHorizontal className="w-4 h-4" />
+            <span className="hidden sm:inline">Filters</span>
             {activeFilterCount > 0 && (
-              <span className="ml-2 px-1.5 py-0.5 text-xs bg-[#00D4FF]/20 text-[#00D4FF] rounded">
+              <span className="px-1.5 py-0.5 text-xs bg-emerald-500/20 text-emerald-400 rounded-md">
                 {activeFilterCount}
               </span>
             )}
-          </Button>
+          </button>
         </div>
-      </div>
+      </motion.header>
 
       {/* Error Message */}
       {error && (
-        <Card className="border-red-500/20 bg-red-500/10">
-          <CardContent className="pt-4">
-            <p className="text-red-400 text-sm">{error}</p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchStocks()}
-              className="mt-2 border-red-500/20 text-red-400 hover:bg-red-500/10"
-            >
-              Try Again
-            </Button>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20"
+        >
+          <p className="text-rose-400 text-sm font-light">{error}</p>
+          <button
+            onClick={() => fetchStocks()}
+            className="mt-3 px-4 py-2 text-sm bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+        </motion.div>
       )}
 
       {/* Save Screen Modal */}
-      {savingScreen && (
-        <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm">
-          <CardContent className="pt-6">
+      <AnimatePresence>
+        {savingScreen && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="p-5 rounded-2xl bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+          >
             <div className="flex items-center gap-4">
               <input
                 type="text"
                 value={screenName}
                 onChange={(e) => setScreenName(e.target.value)}
-                placeholder="Enter screen name..."
-                className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
+                placeholder="Screen name..."
+                className="flex-1 px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/[0.12] transition-colors"
               />
-              <Button
+              <button
                 onClick={saveScreen}
-                className="bg-gradient-to-r from-[#00D4FF] to-[#3B82F6] text-[#05070B]"
+                className="px-5 py-3 bg-emerald-500/90 hover:bg-emerald-500 text-white rounded-xl font-medium transition-all"
               >
                 Save
-              </Button>
-              <Button
-                variant="outline"
+              </button>
+              <button
                 onClick={() => setSavingScreen(false)}
-                className="border-white/10 text-gray-400"
+                className="px-4 py-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-white/60 rounded-xl transition-colors"
               >
                 Cancel
-              </Button>
+              </button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Preset Screens */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {PRESET_SCREENS.map(preset => (
-          <button
-            key={preset.id}
-            onClick={() => applyPreset(preset)}
-            className="group p-4 rounded-xl border border-white/[0.05] bg-[#0A0D12]/40 hover:border-white/20 transition-all text-left"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div
-                className="p-2 rounded-lg"
-                style={{ backgroundColor: `${preset.color}20`, color: preset.color }}
-              >
-                {preset.icon}
+      {/* Smart Presets - Primary */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <div className="flex items-center gap-3 mb-5">
+          <h2 className="text-sm font-medium text-white/40 uppercase tracking-wider">Smart Presets</h2>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {PRESET_SCREENS.map(preset => (
+            <button
+              key={preset.id}
+              onClick={() => applyPreset(preset)}
+              className="group p-5 rounded-2xl bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.08] hover:-translate-y-0.5 transition-all duration-200 text-left shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className="p-2.5 rounded-xl"
+                  style={{ backgroundColor: `${preset.color}15`, color: preset.color }}
+                >
+                  {preset.icon}
+                </div>
+                <span className="font-medium text-white tracking-tight">{preset.name}</span>
               </div>
-              <span className="font-medium text-white">{preset.name}</span>
-            </div>
-            <p className="text-sm text-gray-500">{preset.description}</p>
-          </button>
-        ))}
-      </div>
+              <p className="text-sm text-white/35 font-light leading-relaxed">{preset.description}</p>
+            </button>
+          ))}
+        </div>
+      </motion.section>
 
       {/* Saved Screens */}
-      {savedScreens.length > 0 && (
-        <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-300 flex items-center gap-2">
-              <Bookmark className="h-4 w-4" />
-              Saved Screens
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      <AnimatePresence>
+        {savedScreens.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Bookmark className="h-4 w-4 text-white/30" />
+              <span className="text-sm font-medium text-white/40">Saved Screens</span>
+            </div>
             <div className="flex flex-wrap gap-2">
               {savedScreens.map((saved, i) => (
                 <button
                   key={i}
                   onClick={() => loadSavedScreen(saved)}
-                  className="px-3 py-1.5 rounded-lg bg-white/5 text-white text-sm hover:bg-white/10 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] text-white/70 hover:text-white text-sm transition-all duration-200"
                 >
                   {saved.name}
                 </button>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </motion.section>
+        )}
+      </AnimatePresence>
 
-      {/* Filters Panel */}
-      {showFilters && (
-        <ScreenerFiltersPanel
-          filters={filters}
-          onChange={setFilters}
-          onReset={resetFilters}
-        />
-      )}
+      {/* Filters Panel - Secondary */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ScreenerFiltersPanel
+              filters={filters}
+              onChange={setFilters}
+              onReset={resetFilters}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Results Table */}
-      <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm overflow-hidden">
+      {/* Results Table - Tertiary */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+      >
         {isLoading ? (
-          <div className="p-12 text-center">
-            <Loader2 className="h-12 w-12 text-[#00D4FF] mx-auto mb-4 animate-spin" />
-            <h3 className="text-lg font-medium text-white mb-2">Loading stocks...</h3>
-            <p className="text-gray-400">Fetching real-time data for {totalStocks || '500+'} stocks</p>
+          <div className="py-20 text-center">
+            <Loader2 className="h-8 w-8 text-white/30 mx-auto mb-4 animate-spin" />
+            <h3 className="text-lg font-medium text-white tracking-tight mb-2">Loading stocks...</h3>
+            <p className="text-white/40 font-light">Fetching data for {totalStocks || '500+'} stocks</p>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/10">
+                  <tr className="border-b border-white/[0.05]">
                     <SortableHeader field="symbol" label="Symbol" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
                     <SortableHeader field="sector" label="Sector" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
                     <SortableHeader field="price" label="Price" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
@@ -566,51 +598,55 @@ export function Screener({ initialFilters }: ScreenerProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedStocks.map(stock => (
+                  {sortedStocks.map((stock, idx) => (
                     <tr
                       key={stock.symbol}
                       onClick={() => router.push(`/dashboard/stock-analysis/${stock.symbol}`)}
-                      className="border-b border-white/5 hover:bg-white/[0.02] cursor-pointer transition-colors"
+                      className={cn(
+                        "hover:bg-white/[0.03] cursor-pointer transition-colors",
+                        idx !== sortedStocks.length - 1 && "border-b border-white/[0.03]"
+                      )}
                     >
-                      <td className="p-4">
+                      <td className="px-5 py-4">
                         <div>
-                          <div className="font-medium text-white">{stock.symbol}</div>
-                          <div className="text-sm text-gray-500 truncate max-w-[150px]">{stock.companyName}</div>
+                          <div className="font-medium text-white text-sm">{stock.symbol}</div>
+                          <div className="text-xs text-white/30 font-light truncate max-w-[140px]">{stock.companyName}</div>
                         </div>
                       </td>
-                      <td className="p-4">
-                        <span className="text-xs px-2 py-1 rounded bg-white/5 text-gray-300">
+                      <td className="px-5 py-4">
+                        <span className="text-xs px-2.5 py-1 rounded-lg bg-white/[0.04] text-white/50 font-light">
                           {stock.sector}
                         </span>
                       </td>
-                      <td className="p-4 text-white font-medium">${stock.price?.toFixed(2) || 'N/A'}</td>
-                      <td className="p-4">
+                      <td className="px-5 py-4 text-white font-medium text-sm">${stock.price?.toFixed(2) || 'N/A'}</td>
+                      <td className="px-5 py-4">
                         <span className={cn(
-                          "flex items-center gap-1",
-                          stock.changePercent >= 0 ? "text-green-400" : "text-red-400"
+                          "flex items-center gap-1 text-sm font-light",
+                          stock.changePercent >= 0 ? "text-emerald-400" : "text-rose-400"
                         )}>
                           {stock.changePercent >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                           {stock.changePercent?.toFixed(2)}%
                         </span>
                       </td>
-                      <td className="p-4 text-white">
+                      <td className="px-5 py-4 text-white/70 text-sm font-light">
                         {stock.marketCap >= 1000 ? `$${(stock.marketCap / 1000).toFixed(1)}T` : 
                          stock.marketCap >= 1 ? `$${stock.marketCap.toFixed(1)}B` : 
                          `$${(stock.marketCap * 1000).toFixed(0)}M`}
                       </td>
-                      <td className="p-4 text-white">{stock.peRatio?.toFixed(1) || 'N/A'}</td>
-                      <td className="p-4 text-white">{stock.forwardPE?.toFixed(1) || 'N/A'}</td>
-                      <td className="p-4 text-white">{stock.pbRatio?.toFixed(2) || 'N/A'}</td>
-                      <td className="p-4 text-white">
-                        {stock.dividendYield ? `${stock.dividendYield.toFixed(2)}%` : 'N/A'}
+                      <td className="px-5 py-4 text-white/70 text-sm font-light">{stock.peRatio?.toFixed(1) || '—'}</td>
+                      <td className="px-5 py-4 text-white/70 text-sm font-light">{stock.forwardPE?.toFixed(1) || '—'}</td>
+                      <td className="px-5 py-4 text-white/70 text-sm font-light">{stock.pbRatio?.toFixed(2) || '—'}</td>
+                      <td className="px-5 py-4 text-white/70 text-sm font-light">
+                        {stock.dividendYield ? `${stock.dividendYield.toFixed(2)}%` : '—'}
                       </td>
-                      <td className="p-4">
+                      <td className="px-5 py-4">
                         <span className={cn(
-                          stock.beta && stock.beta > 1.5 ? "text-red-400" :
-                          stock.beta && stock.beta < 0.8 ? "text-green-400" :
-                          "text-white"
+                          "text-sm font-light",
+                          stock.beta && stock.beta > 1.5 ? "text-rose-400/80" :
+                          stock.beta && stock.beta < 0.8 ? "text-emerald-400/80" :
+                          "text-white/70"
                         )}>
-                          {stock.beta?.toFixed(2) || 'N/A'}
+                          {stock.beta?.toFixed(2) || '—'}
                         </span>
                       </td>
                     </tr>
@@ -620,27 +656,28 @@ export function Screener({ initialFilters }: ScreenerProps) {
             </div>
             
             {sortedStocks.length === 0 && !isLoading && (
-              <div className="p-12 text-center">
-                <Search className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-white mb-2">No stocks match your criteria</h3>
-                <p className="text-gray-400 mb-4">Try adjusting your filters or use a preset screen</p>
-                <Button
-                  variant="outline"
+              <div className="py-20 text-center">
+                <div className="h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center mx-auto mb-5">
+                  <Search className="h-6 w-6 text-white/25" />
+                </div>
+                <h3 className="text-lg font-medium text-white tracking-tight mb-2">No stocks match your criteria</h3>
+                <p className="text-white/40 font-light mb-6">Try adjusting your filters or use a preset</p>
+                <button
                   onClick={resetFilters}
-                  className="border-white/10 text-white"
+                  className="px-5 py-2.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-white/70 hover:text-white rounded-xl text-sm transition-all"
                 >
                   Reset Filters
-                </Button>
+                </button>
               </div>
             )}
           </>
         )}
-      </Card>
+      </motion.section>
     </div>
   );
 }
 
-// Sortable Header Component
+// Sortable Header Component - Premium
 function SortableHeader({
   field,
   label,
@@ -658,20 +695,20 @@ function SortableHeader({
   
   return (
     <th
-      className="p-4 text-left cursor-pointer hover:bg-white/5 transition-colors"
+      className="px-5 py-4 text-left cursor-pointer hover:bg-white/[0.02] transition-colors"
       onClick={() => onSort(field)}
     >
-      <div className="flex items-center gap-1 text-gray-400 font-medium">
+      <div className="flex items-center gap-1.5 text-xs text-white/40 font-medium uppercase tracking-wider">
         {label}
         <div className="flex flex-col">
           {isActive ? (
             sortDirection === 'asc' ? (
-              <ChevronUp className="h-4 w-4 text-[#00D4FF]" />
+              <ChevronUp className="h-3.5 w-3.5 text-white/70" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-[#00D4FF]" />
+              <ChevronDown className="h-3.5 w-3.5 text-white/70" />
             )
           ) : (
-            <ArrowUpDown className="h-3 w-3 text-gray-600" />
+            <ArrowUpDown className="h-3 w-3 text-white/20" />
           )}
         </div>
       </div>
@@ -679,7 +716,7 @@ function SortableHeader({
   );
 }
 
-// Filters Panel Component
+// Filters Panel Component - Premium Redesign
 function ScreenerFiltersPanel({
   filters,
   onChange,
@@ -697,394 +734,257 @@ function ScreenerFiltersPanel({
   };
 
   return (
-    <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm">
-      <CardHeader className="pb-3 flex flex-row items-center justify-between">
-        <CardTitle className="text-lg text-white">Filters</CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="p-6 lg:p-8 rounded-2xl bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+    >
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-lg font-medium text-white tracking-tight">Filters</h2>
+        <button
           onClick={onReset}
-          className="text-gray-400 hover:text-white"
+          className="text-sm text-white/40 hover:text-white transition-colors"
         >
           Reset All
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {/* Market Cap */}
-          <FilterSection title="Market Cap">
-            <select
-              value={filters.marketCap.preset || 'any'}
-              onChange={(e) => updateFilter('marketCap', {
-                ...filters.marketCap,
-                preset: e.target.value as ScreenerFilters['marketCap']['preset'],
-              })}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00D4FF]/50"
-            >
-              <option value="any">Any</option>
-              {Object.entries(MARKET_CAP_PRESETS).map(([key, value]) => (
-                <option key={key} value={key}>{value.label}</option>
-              ))}
-            </select>
-          </FilterSection>
+        </button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
+        {/* Market Cap */}
+        <FilterField label="Market Cap">
+          <select
+            value={filters.marketCap.preset || 'any'}
+            onChange={(e) => updateFilter('marketCap', {
+              ...filters.marketCap,
+              preset: e.target.value as ScreenerFilters['marketCap']['preset'],
+            })}
+            className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white text-sm focus:outline-none focus:border-white/[0.12] transition-all appearance-none cursor-pointer"
+          >
+            <option value="any">Any</option>
+            {Object.entries(MARKET_CAP_PRESETS).map(([key, value]) => (
+              <option key={key} value={key}>{value.label}</option>
+            ))}
+          </select>
+        </FilterField>
 
-          {/* Sector */}
-          <FilterSection title="Sector">
-            <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
-              {SECTORS.map(sector => (
-                <button
-                  key={sector}
-                  onClick={() => {
-                    const newSectors = filters.sector.includes(sector)
-                      ? filters.sector.filter(s => s !== sector)
-                      : [...filters.sector, sector];
-                    updateFilter('sector', newSectors);
-                  }}
-                  className={cn(
-                    "px-2 py-1 rounded text-xs transition-colors",
-                    filters.sector.includes(sector)
-                      ? "bg-[#00D4FF]/20 text-[#00D4FF]"
-                      : "bg-white/5 text-gray-400 hover:bg-white/10"
-                  )}
-                >
-                  {sector}
-                </button>
-              ))}
-            </div>
-          </FilterSection>
+        {/* Sector */}
+        <FilterField label="Sector">
+          <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1">
+            {SECTORS.map(sector => (
+              <button
+                key={sector}
+                onClick={() => {
+                  const newSectors = filters.sector.includes(sector)
+                    ? filters.sector.filter(s => s !== sector)
+                    : [...filters.sector, sector];
+                  updateFilter('sector', newSectors);
+                }}
+                className={cn(
+                  "px-2.5 py-1.5 rounded-lg text-xs transition-all duration-200",
+                  filters.sector.includes(sector)
+                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                    : "bg-white/[0.03] text-white/50 hover:bg-white/[0.06] hover:text-white/70 border border-transparent"
+                )}
+              >
+                {sector}
+              </button>
+            ))}
+          </div>
+        </FilterField>
 
-          {/* P/E Ratio */}
-          <FilterSection title="P/E Ratio">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.peRatio.min ?? ''}
-                onChange={(e) => updateFilter('peRatio', {
-                  ...filters.peRatio,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.peRatio.max ?? ''}
-                onChange={(e) => updateFilter('peRatio', {
-                  ...filters.peRatio,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* P/E Ratio */}
+        <FilterField label="P/E Ratio">
+          <RangeInput
+            minValue={filters.peRatio.min}
+            maxValue={filters.peRatio.max}
+            onMinChange={(val) => updateFilter('peRatio', { ...filters.peRatio, min: val })}
+            onMaxChange={(val) => updateFilter('peRatio', { ...filters.peRatio, max: val })}
+          />
+        </FilterField>
 
-          {/* Dividend Yield */}
-          <FilterSection title="Dividend Yield (%)">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.dividendYield.min ?? ''}
-                onChange={(e) => updateFilter('dividendYield', {
-                  ...filters.dividendYield,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.dividendYield.max ?? ''}
-                onChange={(e) => updateFilter('dividendYield', {
-                  ...filters.dividendYield,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* Dividend Yield */}
+        <FilterField label="Dividend Yield (%)">
+          <RangeInput
+            minValue={filters.dividendYield.min}
+            maxValue={filters.dividendYield.max}
+            onMinChange={(val) => updateFilter('dividendYield', { ...filters.dividendYield, min: val })}
+            onMaxChange={(val) => updateFilter('dividendYield', { ...filters.dividendYield, max: val })}
+          />
+        </FilterField>
 
-          {/* ROE */}
-          <FilterSection title="ROE (%)">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.roe.min ?? ''}
-                onChange={(e) => updateFilter('roe', {
-                  ...filters.roe,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.roe.max ?? ''}
-                onChange={(e) => updateFilter('roe', {
-                  ...filters.roe,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* ROE */}
+        <FilterField label="ROE (%)">
+          <RangeInput
+            minValue={filters.roe.min}
+            maxValue={filters.roe.max}
+            onMinChange={(val) => updateFilter('roe', { ...filters.roe, min: val })}
+            onMaxChange={(val) => updateFilter('roe', { ...filters.roe, max: val })}
+          />
+        </FilterField>
 
-          {/* ROA */}
-          <FilterSection title="ROA (%)">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.roa.min ?? ''}
-                onChange={(e) => updateFilter('roa', {
-                  ...filters.roa,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.roa.max ?? ''}
-                onChange={(e) => updateFilter('roa', {
-                  ...filters.roa,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* ROA */}
+        <FilterField label="ROA (%)">
+          <RangeInput
+            minValue={filters.roa.min}
+            maxValue={filters.roa.max}
+            onMinChange={(val) => updateFilter('roa', { ...filters.roa, min: val })}
+            onMaxChange={(val) => updateFilter('roa', { ...filters.roa, max: val })}
+          />
+        </FilterField>
 
-          {/* Revenue Growth */}
-          <FilterSection title="Revenue Growth (%)">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.revenueGrowth.min ?? ''}
-                onChange={(e) => updateFilter('revenueGrowth', {
-                  ...filters.revenueGrowth,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.revenueGrowth.max ?? ''}
-                onChange={(e) => updateFilter('revenueGrowth', {
-                  ...filters.revenueGrowth,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* Revenue Growth */}
+        <FilterField label="Revenue Growth (%)">
+          <RangeInput
+            minValue={filters.revenueGrowth.min}
+            maxValue={filters.revenueGrowth.max}
+            onMinChange={(val) => updateFilter('revenueGrowth', { ...filters.revenueGrowth, min: val })}
+            onMaxChange={(val) => updateFilter('revenueGrowth', { ...filters.revenueGrowth, max: val })}
+          />
+        </FilterField>
 
-          {/* EPS Growth */}
-          <FilterSection title="EPS Growth (%)">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.epsGrowth.min ?? ''}
-                onChange={(e) => updateFilter('epsGrowth', {
-                  ...filters.epsGrowth,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.epsGrowth.max ?? ''}
-                onChange={(e) => updateFilter('epsGrowth', {
-                  ...filters.epsGrowth,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* EPS Growth */}
+        <FilterField label="EPS Growth (%)">
+          <RangeInput
+            minValue={filters.epsGrowth.min}
+            maxValue={filters.epsGrowth.max}
+            onMinChange={(val) => updateFilter('epsGrowth', { ...filters.epsGrowth, min: val })}
+            onMaxChange={(val) => updateFilter('epsGrowth', { ...filters.epsGrowth, max: val })}
+          />
+        </FilterField>
 
-          {/* Debt to Equity */}
-          <FilterSection title="Debt/Equity">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                step="0.1"
-                value={filters.debtToEquity.min ?? ''}
-                onChange={(e) => updateFilter('debtToEquity', {
-                  ...filters.debtToEquity,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                step="0.1"
-                value={filters.debtToEquity.max ?? ''}
-                onChange={(e) => updateFilter('debtToEquity', {
-                  ...filters.debtToEquity,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* Debt to Equity */}
+        <FilterField label="Debt/Equity">
+          <RangeInput
+            minValue={filters.debtToEquity.min}
+            maxValue={filters.debtToEquity.max}
+            step={0.1}
+            onMinChange={(val) => updateFilter('debtToEquity', { ...filters.debtToEquity, min: val })}
+            onMaxChange={(val) => updateFilter('debtToEquity', { ...filters.debtToEquity, max: val })}
+          />
+        </FilterField>
 
-          {/* Current Ratio */}
-          <FilterSection title="Current Ratio">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                step="0.1"
-                value={filters.currentRatio.min ?? ''}
-                onChange={(e) => updateFilter('currentRatio', {
-                  ...filters.currentRatio,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                step="0.1"
-                value={filters.currentRatio.max ?? ''}
-                onChange={(e) => updateFilter('currentRatio', {
-                  ...filters.currentRatio,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* Current Ratio */}
+        <FilterField label="Current Ratio">
+          <RangeInput
+            minValue={filters.currentRatio.min}
+            maxValue={filters.currentRatio.max}
+            step={0.1}
+            onMinChange={(val) => updateFilter('currentRatio', { ...filters.currentRatio, min: val })}
+            onMaxChange={(val) => updateFilter('currentRatio', { ...filters.currentRatio, max: val })}
+          />
+        </FilterField>
 
-          {/* RSI */}
-          <FilterSection title="RSI">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                min="0"
-                max="100"
-                value={filters.rsi.min ?? ''}
-                onChange={(e) => updateFilter('rsi', {
-                  ...filters.rsi,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                min="0"
-                max="100"
-                value={filters.rsi.max ?? ''}
-                onChange={(e) => updateFilter('rsi', {
-                  ...filters.rsi,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* RSI */}
+        <FilterField label="RSI">
+          <RangeInput
+            minValue={filters.rsi.min}
+            maxValue={filters.rsi.max}
+            min={0}
+            max={100}
+            onMinChange={(val) => updateFilter('rsi', { ...filters.rsi, min: val })}
+            onMaxChange={(val) => updateFilter('rsi', { ...filters.rsi, max: val })}
+          />
+        </FilterField>
 
-          {/* MACD Signal */}
-          <FilterSection title="MACD Signal">
-            <select
-              value={filters.macdSignal || 'any'}
-              onChange={(e) => updateFilter('macdSignal', e.target.value as ScreenerFilters['macdSignal'])}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00D4FF]/50"
-            >
-              <option value="any">Any</option>
-              <option value="bullish">Bullish</option>
-              <option value="bearish">Bearish</option>
-            </select>
-          </FilterSection>
+        {/* MACD Signal */}
+        <FilterField label="MACD Signal">
+          <select
+            value={filters.macdSignal || 'any'}
+            onChange={(e) => updateFilter('macdSignal', e.target.value as ScreenerFilters['macdSignal'])}
+            className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white text-sm focus:outline-none focus:border-white/[0.12] transition-all appearance-none cursor-pointer"
+          >
+            <option value="any">Any</option>
+            <option value="bullish">Bullish</option>
+            <option value="bearish">Bearish</option>
+          </select>
+        </FilterField>
 
-          {/* Piotroski F-Score */}
-          <FilterSection title="Piotroski F-Score">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                min="0"
-                max="9"
-                value={filters.piotroskiScore.min ?? ''}
-                onChange={(e) => updateFilter('piotroskiScore', {
-                  ...filters.piotroskiScore,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                min="0"
-                max="9"
-                value={filters.piotroskiScore.max ?? ''}
-                onChange={(e) => updateFilter('piotroskiScore', {
-                  ...filters.piotroskiScore,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
+        {/* Piotroski F-Score */}
+        <FilterField label="Piotroski Score">
+          <RangeInput
+            minValue={filters.piotroskiScore.min}
+            maxValue={filters.piotroskiScore.max}
+            min={0}
+            max={9}
+            onMinChange={(val) => updateFilter('piotroskiScore', { ...filters.piotroskiScore, min: val })}
+            onMaxChange={(val) => updateFilter('piotroskiScore', { ...filters.piotroskiScore, max: val })}
+          />
+        </FilterField>
 
-          {/* Altman Z-Score */}
-          <FilterSection title="Altman Z-Score">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                step="0.1"
-                value={filters.altmanZ.min ?? ''}
-                onChange={(e) => updateFilter('altmanZ', {
-                  ...filters.altmanZ,
-                  min: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                step="0.1"
-                value={filters.altmanZ.max ?? ''}
-                onChange={(e) => updateFilter('altmanZ', {
-                  ...filters.altmanZ,
-                  max: e.target.value ? parseFloat(e.target.value) : null,
-                })}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-              />
-            </div>
-          </FilterSection>
-        </div>
-      </CardContent>
-    </Card>
+        {/* Altman Z-Score */}
+        <FilterField label="Altman Z-Score">
+          <RangeInput
+            minValue={filters.altmanZ.min}
+            maxValue={filters.altmanZ.max}
+            step={0.1}
+            onMinChange={(val) => updateFilter('altmanZ', { ...filters.altmanZ, min: val })}
+            onMaxChange={(val) => updateFilter('altmanZ', { ...filters.altmanZ, max: val })}
+          />
+        </FilterField>
+      </div>
+    </motion.div>
   );
 }
 
-// Filter Section Component
-function FilterSection({
-  title,
+// Filter Field Wrapper
+function FilterField({
+  label,
   children,
 }: {
-  title: string;
+  label: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-400 mb-2">
-        {title}
+      <label className="block text-xs font-medium text-white/35 uppercase tracking-wider mb-3">
+        {label}
       </label>
       {children}
+    </div>
+  );
+}
+
+// Range Input Component - Premium unified design
+function RangeInput({
+  minValue,
+  maxValue,
+  onMinChange,
+  onMaxChange,
+  step = 1,
+  min,
+  max,
+}: {
+  minValue: number | null;
+  maxValue: number | null;
+  onMinChange: (val: number | null) => void;
+  onMaxChange: (val: number | null) => void;
+  step?: number;
+  min?: number;
+  max?: number;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="number"
+        placeholder="Min"
+        step={step}
+        min={min}
+        max={max}
+        value={minValue ?? ''}
+        onChange={(e) => onMinChange(e.target.value ? parseFloat(e.target.value) : null)}
+        className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white text-sm placeholder-white/25 focus:outline-none focus:border-white/[0.12] hover:bg-white/[0.04] transition-all"
+      />
+      <span className="text-white/20 text-sm">—</span>
+      <input
+        type="number"
+        placeholder="Max"
+        step={step}
+        min={min}
+        max={max}
+        value={maxValue ?? ''}
+        onChange={(e) => onMaxChange(e.target.value ? parseFloat(e.target.value) : null)}
+        className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white text-sm placeholder-white/25 focus:outline-none focus:border-white/[0.12] hover:bg-white/[0.04] transition-all"
+      />
     </div>
   );
 }

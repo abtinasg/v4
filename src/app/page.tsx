@@ -1,35 +1,25 @@
 import {
-  Navigation,
-  Hero,
-  TrustBar,
-  Vision,
-  LiveData,
-  UIPreview,
-  Architecture,
-  AIOrchestrator,
-  MetricsLibrary,
-  Pricing,
-  Testimonials,
-  FinalCTA,
-  Footer
+  NavigationPremium,
+  HeroPremium,
+  FeaturesPremium,
+  MarketPreview,
+  AIPreview,
+  PricingPremium,
+  CTAPremium,
+  FooterPremium
 } from '@/components/landing'
 
 export default function Home() {
   return (
-    <main className="bg-[#05070B] min-h-screen">
-      <Navigation />
-      <Hero />
-      <TrustBar />
-      <Vision />
-      <LiveData />
-      <UIPreview />
-      <Architecture />
-      <AIOrchestrator />
-      <MetricsLibrary />
-      <Pricing />
-      <Testimonials />
-      <FinalCTA />
-      <Footer />
+    <main className="bg-[#030508] min-h-screen antialiased">
+      <NavigationPremium />
+      <HeroPremium />
+      <FeaturesPremium />
+      <MarketPreview />
+      <AIPreview />
+      <PricingPremium />
+      <CTAPremium />
+      <FooterPremium />
     </main>
   )
 }

@@ -64,15 +64,15 @@ export const SuggestedQuestions = memo(function SuggestedQuestions({
   }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 10, scale: 0.95 },
+    hidden: { opacity: 0, y: 8, scale: 0.98 },
     visible: { 
       opacity: 1, 
       y: 0, 
       scale: 1,
       transition: {
         type: 'spring' as const,
-        stiffness: 300,
-        damping: 25,
+        stiffness: 400,
+        damping: 30,
       },
     },
   }
@@ -82,44 +82,41 @@ export const SuggestedQuestions = memo(function SuggestedQuestions({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className={cn('space-y-2', className)}
+      className={cn('space-y-4', className)}
     >
-      {/* Context indicator */}
-      <div className="flex items-center gap-2 px-1">
-        <div className="flex items-center gap-1.5 text-white/40">
+      {/* Context indicator - Minimal */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-white/30">
           {icon}
-          <span className="text-xs font-medium">
+          <span className="text-xs font-medium tracking-wide">
             {context.type === 'stock' && context.stock?.symbol
               ? `Suggestions for ${context.stock.symbol}`
-              : context.type === 'general'
-              ? 'Suggested questions'
-              : `${context.type.charAt(0).toUpperCase() + context.type.slice(1)} suggestions`}
+              : 'Suggested prompts'}
           </span>
         </div>
       </div>
 
-      {/* Questions grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      {/* Questions grid - Premium Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {displayedQuestions.map((question, index) => (
           <motion.button
             key={`${question}-${index}`}
             variants={itemVariants}
             onClick={() => onSelect(question)}
             className={cn(
-              'group relative text-left p-3 rounded-xl',
-              'bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20',
+              'group relative text-left p-4 rounded-xl',
+              'bg-white/[0.02] backdrop-blur-sm',
+              'border border-white/[0.05] hover:border-white/[0.10]',
+              'shadow-[0_4px_16px_rgba(0,0,0,0.06)]',
+              'hover:bg-white/[0.04] hover:shadow-[0_6px_20px_rgba(0,0,0,0.08)]',
+              'hover:-translate-y-0.5',
               'transition-all duration-200',
-              'focus:outline-none focus:ring-2 focus:ring-cyan-500/50',
+              'focus:outline-none focus:ring-1 focus:ring-white/[0.12]',
             )}
           >
-            <span className="text-sm text-white/80 group-hover:text-white line-clamp-2">
+            <span className="text-sm text-white/70 group-hover:text-white/90 leading-relaxed line-clamp-2 font-light">
               {question}
             </span>
-            
-            {/* Hover indicator */}
-            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-500/5 to-violet-500/5" />
-            </div>
           </motion.button>
         ))}
       </div>

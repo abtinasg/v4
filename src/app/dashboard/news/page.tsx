@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Newspaper, 
   Search, 
-  Filter, 
   TrendingUp, 
   TrendingDown, 
   Clock, 
@@ -15,7 +14,9 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Minus,
+  Filter
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/cinematic'
@@ -45,7 +46,7 @@ const calculateReadingTime = (text: string): string => {
   const wordsPerMinute = 200
   const wordCount = text.trim().split(/\s+/).length
   const minutes = Math.ceil(wordCount / wordsPerMinute)
-  return minutes === 1 ? '1 min read' : `${minutes} min read`
+  return minutes === 1 ? '1 min' : `${minutes} min`
 }
 
 export default function NewsPage() {
@@ -144,16 +145,16 @@ export default function NewsPage() {
   const sentiments: SentimentFilter[] = ['all', 'bullish', 'bearish', 'neutral']
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen p-6 sm:p-8 lg:p-12">
       {/* Update AI context with news data */}
       <NewsContextUpdater news={news} />
       
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1600px] mx-auto">
         {/* AI Market Intelligence Report */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
+          className="mb-12"
         >
           <AIMarketReport />
         </motion.div>
@@ -163,26 +164,26 @@ export default function NewsPage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-6"
+          className="mb-12"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                <Newspaper className="w-6 h-6 text-amber-400" />
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
+                <Newspaper className="w-7 h-7 text-white/60" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Market News</h1>
-                <p className="text-sm text-gray-400">Real-time financial news and updates</p>
+                <h1 className="text-3xl sm:text-4xl font-semibold text-white tracking-tight">Market Intelligence</h1>
+                <p className="text-sm text-white/40 mt-1 font-light">Real-time financial news and market updates</p>
               </div>
             </div>
             <button
               onClick={() => fetchNews(page)}
               disabled={isLoading}
               className={cn(
-                'p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06]',
-                'hover:bg-white/[0.06] hover:border-amber-500/30',
-                'text-gray-400 hover:text-amber-400 transition-all duration-300',
-                'disabled:opacity-50'
+                'p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]',
+                'hover:bg-white/[0.04] hover:border-white/[0.08]',
+                'text-white/50 hover:text-white/80 transition-all duration-300',
+                'disabled:opacity-40'
               )}
             >
               {isLoading ? (
@@ -193,108 +194,9 @@ export default function NewsPage() {
             </button>
           </div>
 
-          {/* Search and Filters */}
-          <GlassCard className="p-4">
-            <div className="space-y-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search news by headline, symbol, or keyword..."
-                  className={cn(
-                    'w-full pl-10 pr-4 py-2.5 rounded-lg',
-                    'bg-white/[0.03] border border-white/[0.06]',
-                    'text-white placeholder:text-gray-500',
-                    'focus:outline-none focus:border-cyan-500/30 focus:bg-white/[0.05]',
-                    'transition-all duration-300'
-                  )}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Category Filter */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Filter className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-xs font-medium text-gray-400">Category</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setCategoryFilter(cat)}
-                      className={cn(
-                        'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
-                        categoryFilter === cat
-                          ? 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400'
-                          : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:bg-white/[0.06] hover:text-white'
-                      )}
-                    >
-                      {cat === 'all' ? 'All Categories' : cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sentiment Filter */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-xs font-medium text-gray-400">Sentiment</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {sentiments.map((sent) => (
-                    <button
-                      key={sent}
-                      onClick={() => setSentimentFilter(sent)}
-                      className={cn(
-                        'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all capitalize',
-                        sentimentFilter === sent
-                          ? sent === 'bullish' 
-                            ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
-                            : sent === 'bearish'
-                            ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                            : 'bg-gray-500/20 border-gray-500/30 text-gray-400'
-                          : 'bg-white/[0.03] border-white/[0.06] text-gray-400 hover:bg-white/[0.06] hover:text-white'
-                      )}
-                    >
-                      {sent === 'all' ? 'All Sentiments' : sent}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </GlassCard>
-
-          {/* Results count */}
-          <div className="mt-3 text-sm text-gray-500">
-            Showing {filteredNews.length} {filteredNews.length === 1 ? 'article' : 'articles'}
-            {(categoryFilter !== 'all' || sentimentFilter !== 'all' || searchQuery) && (
-              <button
-                onClick={() => {
-                  setCategoryFilter('all')
-                  setSentimentFilter('all')
-                  setSearchQuery('')
-                }}
-                className="ml-2 text-cyan-400 hover:text-cyan-300"
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
-
+          {/* Sentiment Overview - Primary Information */}
           {filteredNews.length > 0 && (
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
               {(['bullish', 'neutral', 'bearish'] as NewsItem['sentiment'][]).map(sent => {
                 const percentage = sentimentStats.total
                   ? Math.round((sentimentStats.sentiments[sent] / sentimentStats.total) * 100)
@@ -302,42 +204,42 @@ export default function NewsPage() {
                 const isPositive = sent === 'bullish'
 
                 return (
-                  <GlassCard key={sent} className="p-4 border border-white/[0.04] bg-white/[0.02]">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs uppercase tracking-wide text-gray-500">
-                        {sent} sentiment
+                  <GlassCard key={sent} className="p-6 border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-xs uppercase tracking-wider text-white/30 font-light">
+                        {sent}
                       </span>
                       <span className={cn(
-                        'text-xs font-semibold px-2 py-0.5 rounded-md border',
+                        'text-xs font-medium px-2.5 py-1 rounded-lg border',
                         sent === 'bullish'
-                          ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+                          ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5'
                           : sent === 'bearish'
-                          ? 'text-red-400 border-red-500/30 bg-red-500/10'
-                          : 'text-cyan-300 border-cyan-500/20 bg-cyan-500/10'
+                          ? 'text-red-400 border-red-500/20 bg-red-500/5'
+                          : 'text-white/60 border-white/10 bg-white/5'
                       )}>
-                        {sentimentStats.sentiments[sent]} stories
+                        {sentimentStats.sentiments[sent]}
                       </span>
                     </div>
-                    <div className="flex items-end justify-between">
-                      <p className="text-3xl font-semibold text-white">{percentage}%</p>
+                    <div className="flex items-end justify-between mb-4">
+                      <p className="text-4xl font-light text-white tracking-tight">{percentage}%</p>
                       {sentimentStats.topCategory && isPositive && (
-                        <p className="text-[11px] text-gray-500 text-right">
-                          Top theme
-                          <span className="block text-sm text-white font-semibold">
+                        <p className="text-[10px] text-white/30 text-right font-light">
+                          Leading theme
+                          <span className="block text-sm text-white/80 font-normal mt-0.5">
                             {sentimentStats.topCategory}
                           </span>
                         </p>
                       )}
                     </div>
-                    <div className="mt-3 h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                    <div className="h-1 rounded-full bg-white/[0.03] overflow-hidden">
                       <div
                         className={cn(
-                          'h-full rounded-full transition-all duration-500',
+                          'h-full rounded-full transition-all duration-700 ease-out',
                           sent === 'bullish'
-                            ? 'bg-emerald-400'
+                            ? 'bg-gradient-to-r from-emerald-500/80 to-emerald-400'
                             : sent === 'bearish'
-                            ? 'bg-red-400'
-                            : 'bg-cyan-400'
+                            ? 'bg-gradient-to-r from-red-500/80 to-red-400'
+                            : 'bg-gradient-to-r from-white/40 to-white/20'
                         )}
                         style={{ width: `${percentage}%` }}
                       />
@@ -347,18 +249,118 @@ export default function NewsPage() {
               })}
             </div>
           )}
+
+          {/* Filters - Secondary Information */}
+          <div className="mb-8 space-y-6">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by headline, symbol, or keyword..."
+                className={cn(
+                  'w-full pl-11 pr-12 py-4 rounded-2xl',
+                  'bg-white/[0.02] border border-white/[0.04]',
+                  'text-white placeholder:text-white/30 text-sm font-light',
+                  'focus:outline-none focus:border-white/[0.08] focus:bg-white/[0.03]',
+                  'transition-all duration-300'
+                )}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-6">
+              {/* Category Filter */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs font-light text-white/40 tracking-wide">Category</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setCategoryFilter(cat)}
+                      className={cn(
+                        'px-4 py-2 rounded-xl text-xs font-light border transition-all duration-300',
+                        categoryFilter === cat
+                          ? 'bg-white/[0.08] border-white/[0.12] text-white shadow-lg shadow-white/5'
+                          : 'bg-white/[0.02] border-white/[0.04] text-white/50 hover:bg-white/[0.04] hover:border-white/[0.06] hover:text-white/70'
+                      )}
+                    >
+                      {cat === 'all' ? 'All' : cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sentiment Filter */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs font-light text-white/40 tracking-wide">Sentiment</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {sentiments.map((sent) => (
+                    <button
+                      key={sent}
+                      onClick={() => setSentimentFilter(sent)}
+                      className={cn(
+                        'px-4 py-2 rounded-xl text-xs font-light border transition-all duration-300 capitalize',
+                        sentimentFilter === sent
+                          ? sent === 'bullish' 
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-lg shadow-emerald-500/10'
+                            : sent === 'bearish'
+                            ? 'bg-red-500/10 border-red-500/20 text-red-400 shadow-lg shadow-red-500/10'
+                            : 'bg-white/[0.08] border-white/[0.12] text-white shadow-lg shadow-white/5'
+                          : 'bg-white/[0.02] border-white/[0.04] text-white/50 hover:bg-white/[0.04] hover:border-white/[0.06] hover:text-white/70'
+                      )}
+                    >
+                      {sent === 'all' ? 'All' : sent}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="mb-6 flex items-center justify-between">
+            <p className="text-sm text-white/40 font-light">
+              {filteredNews.length} {filteredNews.length === 1 ? 'article' : 'articles'}
+            </p>
+            {(categoryFilter !== 'all' || sentimentFilter !== 'all' || searchQuery) && (
+              <button
+                onClick={() => {
+                  setCategoryFilter('all')
+                  setSentimentFilter('all')
+                  setSearchQuery('')
+                }}
+                className="text-xs text-white/50 hover:text-white/80 font-light transition-colors"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
         </motion.div>
 
         {/* News Grid */}
         {isLoading && news.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+          <div className="flex items-center justify-center py-32">
+            <Loader2 className="w-8 h-8 text-white/40 animate-spin" />
           </div>
         ) : filteredNews.length === 0 ? (
-          <GlassCard className="p-12 text-center">
-            <AlertCircle className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">No news found</h3>
-            <p className="text-sm text-gray-500">Try adjusting your filters or search query</p>
+          <GlassCard className="p-16 text-center border border-white/[0.04] bg-white/[0.015]">
+            <AlertCircle className="w-12 h-12 text-white/20 mx-auto mb-6" />
+            <h3 className="text-xl font-light text-white mb-3">No articles found</h3>
+            <p className="text-sm text-white/40 font-light">Try adjusting your filters or search query</p>
           </GlassCard>
         ) : (
           <>
@@ -367,51 +369,55 @@ export default function NewsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="mb-6"
+                className="mb-12"
               >
-                <GlassCard className="p-6 lg:p-8 border border-cyan-500/20 bg-gradient-to-br from-white/[0.03] to-cyan-500/5">
-                  <div className="grid gap-6 lg:grid-cols-5">
-                    <div className="lg:col-span-3 space-y-4">
-                      <div className="flex items-center gap-2 flex-wrap">
+                <GlassCard className="p-8 lg:p-12 border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl shadow-2xl shadow-black/20">
+                  <div className="grid gap-12 lg:grid-cols-2">
+                    <div className="space-y-8">
+                      <div className="flex items-center gap-3 flex-wrap">
                         <span className={cn(
-                          'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border',
-                          getSentimentColor(featuredNews.sentiment)
+                          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-light uppercase tracking-widest border',
+                          featuredNews.sentiment === 'bullish'
+                            ? 'text-emerald-400 bg-emerald-500/5 border-emerald-500/20'
+                            : featuredNews.sentiment === 'bearish'
+                            ? 'text-red-400 bg-red-500/5 border-red-500/20'
+                            : 'text-white/60 bg-white/5 border-white/10'
                         )}>
                           {React.createElement(getSentimentIcon(featuredNews.sentiment), { className: 'w-3 h-3' })}
-                          Featured {featuredNews.category}
+                          {featuredNews.category}
                         </span>
                         {featuredNews.symbol && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                          <span className="px-3 py-1.5 rounded-xl text-[10px] font-mono font-medium bg-white/[0.04] text-white/80 border border-white/[0.08]">
                             {featuredNews.symbol}
                           </span>
                         )}
                       </div>
 
-                      <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">
+                      <h2 className="text-3xl lg:text-4xl font-light text-white leading-[1.2] tracking-tight">
                         {featuredNews.headline}
                       </h2>
 
-                      <p className="text-sm text-gray-400 leading-relaxed line-clamp-4">
+                      <p className="text-base text-white/50 leading-[1.6] font-light line-clamp-4">
                         {featuredNews.summary}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span className="font-medium text-white/80">{featuredNews.source}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-white/30 font-light">
+                        <span className="text-white/60">{featuredNews.source}</span>
+                        <span className="w-1 h-1 rounded-full bg-white/20" />
+                        <span className="flex items-center gap-1.5">
                           <Clock className="w-3 h-3" />
                           {featuredNews.timeAgo}
                         </span>
-                        <span>•</span>
-                        <span className="text-cyan-400">
+                        <span className="w-1 h-1 rounded-full bg-white/20" />
+                        <span className="text-white/50">
                           {calculateReadingTime(featuredNews.fullText || featuredNews.summary)}
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-3 pt-4">
                         <button
                           onClick={() => setSelectedNews(featuredNews)}
-                          className="px-4 py-2 rounded-lg bg-white/[0.08] text-white text-sm font-semibold hover:bg-white/[0.12] transition-all"
+                          className="px-6 py-3 rounded-xl bg-white/[0.06] text-white text-sm font-light hover:bg-white/[0.09] border border-white/[0.08] hover:border-white/[0.12] transition-all duration-300"
                         >
                           Quick View
                         </button>
@@ -420,17 +426,17 @@ export default function NewsPage() {
                             href={featuredNews.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 rounded-lg border border-cyan-500/40 text-cyan-300 text-sm font-semibold hover:bg-cyan-500/10 transition-all inline-flex items-center gap-2"
+                            className="px-6 py-3 rounded-xl border border-white/[0.08] text-white/80 text-sm font-light hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 inline-flex items-center gap-2"
                           >
                             Read Article
-                            <ExternalLink className="w-4 h-4" />
+                            <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         )}
                       </div>
                     </div>
 
-                    <div className="lg:col-span-2">
-                      <div className="relative h-48 lg:h-full rounded-2xl overflow-hidden bg-gradient-to-br from-cyan-500/20 via-transparent to-transparent">
+                    <div className="lg:col-span-1">
+                      <div className="relative h-72 lg:h-full min-h-[400px] rounded-2xl overflow-hidden bg-white/[0.02] border border-white/[0.04]">
                         {featuredNews.image ? (
                           <img
                             src={featuredNews.image}
@@ -441,11 +447,8 @@ export default function NewsPage() {
                             }}
                           />
                         ) : (
-                          <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">No image</div>
+                          <div className="absolute inset-0 flex items-center justify-center text-white/20 text-sm font-light">No image available</div>
                         )}
-                        <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-black/40 text-xs text-white border border-white/10">
-                          Top story
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -454,7 +457,7 @@ export default function NewsPage() {
             )}
 
             {remainingNews.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence mode="popLayout">
                   {remainingNews.map((item, index) => {
                     const SentimentIcon = getSentimentIcon(item.sentiment)
@@ -462,23 +465,23 @@ export default function NewsPage() {
                     return (
                       <motion.div
                         key={item.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ duration: 0.2, delay: index * 0.02 }}
+                        exit={{ opacity: 0, scale: 0.96 }}
+                        transition={{ duration: 0.3, delay: index * 0.03 }}
                         layout
                       >
                         <GlassCard 
-                          className="p-4 h-full cursor-pointer hover:border-cyan-500/30 transition-all group"
+                          className="p-6 h-full cursor-pointer hover:border-white/[0.08] transition-all duration-300 group border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl"
                           onClick={() => setSelectedNews(item)}
                         >
                         {/* Image if available */}
                         {item.image && (
-                          <div className="relative w-full h-40 mb-3 rounded-lg overflow-hidden bg-white/[0.02]">
+                          <div className="relative w-full h-48 mb-6 rounded-xl overflow-hidden bg-white/[0.02] border border-white/[0.04]">
                             <img 
                               src={item.image} 
                               alt={item.headline}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none'
                               }}
@@ -487,49 +490,51 @@ export default function NewsPage() {
                         )}
 
                         {/* Header */}
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={cn(
-                              'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider border',
-                              getSentimentColor(item.sentiment)
-                            )}>
-                              <SentimentIcon className="w-2.5 h-2.5" />
-                              {item.category}
+                        <div className="flex items-center gap-2 mb-4 flex-wrap">
+                          <span className={cn(
+                            'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-light uppercase tracking-widest border',
+                            item.sentiment === 'bullish'
+                              ? 'text-emerald-400 bg-emerald-500/5 border-emerald-500/20'
+                              : item.sentiment === 'bearish'
+                              ? 'text-red-400 bg-red-500/5 border-red-500/20'
+                              : 'text-white/60 bg-white/5 border-white/10'
+                          )}>
+                            <SentimentIcon className="w-2.5 h-2.5" />
+                            {item.category}
+                          </span>
+                          {item.symbol && (
+                            <span className="px-2.5 py-1 rounded-lg text-[9px] font-mono font-medium bg-white/[0.04] text-white/70 border border-white/[0.08]">
+                              {item.symbol}
                             </span>
-                            {item.symbol && (
-                              <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                                {item.symbol}
-                              </span>
-                            )}
-                          </div>
+                          )}
                         </div>
 
                         {/* Headline */}
-                        <h3 className="text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors leading-snug mb-2 line-clamp-2">
+                        <h3 className="text-base font-light text-white group-hover:text-white/90 transition-colors leading-[1.4] mb-3 line-clamp-3">
                           {item.headline}
                         </h3>
 
                         {/* Summary */}
-                        <p className="text-xs text-gray-500 leading-relaxed line-clamp-3 mb-3">
+                        <p className="text-sm text-white/40 leading-[1.6] font-light line-clamp-2 mb-6">
                           {item.summary}
                         </p>
 
                         {/* Footer */}
-                        <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
-                          <div className="flex flex-col gap-1 text-[10px] text-gray-600">
+                        <div className="flex items-center justify-between pt-4 border-t border-white/[0.04]">
+                          <div className="flex flex-col gap-1.5 text-[10px] text-white/30 font-light">
+                            <span className="text-white/50">{item.source}</span>
                             <div className="flex items-center gap-2">
-                              <span>{item.source}</span>
-                              <span>•</span>
                               <span className="flex items-center gap-1">
                                 <Clock className="w-2.5 h-2.5" />
                                 {item.timeAgo}
                               </span>
+                              <span className="w-1 h-1 rounded-full bg-white/20" />
+                              <span className="text-white/40">
+                                {calculateReadingTime(item.fullText || item.summary)}
+                              </span>
                             </div>
-                            <span className="text-cyan-400/80">
-                              {calculateReadingTime(item.fullText || item.summary)}
-                            </span>
                           </div>
-                          <ExternalLink className="w-3 h-3 text-gray-600 group-hover:text-cyan-400 transition-colors" />
+                          <ExternalLink className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 transition-colors" />
                         </div>
                         </GlassCard>
                       </motion.div>
@@ -541,18 +546,18 @@ export default function NewsPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
+              <div className="flex items-center justify-center gap-3 mt-12">
                 <button
                   onClick={() => fetchNews(Math.max(0, page - 1))}
                   disabled={page === 0 || isLoading}
                   className={cn(
-                    'p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]',
-                    'hover:bg-white/[0.06] hover:border-cyan-500/30',
-                    'text-gray-400 hover:text-cyan-400 transition-all',
-                    'disabled:opacity-50 disabled:cursor-not-allowed'
+                    'p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]',
+                    'hover:bg-white/[0.04] hover:border-white/[0.08]',
+                    'text-white/40 hover:text-white/70 transition-all duration-300',
+                    'disabled:opacity-30 disabled:cursor-not-allowed'
                   )}
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
                 
                 <div className="flex items-center gap-2">
@@ -564,10 +569,10 @@ export default function NewsPage() {
                         onClick={() => fetchNews(pageNum)}
                         disabled={isLoading}
                         className={cn(
-                          'w-8 h-8 rounded-lg text-sm font-medium transition-all',
+                          'w-10 h-10 rounded-xl text-sm font-light transition-all duration-300',
                           page === pageNum
-                            ? 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400'
-                            : 'bg-white/[0.03] border border-white/[0.06] text-gray-400 hover:bg-white/[0.06] hover:text-white'
+                            ? 'bg-white/[0.08] border border-white/[0.12] text-white shadow-lg shadow-white/5'
+                            : 'bg-white/[0.02] border border-white/[0.04] text-white/50 hover:bg-white/[0.04] hover:text-white/70'
                         )}
                       >
                         {pageNum + 1}
@@ -580,13 +585,13 @@ export default function NewsPage() {
                   onClick={() => fetchNews(Math.min(totalPages - 1, page + 1))}
                   disabled={page >= totalPages - 1 || isLoading}
                   className={cn(
-                    'p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]',
-                    'hover:bg-white/[0.06] hover:border-cyan-500/30',
-                    'text-gray-400 hover:text-cyan-400 transition-all',
-                    'disabled:opacity-50 disabled:cursor-not-allowed'
+                    'p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]',
+                    'hover:bg-white/[0.04] hover:border-white/[0.08]',
+                    'text-white/40 hover:text-white/70 transition-all duration-300',
+                    'disabled:opacity-30 disabled:cursor-not-allowed'
                   )}
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -601,42 +606,47 @@ export default function NewsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
             onClick={() => setSelectedNews(null)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.3 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-4xl max-h-[90vh] overflow-y-auto"
             >
-              <GlassCard className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-2">
+              <GlassCard className="p-8 lg:p-12 border border-white/[0.06] bg-white/[0.02] backdrop-blur-2xl">
+                <div className="flex items-start justify-between mb-8">
+                  <div className="flex items-center gap-3">
                     <span className={cn(
-                      'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border',
-                      getSentimentColor(selectedNews.sentiment)
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-light uppercase tracking-widest border',
+                      selectedNews.sentiment === 'bullish'
+                        ? 'text-emerald-400 bg-emerald-500/5 border-emerald-500/20'
+                        : selectedNews.sentiment === 'bearish'
+                        ? 'text-red-400 bg-red-500/5 border-red-500/20'
+                        : 'text-white/60 bg-white/5 border-white/10'
                     )}>
                       {React.createElement(getSentimentIcon(selectedNews.sentiment), { className: 'w-3 h-3' })}
                       {selectedNews.category}
                     </span>
                     {selectedNews.symbol && (
-                      <span className="px-2 py-1 rounded text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                      <span className="px-3 py-1.5 rounded-xl text-[10px] font-mono font-medium bg-white/[0.04] text-white/70 border border-white/[0.08]">
                         {selectedNews.symbol}
                       </span>
                     )}
                   </div>
                   <button
                     onClick={() => setSelectedNews(null)}
-                    className="p-1.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] text-gray-400 hover:text-white transition-all"
+                    className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-white/40 hover:text-white/80 transition-all duration-300 border border-white/[0.06]"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 {selectedNews.image && (
-                  <div className="relative w-full h-64 mb-4 rounded-lg overflow-hidden bg-white/[0.02]">
+                  <div className="relative w-full h-80 mb-8 rounded-2xl overflow-hidden bg-white/[0.02] border border-white/[0.04]">
                     <img 
                       src={selectedNews.image} 
                       alt={selectedNews.headline}
@@ -648,25 +658,25 @@ export default function NewsPage() {
                   </div>
                 )}
 
-                <h2 className="text-2xl font-bold text-white mb-3 leading-tight">
+                <h2 className="text-3xl lg:text-4xl font-light text-white mb-6 leading-[1.2] tracking-tight">
                   {selectedNews.headline}
                 </h2>
 
-                <div className="flex items-center gap-3 text-sm text-gray-500 mb-4 pb-4 border-b border-white/[0.06]">
-                  <span className="font-medium">{selectedNews.source}</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
+                <div className="flex items-center gap-4 text-sm text-white/30 mb-8 pb-6 border-b border-white/[0.04] font-light">
+                  <span className="text-white/60">{selectedNews.source}</span>
+                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                  <span className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
                     {selectedNews.timeAgo}
                   </span>
-                  <span>•</span>
-                  <span className="text-cyan-400">
+                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                  <span className="text-white/50">
                     {calculateReadingTime(selectedNews.fullText || selectedNews.summary)}
                   </span>
                 </div>
 
                 <div className="prose prose-invert max-w-none">
-                  <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-base text-white/60 leading-[1.7] font-light whitespace-pre-wrap">
                     {selectedNews.fullText || selectedNews.summary}
                   </p>
                 </div>
@@ -677,14 +687,14 @@ export default function NewsPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={cn(
-                      'mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg',
-                      'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400',
-                      'hover:bg-cyan-500/20 hover:border-cyan-500/30',
-                      'font-medium text-sm transition-all group'
+                      'mt-8 w-full flex items-center justify-center gap-2 py-4 px-6 rounded-xl',
+                      'bg-white/[0.04] border border-white/[0.08] text-white/80',
+                      'hover:bg-white/[0.06] hover:border-white/[0.12]',
+                      'font-light text-sm transition-all duration-300 group'
                     )}
                   >
                     Read Full Article
-                    <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                    <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300" />
                   </a>
                 )}
               </GlassCard>

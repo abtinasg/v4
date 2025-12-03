@@ -213,14 +213,17 @@ export function MessageInput({
         />
       )}
 
-      {/* Input Container */}
+      {/* Input Container - Premium Glass Design */}
       <div
         className={cn(
-          'relative flex items-end gap-2 rounded-2xl border bg-white/5 backdrop-blur-xl transition-all duration-200',
-          'border-white/10 hover:border-white/20',
-          'focus-within:border-cyan-500/50 focus-within:ring-2 focus-within:ring-cyan-500/20',
+          'relative flex items-end gap-2 rounded-2xl',
+          'bg-white/[0.03] backdrop-blur-sm',
+          'border border-white/[0.06] hover:border-white/[0.10]',
+          'shadow-[0_4px_20px_rgba(0,0,0,0.08)]',
+          'transition-all duration-200',
+          'focus-within:border-white/[0.15] focus-within:shadow-[0_6px_24px_rgba(0,0,0,0.12)]',
           disabled && 'opacity-50 cursor-not-allowed',
-          isListening && 'border-violet-500/50 ring-2 ring-violet-500/20',
+          isListening && 'border-violet-500/30',
         )}
       >
         {/* Textarea */}
@@ -233,14 +236,15 @@ export function MessageInput({
           disabled={disabled || isStreaming}
           rows={1}
           className={cn(
-            'flex-1 resize-none bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/40',
+            'flex-1 resize-none bg-transparent px-5 py-4 text-sm text-white placeholder:text-white/30',
             'focus:outline-none disabled:cursor-not-allowed',
-            'min-h-[44px] max-h-[200px]',
+            'min-h-[52px] max-h-[200px]',
+            'font-light',
           )}
         />
 
         {/* Actions */}
-        <div className="flex items-center gap-1 pr-2 pb-2">
+        <div className="flex items-center gap-1.5 pr-3 pb-3">
           {/* Character count */}
           <AnimatePresence>
             {value.length > 0 && (
@@ -249,8 +253,8 @@ export function MessageInput({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 className={cn(
-                  'text-xs mr-1',
-                  isOverLimit ? 'text-red-400' : isNearLimit ? 'text-yellow-400' : 'text-white/30',
+                  'text-xs mr-1.5 font-light',
+                  isOverLimit ? 'text-rose-400' : isNearLimit ? 'text-amber-400' : 'text-white/20',
                 )}
               >
                 {charCount}/{maxLength}
@@ -270,15 +274,15 @@ export function MessageInput({
                     onClick={handleVoiceClick}
                     disabled={disabled || isStreaming}
                     className={cn(
-                      'h-8 w-8 rounded-full transition-all duration-200',
+                      'h-9 w-9 rounded-xl transition-all duration-200',
                       isListening
-                        ? 'bg-violet-500/20 text-violet-400 hover:bg-violet-500/30'
-                        : 'text-white/50 hover:text-white hover:bg-white/10',
+                        ? 'bg-violet-500/15 text-violet-400 hover:bg-violet-500/25'
+                        : 'text-white/35 hover:text-white/60 hover:bg-white/[0.06]',
                     )}
                   >
                     {isListening ? (
                       <motion.div
-                        animate={{ scale: [1, 1.2, 1] }}
+                        animate={{ scale: [1, 1.15, 1] }}
                         transition={{ duration: 1, repeat: Infinity }}
                       >
                         <MicOff className="w-4 h-4" />
@@ -305,7 +309,7 @@ export function MessageInput({
                     variant="ghost"
                     size="icon"
                     onClick={onStop}
-                    className="h-8 w-8 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                    className="h-9 w-9 rounded-xl bg-rose-500/15 text-rose-400 hover:bg-rose-500/25"
                   >
                     <StopCircle className="w-4 h-4" />
                   </Button>
@@ -326,10 +330,10 @@ export function MessageInput({
                     onClick={handleSubmit}
                     disabled={!value.trim() || disabled || isOverLimit}
                     className={cn(
-                      'h-8 w-8 rounded-full transition-all duration-200',
+                      'h-9 w-9 rounded-xl transition-all duration-200',
                       value.trim() && !isOverLimit
-                        ? 'bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30'
-                        : 'text-white/30 hover:text-white/50 hover:bg-white/5',
+                        ? 'bg-white/[0.08] text-white/80 hover:bg-white/[0.12] hover:text-white'
+                        : 'text-white/20 hover:text-white/30 hover:bg-white/[0.04]',
                     )}
                   >
                     <Send className="w-4 h-4" />
@@ -351,32 +355,25 @@ export function MessageInput({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute -top-8 left-0 right-0 flex items-center justify-center"
+            className="absolute -top-10 left-0 right-0 flex items-center justify-center"
           >
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/20 border border-violet-500/30">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-500/15 border border-violet-500/20">
               <motion.div
                 className="w-2 h-2 rounded-full bg-violet-400"
-                animate={{ scale: [1, 1.5, 1] }}
+                animate={{ scale: [1, 1.4, 1] }}
                 transition={{ duration: 0.8, repeat: Infinity }}
               />
-              <span className="text-xs text-violet-300">Listening...</span>
+              <span className="text-xs text-violet-300 font-light">Listening...</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Hint text */}
-      <div className="mt-2 flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-white/30">
-            Press Enter to send, Shift+Enter for new line
-          </span>
-          <span className="text-xs text-white/20">•</span>
-          <span className="text-xs text-white/30 flex items-center gap-1">
-            <Command className="w-3 h-3" />
-            Type / for commands
-          </span>
-        </div>
+      {/* Hint text - Minimal */}
+      <div className="mt-3 flex items-center justify-center">
+        <span className="text-[11px] text-white/20 font-light">
+          Press Enter to send • Shift+Enter for new line • Type / for commands
+        </span>
       </div>
     </div>
   )

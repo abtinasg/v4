@@ -25,13 +25,13 @@ export default async function PricingPage() {
     .orderBy(asc(creditPackages.sortOrder))
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background">
       {/* Navigation */}
-      <nav className="border-b bg-background/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className="border-b border-white/[0.06] bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
           <Link 
             href={user ? "/dashboard" : "/"}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2.5 text-sm text-white/50 hover:text-white/80 transition-all duration-300 font-light"
           >
             <ArrowLeft className="w-4 h-4" />
             {user ? "Back to Dashboard" : "Back to Home"}
@@ -42,13 +42,13 @@ export default async function PricingPage() {
               <>
                 <Link 
                   href="/sign-in"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-white/50 hover:text-white/80 transition-all duration-300 font-light"
                 >
                   Sign In
                 </Link>
                 <Link 
                   href="/sign-up"
-                  className="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                  className="text-sm px-6 py-2.5 bg-white/[0.08] hover:bg-white/[0.12] text-white rounded-xl border border-white/[0.1] hover:border-white/[0.15] transition-all duration-300 font-light"
                 >
                   Get Started
                 </Link>
@@ -57,7 +57,7 @@ export default async function PricingPage() {
             {user && (
               <Link 
                 href="/dashboard"
-                className="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                className="text-sm px-6 py-2.5 bg-white/[0.08] hover:bg-white/[0.12] text-white rounded-xl border border-white/[0.1] hover:border-white/[0.15] transition-all duration-300 font-light"
               >
                 Go to Dashboard
               </Link>
@@ -66,27 +66,28 @@ export default async function PricingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-6 py-16 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Choose Your <span className="text-gradient">Trading Edge</span>
+      {/* Hero Section - Primary */}
+      <div className="max-w-5xl mx-auto px-8 pt-24 pb-20 text-center">
+        <h1 className="text-5xl md:text-6xl font-semibold mb-6 tracking-tight text-white">
+          Choose Your Trading Edge
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Pay only for what you use with our credit-based system.
+        <p className="text-lg text-white/40 max-w-2xl mx-auto font-light leading-relaxed">
+          Professional-grade analysis powered by credits. Pay only for what you use.
         </p>
       </div>
 
-      {/* Credit Packages */}
-      <div className="max-w-7xl mx-auto px-6 py-16 border-t">
-        <h2 className="text-2xl font-bold text-center mb-4">
-          <Coins className="w-6 h-6 inline mr-2 text-emerald-500" />
-          Credit Packages
-        </h2>
-        <p className="text-center text-muted-foreground mb-8 max-w-xl mx-auto">
-          Need more credits? Buy credit packages anytime. Credits never expire!
-        </p>
+      {/* Credit Packages - Secondary */}
+      <div className="max-w-7xl mx-auto px-8 pb-24">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-semibold text-white mb-4 tracking-tight">
+            Credit Packages
+          </h2>
+          <p className="text-white/40 max-w-xl mx-auto font-light">
+            Flexible pricing that scales with your needs. Credits never expire.
+          </p>
+        </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {packages.map((pkg) => {
             const credits = parseFloat(pkg.credits)
             const bonus = parseFloat(pkg.bonusCredits)
@@ -97,46 +98,47 @@ export default async function PricingPage() {
             return (
               <div
                 key={pkg.id}
-                className={`relative rounded-xl border p-4 transition-all hover:shadow-lg hover:scale-105 ${
+                className={`relative rounded-2xl border backdrop-blur-xl p-8 transition-all duration-300 hover:scale-[1.02] ${
                   pkg.isPopular
-                    ? 'border-emerald-500 bg-emerald-500/5 shadow-emerald-500/10'
-                    : 'border-border bg-card'
+                    ? 'border-white/[0.12] bg-white/[0.04] shadow-2xl shadow-white/5'
+                    : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.1] hover:bg-white/[0.03]'
                 }`}
               >
                 {pkg.isPopular && (
-                  <div className="absolute -top-2 right-2 px-2 py-0.5 bg-emerald-500 text-white text-xs font-medium rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-white/[0.1] text-white text-xs font-light rounded-full border border-white/[0.15] backdrop-blur-xl">
                     Best Value
                   </div>
                 )}
 
-                <h3 className="font-bold mb-1">{pkg.name}</h3>
-                
-                <div className="text-2xl font-bold mb-2">
-                  ${price}
+                <div className="mb-6">
+                  <h3 className="text-lg font-medium text-white mb-2">{pkg.name}</h3>
+                  <div className="text-4xl font-light text-white tracking-tight">
+                    ${price}
+                  </div>
                 </div>
                 
-                <div className="space-y-1 text-sm mb-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Credits</span>
-                    <span className="font-medium">{credits.toLocaleString()}</span>
+                <div className="space-y-3 mb-8">
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm text-white/40 font-light">Credits</span>
+                    <span className="text-sm font-medium text-white">{credits.toLocaleString()}</span>
                   </div>
                   {bonus > 0 && (
-                    <div className="flex justify-between text-emerald-500">
-                      <span className="flex items-center gap-1">
-                        <Gift className="w-3 h-3" />
+                    <div className="flex justify-between items-center py-2 border-t border-white/[0.06]">
+                      <span className="text-sm text-emerald-400/80 font-light flex items-center gap-1.5">
+                        <Gift className="w-3.5 h-3.5" />
                         Bonus
                       </span>
-                      <span className="font-medium">+{bonus.toLocaleString()}</span>
+                      <span className="text-sm font-medium text-emerald-400">+{bonus.toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="flex justify-between border-t pt-1 mt-1">
-                    <span className="font-medium">Total</span>
-                    <span className="font-bold text-emerald-500">{total.toLocaleString()}</span>
+                  <div className="flex justify-between items-center py-2 border-t border-white/[0.06]">
+                    <span className="text-sm font-medium text-white/70">Total Credits</span>
+                    <span className="text-base font-semibold text-white">{total.toLocaleString()}</span>
                   </div>
                 </div>
                 
-                <div className="text-xs text-muted-foreground text-center mb-3">
-                  ${pricePerCredit.toFixed(4)}/credit
+                <div className="text-xs text-white/30 text-center mb-6 font-light">
+                  ${pricePerCredit.toFixed(4)} per credit
                 </div>
 
                 <BuyButton 
@@ -151,50 +153,69 @@ export default async function PricingPage() {
         </div>
       </div>
 
-      {/* Credit Costs Table */}
-      <div className="max-w-4xl mx-auto px-6 py-16 border-t">
-        <h2 className="text-2xl font-bold text-center mb-8">
-          Credit Costs per Action
-        </h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          {Object.entries(CREDIT_COSTS).map(([action, cost]) => (
-            <div
-              key={action}
-              className="flex items-center justify-between p-3 rounded-lg bg-card border"
-            >
-              <span className="text-sm capitalize">
-                {action.replace(/_/g, ' ')}
-              </span>
-              <div className="flex items-center gap-1 text-emerald-500 font-medium">
-                <Coins className="w-4 h-4" />
-                {cost}
+      {/* Divider */}
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        <div className="h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+      </div>
+
+      {/* Credit Costs - Tertiary */}
+      <div className="max-w-5xl mx-auto px-8 pb-24">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-semibold text-white mb-4 tracking-tight">
+            Credit Cost per Action
+          </h2>
+          <p className="text-white/40 max-w-xl mx-auto font-light">
+            Transparent pricing for every feature
+          </p>
+        </div>
+        
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl overflow-hidden">
+          <div className="divide-y divide-white/[0.04]">
+            {Object.entries(CREDIT_COSTS).map(([action, cost], index) => (
+              <div
+                key={action}
+                className="flex items-center justify-between px-8 py-5 hover:bg-white/[0.02] transition-colors duration-300"
+              >
+                <span className="text-sm text-white/60 font-light capitalize">
+                  {action.replace(/_/g, ' ')}
+                </span>
+                <div className="flex items-center gap-2 text-white font-light">
+                  <Coins className="w-4 h-4 text-white/40" />
+                  <span className="text-base font-mono">{cost}</span>
+                  <span className="text-xs text-white/30 ml-1">credits</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* Divider */}
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        <div className="h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+      </div>
+
       {/* FAQ Section */}
-      <div className="max-w-4xl mx-auto px-6 py-16 border-t">
-        <h2 className="text-3xl font-bold text-center mb-12">
+      <div className="max-w-4xl mx-auto px-8 pb-32">
+        <h2 className="text-3xl font-semibold text-center mb-16 text-white tracking-tight">
           Frequently Asked Questions
         </h2>
         <div className="space-y-8">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">
+          <div className="p-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl hover:bg-white/[0.03] transition-all duration-300">
+            <h3 className="text-lg font-medium mb-4 text-white">
               How do credits work?
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-white/50 font-light leading-relaxed">
               Credits are used for each action you perform - searching stocks, getting real-time quotes, AI analysis, etc. 
               Each action has a fixed credit cost. You get free credits monthly with your plan, 
               and can buy more anytime.
             </p>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-2">
+          <div className="p-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl hover:bg-white/[0.03] transition-all duration-300">
+            <h3 className="text-lg font-medium mb-4 text-white">
               Do credits expire?
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-white/50 font-light leading-relaxed">
               Purchased credits never expire. Monthly free credits reset at the beginning of each billing cycle.
             </p>
           </div>

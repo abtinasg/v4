@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Check,
   Loader2,
+  Table,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,16 +110,16 @@ const METRIC_CONFIGS: MetricConfig[] = [
 ];
 
 const CATEGORIES = [
-  { key: 'valuation', label: 'Valuation', color: '#00D4FF' },
-  { key: 'profitability', label: 'Profitability', color: '#22C55E' },
-  { key: 'growth', label: 'Growth', color: '#3B82F6' },
-  { key: 'leverage', label: 'Leverage', color: '#F59E0B' },
-  { key: 'liquidity', label: 'Liquidity', color: '#8B5CF6' },
-  { key: 'technical', label: 'Technical', color: '#EC4899' },
-  { key: 'quality', label: 'Quality', color: '#2DD4BF' },
+  { key: 'valuation', label: 'Valuation', color: 'rgba(255, 255, 255, 0.7)' },
+  { key: 'profitability', label: 'Profitability', color: 'rgba(34, 197, 94, 0.8)' },
+  { key: 'growth', label: 'Growth', color: 'rgba(59, 130, 246, 0.8)' },
+  { key: 'leverage', label: 'Leverage', color: 'rgba(245, 158, 11, 0.8)' },
+  { key: 'liquidity', label: 'Liquidity', color: 'rgba(139, 92, 246, 0.8)' },
+  { key: 'technical', label: 'Technical', color: 'rgba(236, 72, 153, 0.8)' },
+  { key: 'quality', label: 'Quality', color: 'rgba(45, 212, 191, 0.8)' },
 ] as const;
 
-const STOCK_COLORS = ['#00D4FF', '#22C55E', '#F59E0B', '#EC4899', '#8B5CF6'];
+const STOCK_COLORS = ['rgba(255, 255, 255, 0.9)', 'rgba(34, 197, 94, 0.9)', 'rgba(59, 130, 246, 0.9)', 'rgba(236, 72, 153, 0.9)', 'rgba(139, 92, 246, 0.9)'];
 
 // Default stocks for quick access
 const DEFAULT_STOCKS = [
@@ -398,169 +399,189 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
   const selectedMetricConfigs = METRIC_CONFIGS.filter(m => selectedMetrics.has(m.key));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Compare Stocks</h1>
-          <p className="text-gray-400 text-sm mt-1">Compare up to 5 stocks side-by-side</p>
+          <h1 className="text-3xl sm:text-4xl font-light text-white tracking-tight">Compare Stocks</h1>
+          <p className="text-white/40 text-sm mt-2 font-light">Side-by-side analysis of up to 5 securities</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Button
             variant="outline"
             size="sm"
             onClick={exportComparison}
             disabled={stocks.length === 0}
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="border-white/[0.08] bg-white/[0.02] text-white/70 hover:bg-white/[0.04] hover:text-white hover:border-white/[0.12] rounded-xl px-5 py-2.5 font-light transition-all duration-300"
           >
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4 mr-2 opacity-60" />
             Export
           </Button>
         </div>
       </div>
 
-      {/* Stock Selection */}
-      <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm">
-        <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-3 items-center">
-            {stocks.map((stock, index) => (
+      {/* Stock Selection - Primary Area */}
+      <div className="p-6 rounded-2xl border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl">
+        <div className="flex flex-wrap gap-4 items-center">
+          {stocks.map((stock, index) => (
+            <div
+              key={stock.symbol}
+              className="group flex items-center gap-4 px-5 py-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1] transition-all duration-300"
+            >
               <div
-                key={stock.symbol}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5"
-                style={{ borderColor: `${STOCK_COLORS[index]}40` }}
-              >
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: STOCK_COLORS[index] }}
-                />
-                <span className="font-medium text-white">{stock.symbol}</span>
-                <span className="text-sm text-gray-400">{stock.companyName}</span>
-                <button
-                  onClick={() => removeStock(stock.symbol)}
-                  className="ml-1 p-0.5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: STOCK_COLORS[index] }}
+              />
+              <div className="flex flex-col">
+                <span className="font-medium text-white text-base">{stock.symbol}</span>
+                <span className="text-xs text-white/40 font-light">{stock.companyName}</span>
               </div>
-            ))}
-            
-            {stocks.length < 5 && (
-              <div className="relative">
-                <button
-                  onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-white/20 text-gray-400 hover:border-[#00D4FF]/50 hover:text-[#00D4FF] transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add Stock</span>
-                </button>
-                
-                {isSearchOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-80 bg-[#0A0D12] border border-white/10 rounded-lg shadow-xl z-50">
-                    <div className="p-2 border-b border-white/10">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Search stocks..."
-                          className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4FF]/50"
-                          autoFocus
-                        />
-                        {isSearching && (
-                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 animate-spin" />
-                        )}
-                      </div>
-                    </div>
-                    <div className="max-h-60 overflow-y-auto">
-                      {filteredSearchResults.length === 0 ? (
-                        <div className="px-4 py-3 text-center text-gray-500 text-sm">
-                          No stocks found
-                        </div>
-                      ) : (
-                        filteredSearchResults.map(stock => (
-                          <button
-                            key={stock.symbol}
-                            onClick={() => addStock(stock.symbol)}
-                            disabled={loadingSymbols.has(stock.symbol)}
-                            className="w-full px-4 py-2 text-left hover:bg-white/5 flex items-center justify-between transition-colors disabled:opacity-50"
-                          >
-                            <div>
-                              <span className="font-medium text-white">{stock.symbol}</span>
-                              <span className="text-sm text-gray-400 ml-2">{stock.name}</span>
-                            </div>
-                            {loadingSymbols.has(stock.symbol) ? (
-                              <Loader2 className="h-4 w-4 text-gray-500 animate-spin" />
-                            ) : (
-                              <Plus className="h-4 w-4 text-gray-500" />
-                            )}
-                          </button>
-                        ))
+              <div className="flex flex-col items-end ml-4">
+                <span className="text-sm text-white font-light">${stock.price.toFixed(2)}</span>
+                <span className="text-xs text-white/30 font-light">{formatMarketCap(stock.marketCap)}</span>
+              </div>
+              <button
+                onClick={() => removeStock(stock.symbol)}
+                className="ml-2 p-1.5 rounded-lg hover:bg-white/[0.08] text-white/30 hover:text-white/70 transition-all duration-300"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+          
+          {stocks.length < 5 && (
+            <div className="relative">
+              <button
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="flex items-center gap-3 px-5 py-4 rounded-xl border border-dashed border-white/[0.1] text-white/40 hover:border-white/[0.2] hover:text-white/60 hover:bg-white/[0.02] transition-all duration-300"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="font-light">Add Stock</span>
+              </button>
+              
+              {isSearchOpen && (
+                <div className="absolute top-full left-0 mt-3 w-96 bg-[#0A0D12]/95 border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/40 z-50 backdrop-blur-2xl overflow-hidden">
+                  <div className="p-4 border-b border-white/[0.06]">
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search by symbol or name..."
+                        className="w-full pl-11 pr-4 py-3 bg-white/[0.04] border border-white/[0.06] rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/[0.12] focus:bg-white/[0.06] transition-all duration-300 text-sm font-light"
+                        autoFocus
+                      />
+                      {isSearching && (
+                        <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 animate-spin" />
                       )}
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+                  <div className="max-h-72 overflow-y-auto">
+                    {filteredSearchResults.length === 0 ? (
+                      <div className="px-6 py-8 text-center text-white/40 text-sm font-light">
+                        No stocks found
+                      </div>
+                    ) : (
+                      filteredSearchResults.map(stock => (
+                        <button
+                          key={stock.symbol}
+                          onClick={() => addStock(stock.symbol)}
+                          disabled={loadingSymbols.has(stock.symbol)}
+                          className="w-full px-6 py-4 text-left hover:bg-white/[0.04] flex items-center justify-between transition-all duration-300 disabled:opacity-40 border-b border-white/[0.03] last:border-b-0"
+                        >
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium text-white">{stock.symbol}</span>
+                            <span className="text-xs text-white/40 font-light">{stock.name}</span>
+                          </div>
+                          {loadingSymbols.has(stock.symbol) ? (
+                            <Loader2 className="h-4 w-4 text-white/40 animate-spin" />
+                          ) : (
+                            <Plus className="h-4 w-4 text-white/30" />
+                          )}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
-            {/* Loading indicators for stocks being added */}
-            {Array.from(loadingSymbols).map((symbol) => (
-              <div
-                key={symbol}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 opacity-60"
-              >
-                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                <span className="font-medium text-white">{symbol}</span>
-                <span className="text-sm text-gray-400">Loading...</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+          {/* Loading indicators for stocks being added */}
+          {Array.from(loadingSymbols).map((symbol) => (
+            <div
+              key={symbol}
+              className="flex items-center gap-3 px-5 py-4 rounded-xl border border-white/[0.06] bg-white/[0.02] opacity-50"
+            >
+              <Loader2 className="h-4 w-4 animate-spin text-white/40" />
+              <span className="font-medium text-white">{symbol}</span>
+              <span className="text-xs text-white/40 font-light">Loading...</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {stocks.length > 0 && (
         <>
-          {/* Metric Selection */}
-          <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-white flex items-center justify-between">
-                <span>Select Metrics to Compare</span>
-                <span className="text-sm font-normal text-gray-400">
-                  {selectedMetrics.size} selected
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* Category Filters */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {CATEGORIES.map(cat => {
-                  const categoryMetrics = METRIC_CONFIGS.filter(m => m.category === cat.key);
-                  const selectedCount = categoryMetrics.filter(m => selectedMetrics.has(m.key)).length;
-                  const allSelected = selectedCount === categoryMetrics.length;
-                  
-                  return (
-                    <button
-                      key={cat.key}
-                      onClick={() => selectCategory(cat.key)}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                        allSelected
-                          ? "bg-white/10 text-white"
-                          : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
-                      )}
-                      style={allSelected ? { borderColor: cat.color, borderWidth: 1 } : {}}
-                    >
-                      {cat.label}
-                      {selectedCount > 0 && (
-                        <span className="ml-1.5 text-xs text-gray-500">({selectedCount})</span>
-                      )}
-                    </button>
-                  );
-                })}
+          {/* Metric Selection - Secondary Area */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-light text-white tracking-tight">Metrics</h2>
+                <p className="text-white/30 text-sm mt-1 font-light">Select categories and individual metrics to compare</p>
               </div>
-              
-              {/* Individual Metrics */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              <span className="text-sm font-light text-white/40 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                {selectedMetrics.size} selected
+              </span>
+            </div>
+            
+            {/* Category Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+              {CATEGORIES.map(cat => {
+                const categoryMetrics = METRIC_CONFIGS.filter(m => m.category === cat.key);
+                const selectedCount = categoryMetrics.filter(m => selectedMetrics.has(m.key)).length;
+                const allSelected = selectedCount === categoryMetrics.length;
+                
+                return (
+                  <button
+                    key={cat.key}
+                    onClick={() => selectCategory(cat.key)}
+                    className={cn(
+                      "p-5 rounded-2xl text-left transition-all duration-300 border",
+                      allSelected
+                        ? "bg-white/[0.06] border-white/[0.12] shadow-lg shadow-white/5"
+                        : "bg-white/[0.015] border-white/[0.04] hover:bg-white/[0.03] hover:border-white/[0.08]"
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={cn(
+                        "text-sm font-light transition-colors",
+                        allSelected ? "text-white" : "text-white/60"
+                      )}>
+                        {cat.label}
+                      </span>
+                      {allSelected && (
+                        <Check className="h-3.5 w-3.5 text-white/60" />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "text-2xl font-light",
+                        allSelected ? "text-white" : "text-white/40"
+                      )}>
+                        {selectedCount}
+                      </span>
+                      <span className="text-xs text-white/30 font-light">/ {categoryMetrics.length}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            
+            {/* Individual Metrics Grid */}
+            <div className="p-6 rounded-2xl border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {METRIC_CONFIGS.map(metric => {
                   const isSelected = selectedMetrics.has(metric.key);
                   const category = CATEGORIES.find(c => c.key === metric.category);
@@ -570,69 +591,79 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
                       key={metric.key}
                       onClick={() => toggleMetric(metric.key)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all text-left",
+                        "flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm transition-all duration-300 text-left group",
                         isSelected
-                          ? "bg-white/10 text-white"
-                          : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                          ? "bg-white/[0.06] border border-white/[0.1]"
+                          : "bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08]"
                       )}
                     >
                       <div
                         className={cn(
-                          "w-4 h-4 rounded border flex items-center justify-center",
-                          isSelected ? "border-[#00D4FF] bg-[#00D4FF]/20" : "border-white/20"
+                          "w-4 h-4 rounded-md border flex items-center justify-center transition-all duration-300",
+                          isSelected 
+                            ? "border-white/40 bg-white/10" 
+                            : "border-white/20 group-hover:border-white/30"
                         )}
                       >
-                        {isSelected && <Check className="h-3 w-3 text-[#00D4FF]" />}
+                        {isSelected && <Check className="h-2.5 w-2.5 text-white/80" />}
                       </div>
-                      <span>{metric.label}</span>
-                      <div
-                        className="w-2 h-2 rounded-full ml-auto"
-                        style={{ backgroundColor: category?.color }}
-                      />
+                      <span className={cn(
+                        "font-light transition-colors flex-1",
+                        isSelected ? "text-white" : "text-white/50 group-hover:text-white/70"
+                      )}>
+                        {metric.label}
+                      </span>
                     </button>
                   );
                 })}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* View Mode Tabs */}
-          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as typeof viewMode)}>
-            <div className="flex items-center justify-between mb-4">
-              <TabsList className="bg-white/5 border border-white/10">
-                <TabsTrigger value="table" className="data-[state=active]:bg-white/10">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Table
-                </TabsTrigger>
-                <TabsTrigger value="bar" className="data-[state=active]:bg-white/10">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Bar Chart
-                </TabsTrigger>
-                <TabsTrigger value="radar" className="data-[state=active]:bg-white/10">
-                  <Radar className="h-4 w-4 mr-2" />
-                  Radar
-                </TabsTrigger>
-              </TabsList>
             </div>
+          </div>
 
-            {/* Table View */}
-            <TabsContent value="table">
-              <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm overflow-hidden">
+          {/* View Mode - Tertiary Area */}
+          <div className="flex items-center justify-center">
+            <div className="inline-flex p-1.5 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+              {[
+                { value: 'table', label: 'Table', icon: Table },
+                { value: 'bar', label: 'Bar Chart', icon: BarChart3 },
+                { value: 'radar', label: 'Radar', icon: Radar },
+              ].map((mode) => (
+                <button
+                  key={mode.value}
+                  onClick={() => setViewMode(mode.value as typeof viewMode)}
+                  className={cn(
+                    "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-light transition-all duration-300",
+                    viewMode === mode.value
+                      ? "bg-white/[0.08] text-white shadow-lg shadow-white/5"
+                      : "text-white/40 hover:text-white/60 hover:bg-white/[0.03]"
+                  )}
+                >
+                  <mode.icon className="h-4 w-4" />
+                  {mode.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Results Section */}
+          <div className="space-y-6">
+            {viewMode === 'table' && (
+              <div className="rounded-2xl border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl overflow-hidden shadow-2xl shadow-black/20">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-white/10">
-                        <th className="text-left p-4 text-gray-400 font-medium sticky left-0 bg-[#0A0D12]">
+                      <tr className="border-b border-white/[0.06]">
+                        <th className="text-left px-8 py-6 text-white/40 font-light text-sm sticky left-0 bg-[#0A0D12]/95 backdrop-blur-xl">
                           Metric
                         </th>
                         {stocks.map((stock, index) => (
-                          <th key={stock.symbol} className="text-center p-4 min-w-[150px]">
-                            <div className="flex items-center justify-center gap-2">
+                          <th key={stock.symbol} className="text-center px-6 py-6 min-w-[160px]">
+                            <div className="flex items-center justify-center gap-3">
                               <div
-                                className="w-3 h-3 rounded-full"
+                                className="w-2.5 h-2.5 rounded-full"
                                 style={{ backgroundColor: STOCK_COLORS[index] }}
                               />
-                              <span className="font-semibold text-white">{stock.symbol}</span>
+                              <span className="font-medium text-white text-base">{stock.symbol}</span>
                             </div>
                           </th>
                         ))}
@@ -640,14 +671,14 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
                     </thead>
                     <tbody>
                       {/* Basic Info */}
-                      <tr className="border-b border-white/5">
-                        <td className="p-4 text-gray-400 sticky left-0 bg-[#0A0D12]">Price</td>
+                      <tr className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                        <td className="px-8 py-5 text-white/50 font-light sticky left-0 bg-[#0A0D12]/95 backdrop-blur-xl">Price</td>
                         {stocks.map(stock => (
-                          <td key={stock.symbol} className="text-center p-4">
-                            <div className="text-white font-medium">${stock.price.toFixed(2)}</div>
+                          <td key={stock.symbol} className="text-center px-6 py-5">
+                            <div className="text-white font-light text-base">${stock.price.toFixed(2)}</div>
                             <div className={cn(
-                              "text-sm flex items-center justify-center gap-1",
-                              stock.change >= 0 ? "text-green-400" : "text-red-400"
+                              "text-xs flex items-center justify-center gap-1 mt-1 font-light",
+                              stock.change >= 0 ? "text-emerald-400/80" : "text-red-400/80"
                             )}>
                               {stock.change >= 0 ? (
                                 <TrendingUp className="h-3 w-3" />
@@ -659,18 +690,18 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
                           </td>
                         ))}
                       </tr>
-                      <tr className="border-b border-white/5">
-                        <td className="p-4 text-gray-400 sticky left-0 bg-[#0A0D12]">Market Cap</td>
+                      <tr className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                        <td className="px-8 py-5 text-white/50 font-light sticky left-0 bg-[#0A0D12]/95 backdrop-blur-xl">Market Cap</td>
                         {stocks.map(stock => (
-                          <td key={stock.symbol} className="text-center p-4 text-white">
+                          <td key={stock.symbol} className="text-center px-6 py-5 text-white font-light">
                             {formatMarketCap(stock.marketCap)}
                           </td>
                         ))}
                       </tr>
-                      <tr className="border-b border-white/5">
-                        <td className="p-4 text-gray-400 sticky left-0 bg-[#0A0D12]">Sector</td>
+                      <tr className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                        <td className="px-8 py-5 text-white/50 font-light sticky left-0 bg-[#0A0D12]/95 backdrop-blur-xl">Sector</td>
                         {stocks.map(stock => (
-                          <td key={stock.symbol} className="text-center p-4 text-gray-300">
+                          <td key={stock.symbol} className="text-center px-6 py-5 text-white/60 font-light">
                             {stock.sector}
                           </td>
                         ))}
@@ -681,10 +712,10 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
                         const { best, worst } = getBestWorstValues(metric.key);
                         
                         return (
-                          <tr key={metric.key} className="border-b border-white/5">
-                            <td className="p-4 sticky left-0 bg-[#0A0D12]">
-                              <div className="text-gray-400">{metric.label}</div>
-                              <div className="text-xs text-gray-600">{metric.description}</div>
+                          <tr key={metric.key} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                            <td className="px-8 py-5 sticky left-0 bg-[#0A0D12]/95 backdrop-blur-xl">
+                              <div className="text-white/60 font-light">{metric.label}</div>
+                              <div className="text-[11px] text-white/30 font-light mt-0.5">{metric.description}</div>
                             </td>
                             {stocks.map(stock => {
                               const value = stock.metrics[metric.key];
@@ -692,14 +723,14 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
                               const isWorst = stock.symbol === worst && stocks.length > 1;
                               
                               return (
-                                <td key={stock.symbol} className="text-center p-4">
+                                <td key={stock.symbol} className="text-center px-6 py-5">
                                   <div className={cn(
-                                    "inline-flex items-center gap-2 px-2 py-1 rounded",
-                                    isBest && "bg-green-500/20 text-green-400",
-                                    isWorst && "bg-red-500/20 text-red-400",
+                                    "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-light",
+                                    isBest && "bg-emerald-500/10 text-emerald-400",
+                                    isWorst && "bg-red-500/10 text-red-400",
                                     !isBest && !isWorst && "text-white"
                                   )}>
-                                    {formatValue(value, metric.format)}
+                                    <span className="font-mono text-sm">{formatValue(value, metric.format)}</span>
                                     {isBest && <TrendingUp className="h-3 w-3" />}
                                     {isWorst && <TrendingDown className="h-3 w-3" />}
                                   </div>
@@ -712,12 +743,11 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
                     </tbody>
                   </table>
                 </div>
-              </Card>
-            </TabsContent>
+              </div>
+            )}
 
-            {/* Bar Chart View */}
-            <TabsContent value="bar">
-              <div className="grid gap-4">
+            {viewMode === 'bar' && (
+              <div className="grid gap-6">
                 {selectedMetricConfigs.map(metric => {
                   const maxValue = Math.max(
                     ...stocks.map(s => s.metrics[metric.key] || 0)
@@ -725,96 +755,98 @@ export function CompareView({ initialSymbols = [] }: CompareViewProps) {
                   const { best, worst } = getBestWorstValues(metric.key);
                   
                   return (
-                    <Card key={metric.key} className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium text-gray-300">
+                    <div key={metric.key} className="p-6 rounded-2xl border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl">
+                      <div className="mb-6">
+                        <h3 className="text-base font-light text-white">
                           {metric.label}
-                          <span className="text-xs text-gray-500 ml-2">({metric.description})</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {stocks.map((stock, index) => {
-                            const value = stock.metrics[metric.key];
-                            const percentage = value !== null ? (value / maxValue) * 100 : 0;
-                            const isBest = stock.symbol === best;
-                            const isWorst = stock.symbol === worst && stocks.length > 1;
-                            
-                            return (
-                              <div key={stock.symbol} className="flex items-center gap-4">
-                                <div className="w-16 text-sm font-medium text-white">{stock.symbol}</div>
-                                <div className="flex-1 h-8 bg-white/5 rounded-lg overflow-hidden relative">
-                                  <div
-                                    className="h-full rounded-lg transition-all duration-500"
-                                    style={{
-                                      width: `${Math.min(percentage, 100)}%`,
-                                      backgroundColor: STOCK_COLORS[index],
-                                    }}
-                                  />
-                                </div>
-                                <div className={cn(
-                                  "w-24 text-right text-sm font-medium",
-                                  isBest && "text-green-400",
-                                  isWorst && "text-red-400",
-                                  !isBest && !isWorst && "text-white"
-                                )}>
-                                  {formatValue(value, metric.format)}
-                                </div>
+                        </h3>
+                        <span className="text-xs text-white/30 font-light">{metric.description}</span>
+                      </div>
+                      <div className="space-y-4">
+                        {stocks.map((stock, index) => {
+                          const value = stock.metrics[metric.key];
+                          const percentage = value !== null ? (value / maxValue) * 100 : 0;
+                          const isBest = stock.symbol === best;
+                          const isWorst = stock.symbol === worst && stocks.length > 1;
+                          
+                          return (
+                            <div key={stock.symbol} className="flex items-center gap-5">
+                              <div className="w-20 flex items-center gap-2">
+                                <div
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: STOCK_COLORS[index] }}
+                                />
+                                <span className="text-sm font-light text-white">{stock.symbol}</span>
                               </div>
-                            );
-                          })}
-                        </div>
-                      </CardContent>
-                    </Card>
+                              <div className="flex-1 h-10 bg-white/[0.03] rounded-xl overflow-hidden relative">
+                                <div
+                                  className="h-full rounded-xl transition-all duration-700 ease-out"
+                                  style={{
+                                    width: `${Math.min(percentage, 100)}%`,
+                                    backgroundColor: STOCK_COLORS[index],
+                                    opacity: 0.6,
+                                  }}
+                                />
+                              </div>
+                              <div className={cn(
+                                "w-28 text-right text-sm font-mono font-light",
+                                isBest && "text-emerald-400",
+                                isWorst && "text-red-400",
+                                !isBest && !isWorst && "text-white"
+                              )}>
+                                {formatValue(value, metric.format)}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
-            </TabsContent>
+            )}
 
-            {/* Radar Chart View */}
-            <TabsContent value="radar">
-              <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col items-center">
-                    <RadarChart stocks={stocks} metrics={selectedMetricConfigs} />
-                    {/* Legend */}
-                    <div className="flex flex-wrap gap-4 mt-6 justify-center">
-                      {stocks.map((stock, index) => (
-                        <div key={stock.symbol} className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: STOCK_COLORS[index] }}
-                          />
-                          <span className="text-sm text-white">{stock.symbol}</span>
-                          <span className="text-sm text-gray-400">{stock.companyName}</span>
-                        </div>
-                      ))}
-                    </div>
+            {viewMode === 'radar' && (
+              <div className="p-8 rounded-2xl border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl">
+                <div className="flex flex-col items-center">
+                  <RadarChart stocks={stocks} metrics={selectedMetricConfigs} />
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-6 mt-10 justify-center">
+                    {stocks.map((stock, index) => (
+                      <div key={stock.symbol} className="flex items-center gap-3">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: STOCK_COLORS[index] }}
+                        />
+                        <span className="text-sm font-light text-white">{stock.symbol}</span>
+                        <span className="text-sm text-white/40 font-light">{stock.companyName}</span>
+                      </div>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                </div>
+              </div>
+            )}
+          </div>
         </>
       )}
 
       {stocks.length === 0 && (
-        <Card className="border-white/[0.05] bg-[#0A0D12]/60 backdrop-blur-sm">
-          <CardContent className="py-16">
-            <div className="text-center">
-              <BarChart3 className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-white mb-2">No stocks to compare</h3>
-              <p className="text-gray-400 mb-4">Add up to 5 stocks to start comparing</p>
-              <Button
-                onClick={() => setIsSearchOpen(true)}
-                className="bg-gradient-to-r from-[#00D4FF] to-[#3B82F6] text-[#05070B]"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Stock
-              </Button>
+        <div className="p-16 rounded-2xl border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mx-auto mb-6">
+              <BarChart3 className="h-8 w-8 text-white/30" />
             </div>
-          </CardContent>
-        </Card>
+            <h3 className="text-xl font-light text-white mb-3">No stocks selected</h3>
+            <p className="text-white/40 font-light mb-8">Add up to 5 securities to begin comparing</p>
+            <Button
+              onClick={() => setIsSearchOpen(true)}
+              className="bg-white/[0.08] hover:bg-white/[0.12] text-white border border-white/[0.1] hover:border-white/[0.15] rounded-xl px-6 py-3 font-light transition-all duration-300"
+            >
+              <Plus className="h-4 w-4 mr-2 opacity-60" />
+              Add Stock
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -828,9 +860,9 @@ function RadarChart({
   stocks: StockData[];
   metrics: MetricConfig[];
 }) {
-  const size = 400;
+  const size = 450;
   const center = size / 2;
-  const radius = (size / 2) - 60;
+  const radius = (size / 2) - 80;
   const levels = 5;
 
   // Normalize values to 0-1 scale
@@ -877,7 +909,7 @@ function RadarChart({
             cy={center}
             r={r}
             fill="none"
-            stroke="rgba(255,255,255,0.1)"
+            stroke="rgba(255,255,255,0.04)"
             strokeWidth={1}
           />
         );
@@ -886,7 +918,7 @@ function RadarChart({
       {/* Axis lines and labels */}
       {metrics.map((metric, i) => {
         const point = getPoint(i, 1);
-        const labelPoint = getPoint(i, 1.2);
+        const labelPoint = getPoint(i, 1.25);
         return (
           <g key={metric.key}>
             <line
@@ -894,14 +926,15 @@ function RadarChart({
               y1={center}
               x2={point.x}
               y2={point.y}
-              stroke="rgba(255,255,255,0.2)"
+              stroke="rgba(255,255,255,0.06)"
               strokeWidth={1}
             />
             <text
               x={labelPoint.x}
               y={labelPoint.y}
-              fill="#9CA3AF"
-              fontSize={10}
+              fill="rgba(255,255,255,0.4)"
+              fontSize={11}
+              fontWeight={300}
               textAnchor="middle"
               dominantBaseline="middle"
             >
@@ -924,9 +957,9 @@ function RadarChart({
           <g key={stocks[stockIndex].symbol}>
             <polygon
               points={points}
-              fill={`${STOCK_COLORS[stockIndex]}20`}
+              fill={`${STOCK_COLORS[stockIndex].replace('0.9', '0.1')}`}
               stroke={STOCK_COLORS[stockIndex]}
-              strokeWidth={2}
+              strokeWidth={1.5}
             />
             {data.map((value, i) => {
               const p = getPoint(i, value);
@@ -935,7 +968,7 @@ function RadarChart({
                   key={i}
                   cx={p.x}
                   cy={p.y}
-                  r={4}
+                  r={3}
                   fill={STOCK_COLORS[stockIndex]}
                 />
               );

@@ -212,7 +212,7 @@ export function Sidebar() {
       <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/[0.02] via-transparent to-violet-500/[0.02] pointer-events-none" />
 
       {/* Logo Section */}
-      <div className="relative h-16 flex items-center justify-between px-4 border-b border-white/[0.06]">
+      <div className="relative h-[72px] flex items-center justify-between px-4 border-b border-white/[0.06]">
         <Link href="/dashboard" className="flex items-center gap-3">
           <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
             <Terminal className="w-5 h-5 text-white" />

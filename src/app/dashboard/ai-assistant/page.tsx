@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { MessageSquare, RefreshCw } from 'lucide-react'
+import { MessageSquare, RefreshCw, Sparkles } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useChatStore } from '@/lib/stores/chat-store'
 import { Message } from '@/components/ai/Message'
 import { MessageInput } from '@/components/ai/MessageInput'
 import { SuggestedQuestions } from '@/components/ai/SuggestedQuestions'
 import type { FeedbackType } from '@/lib/stores/chat-store'
+import { cn } from '@/lib/utils'
 
 // Types for market data
 interface MarketIndex {
@@ -317,56 +319,79 @@ export default function AIAssistantPage() {
   }, [setFeedback])
 
   return (
-    <div className="h-[calc(100vh-7rem)] sm:h-[calc(100vh-8rem)] flex flex-col">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
-            AI Assistant
-          </h1>
-          <p className="text-gray-400 text-xs sm:text-sm mt-1">
-            Get intelligent insights about stocks and markets (Real AI powered by Claude)
-          </p>
+    <div className="h-[calc(100vh-7rem)] sm:h-[calc(100vh-8rem)] flex flex-col max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Header - Clean & Premium */}
+      <motion.header
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-6 lg:py-8"
+      >
+        <div className="flex items-center gap-4">
+          {/* AI Avatar */}
+          <div className="relative">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 backdrop-blur-sm border border-white/[0.08] flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+              <Sparkles className="w-5 h-5 text-white/70" />
+            </div>
+            {/* Status indicator */}
+            <div className={cn(
+              "absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[#0c0e14]",
+              isLoadingContext ? "bg-amber-400" : "bg-emerald-400"
+            )} />
+          </div>
+          
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+              AI Financial Assistant
+            </h1>
+            <p className="text-sm text-white/40 font-light mt-1 leading-relaxed">
+              Intelligent insights powered by real-time market data
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4">
+        
+        {/* Actions */}
+        <div className="flex items-center gap-3">
           <button
             onClick={fetchMarketContext}
             disabled={isLoadingContext}
-            className="px-3 py-1.5 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors flex items-center gap-1.5"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl transition-all duration-200"
             title="Refresh market data"
           >
-            <RefreshCw className={`w-3 h-3 ${isLoadingContext ? 'animate-spin' : ''}`} />
-            Refresh Data
+            <RefreshCw className={cn("w-4 h-4", isLoadingContext && 'animate-spin')} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
           <button
             onClick={clearMessages}
-            className="px-3 py-1.5 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors"
+            className="px-4 py-2.5 text-sm text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl transition-all duration-200"
           >
-            Clear Chat
+            Clear
           </button>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-xs text-green-400">
-              {isLoadingContext ? 'Loading...' : 'Online'}
-            </span>
-          </div>
         </div>
-      </div>
+      </motion.header>
 
-      {/* Chat Container */}
-      <div className="flex-1 bg-[#0d0d0f] border border-white/10 rounded-xl overflow-hidden flex flex-col">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
+      {/* Chat Container - Glass Surface */}
+      <motion.div 
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="flex-1 bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-2xl overflow-hidden flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+      >
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
           {messages.length === 0 ? (
-            <div className="text-center py-8 sm:py-12">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
-                <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+            <div className="flex flex-col items-center justify-center py-12 lg:py-16">
+              {/* AI Avatar - Large */}
+              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500/15 to-cyan-500/15 backdrop-blur-sm border border-white/[0.06] flex items-center justify-center mb-6 shadow-[0_12px_32px_rgba(0,0,0,0.15)]">
+                <Sparkles className="w-7 h-7 text-white/50" />
               </div>
-              <h3 className="text-base sm:text-lg font-medium text-white mb-2">Start a Conversation</h3>
-              <p className="text-gray-400 text-xs sm:text-sm max-w-md mx-auto px-4">
-                Ask me about stocks, market trends, financial metrics, or investment strategies. 
-                I use real-time data from Yahoo Finance and calculated metrics.
+              
+              <h3 className="text-xl font-medium text-white tracking-tight mb-3">
+                Start a Conversation
+              </h3>
+              <p className="text-white/40 text-sm font-light max-w-md mx-auto text-center leading-relaxed px-4">
+                Ask about stocks, market trends, financial metrics, or investment strategies. 
+                I use real-time data from multiple sources.
               </p>
             </div>
           ) : (
@@ -381,9 +406,9 @@ export default function AIAssistantPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Suggestions - only show when no messages */}
+        {/* Suggestions - Premium Cards */}
         {messages.length === 0 && (
-          <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 border-t border-white/5">
+          <div className="px-4 sm:px-6 lg:px-8 py-5 border-t border-white/[0.04]">
             <SuggestedQuestions
               onSelect={handleSend}
               maxQuestions={4}
@@ -391,19 +416,19 @@ export default function AIAssistantPage() {
           </div>
         )}
 
-        {/* Input */}
-        <div className="p-3 sm:p-4 border-t border-white/10">
+        {/* Input Section - Glass Container */}
+        <div className="p-4 sm:p-5 lg:p-6 border-t border-white/[0.04] bg-white/[0.01]">
           <MessageInput
             onSend={handleSend}
             onStop={abort}
             isStreaming={isStreaming}
             placeholder="Ask about stocks, markets, or financial concepts..."
           />
-          <p className="text-[10px] text-gray-600 mt-2 text-center">
+          <p className="text-[11px] text-white/25 mt-3 text-center font-light">
             AI responses are based on provided data only. Not financial advice.
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
