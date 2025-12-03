@@ -71,10 +71,21 @@ export function AIMarketReport({ className }: AIMarketReportProps) {
     
     try {
       const res = await fetch('/api/market/ai-report')
-      if (!res.ok) {
-        throw new Error('Failed to fetch AI report')
-      }
       const data = await res.json()
+      
+      if (!res.ok) {
+        // Handle specific error cases
+        if (res.status === 401) {
+          throw new Error('Please sign in to view AI reports')
+        } else if (res.status === 402) {
+          throw new Error('Insufficient credits. Please purchase more credits.')
+        } else if (res.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.')
+        } else {
+          throw new Error(data.error || data.message || 'Failed to fetch AI report')
+        }
+      }
+      
       if (data.success) {
         setReport(data)
       } else {
@@ -200,13 +211,37 @@ export function AIMarketReport({ className }: AIMarketReportProps) {
         </div>
       ) : error ? (
         <div className="text-center py-8">
-          <p className="text-sm text-red-400 mb-3">{error}</p>
-          <button
-            onClick={fetchReport}
-            className="px-4 py-2 rounded-lg bg-purple-500/10 text-purple-400 text-sm hover:bg-purple-500/20 transition-all"
-          >
-            Try Again
-          </button>
+          <div className="mb-4">
+            {error.includes('sign in') || error.includes('authentication') ? (
+              <div className="w-12 h-12 mx-auto rounded-full bg-amber-500/10 flex items-center justify-center mb-3">
+                <Brain className="w-6 h-6 text-amber-400" />
+              </div>
+            ) : error.includes('credit') ? (
+              <div className="w-12 h-12 mx-auto rounded-full bg-purple-500/10 flex items-center justify-center mb-3">
+                <Sparkles className="w-6 h-6 text-purple-400" />
+              </div>
+            ) : (
+              <div className="w-12 h-12 mx-auto rounded-full bg-red-500/10 flex items-center justify-center mb-3">
+                <Brain className="w-6 h-6 text-red-400" />
+              </div>
+            )}
+          </div>
+          <p className="text-sm text-gray-300 mb-2">{error}</p>
+          {error.includes('credit') ? (
+            <a
+              href="/pricing"
+              className="inline-block px-4 py-2 rounded-lg bg-purple-500/20 text-purple-400 text-sm hover:bg-purple-500/30 transition-all"
+            >
+              Get Credits
+            </a>
+          ) : (
+            <button
+              onClick={fetchReport}
+              className="px-4 py-2 rounded-lg bg-purple-500/10 text-purple-400 text-sm hover:bg-purple-500/20 transition-all"
+            >
+              Try Again
+            </button>
+          )}
         </div>
       ) : report && moodConfig ? (
         <motion.div
