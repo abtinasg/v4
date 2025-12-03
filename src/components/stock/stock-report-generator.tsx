@@ -234,15 +234,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
     setProgress('Initializing report generation...');
 
     try {
-      // Step 1: Fetch market data
-      setProgress('Fetching market data...');
-      const marketResponse = await fetch(`/api/stock/${symbol}/all`);
-      if (!marketResponse.ok) {
-        throw new Error('Failed to fetch market data');
-      }
-      const marketData = await marketResponse.json();
-
-      // Step 2: Generate AI report
+      // Generate AI report (the API fetches market data internally)
       setProgress('Analyzing with Claude AI...');
       const reportResponse = await fetch(`/api/stock/${symbol}/report`, {
         method: 'POST',
@@ -251,18 +243,18 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
         },
         body: JSON.stringify({
           companyName,
-          marketData,
+          reportType: 'full',
         }),
       });
 
       if (!reportResponse.ok) {
         const errorData = await reportResponse.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to generate report');
+        throw new Error(errorData.error || errorData.details || 'Failed to generate report');
       }
 
       const reportData: ReportResponse = await reportResponse.json();
 
-      // Step 3: Generate PDF
+      // Generate PDF
       setProgress('Generating PDF document...');
       await generatePDF(reportData);
 
