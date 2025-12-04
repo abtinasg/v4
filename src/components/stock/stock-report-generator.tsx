@@ -93,7 +93,8 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       .replace(/`(.+?)`/g, '$1')
       .replace(/\[(.+?)\]\(.+?\)/g, '$1')
       .replace(/^\s*[-*+]\s+/gm, '• ')
-      .replace(/^\s*\d+\.\s+/gm, '• ');
+      .replace(/[\u2018\u2019]/g, "'") // Smart single quotes
+      .replace(/[\u201C\u201D]/g, '"'); // Smart double quotes
   };
 
   /**
@@ -274,6 +275,14 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
         const startsWithNumber = /^\d+\./.test(trimmedSection);
         const isHeader = hasEmoji || isAllCaps || startsWithNumber;
 
+        // Clean text for display - remove emojis and non-supported chars
+        const displaySection = trimmedSection
+          .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+          .replace(/[^\x20-\x7E\n\r\t•]/g, '')
+          .trim();
+
+        if (!displaySection) continue;
+
         if (isHeader) {
           sectionNumber++;
           checkNewPage(35);
@@ -294,7 +303,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(isRetail ? 12 : 11);
           doc.setTextColor(...primaryColor);
-          doc.text(trimmedSection, margin + 4, yPosition + 4);
+          doc.text(displaySection, margin + 4, yPosition + 4);
           
           yPosition += 16;
           doc.setFont('helvetica', 'normal');
@@ -302,16 +311,16 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           doc.setTextColor(...textDark);
         } else {
           // Regular paragraph
-          const lines = doc.splitTextToSize(trimmedSection, contentWidth - 4);
+          const lines = doc.splitTextToSize(displaySection, contentWidth - 4);
           for (const line of lines) {
             checkNewPage(8);
             
             // Style bullet points
-            if (line.startsWith('•')) {
+            if (line.trim().startsWith('•')) {
               doc.setFillColor(...accentColor);
               doc.circle(margin + 2, yPosition - 1.5, 1, 'F');
               doc.setTextColor(...textDark);
-              doc.text(line.substring(1).trim(), margin + 6, yPosition);
+              doc.text(line.trim().substring(1).trim(), margin + 6, yPosition);
             } else {
               doc.text(line, margin + 2, yPosition);
             }

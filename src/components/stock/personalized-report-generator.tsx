@@ -62,7 +62,8 @@ export function PersonalizedReportGenerator({ symbol, companyName }: Personalize
       .replace(/`(.+?)`/g, '$1')
       .replace(/\[(.+?)\]\(.+?\)/g, '$1')
       .replace(/^\s*[-*+]\s+/gm, '• ')
-      .replace(/^\s*\d+\.\s+/gm, '• ');
+      .replace(/[\u2018\u2019]/g, "'") // Smart single quotes
+      .replace(/[\u201C\u201D]/g, '"'); // Smart double quotes
   };
 
   const generatePDF = async (reportData: PersonalizedReportResponse) => {
@@ -422,26 +423,34 @@ export function PersonalizedReportGenerator({ symbol, companyName }: Personalize
         const isHeader = hasEmoji || 
           (trimmedSection === trimmedSection.toUpperCase() && trimmedSection.length < 60);
 
+        // Clean text for display
+        const displaySection = trimmedSection
+          .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+          .replace(/[^\x20-\x7E\n\r\t•]/g, '')
+          .trim();
+
+        if (!displaySection) continue;
+
         if (isHeader) {
           checkNewPage(25);
           yPosition += 10;
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(12);
           doc.setTextColor(...primaryColor);
-          doc.text(trimmedSection, margin, yPosition);
+          doc.text(displaySection, margin, yPosition);
           yPosition += 8;
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(10);
           doc.setTextColor(...textDark);
         } else {
-          const lines = doc.splitTextToSize(trimmedSection, contentWidth);
+          const lines = doc.splitTextToSize(displaySection, contentWidth);
           for (const line of lines) {
             checkNewPage(8);
-            if (line.startsWith('•')) {
+            if (line.trim().startsWith('•')) {
               doc.setTextColor(...accentColor);
               doc.text('•', margin, yPosition);
               doc.setTextColor(...textDark);
-              doc.text(line.substring(1).trim(), margin + 4, yPosition);
+              doc.text(line.trim().substring(1).trim(), margin + 4, yPosition);
             } else {
               doc.text(line, margin, yPosition);
             }
