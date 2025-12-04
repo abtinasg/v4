@@ -30,9 +30,9 @@ const stages = [
 ]
 
 const models = [
-  { name: 'GPT-4', specialty: 'Reasoning' },
-  { name: 'Claude', specialty: 'Analysis' },
-  { name: 'FinGPT', specialty: 'Markets' },
+  { name: 'Deep AI', specialty: 'Reasoning' },
+  { name: 'Deep AI', specialty: 'Analysis' },
+  { name: 'Deep AI', specialty: 'Markets' },
 ]
 
 export function AIOrchestrator() {

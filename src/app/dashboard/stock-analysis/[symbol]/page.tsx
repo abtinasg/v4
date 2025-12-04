@@ -7,6 +7,7 @@ import { PriceChart } from '@/components/stock/price-chart';
 import { MetricsTabs } from '@/components/stock/metrics-tabs';
 import { StockReportGenerator } from '@/components/stock/stock-report-generator';
 import { StockNewsTabs } from '@/components/stock/stock-news-tabs';
+import { RiskAssessmentAlert } from '@/components/stock/risk-assessment-alert';
 import {
   CompanyHeaderSkeleton,
   ChartSkeleton,
@@ -301,6 +302,9 @@ export default async function StockAnalysisPage({ params }: PageProps) {
         <Suspense fallback={<ChartSkeleton />}>
           <PriceChartServer symbol={upperSymbol} />
         </Suspense>
+
+        {/* Risk Assessment Alert (shows only if user hasn't completed) */}
+        <RiskAssessmentAlert />
 
         {/* AI Research Report */}
         <StockReportGenerator 

@@ -59,7 +59,7 @@ const timeline = [
   {
     year: '2024',
     title: 'AI Integration',
-    description: 'Integrated Claude AI for intelligent analysis and natural language insights on any stock.',
+    description: 'Integrated Deep AI for intelligent analysis and natural language insights on any stock.',
   },
   {
     year: '2024',

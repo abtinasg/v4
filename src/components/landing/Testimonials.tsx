@@ -18,7 +18,7 @@ const testimonials = [
     rating: 5
   },
   {
-    quote: "The multi-model AI approach is brilliant. Getting consensus from GPT-4 and Claude on market analysis is game-changing.",
+    quote: "The Deep AI analysis is brilliant. Getting comprehensive market insights in seconds is game-changing.",
     author: 'David Park',
     role: 'Quantitative Analyst',
     avatar: 'DP',

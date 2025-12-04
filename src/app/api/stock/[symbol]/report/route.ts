@@ -753,8 +753,11 @@ IMPORTANT REMINDERS:
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout (leaving 30s buffer)
   
+  // Use GPT-4.1 for faster response times while maintaining quality
+  const modelId = 'openai/gpt-4.1';
+  
   try {
-    console.log(`[Report] Calling OpenRouter API with Claude Sonnet 4.5 (${reportLabel} report)...`);
+    console.log(`[Report] Calling OpenRouter API with GPT-4.1 (${reportLabel} report)...`);
     const startTime = Date.now();
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -766,15 +769,15 @@ IMPORTANT REMINDERS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-sonnet-4.5', // Claude Sonnet 4.5 - latest and fastest
+        model: modelId, // GPT-4.1 - faster with excellent quality
         messages: [
           {
             role: 'user',
             content: selectedPrompt,
           },
         ],
-        max_tokens: audienceType === 'retail' ? 4000 : 6000, // Retail reports are shorter
-        temperature: 0.2, // Lower for more focused, faster responses
+        max_tokens: audienceType === 'retail' ? 4000 : 8000, // GPT-4.1 handles longer outputs well
+        temperature: 0.1, // Lower for faster, more focused responses
       }),
       signal: controller.signal,
     });

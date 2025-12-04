@@ -9,6 +9,7 @@ import {
   chatHistory, 
   portfolioHoldings,
   riskProfiles,
+  detailedRiskAssessments,
   type NewUser,
   type NewWatchlist,
   type NewWatchlistItem,
@@ -17,6 +18,7 @@ import {
   type NewChatHistory,
   type NewPortfolioHolding,
   type NewRiskProfile,
+  type NewDetailedRiskAssessment,
 } from './schema'
 
 // ==================== USER QUERIES ====================
@@ -591,6 +593,73 @@ export const riskProfileQueries = {
   },
 }
 
+// ==================== DETAILED RISK ASSESSMENT QUERIES ====================
+
+export const detailedRiskAssessmentQueries = {
+  // Get detailed risk assessment by user ID
+  getByUserId: async (userId: string) => {
+    const result = await db.query.detailedRiskAssessments.findFirst({
+      where: eq(detailedRiskAssessments.userId, userId),
+    })
+    return result
+  },
+
+  // Check if user has completed detailed risk assessment
+  hasCompleted: async (userId: string) => {
+    const result = await db.query.detailedRiskAssessments.findFirst({
+      where: eq(detailedRiskAssessments.userId, userId),
+      columns: { id: true },
+    })
+    return !!result
+  },
+
+  // Create detailed risk assessment
+  create: async (data: NewDetailedRiskAssessment) => {
+    const [assessment] = await db
+      .insert(detailedRiskAssessments)
+      .values(data)
+      .returning()
+    return assessment
+  },
+
+  // Update detailed risk assessment
+  update: async (userId: string, data: Partial<Omit<NewDetailedRiskAssessment, 'userId'>>) => {
+    const [updated] = await db
+      .update(detailedRiskAssessments)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(detailedRiskAssessments.userId, userId))
+      .returning()
+    return updated
+  },
+
+  // Upsert detailed risk assessment (create or update)
+  upsert: async (userId: string, data: Omit<NewDetailedRiskAssessment, 'userId'>) => {
+    const existing = await db.query.detailedRiskAssessments.findFirst({
+      where: eq(detailedRiskAssessments.userId, userId),
+    })
+
+    if (existing) {
+      const [updated] = await db
+        .update(detailedRiskAssessments)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(detailedRiskAssessments.userId, userId))
+        .returning()
+      return updated
+    } else {
+      const [created] = await db
+        .insert(detailedRiskAssessments)
+        .values({ ...data, userId })
+        .returning()
+      return created
+    }
+  },
+
+  // Delete detailed risk assessment
+  delete: async (userId: string) => {
+    await db.delete(detailedRiskAssessments).where(eq(detailedRiskAssessments.userId, userId))
+  },
+}
+
 // Export all query helpers
 export const queries = {
   user: userQueries,
@@ -601,4 +670,5 @@ export const queries = {
   portfolioHoldings: portfolioHoldingsQueries,
   analytics: analyticsQueries,
   riskProfile: riskProfileQueries,
+  detailedRiskAssessment: detailedRiskAssessmentQueries,
 }

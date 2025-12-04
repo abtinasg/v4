@@ -69,7 +69,7 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'anthropic/claude-sonnet-4.5',
-    name: 'Claude Sonnet 4.5',
+    name: 'Deep AI Pro',
     provider: 'anthropic',
     description: 'Exceptional at nuanced financial analysis',
     tier: 'premium',
@@ -80,7 +80,7 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'openai/gpt-4o',
-    name: 'GPT-4o',
+    name: 'Deep AI Standard',
     provider: 'openai',
     description: 'Fast and capable for most tasks',
     tier: 'standard',
@@ -91,7 +91,7 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'anthropic/claude-3.5-haiku',
-    name: 'Claude 3.5 Haiku',
+    name: 'Deep AI Fast',
     provider: 'anthropic',
     description: 'Ultra-fast responses for quick queries',
     tier: 'free',

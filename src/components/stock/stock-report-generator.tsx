@@ -5,6 +5,7 @@ import { Download, FileText, Loader2, AlertCircle, Sparkles, Shield, TrendingUp,
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
+import { PersonalizedReportGenerator } from './personalized-report-generator';
 
 type AudienceType = 'pro' | 'retail';
 
@@ -34,7 +35,7 @@ const loadingStages = [
   },
   {
     label: 'AI Analysis',
-    description: 'Processing 400+ metrics with Claude AI',
+    description: 'Processing 400+ metrics with Deep AI',
     keywords: ['analyzing', 'processing'],
     icon: Sparkles,
   },
@@ -113,9 +114,15 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       const contentWidth = pageWidth - margin * 2;
       let yPosition = margin;
 
-      // Colors
-      const primaryColor: [number, number, number] = [139, 92, 246]; // Violet
-      const secondaryColor: [number, number, number] = [34, 211, 238]; // Cyan
+      const isRetail = selectedAudience === 'retail';
+
+      // Colors - Different themes for Pro vs Retail
+      const primaryColor: [number, number, number] = isRetail 
+        ? [6, 182, 212]   // Cyan for Retail
+        : [139, 92, 246]; // Violet for Pro
+      const accentColor: [number, number, number] = isRetail
+        ? [20, 184, 166]  // Teal accent for Retail
+        : [124, 58, 237]; // Purple accent for Pro
       const textDark: [number, number, number] = [30, 41, 59];
       const textMuted: [number, number, number] = [100, 116, 139];
 
@@ -123,6 +130,9 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       const checkNewPage = (neededSpace: number = 20) => {
         if (yPosition + neededSpace > pageHeight - margin) {
           doc.addPage();
+          // Add header bar on new pages
+          doc.setFillColor(...primaryColor);
+          doc.rect(0, 0, pageWidth, 2, 'F');
           yPosition = margin;
           return true;
         }
@@ -132,7 +142,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       // ===== COVER PAGE =====
       // Header gradient bar
       doc.setFillColor(...primaryColor);
-      doc.rect(0, 0, pageWidth, 3, 'F');
+      doc.rect(0, 0, pageWidth, isRetail ? 4 : 3, 'F');
 
       // Title section
       yPosition = 40;
@@ -147,14 +157,16 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       doc.setTextColor(...textMuted);
       doc.text(reportData.companyName, margin, yPosition);
 
-      // Report type badge
+      // Report type badge - Different for Pro vs Retail
       yPosition += 20;
-      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.roundedRect(margin, yPosition - 5, 60, 8, 2, 2, 'F');
+      doc.setFillColor(...primaryColor);
+      const badgeText = isRetail ? 'INVESTOR GUIDE' : 'EQUITY RESEARCH REPORT';
+      const badgeWidth = isRetail ? 42 : 60;
+      doc.roundedRect(margin, yPosition - 5, badgeWidth, 8, 2, 2, 'F');
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
       doc.setTextColor(255, 255, 255);
-      doc.text('EQUITY RESEARCH REPORT', margin + 3, yPosition);
+      doc.text(badgeText, margin + 3, yPosition);
 
       // Metadata
       yPosition += 20;
@@ -173,10 +185,35 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       );
 
       yPosition += 8;
-      doc.text('Powered by Claude AI • Institutional-Grade Analysis', margin, yPosition);
+      const poweredByText = isRetail 
+        ? 'Powered by Deep AI • Easy-to-Understand Analysis'
+        : 'Powered by Deep AI • Institutional-Grade Analysis';
+      doc.text(poweredByText, margin, yPosition);
+
+      // Retail-specific: Add a friendly intro box
+      if (isRetail) {
+        yPosition += 15;
+        doc.setFillColor(240, 253, 250); // Light cyan background
+        doc.roundedRect(margin, yPosition - 2, contentWidth, 18, 3, 3, 'F');
+        doc.setDrawColor(...primaryColor);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(margin, yPosition - 2, contentWidth, 18, 3, 3, 'S');
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(...primaryColor);
+        doc.text('📚 What is this report?', margin + 4, yPosition + 4);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(...textMuted);
+        doc.text('This is a simplified stock analysis written in plain English for individual investors.', margin + 4, yPosition + 11);
+        
+        yPosition += 20;
+      }
 
       // Divider
-      yPosition += 15;
+      yPosition += 5;
       doc.setDrawColor(226, 232, 240);
       doc.setLineWidth(0.5);
       doc.line(margin, yPosition, pageWidth - margin, yPosition);
@@ -187,35 +224,44 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       const sections = reportText.split(/\n{2,}/);
 
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
+      doc.setFontSize(isRetail ? 11 : 10); // Slightly larger font for Retail
       doc.setTextColor(...textDark);
 
       for (const section of sections) {
         const trimmedSection = section.trim();
         if (!trimmedSection) continue;
 
-        // Check if this looks like a header (all caps or short line)
-        const isHeader =
-          trimmedSection === trimmedSection.toUpperCase() && trimmedSection.length < 60;
+        // Check if this looks like a header (starts with emoji or all caps)
+        const hasEmoji = /^[\u{1F300}-\u{1F9FF}]/u.test(trimmedSection);
+        const isHeader = hasEmoji || 
+          (trimmedSection === trimmedSection.toUpperCase() && trimmedSection.length < 60);
 
         if (isHeader) {
           checkNewPage(25);
-          yPosition += 8;
+          yPosition += 10;
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(12);
+          doc.setFontSize(isRetail ? 13 : 12);
           doc.setTextColor(...primaryColor);
           doc.text(trimmedSection, margin, yPosition);
           yPosition += 8;
           doc.setFont('helvetica', 'normal');
-          doc.setFontSize(10);
+          doc.setFontSize(isRetail ? 11 : 10);
           doc.setTextColor(...textDark);
         } else {
-          // Regular paragraph
+          // Regular paragraph - handle bullet points
           const lines = doc.splitTextToSize(trimmedSection, contentWidth);
           for (const line of lines) {
             checkNewPage(8);
-            doc.text(line, margin, yPosition);
-            yPosition += 6;
+            // Style bullet points
+            if (line.startsWith('•')) {
+              doc.setTextColor(...accentColor);
+              doc.text('•', margin, yPosition);
+              doc.setTextColor(...textDark);
+              doc.text(line.substring(1).trim(), margin + 4, yPosition);
+            } else {
+              doc.text(line, margin, yPosition);
+            }
+            yPosition += isRetail ? 7 : 6; // More spacing for Retail
           }
           yPosition += 4;
         }
@@ -225,11 +271,15 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...textMuted);
-      doc.text('This report is for informational purposes only and does not constitute financial advice.', margin, pageHeight - 15);
-      doc.text(`© ${new Date().getFullYear()} AI Research Platform`, margin, pageHeight - 10);
+      
+      const disclaimerText = isRetail 
+        ? 'This report is for educational purposes only. Always do your own research before investing.'
+        : 'This report is for informational purposes only and does not constitute financial advice.';
+      doc.text(disclaimerText, margin, pageHeight - 15);
+      doc.text(`© ${new Date().getFullYear()} Deep Terminal`, margin, pageHeight - 10);
 
       // Save the PDF
-      const filename = `${reportData.symbol}_${selectedAudience === 'retail' ? 'Simple' : 'Research'}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      const filename = `${reportData.symbol}_${isRetail ? 'Retail' : 'Pro'}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
       setProgress('PDF downloaded successfully!');
     } catch (err) {
@@ -246,7 +296,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
 
     try {
       // Generate AI report (the API fetches market data internally)
-      setProgress(audienceType === 'retail' ? 'Creating simple analysis...' : 'Analyzing with Claude AI...');
+      setProgress(audienceType === 'retail' ? 'Creating simple analysis...' : 'Analyzing with Deep AI...');
       const reportResponse = await fetch(`/api/stock/${symbol}/report`, {
         method: 'POST',
         headers: {
@@ -306,7 +356,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white tracking-tight">AI Research Reports</h3>
-              <p className="text-sm text-white/40 mt-1">Powered by Claude AI</p>
+              <p className="text-sm text-white/40 mt-1">Powered by Deep AI</p>
             </div>
           </div>
         </div>
@@ -314,29 +364,35 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
         {/* Report Type Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {/* Pro Report Card */}
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-violet-500/30 transition-all">
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-violet-500/30 transition-all group">
             <div className="flex items-center gap-2 mb-3">
-              <Shield className="h-4 w-4 text-violet-400" />
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500/15 to-violet-600/10 flex items-center justify-center border border-violet-500/20">
+                <Shield className="h-3.5 w-3.5 text-violet-400" />
+              </div>
               <span className="text-sm font-semibold text-white">Pro Report</span>
-              <span className="px-2 py-0.5 text-[9px] font-semibold rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/25 uppercase">
+              <span className="px-2 py-0.5 text-[9px] font-semibold rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/25 uppercase tracking-wide">
                 CFA-Level
               </span>
             </div>
-            <p className="text-xs text-white/40 mb-4 leading-relaxed">
+            <p className="text-xs text-white/50 mb-4 leading-relaxed">
               Institutional-grade analysis with 400+ metrics, valuation models, and professional terminology.
             </p>
             <div className="flex flex-wrap gap-1.5 mb-4">
-              {reportFeatures.pro.map((feature, idx) => (
-                <span key={idx} className="text-[10px] text-white/50 px-2 py-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
-                  {feature.text}
-                </span>
-              ))}
+              {reportFeatures.pro.map((feature, idx) => {
+                const FeatureIcon = feature.icon;
+                return (
+                  <span key={idx} className="text-[10px] text-violet-400/70 px-2.5 py-1 rounded-full bg-violet-500/[0.08] border border-violet-500/15 flex items-center gap-1.5">
+                    <FeatureIcon className="h-3 w-3" />
+                    {feature.text}
+                  </span>
+                );
+              })}
             </div>
             <Button
               onClick={() => handleGenerateReport('pro')}
               disabled={isGenerating}
               size="sm"
-              className="w-full h-10 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white border-0 font-semibold text-xs transition-all duration-300 shadow-lg shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+              className="w-full h-10 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white border-0 font-semibold text-xs transition-all duration-300 shadow-lg shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg group-hover:shadow-violet-500/30"
             >
               {isGenerating && selectedAudience === 'pro' ? (
                 <>
@@ -353,29 +409,35 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           </div>
 
           {/* Retail Report Card */}
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition-all">
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-cyan-500/30 transition-all group">
             <div className="flex items-center gap-2 mb-3">
-              <GraduationCap className="h-4 w-4 text-emerald-400" />
-              <span className="text-sm font-semibold text-white">Simple Report</span>
-              <span className="px-2 py-0.5 text-[9px] font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/25 uppercase">
-                Easy Read
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500/15 to-cyan-600/10 flex items-center justify-center border border-cyan-500/20">
+                <GraduationCap className="h-3.5 w-3.5 text-cyan-400" />
+              </div>
+              <span className="text-sm font-semibold text-white">Retail Report</span>
+              <span className="px-2 py-0.5 text-[9px] font-semibold rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/25 uppercase tracking-wide">
+                Beginner Friendly
               </span>
             </div>
-            <p className="text-xs text-white/40 mb-4 leading-relaxed">
-              Clear, jargon-free analysis perfect for beginners. Technical terms explained in plain English.
+            <p className="text-xs text-white/50 mb-4 leading-relaxed">
+              Easy-to-understand analysis with plain English explanations. Perfect for individual investors learning the market.
             </p>
             <div className="flex flex-wrap gap-1.5 mb-4">
-              {reportFeatures.retail.map((feature, idx) => (
-                <span key={idx} className="text-[10px] text-white/50 px-2 py-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
-                  {feature.text}
-                </span>
-              ))}
+              {reportFeatures.retail.map((feature, idx) => {
+                const FeatureIcon = feature.icon;
+                return (
+                  <span key={idx} className="text-[10px] text-cyan-400/70 px-2.5 py-1 rounded-full bg-cyan-500/[0.08] border border-cyan-500/15 flex items-center gap-1.5">
+                    <FeatureIcon className="h-3 w-3" />
+                    {feature.text}
+                  </span>
+                );
+              })}
             </div>
             <Button
               onClick={() => handleGenerateReport('retail')}
               disabled={isGenerating}
               size="sm"
-              className="w-full h-10 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white border-0 font-semibold text-xs transition-all duration-300 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+              className="w-full h-10 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white border-0 font-semibold text-xs transition-all duration-300 shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg group-hover:shadow-cyan-500/30"
             >
               {isGenerating && selectedAudience === 'retail' ? (
                 <>
@@ -390,6 +452,16 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
               )}
             </Button>
           </div>
+        </div>
+
+        {/* Personalized Report Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+            <span className="text-xs text-white/30 uppercase tracking-wider">Personalized Analysis</span>
+            <div className="h-px flex-1 bg-gradient-to-r from-white/[0.06] via-transparent to-transparent" />
+          </div>
+          <PersonalizedReportGenerator symbol={symbol} companyName={companyName} />
         </div>
 
         {/* Error State */}

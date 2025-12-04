@@ -39,7 +39,7 @@ const mainFeatures = [
   {
     icon: Brain,
     title: 'AI-Powered Analysis',
-    description: 'Claude AI integration for intelligent stock analysis. Get natural language insights, answer questions, and understand complex metrics.',
+    description: 'Deep AI integration for intelligent stock analysis. Get natural language insights, answer questions, and understand complex metrics.',
     highlights: ['Natural Language Q&A', 'Metric Explanations', 'Investment Thesis', 'Risk Assessment'],
   },
   {

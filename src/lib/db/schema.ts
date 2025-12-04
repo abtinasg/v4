@@ -268,6 +268,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   portfolioHoldings: many(portfolioHoldings),
   portfolioAlerts: many(portfolioAlerts),
   riskProfile: one(riskProfiles),
+  detailedRiskAssessment: one(detailedRiskAssessments),
   credits: one(userCredits),
   creditTransactions: many(creditTransactions),
   cryptoPayments: many(cryptoPayments),
@@ -767,6 +768,115 @@ export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one })
   }),
 }))
 
+// ==================== RISK PROFILE CATEGORY ENUM ====================
+export const riskProfileCategoryEnum = pgEnum('risk_profile_category', [
+  'conservative',
+  'moderate_conservative', 
+  'balanced',
+  'growth',
+  'aggressive'
+])
+
+// ==================== DETAILED RISK ASSESSMENT TABLE ====================
+// Comprehensive risk assessment with 25 questions, weighted scoring
+export const detailedRiskAssessments = pgTable('detailed_risk_assessments', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  
+  // Score Components (1.0 - 5.0 scale)
+  capacityScore: decimal('capacity_score', { precision: 4, scale: 2 }).notNull(),
+  willingnessScore: decimal('willingness_score', { precision: 4, scale: 2 }).notNull(),
+  biasScore: decimal('bias_score', { precision: 4, scale: 2 }).notNull(),
+  finalScore: decimal('final_score', { precision: 4, scale: 2 }).notNull(),
+  
+  // Category
+  category: riskProfileCategoryEnum('category').notNull(),
+  
+  // All answers stored as JSONB for flexibility
+  answers: jsonb('answers').$type<{
+    // Risk Capacity (Q1-Q10)
+    q1_emergency_fund: number;
+    q2_income_stability: number;
+    q3_investment_to_income_ratio: number;
+    q4_investment_horizon: number;
+    q5_liquidity_needs: number;
+    q6_debt_ratio: number;
+    q7_age: number;
+    q8_dependents: number;
+    q9_insurance_coverage: number;
+    q10_investment_experience: number;
+    // Risk Willingness (Q11-Q20)
+    q11_reaction_to_20_drop: number;
+    q12_max_tolerable_loss: number;
+    q13_return_preference: number;
+    q14_reaction_to_30_gain: number;
+    q15_diversification_preference: number;
+    q16_market_volatility_reaction: number;
+    q17_uncertainty_comfort: number;
+    q18_investment_goal_priority: number;
+    q19_past_loss_experience: number;
+    q20_financial_knowledge_self_assessment: number;
+    // Behavioral Biases (Q21-Q25)
+    q21_decision_confidence: number;
+    q22_loss_vs_gain_focus: number;
+    q23_investment_idea_sources: number;
+    q24_selling_decision: number;
+    q25_post_decision_review: number;
+  }>().notNull(),
+  
+  // Full calculated result stored as JSONB
+  fullResult: jsonb('full_result').$type<{
+    capacityScore: {
+      rawScore: number;
+      weightedScore: number;
+      normalizedScore: number;
+      interpretation: string;
+    };
+    willingnessScore: {
+      rawScore: number;
+      normalizedScore: number;
+      interpretation: string;
+    };
+    biasScore: {
+      rawScore: number;
+      normalizedScore: number;
+      interpretation: string;
+      biasDetails: {
+        overconfidence: number;
+        lossAversion: number;
+        herding: number;
+        dispositionEffect: number;
+        hindsightBias: number;
+      };
+    };
+    characteristics: string[];
+    recommendedProducts: string[];
+    assetAllocation: {
+      stocks: number;
+      bonds: number;
+      alternatives?: number;
+      cash?: number;
+    };
+    version: string;
+  }>().notNull(),
+  
+  // Timestamps
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('detailed_risk_assessments_user_id_idx').on(table.userId),
+  categoryIdx: index('detailed_risk_assessments_category_idx').on(table.category),
+  finalScoreIdx: index('detailed_risk_assessments_final_score_idx').on(table.finalScore),
+}))
+
+// ==================== DETAILED RISK ASSESSMENT RELATIONS ====================
+export const detailedRiskAssessmentsRelations = relations(detailedRiskAssessments, ({ one }) => ({
+  user: one(users, {
+    fields: [detailedRiskAssessments.userId],
+    references: [users.id],
+  }),
+}))
+
 // ==================== TYPE EXPORTS ====================
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -826,3 +936,7 @@ export type NewCryptoPayment = typeof cryptoPayments.$inferInsert
 // Push Subscription Types
 export type PushSubscription = typeof pushSubscriptions.$inferSelect
 export type NewPushSubscription = typeof pushSubscriptions.$inferInsert
+
+// Detailed Risk Assessment Types
+export type DetailedRiskAssessment = typeof detailedRiskAssessments.$inferSelect
+export type NewDetailedRiskAssessment = typeof detailedRiskAssessments.$inferInsert
