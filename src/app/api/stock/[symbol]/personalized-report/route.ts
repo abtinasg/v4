@@ -37,9 +37,9 @@ interface RouteContext {
 const PERSONALIZED_REPORT_CREDIT_COST = 15;
 
 /**
- * Generate personalized report prompt based on risk profile
+ * Generate Part 1 of the personalized report
  */
-function generatePersonalizedPrompt(
+function generatePart1Prompt(
   symbol: string, 
   companyName: string, 
   metricsData: any,
@@ -48,118 +48,94 @@ function generatePersonalizedPrompt(
   const categoryInfo = getCategoryDisplayInfo(riskProfile.category);
   const allocation = riskProfile.assetAllocation;
   
-  return `You are an AI financial educator generating a personalized investment analysis for ${symbol} (${companyName}).
-IMPORTANT: This analysis is for EDUCATIONAL PURPOSES ONLY. Do not provide specific financial advice, price targets, or definitive buy/sell recommendations. Instead, provide a "Suitability Assessment" based on the user's profile.
+  return `You are an AI financial educator generating PART 1 of a deep-dive personalized investment analysis for ${symbol} (${companyName}).
+IMPORTANT: This analysis is for EDUCATIONAL PURPOSES ONLY.
 
 ## INVESTOR'S RISK PROFILE
-
 **Category:** ${categoryInfo.label}
 **Risk Score:** ${riskProfile.finalScore.toFixed(2)} / 5.00
-**Risk Capacity Score:** ${riskProfile.capacityScore.normalizedScore.toFixed(2)} / 5.00
-**Risk Willingness Score:** ${riskProfile.willingnessScore.normalizedScore.toFixed(2)} / 5.00
-**Behavioral Bias Score:** ${riskProfile.biasScore.normalizedScore.toFixed(2)} / 5.00
+**Risk Capacity:** ${riskProfile.capacityScore.normalizedScore.toFixed(2)} / 5.00
+**Risk Willingness:** ${riskProfile.willingnessScore.normalizedScore.toFixed(2)} / 5.00
+**Behavioral Bias:** ${riskProfile.biasScore.normalizedScore.toFixed(2)} / 5.00
 
-**Recommended Asset Allocation:**
-- Stocks: ${allocation.stocks}%
-- Bonds: ${allocation.bonds}%
-${allocation.alternatives ? `- Alternatives: ${allocation.alternatives}%` : ''}
-${allocation.cash ? `- Cash: ${allocation.cash}%` : ''}
+**Recommended Allocation:** Stocks: ${allocation.stocks}%, Bonds: ${allocation.bonds}%
 
-**Investor Characteristics:**
-${riskProfile.characteristics.map(c => `- ${c}`).join('\n')}
+## STOCK DATA
+Price: $${metricsData.currentPrice?.toFixed(2) || 'N/A'} | Market Cap: $${(metricsData.marketCap / 1e9)?.toFixed(2) || 'N/A'}B
+Sector: ${metricsData.sector || 'N/A'} | Industry: ${metricsData.industry || 'N/A'}
+P/E: ${metricsData.metrics?.valuation?.peRatio?.toFixed(2) || 'N/A'} | Div Yield: ${metricsData.metrics?.valuation?.dividendYield ? (metricsData.metrics.valuation.dividendYield * 100).toFixed(2) + '%' : 'N/A'}
+Beta: ${metricsData.metrics?.risk?.beta?.toFixed(2) || 'N/A'} | Volatility: ${metricsData.metrics?.risk?.volatility ? (metricsData.metrics.risk.volatility * 100).toFixed(1) + '%' : 'N/A'}
 
-## STOCK DATA FOR ${symbol}
-
-Current Price: $${metricsData.currentPrice?.toFixed(2) || 'N/A'}
-Market Cap: $${(metricsData.marketCap / 1e9)?.toFixed(2) || 'N/A'}B
-Sector: ${metricsData.sector || 'N/A'}
-Industry: ${metricsData.industry || 'N/A'}
-
-Key Metrics:
-- P/E Ratio: ${metricsData.metrics?.valuation?.peRatio?.toFixed(2) || 'N/A'}
-- Dividend Yield: ${metricsData.metrics?.valuation?.dividendYield ? (metricsData.metrics.valuation.dividendYield * 100).toFixed(2) + '%' : 'N/A'}
-- Beta: ${metricsData.metrics?.risk?.beta?.toFixed(2) || 'N/A'}
-- 52-Week Volatility: ${metricsData.metrics?.risk?.volatility ? (metricsData.metrics.risk.volatility * 100).toFixed(1) + '%' : 'N/A'}
-- ROE: ${metricsData.metrics?.profitability?.roe ? (metricsData.metrics.profitability.roe * 100).toFixed(1) + '%' : 'N/A'}
-- Debt/Equity: ${metricsData.metrics?.leverage?.debtToEquity?.toFixed(2) || 'N/A'}
-- Current Ratio: ${metricsData.metrics?.liquidity?.currentRatio?.toFixed(2) || 'N/A'}
-- Revenue Growth: ${metricsData.metrics?.growth?.revenueGrowth ? (metricsData.metrics.growth.revenueGrowth * 100).toFixed(1) + '%' : 'N/A'}
-- EPS Growth: ${metricsData.metrics?.growth?.epsGrowth ? (metricsData.metrics.growth.epsGrowth * 100).toFixed(1) + '%' : 'N/A'}
-- Profit Margin: ${metricsData.metrics?.profitability?.netMargin ? (metricsData.metrics.profitability.netMargin * 100).toFixed(1) + '%' : 'N/A'}
-
-## YOUR TASK
-
-Generate a comprehensive personalized investment analysis (MINIMUM 15 pages / 8000-12000 words).
-
-CRITICAL: Your response MUST be at least 15 PAGES long. Do NOT provide a shorter response under any circumstances.
-You must expand on every point significantly.
-- For every risk, provide a mitigation strategy.
-- For every metric, explain "Why this matters to YOU" based on the user's profile.
-- Use analogies and clear explanations.
-- Provide hypothetical scenarios (e.g., "If the market drops 10%...").
-- **Avoid bullet points where possible; use full, detailed paragraphs.**
-
-The report should start with a profile summary and then analyze the stock FOR THIS SPECIFIC investor:
+## TASK: GENERATE PART 1 (Sections 1-4)
+Write a detailed, long-form analysis for the first 4 sections. Use full paragraphs, not bullet points.
 
 1. **Profile Summary** (📋)
-   - Brief recap of this investor's risk profile
-   - What kind of investments suit them best
-   - Their key behavioral tendencies to watch out for
-   - **Detailed breakdown** of their psychometric scoring
+   - Deep analysis of this investor's specific risk profile and psychology.
+   - Detailed breakdown of their psychometric scoring.
 
 2. **Business Overview & Competitive Moat** (🏰)
-   - Detailed explanation of the company's business model
-   - Analysis of their competitive advantage (Moat)
-   - Revenue drivers and key markets
-   - **SWOT Analysis:** Strengths, Weaknesses, Opportunities, Threats
+   - Comprehensive explanation of the business model.
+   - Deep dive into the "Moat" and competitive advantages.
+   - SWOT Analysis (Strengths, Weaknesses, Opportunities, Threats) in detail.
 
 3. **Macroeconomic Backdrop** (🌍)
-   - How current interest rates affect this company
-   - Impact of inflation and economic growth on this sector
-   - Geopolitical risks relevant to this stock
-   - **Sector Outlook:** Where is this industry heading in the next 5 years?
+   - Interest rates, inflation, and economic growth impact on this specific company.
+   - Sector outlook for the next 5 years.
 
 4. **Stock-Profile Match Analysis** (🎯)
-   - Give a MATCH SCORE (1-10) showing how well ${symbol} fits this investor
-   - Explain exactly why it matches or doesn't match their profile
-   - Compare stock's volatility/beta to their risk tolerance
-   - Assess if the stock's characteristics align with their investment style
-   - **Deep dive** into the compatibility of this stock with their long-term goals
+   - MATCH SCORE (1-10) and detailed justification.
+   - Compatibility with long-term goals.
+   - Volatility vs Risk Tolerance deep dive.
+
+OUTPUT ONLY THE CONTENT FOR SECTIONS 1-4. DO NOT WRITE A CONCLUSION YET.`;
+}
+
+/**
+ * Generate Part 2 of the personalized report
+ */
+function generatePart2Prompt(
+  symbol: string, 
+  companyName: string, 
+  metricsData: any,
+  riskProfile: RiskProfileResult
+): string {
+  const categoryInfo = getCategoryDisplayInfo(riskProfile.category);
+  
+  return `You are an AI financial educator generating PART 2 of a deep-dive personalized investment analysis for ${symbol} (${companyName}).
+This is a continuation of the previous analysis.
+
+## INVESTOR CONTEXT
+**Category:** ${categoryInfo.label} (Score: ${riskProfile.finalScore.toFixed(2)}/5)
+**Key Bias:** ${riskProfile.biasScore.interpretation}
+
+## TASK: GENERATE PART 2 (Sections 5-9)
+Write a detailed, long-form analysis for the remaining sections. Use full paragraphs.
 
 5. **Risk Analysis Tailored to This Investor** (⚠️)
-   - Identify specific risks that matter MOST to a ${categoryInfo.label} investor
-   - How the stock's volatility compares to what they can handle
-   - Red flags specific to their capacity and willingness scores
-   - How their behavioral biases might affect decisions about this stock
-   - **Scenario Analysis:** Best case, Base case, and Worst case scenarios for this stock
+   - Specific risks for a ${categoryInfo.label} investor.
+   - Behavioral bias warnings (specifically for ${riskProfile.biasScore.interpretation} bias).
+   - Scenario Analysis: Best, Base, and Worst case scenarios with % estimates.
 
 6. **Portfolio Integration** (📊)
-   - What percentage of their EQUITY portion should go to this stock (max %)
-   - How it fits with their ${allocation.stocks}/${allocation.bonds} target allocation
-   - Diversification considerations for their risk level
-   - Complementary holdings they should consider
-   - **Rebalancing strategy:** When to buy more and when to sell
+   - Allocation sizing recommendations (max % of equity).
+   - Diversification strategy and complementary holdings.
+   - Rebalancing rules.
 
 7. **Hypothetical Investment Considerations** (✅)
-   - Educational discussion on entry approaches (e.g., DCA vs lump sum) suited to their risk tolerance
-   - General position sizing principles based on their profile
-   - Discussion on risk management and stop-loss concepts appropriate for their risk capacity
-   - When an investor with this profile might consider adding or reducing positions
-   - **Valuation Context:** How current valuation compares to historical norms
+   - DCA vs Lump Sum discussion for this profile.
+   - Stop-loss and risk management rules.
+   - Valuation context (Historical vs Current).
 
 8. **Key Metrics That Matter for This Investor** (📈)
-   - Highlight 5-7 metrics most relevant to their specific profile
-   - Explain each metric's importance for their investment style
-   - Flag any concerning values based on their risk capacity
-   - Show how each metric affects suitability for them
-   - **Historical context:** How these metrics compare to the 5-year average
+   - Deep dive into 5-7 key metrics relevant to this profile.
+   - Explain "Why this matters to YOU".
 
 9. **Suitability Verdict** (💡)
-   - Clear SUITABILITY RATING (High / Medium / Low) for THIS investor profile
-   - Why this rating makes sense for their specific profile
-   - What factors would improve or worsen the suitability
-   - Realistic return expectations aligned with their risk tolerance
-   - **Executive Summary** of the entire report for quick reading
+   - Final Suitability Rating (High/Medium/Low).
+   - Comprehensive Executive Summary of the entire analysis (Part 1 & 2).
+
+OUTPUT ONLY THE CONTENT FOR SECTIONS 5-9. START DIRECTLY WITH SECTION 5.`;
+}
 
 ## FORMATTING GUIDELINES
 
@@ -294,16 +270,45 @@ export async function POST(
       );
     }
 
-    // Generate personalized prompt
-    const prompt = generatePersonalizedPrompt(
+    // Generate Part 1 Prompt
+    const promptPart1 = generatePart1Prompt(
       upperSymbol, 
       companyName, 
       metricsData,
       riskProfile
     );
 
-    // Call OpenRouter API
-    const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    // Call OpenRouter API for Part 1
+    const response1 = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.co',
+        'X-Title': 'Deepin - Personalized Report',
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-3.5-sonnet',
+        messages: [{ role: 'user', content: promptPart1 }],
+        max_tokens: 8192,
+        temperature: 0.4,
+      }),
+    });
+
+    if (!response1.ok) throw new Error('Failed to generate Part 1');
+    const data1 = await response1.json();
+    const content1 = data1.choices?.[0]?.message?.content || '';
+
+    // Generate Part 2 Prompt
+    const promptPart2 = generatePart2Prompt(
+      upperSymbol, 
+      companyName, 
+      metricsData,
+      riskProfile
+    );
+
+    // Call OpenRouter API for Part 2
+    const response2 = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -314,27 +319,20 @@ export async function POST(
       body: JSON.stringify({
         model: 'anthropic/claude-3.5-sonnet',
         messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
+          { role: 'user', content: promptPart1 },
+          { role: 'assistant', content: content1 },
+          { role: 'user', content: promptPart2 }
         ],
         max_tokens: 8192,
         temperature: 0.4,
       }),
     });
 
-    if (!openrouterResponse.ok) {
-      const errorData = await openrouterResponse.json().catch(() => ({}));
-      console.error('[PersonalizedReport] OpenRouter error:', errorData);
-      return NextResponse.json(
-        { error: 'Failed to generate report' },
-        { status: 500 }
-      );
-    }
+    if (!response2.ok) throw new Error('Failed to generate Part 2');
+    const data2 = await response2.json();
+    const content2 = data2.choices?.[0]?.message?.content || '';
 
-    const aiResponse = await openrouterResponse.json();
-    const reportContent = aiResponse.choices?.[0]?.message?.content || '';
+    const reportContent = content1 + "\n\n" + content2;
 
     if (!reportContent) {
       return NextResponse.json(
