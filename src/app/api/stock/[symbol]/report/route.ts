@@ -663,7 +663,7 @@ OUTPUT FORMAT:
 - The report should be **concise but comprehensive** (suitable for an **8-15 page** PDF after rendering). Focus on the most important insights.
 - Always cite specific metrics when making claims and copy the exact numeric values from the input.
 - End with the disclaimer:
-  _"Analysis based solely on data provided by Deep; not investment advice."_
+  _"Analysis based solely on data provided by Deepin; not investment advice."_
 `;
 
   // =====================================================

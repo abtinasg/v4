@@ -534,7 +534,7 @@ export const useWatchlistStore = create<WatchlistState>()(
       reset: () => set(initialState),
     }),
     {
-      name: 'deep-terminal-watchlist',
+      name: 'deepin-watchlist',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         watchlists: state.watchlists,

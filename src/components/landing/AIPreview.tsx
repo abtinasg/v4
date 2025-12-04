@@ -100,7 +100,7 @@ export function AIPreview() {
                   <Sparkles className="h-4 w-4 text-[#818CF8]" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-white">DeepIn AI</div>
+                  <div className="text-sm font-semibold text-white">Deepin AI</div>
                   <div className="text-[10px] text-[#475569] font-medium">Always learning, always ready</div>
                 </div>
               </div>

@@ -33,7 +33,7 @@ export const siteConfig = {
     'stock valuation',
     'equity research',
   ],
-  author: 'Deep',
+  author: 'Deepin',
   locale: 'en_US',
 };
 
@@ -175,8 +175,8 @@ export function generateOrganizationSchema() {
     logo: `${siteConfig.url}/logo.jpeg`,
     description: siteConfig.description,
     sameAs: [
-      'https://twitter.com/deepterminal',
-      'https://github.com/deepterminal',
+      'https://twitter.com/deepin',
+      'https://github.com/deepin',
     ],
     contactPoint: {
       '@type': 'ContactPoint',

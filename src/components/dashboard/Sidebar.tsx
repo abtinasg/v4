@@ -228,7 +228,7 @@ export function Sidebar() {
                 transition={{ duration: 0.2 }}
                 className="text-lg font-bold text-white whitespace-nowrap"
               >
-                Deep
+                Deepin
               </motion.span>
             )}
           </AnimatePresence>

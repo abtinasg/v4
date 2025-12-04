@@ -151,7 +151,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
         
         // Footer branding
         doc.setFontSize(8);
-        doc.text('Deep', margin, pageHeight - 12);
+        doc.text('Deepin', margin, pageHeight - 12);
         doc.text(reportData.symbol, margin + 30, pageHeight - 12);
       };
 

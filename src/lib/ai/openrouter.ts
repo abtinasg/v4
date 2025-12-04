@@ -208,7 +208,7 @@ export class OpenRouterClient {
     }
     this.apiKey = apiKey
     this.siteUrl = options?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://deepinhq.com'
-    this.siteName = options?.siteName || 'Deep'
+    this.siteName = options?.siteName || 'Deepin'
   }
 
   private getHeaders(): HeadersInit {

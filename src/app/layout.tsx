@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Deep',
+    title: 'Deepin',
     startupImage: [
       {
         url: '/splash/splash-1170x2532.png',
