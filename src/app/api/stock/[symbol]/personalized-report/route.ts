@@ -48,7 +48,8 @@ function generatePersonalizedPrompt(
   const categoryInfo = getCategoryDisplayInfo(riskProfile.category);
   const allocation = riskProfile.assetAllocation;
   
-  return `You are an AI financial advisor generating a personalized investment analysis for ${symbol} (${companyName}).
+  return `You are an AI financial educator generating a personalized investment analysis for ${symbol} (${companyName}).
+IMPORTANT: This analysis is for EDUCATIONAL PURPOSES ONLY. Do not provide specific financial advice, price targets, or definitive buy/sell recommendations. Instead, provide a "Suitability Assessment" based on the user's profile.
 
 ## INVESTOR'S RISK PROFILE
 
@@ -126,12 +127,12 @@ The report should start with a profile summary and then analyze the stock FOR TH
    - Complementary holdings they should consider
    - **Rebalancing strategy:** When to buy more and when to sell
 
-5. **Personalized Entry Strategy** (✅)
-   - Entry approach suited to their risk tolerance (DCA vs lump sum)
-   - Position sizing recommendation based on their profile
-   - Stop-loss levels appropriate for their risk capacity
-   - When to add or reduce position based on their risk profile
-   - **Specific price targets** for entry and exit based on valuation
+5. **Hypothetical Investment Considerations** (✅)
+   - Educational discussion on entry approaches (e.g., DCA vs lump sum) suited to their risk tolerance
+   - General position sizing principles based on their profile
+   - Discussion on risk management and stop-loss concepts appropriate for their risk capacity
+   - When an investor with this profile might consider adding or reducing positions
+   - **Valuation Context:** How current valuation compares to historical norms
 
 6. **Key Metrics That Matter for This Investor** (📈)
    - Highlight 5-7 metrics most relevant to their specific profile
@@ -140,10 +141,10 @@ The report should start with a profile summary and then analyze the stock FOR TH
    - Show how each metric affects suitability for them
    - **Historical context:** How these metrics compare to the 5-year average
 
-7. **Final Recommendation** (💡)
-   - Clear BUY / HOLD / AVOID rating for THIS investor
-   - Why this recommendation makes sense for their specific profile
-   - What would need to change for a different recommendation
+7. **Suitability Verdict** (💡)
+   - Clear SUITABILITY RATING (High / Medium / Low) for THIS investor profile
+   - Why this rating makes sense for their specific profile
+   - What factors would improve or worsen the suitability
    - Realistic return expectations aligned with their risk tolerance
    - **Executive Summary** of the entire report for quick reading
 
