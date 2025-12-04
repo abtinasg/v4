@@ -1,8 +1,8 @@
 /**
  * Stock Context Updater
  * 
- * Client component that fetches full stock data and updates AI context.
- * Use this on stock analysis pages to give AI access to quote and metrics.
+ * Client component that fetches COMPLETE stock data and updates AI context.
+ * Includes: Quote, ALL Metrics (430+), News, and Analyst Ratings.
  */
 
 'use client'
@@ -31,29 +31,26 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
   useEffect(() => {
     async function fetchAndUpdateContext() {
       try {
-        // Fetch quote data
-        const quoteRes = await fetch(`/api/stocks/quote/${symbol}`)
-        if (!quoteRes.ok) {
-          console.error(`❌ Quote API failed for ${symbol}:`, quoteRes.status, await quoteRes.text())
-        }
+        // Fetch ALL data in parallel for speed
+        const [quoteRes, metricsRes, newsRes] = await Promise.all([
+          fetch(`/api/stocks/quote/${symbol}`),
+          fetch(`/api/stock/${symbol}/metrics`),
+          fetch(`/api/stock/${symbol}/news?limit=10`).catch(() => null),
+        ])
+
         const quoteJson = quoteRes.ok ? await quoteRes.json() : null
         const quoteData = quoteJson?.data?.quote || quoteJson?.quote || null
-
-        // Fetch metrics data  
-        const metricsRes = await fetch(`/api/stock/${symbol}/metrics`)
-        if (!metricsRes.ok) {
-          console.error(`❌ Metrics API failed for ${symbol}:`, metricsRes.status, await metricsRes.text())
-        }
         const metricsJson = metricsRes.ok ? await metricsRes.json() : null
+        const newsJson = newsRes && newsRes.ok ? await newsRes.json() : null
 
-        console.log('📊 Fetched data for AI context:', { 
+        console.log('📊 Fetched COMPLETE data for AI context:', { 
           symbol, 
           quoteSuccess: quoteRes.ok,
           metricsSuccess: metricsRes.ok,
+          newsSuccess: !!newsJson,
           hasQuoteData: !!quoteData,
-          hasMetricsData: !!metricsJson,
-          quotePrice: quoteData?.price,
-          metricsCount: metricsJson?.metrics ? Object.keys(metricsJson.metrics).length : 0,
+          metricsCategories: metricsJson?.metrics ? Object.keys(metricsJson.metrics).length : 0,
+          newsCount: newsJson?.news?.length || 0,
         })
 
         // Build full stock context
@@ -62,6 +59,7 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
           name: quoteData?.longName || quoteData?.shortName || metricsJson?.companyName || initialData?.companyName || '',
           sector: metricsJson?.sector || initialData?.sector,
           industry: metricsJson?.industry || initialData?.industry,
+          description: metricsJson?.description,
         }
 
         // Add quote if available
@@ -127,7 +125,19 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
             beta: m.risk?.beta,
             fiftyDayMA: m.technical?.sma50,
             twoHundredDayMA: m.technical?.sma200,
+            // DCF & Valuation
+            wacc: m.dcf?.wacc,
+            intrinsicValue: m.dcf?.intrinsicValue,
+            targetPrice: m.dcf?.targetPrice,
+            upsideDownside: m.dcf?.upsideDownside,
+            exitMultiple: m.dcf?.exitMultiple,
+            perpetuityGrowthRate: m.dcf?.perpetuityGrowthRate,
+            marginOfSafety: m.dcf?.marginOfSafety,
           }
+          
+          // Also store the RAW full metrics for comprehensive AI analysis
+          // This gives AI access to ALL 430+ metrics
+          ;(stockContext as any).fullMetrics = m
           
           console.log('📈 Metrics extracted for AI:', {
             symbol,
@@ -139,11 +149,26 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
             efficiencyMetrics: Object.keys(m.efficiency || {}).length,
             cashflowMetrics: Object.keys(m.cashflow || {}).length,
             technicalMetrics: Object.keys(m.technical || {}).length,
+            dcfMetrics: Object.keys(m.dcf || {}).length,
+            riskMetrics: Object.keys(m.risk || {}).length,
+            industryMetrics: Object.keys(m.industry || {}).length,
+            scoresMetrics: Object.keys(m.scores || {}).length,
             totalMetricsCategories: Object.keys(m).length,
           })
         }
 
-        // Update the chat context
+        // Add news if available
+        if (newsJson?.news && Array.isArray(newsJson.news)) {
+          stockContext.news = newsJson.news.slice(0, 10).map((n: any) => ({
+            title: n.title || n.headline,
+            summary: n.text || n.summary || '',
+            date: n.publishedDate || n.date || '',
+            sentiment: n.sentiment || 'neutral',
+          }))
+          console.log(`📰 Added ${stockContext.news?.length || 0} news items to AI context`)
+        }
+
+        // Update the chat context with EVERYTHING
         setContext({
           type: 'stock',
           stock: stockContext,
@@ -152,10 +177,13 @@ export function StockContextUpdater({ symbol, initialData }: StockContextUpdater
           },
         })
 
-        console.log('✅ AI Context updated with stock data:', {
+        console.log('✅ AI Context updated with COMPLETE stock data:', {
           symbol: stockContext.symbol,
           hasQuote: !!stockContext.quote,
           hasMetrics: !!stockContext.metrics,
+          hasFullMetrics: !!(stockContext as any).fullMetrics,
+          hasNews: !!stockContext.news?.length,
+          newsCount: stockContext.news?.length || 0,
           price: stockContext.quote?.price,
         })
       } catch (error) {

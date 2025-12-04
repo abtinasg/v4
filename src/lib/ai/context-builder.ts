@@ -72,6 +72,15 @@ export interface StockMetrics {
   freeCashFlow?: number
   operatingCashFlow?: number
   capex?: number
+  
+  // DCF & Valuation
+  wacc?: number
+  intrinsicValue?: number
+  targetPrice?: number
+  upsideDownside?: number
+  exitMultiple?: number
+  perpetuityGrowthRate?: number
+  marginOfSafety?: number
 }
 
 export interface StockContext {
@@ -304,6 +313,17 @@ function formatMetrics(metrics: StockMetrics): string {
   if (metrics.beta !== undefined) technical.push(`Beta: ${formatNumber(metrics.beta)}`)
   if (technical.length) sections.push(`**Technical**: ${technical.join(' | ')}`)
   
+  // DCF & Intrinsic Value
+  const dcf: string[] = []
+  if (metrics.wacc !== undefined) dcf.push(`WACC: ${formatNumber(metrics.wacc, { percent: true })}`)
+  if (metrics.intrinsicValue !== undefined) dcf.push(`Intrinsic Value: $${formatNumber(metrics.intrinsicValue)}`)
+  if (metrics.targetPrice !== undefined) dcf.push(`Target Price: $${formatNumber(metrics.targetPrice)}`)
+  if (metrics.upsideDownside !== undefined) dcf.push(`Upside/Downside: ${formatNumber(metrics.upsideDownside, { percent: true })}`)
+  if (metrics.exitMultiple !== undefined) dcf.push(`Exit Multiple: ${formatNumber(metrics.exitMultiple)}x`)
+  if (metrics.perpetuityGrowthRate !== undefined) dcf.push(`Perpetuity Growth: ${formatNumber(metrics.perpetuityGrowthRate, { percent: true })}`)
+  if (metrics.marginOfSafety !== undefined) dcf.push(`Margin of Safety: ${formatNumber(metrics.marginOfSafety, { percent: true })}`)
+  if (dcf.length) sections.push(`**DCF & Valuation**: ${dcf.join(' | ')}`)
+  
   return sections.join('\n')
 }
 
@@ -439,6 +459,34 @@ export function buildContextString(context: AIContext): string {
     if (context.stock.metrics) {
       stockSections.push('\n### Key Metrics')
       stockSections.push(formatMetrics(context.stock.metrics))
+    }
+    
+    // Full metrics (all 430+ metrics) - for comprehensive analysis
+    if ((context.stock as any).fullMetrics) {
+      const fm = (context.stock as any).fullMetrics
+      stockSections.push('\n### Complete Metrics Data (All Categories)')
+      
+      // Add all metric categories with their values
+      const categories = ['valuation', 'profitability', 'growth', 'liquidity', 'leverage', 
+                          'efficiency', 'cashflow', 'dcf', 'risk', 'technical', 'industry', 'scores', 'other']
+      
+      for (const cat of categories) {
+        if (fm[cat] && Object.keys(fm[cat]).length > 0) {
+          const catName = cat.charAt(0).toUpperCase() + cat.slice(1)
+          const metrics = Object.entries(fm[cat])
+            .filter(([_, v]) => v !== null && v !== undefined)
+            .map(([k, v]) => {
+              if (typeof v === 'number') {
+                return `${k}: ${v.toFixed(4)}`
+              }
+              return `${k}: ${v}`
+            })
+            .join(' | ')
+          if (metrics) {
+            stockSections.push(`**${catName}**: ${metrics}`)
+          }
+        }
+      }
     }
     
     // Analyst ratings
