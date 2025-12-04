@@ -13,7 +13,7 @@ const SEC_COMPANY_FACTS_URL = `${SEC_BASE_URL}/api/xbrl/companyfacts`;
 
 // User-Agent is required by SEC
 const SEC_HEADERS = {
-  'User-Agent': 'DeepTerminal/1.0 (contact@deepterminal.com)',
+  'User-Agent': 'Deep/1.0 (contact@deepinhq.com)',
   'Accept': 'application/json',
 };
 

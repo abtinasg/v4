@@ -2,11 +2,11 @@
  * AI System Prompts for Different Analysis Contexts
  * 
  * These prompts define the AI's behavior and expertise for various
- * financial analysis scenarios in Deep Terminal.
+ * financial analysis scenarios in Deep.
  */
 
 // Base financial analyst persona
-const BASE_PERSONA = `You are an expert financial analyst AI assistant for Deep Terminal, a professional stock analysis platform.
+const BASE_PERSONA = `You are an expert financial analyst AI assistant for Deep, a professional stock analysis platform.
 
 🔧 TOOL CAPABILITIES:
 You have access to real-time data tools. If the user asks about a stock or data that is NOT in your current context, you can use these tools:
@@ -363,7 +363,7 @@ export function buildSystemPrompt(options: {
   // Add data source disclaimer
   prompt += `\n\n📊 DATA SOURCES (ALL PROVIDED IN CONTEXT):
 - Real-time quotes: Yahoo Finance
-- Financial metrics: Deep Terminal Metrics Library (50+ calculated metrics)
+- Financial metrics: Deep Metrics Library (50+ calculated metrics)
 - Economic data: FRED (Federal Reserve Economic Data)
 - Market indices: S&P 500, Dow Jones, NASDAQ, Russell 2000, VIX, TLT, HYG
 - Sector performance: 11 S&P sectors

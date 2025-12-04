@@ -113,8 +113,8 @@ Respond with valid JSON only.`
       headers: {
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterminal.io',
-        'X-Title': 'Deep Terminal - AI Market Report',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepinhq.com',
+        'X-Title': 'Deep - AI Market Report',
       },
       body: JSON.stringify({
         model: 'openai/gpt-4.1',

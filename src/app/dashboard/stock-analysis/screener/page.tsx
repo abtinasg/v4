@@ -2,10 +2,10 @@ import { Metadata } from 'next';
 import { Screener } from '@/components/stock/Screener';
 
 export const metadata: Metadata = {
-  title: 'Stock Screener | Deep Terminal',
+  title: 'Stock Screener | Deep',
   description: 'Screen stocks by market cap, sector, valuation metrics, technical indicators, and quality scores.',
   openGraph: {
-    title: 'Stock Screener | Deep Terminal',
+    title: 'Stock Screener | Deep',
     description: 'Find stocks matching your criteria with our advanced screener.',
   },
 };

@@ -20,8 +20,8 @@ const cookieTypes = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy | Deep Terminal',
-  description: 'Understand how Deep Terminal uses cookies and similar technologies and how you can manage your preferences.',
+  title: 'Cookie Policy | Deep',
+  description: 'Understand how Deep uses cookies and similar technologies and how you can manage your preferences.',
 }
 
 export default function CookiePolicyPage() {
@@ -33,7 +33,7 @@ export default function CookiePolicyPage() {
           <h1 className="mt-4 text-4xl font-bold">How and why we use cookies</h1>
           <p className="mt-4 text-base text-white/70">
             Last updated: November 30, 2025. This cookie policy explains what cookies are, which types we use, and how you can control your preferences
-            when browsing Deep Terminal across the web and our dashboard.
+            when browsing Deep across the web and our dashboard.
           </p>
         </header>
 
@@ -59,7 +59,7 @@ export default function CookiePolicyPage() {
           <ul className="mt-3 list-disc space-y-2 pl-5">
             <li>Browser controls: adjust cookie permissions in Chrome, Safari, Firefox, or Edge.</li>
             <li>Third-party opt-outs: disable analytics via Google Analytics Opt-out Browser Add-on.</li>
-            <li>Email privacy@deepterminal.com if you have questions about our use of cookies or similar technologies.</li>
+            <li>Email privacy@deepinhq.com if you have questions about our use of cookies or similar technologies.</li>
           </ul>
         </article>
       </section>

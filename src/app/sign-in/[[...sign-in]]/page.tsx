@@ -50,7 +50,7 @@ export default function SignInPage() {
               Welcome back
             </h1>
             <p className="text-[15px] text-white/40 font-light leading-relaxed">
-              Sign in to your Deep Terminal account
+              Sign in to your Deep account
             </p>
           </div>
           

@@ -12,7 +12,7 @@ const sections = [
   {
     title: 'How We Use Your Data',
     body: [
-      'Deliver, maintain, and improve Deep Terminal, including credit tracking, portfolio analytics, alerting, and AI assistance.',
+      'Deliver, maintain, and improve Deep, including credit tracking, portfolio analytics, alerting, and AI assistance.',
       'Detect, prevent, and investigate fraud, abuse, or violations of our Terms of Service.',
       'Communicate product updates, critical security notices, and support responses. You can opt out of non-essential emails at any time.',
     ],
@@ -36,7 +36,7 @@ const sections = [
   {
     title: 'International Transfers',
     body: [
-      'Deep Terminal may process data in the United States and European Union. When transferring personal data outside your jurisdiction we rely on Standard Contractual Clauses and equivalent safeguards.',
+      'Deep may process data in the United States and European Union. When transferring personal data outside your jurisdiction we rely on Standard Contractual Clauses and equivalent safeguards.',
     ],
   },
   {
@@ -45,14 +45,14 @@ const sections = [
       'Access, correct, or delete your personal data.',
       'Restrict or object to processing, and request data portability.',
       'Lodge a complaint with your local supervisory authority if you believe we have violated data protection laws.',
-      'Exercise these rights by emailing privacy@deepterminal.com. We will respond within 30 days (or sooner, where required).',
+      'Exercise these rights by emailing privacy@deepinhq.com. We will respond within 30 days (or sooner, where required).',
     ],
   },
 ]
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Deep Terminal',
-  description: 'Learn how Deep Terminal collects, processes, and safeguards your data in compliance with GDPR and global privacy laws.',
+  title: 'Privacy Policy | Deep',
+  description: 'Learn how Deep collects, processes, and safeguards your data in compliance with GDPR and global privacy laws.',
 }
 
 const lastUpdated = 'November 30, 2025'
@@ -64,7 +64,7 @@ export default function PrivacyPolicyPage() {
         <p className="text-xs uppercase tracking-[0.3em] text-cyan-400">Privacy Policy</p>
         <h1 className="mt-4 text-4xl font-bold">Protecting your data and privacy</h1>
         <p className="mt-4 text-base text-white/70">
-          Last updated: {lastUpdated}. Deep Terminal processes
+          Last updated: {lastUpdated}. Deep processes
           personal data as a controller under the EU General Data Protection Regulation (GDPR), the UK GDPR, and applicable U.S. privacy statutes.
         </p>
 
@@ -86,7 +86,7 @@ export default function PrivacyPolicyPage() {
         <div className="mt-12 rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-6 text-sm text-white/80">
           <p className="font-semibold">Questions or complaints?</p>
           <p className="mt-2">
-            Email privacy@deepterminal.com or write to Deep Terminal Privacy Office, 123 Market Street, London EC2V 5AE, United Kingdom.
+            Email privacy@deepinhq.com or write to Deep Privacy Office, 123 Market Street, London EC2V 5AE, United Kingdom.
           </p>
         </div>
       </section>

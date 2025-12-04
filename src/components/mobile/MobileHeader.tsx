@@ -60,7 +60,7 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
                 <span className="text-[15px] font-medium text-white/90 tracking-[-0.01em]">{title}</span>
               ) : (
                 <span className="text-[15px] font-medium text-white/90 tracking-[-0.01em]">
-                  Deep Terminal
+                  Deep
                 </span>
               )}
             </Link>

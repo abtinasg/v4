@@ -56,7 +56,7 @@ export default function AdminLoginPage() {
           <div>
             <CardTitle className="text-2xl font-bold text-white">Admin Panel</CardTitle>
             <CardDescription className="text-slate-400">
-              Deep Terminal Administration
+              Deep Administration
             </CardDescription>
           </div>
         </CardHeader>

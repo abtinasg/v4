@@ -79,9 +79,9 @@ P/E works best when:
 
 ## Start Analyzing
 
-Ready to put this knowledge to use? Deep Terminal calculates P/E ratios and 50+ other metrics automatically for any stock.
+Ready to put this knowledge to use? Deep calculates P/E ratios and 50+ other metrics automatically for any stock.
     `,
-    author: 'Deep Terminal Team',
+    author: 'Deep Team',
     publishedAt: '2025-01-10',
     readTime: '8 min read',
     category: 'Fundamentals',
@@ -116,7 +116,7 @@ Sound familiar? That's because these features are now available through modern a
 - Federal Reserve for economic data
 
 ### Affordable Platforms
-Modern platforms like Deep Terminal combine these data sources with AI analysis to deliver professional-grade insights without the professional-grade price tag.
+Modern platforms like Deep combine these data sources with AI analysis to deliver professional-grade insights without the professional-grade price tag.
 
 ## What You Actually Need
 
@@ -138,7 +138,7 @@ This is something Bloomberg Terminal users have to do manually.
 
 ## Cost Comparison
 
-| Feature | Bloomberg | Deep Terminal |
+| Feature | Bloomberg | Deep |
 |---------|-----------|---------------|
 | Monthly Cost | $2,000+ | Pay per use |
 | Real-time Data | Yes | Yes |
@@ -151,7 +151,7 @@ Unless you're a professional trader executing millions in daily volume, Bloomber
 
 The playing field has been leveled. Professional analysis is no longer reserved for the wealthy.
     `,
-    author: 'Deep Terminal Team',
+    author: 'Deep Team',
     publishedAt: '2025-01-08',
     readTime: '6 min read',
     category: 'Industry',
@@ -224,7 +224,7 @@ The best approach combines AI efficiency with human intuition and experience.
 
 AI won't replace human judgment, but it will amplify your analytical capabilities. The investors who learn to leverage AI effectively will have a significant advantage.
     `,
-    author: 'Deep Terminal Team',
+    author: 'Deep Team',
     publishedAt: '2025-01-05',
     readTime: '10 min read',
     category: 'AI & Technology',
@@ -309,17 +309,17 @@ Technical analysis works best when:
 
 It's not perfect, but it's a valuable tool in any investor's toolkit.
     `,
-    author: 'Deep Terminal Team',
+    author: 'Deep Team',
     publishedAt: '2025-01-03',
     readTime: '12 min read',
     category: 'Technical Analysis',
     image: '/blog/technical-analysis.jpg',
   },
   'introducing-deep-terminal': {
-    title: 'Introducing Deep Terminal: AI-Powered Stock Analysis for Everyone',
-    excerpt: 'We built Deep Terminal to democratize professional stock analysis. Here\'s our story and vision for the future of retail investing.',
+    title: 'Introducing Deep: AI-Powered Stock Analysis for Everyone',
+    excerpt: 'We built Deep to democratize professional stock analysis. Here\'s our story and vision for the future of retail investing.',
     content: `
-## Why We Built Deep Terminal
+## Why We Built Deep
 
 The stock market has always been tilted toward those with the most resources. Professional traders have access to expensive terminals, teams of analysts, and sophisticated tools. Individual investors? They're often left with basic charts and outdated information.
 
@@ -335,7 +335,7 @@ Individual investors face several challenges:
 
 ## Our Solution
 
-Deep Terminal combines three powerful elements:
+Deep combines three powerful elements:
 
 ### 1. Comprehensive Data
 We aggregate data from multiple sources to provide a complete picture of any stock:
@@ -356,7 +356,7 @@ We believe everyone deserves access to professional tools. Our credit-based pric
 
 ## What You Can Do
 
-With Deep Terminal, you can:
+With Deep, you can:
 - Analyze any stock in seconds
 - Get AI-generated reports
 - Track watchlists with alerts
@@ -375,7 +375,7 @@ We're building the future of retail investing—one where:
 
 We're offering 100 free credits to every new user. No credit card required. 
 
-Join thousands of investors who are already using Deep Terminal to make smarter investment decisions.
+Join thousands of investors who are already using Deep to make smarter investment decisions.
 
 Welcome to the future of stock analysis.
     `,
@@ -485,7 +485,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cyan-500 to-violet-500" />
                 <div>
                   <div className="font-medium text-white">{post.author}</div>
-                  <div className="text-sm text-white/40">Deep Terminal</div>
+                  <div className="text-sm text-white/40">Deep</div>
                 </div>
               </div>
 
@@ -537,7 +537,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               Ready to analyze stocks like a pro?
             </h3>
             <p className="mt-2 text-white/60">
-              Get started with Deep Terminal and receive 100 free credits.
+              Get started with Deep and receive 100 free credits.
             </p>
             <Link
               href="/sign-up"

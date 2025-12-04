@@ -1,5 +1,5 @@
 /**
- * SEO Utilities for Deep Terminal
+ * SEO Utilities for Deep
  * 
  * Centralized SEO configuration, metadata helpers, and JSON-LD generators
  */
@@ -33,7 +33,7 @@ export const siteConfig = {
     'stock valuation',
     'equity research',
   ],
-  author: 'Deep Terminal',
+  author: 'Deep',
   locale: 'en_US',
 };
 
@@ -243,7 +243,7 @@ export function generateBlogPostSchema({
   slug,
   publishedAt,
   updatedAt,
-  author = 'Deep Terminal Team',
+  author = 'Deep Team',
   image,
 }: BlogPostSchemaOptions) {
   return {
@@ -306,7 +306,7 @@ export function generateArticleSchema({
   image,
   publishedTime,
   modifiedTime,
-  author = 'Deep Terminal Team',
+  author = 'Deep Team',
 }: ArticleSchemaOptions) {
   return {
     '@context': 'https://schema.org',

@@ -93,7 +93,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('Deep Terminal', options)
+    self.registration.showNotification('Deep', options)
   );
 });
 

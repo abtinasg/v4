@@ -2073,7 +2073,7 @@ function AIAnalysisTab({ metrics, symbol }: { metrics: AllMetrics; symbol: strin
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white neon-underline pb-1">AI Analysis</h3>
-            <p className="text-sm text-gray-500">Powered by Deep Terminal AI</p>
+            <p className="text-sm text-gray-500">Powered by Deep AI</p>
           </div>
         </div>
 

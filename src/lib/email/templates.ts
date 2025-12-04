@@ -43,7 +43,7 @@ export function welcomeEmail(userName: string): string {
             <li>📈 Track unlimited watchlists</li>
             <li>💼 Professional Terminal Pro interface</li>
           </ul>
-          <a href="https://deepterminal.io/dashboard" class="button">Go to Dashboard →</a>
+          <a href="https://deepinhq.com/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
             <p>Need help? Reply to this email or visit our support center.</p>
             <p>© 2025 Deep. All rights reserved.</p>
@@ -80,7 +80,7 @@ export function trialEndingEmail(userName: string, daysLeft: number): string {
             <div class="stat-value" style="color: #f59e0b;">20% OFF</div>
             <p style="color: #9ca3af; font-size: 14px; margin: 8px 0 0 0;">Use code: EARLY20</p>
           </div>
-          <a href="https://deepterminal.io/pricing" class="button">Upgrade Now →</a>
+          <a href="https://deepinhq.com/pricing" class="button">Upgrade Now →</a>
           <div class="footer">
             <p>Questions? We're here to help.</p>
             <p>© 2025 Deep. All rights reserved.</p>
@@ -122,7 +122,7 @@ export function paymentReceiptEmail(
             <strong>Invoice ID:</strong> ${invoiceId}<br>
             <strong>Date:</strong> ${date}
           </p>
-          <a href="https://deepterminal.io/dashboard" class="button">Go to Dashboard →</a>
+          <a href="https://deepinhq.com/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
             <p>This receipt was sent to your registered email.</p>
             <p>© 2025 Deep. All rights reserved.</p>
@@ -187,7 +187,7 @@ export function alertNotificationEmail(
             <div class="stat-value" style="color: ${isPositive ? '#10b981' : '#ef4444'};">${currentValue}</div>
             <p style="color: #9ca3af; font-size: 14px; margin: 8px 0 0 0;">${condition}</p>
           </div>
-          <a href="https://deepterminal.io/dashboard/stock-analysis/${symbol}" class="button">View ${symbol} →</a>
+          <a href="https://deepinhq.com/dashboard/stock-analysis/${symbol}" class="button">View ${symbol} →</a>
           <div class="footer">
             <p>Manage your alerts in the dashboard.</p>
             <p>© 2025 Deep. All rights reserved.</p>
@@ -233,7 +233,7 @@ export function loginNotificationEmail(
           <p class="text" style="font-size: 14px; color: #f59e0b;">
             ⚠️ If this wasn't you, please secure your account immediately by changing your password.
           </p>
-          <a href="https://deepterminal.io/dashboard" class="button">Go to Dashboard →</a>
+          <a href="https://deepinhq.com/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
             <p>This is an automated security notification.</p>
             <p>© 2025 Deep. All rights reserved.</p>
@@ -273,7 +273,7 @@ export function lowCreditsEmail(
             <li>📈 Advanced charting tools</li>
             <li>💼 Terminal Pro features</li>
           </ul>
-          <a href="https://deepterminal.io/pricing" class="button">Buy Credits →</a>
+          <a href="https://deepinhq.com/pricing" class="button">Buy Credits →</a>
           <div class="footer">
             <p>Top up now to continue using all features without interruption.</p>
             <p>© 2025 Deep. All rights reserved.</p>

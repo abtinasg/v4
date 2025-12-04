@@ -1,5 +1,5 @@
 /**
- * Deep Terminal - Main Metrics API Endpoint
+ * Deep - Main Metrics API Endpoint
  *
  * GET /api/stock/[symbol]/metrics
  *

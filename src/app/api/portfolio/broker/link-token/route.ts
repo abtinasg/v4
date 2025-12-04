@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
         user: {
           client_user_id: userId,
         },
-        client_name: 'Deep Terminal',
+        client_name: 'Deep',
         products: ['investments'],
         country_codes: ['US'],
         language: 'en',

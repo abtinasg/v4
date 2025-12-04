@@ -25,12 +25,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   
   if (!article) {
     return {
-      title: 'Article Not Found | Deep Terminal',
+      title: 'Article Not Found | Deep',
     };
   }
 
   return {
-    title: `${article.headline} | Deep Terminal`,
+    title: `${article.headline} | Deep`,
     description: article.summary,
     openGraph: {
       title: article.headline,

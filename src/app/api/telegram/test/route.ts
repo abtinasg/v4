@@ -37,7 +37,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const message = body.message || '🧪 <b>Test Message</b>\n\nThis is a test message from Deep Terminal!\n\n✅ Bot is working correctly.';
+    const message = body.message || '🧪 <b>Test Message</b>\n\nThis is a test message from Deep!\n\n✅ Bot is working correctly.';
 
     const result = await sendToChannel(message);
 

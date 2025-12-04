@@ -1,5 +1,5 @@
 /**
- * Deep Terminal - Personalized Stock Report Generator API
+ * Deep - Personalized Stock Report Generator API
  * 
  * POST /api/stock/[symbol]/personalized-report
  * 
@@ -283,7 +283,7 @@ export async function POST(
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.co',
-        'X-Title': 'Deep Terminal - Personalized Report',
+        'X-Title': 'Deep - Personalized Report',
       },
       body: JSON.stringify({
         model: 'openai/gpt-4o',

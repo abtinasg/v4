@@ -50,7 +50,7 @@ export default function SignUpPage() {
               Create your account
             </h1>
             <p className="text-[15px] text-white/40 font-light leading-relaxed">
-              Start your free trial of Deep Terminal
+              Start your free trial of Deep
             </p>
           </div>
           

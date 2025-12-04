@@ -18,14 +18,14 @@ import { generatePageMetadata, JsonLd, generateFAQSchema, generateBreadcrumbSche
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Documentation',
-  description: 'Learn how to use Deep Terminal effectively. Guides, tutorials, and API documentation for stock analysis.',
+  description: 'Learn how to use Deep effectively. Guides, tutorials, and API documentation for stock analysis.',
   path: '/docs',
 });
 
 const categories = [
   {
     title: 'Getting Started',
-    description: 'New to Deep Terminal? Start here.',
+    description: 'New to Deep? Start here.',
     icon: Zap,
     articles: [
       { title: 'Quick Start Guide', href: '/docs/quick-start', time: '5 min' },
@@ -99,7 +99,7 @@ const popularArticles = [
 ];
 
 const faqItems = [
-  { question: 'How do I get started with Deep Terminal?', answer: 'Sign up for a free account, get 100 credits, and start analyzing any stock immediately.' },
+  { question: 'How do I get started with Deep?', answer: 'Sign up for a free account, get 100 credits, and start analyzing any stock immediately.' },
   { question: 'What are credits used for?', answer: 'Credits are used for AI-powered analysis features like chat, reports, and advanced metrics.' },
   { question: 'Is my financial data secure?', answer: 'Yes, we use bank-level encryption and never store your brokerage credentials.' },
 ];
@@ -134,7 +134,7 @@ export default function DocsPage() {
               Documentation
             </h1>
             <p className="mt-6 text-lg text-white/60">
-              Everything you need to know about using Deep Terminal. 
+              Everything you need to know about using Deep. 
               From getting started to advanced features.
             </p>
 
@@ -230,7 +230,7 @@ export default function DocsPage() {
               <Download className="h-8 w-8 text-cyan-400" />
               <h3 className="mt-4 font-semibold text-white">API Reference</h3>
               <p className="mt-2 text-sm text-white/40">
-                Technical documentation for developers integrating with Deep Terminal.
+                Technical documentation for developers integrating with Deep.
               </p>
               <Link
                 href="/docs/api"
@@ -245,7 +245,7 @@ export default function DocsPage() {
               <Settings className="h-8 w-8 text-cyan-400" />
               <h3 className="mt-4 font-semibold text-white">System Status</h3>
               <p className="mt-2 text-sm text-white/40">
-                Check the current status of Deep Terminal services.
+                Check the current status of Deep services.
               </p>
               <Link
                 href="/status"

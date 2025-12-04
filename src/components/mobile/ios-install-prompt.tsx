@@ -80,7 +80,7 @@ export function IOSInstallPrompt() {
                 {/* Text */}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-white mb-1">
-                    Install Deep Terminal
+                    Install Deep
                   </h3>
                   <p className="text-xs text-white/60 leading-relaxed mb-3">
                     Add to your home screen for a better experience and quick access

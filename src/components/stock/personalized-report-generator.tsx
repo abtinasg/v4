@@ -456,7 +456,7 @@ export function PersonalizedReportGenerator({ symbol, companyName }: Personalize
       doc.setFontSize(8);
       doc.setTextColor(...textMuted);
       doc.text('This personalized report considers your risk profile but does not constitute financial advice.', margin, pageHeight - 15);
-      doc.text(`© ${new Date().getFullYear()} Deep Terminal`, margin, pageHeight - 10);
+      doc.text(`© ${new Date().getFullYear()} Deep`, margin, pageHeight - 10);
 
       const filename = `${reportData.symbol}_Personalized_Report_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);

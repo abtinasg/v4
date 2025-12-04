@@ -171,7 +171,7 @@ Key financial and business risks.
 ## Investment Synthesis
 Strengths, weaknesses, bull/bear case (NOT advice).
 
-End with: _"Analysis based solely on data provided by Deep Terminal; not investment advice."_`;
+End with: _"Analysis based solely on data provided by Deep; not investment advice."_`;
 
     // === Stream from OpenRouter ===
     console.log(`[StreamReport] Starting streaming for ${upperSymbol}...`);
@@ -181,7 +181,7 @@ End with: _"Analysis based solely on data provided by Deep Terminal; not investm
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.com',
-        'X-Title': 'Deep Terminal - Stock Analysis',
+        'X-Title': 'Deep - Stock Analysis',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

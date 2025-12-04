@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Deep Terminal',
+    title: 'Deep',
     startupImage: [
       {
         url: '/splash/splash-1170x2532.png',

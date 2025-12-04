@@ -207,8 +207,8 @@ export class OpenRouterClient {
       throw new OpenRouterError('OPENROUTER_API_KEY is not configured', 401)
     }
     this.apiKey = apiKey
-    this.siteUrl = options?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://deepterminal.io'
-    this.siteName = options?.siteName || 'Deep Terminal'
+    this.siteUrl = options?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://deepinhq.com'
+    this.siteName = options?.siteName || 'Deep'
   }
 
   private getHeaders(): HeadersInit {

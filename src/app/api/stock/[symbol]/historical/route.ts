@@ -1,5 +1,5 @@
 /**
- * Deep Terminal - Historical Price Data API Endpoint
+ * Deep - Historical Price Data API Endpoint
  *
  * GET /api/stock/[symbol]/historical
  *

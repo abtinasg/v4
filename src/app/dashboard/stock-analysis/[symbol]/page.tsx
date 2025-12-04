@@ -32,10 +32,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const upperSymbol = symbol.toUpperCase();
 
   return {
-    title: `${upperSymbol} Stock Analysis | Deep Terminal`,
+    title: `${upperSymbol} Stock Analysis | Deep`,
     description: `Comprehensive analysis of ${upperSymbol} with 190+ institutional-grade metrics, AI insights, and real-time data.`,
     openGraph: {
-      title: `${upperSymbol} Stock Analysis | Deep Terminal`,
+      title: `${upperSymbol} Stock Analysis | Deep`,
       description: `Comprehensive analysis of ${upperSymbol} with 190+ institutional-grade metrics.`,
     },
   };

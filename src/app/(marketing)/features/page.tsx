@@ -24,7 +24,7 @@ import {
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Features - Professional Stock Analysis Tools',
-  description: 'Explore Deep Terminal features: 190+ institutional-grade financial metrics, AI-powered analysis, real-time data, stock screener, technical analysis, and more. Your Bloomberg alternative.',
+  description: 'Explore Deep features: 190+ institutional-grade financial metrics, AI-powered analysis, real-time data, stock screener, technical analysis, and more. Your Bloomberg alternative.',
   path: '/features',
   keywords: ['stock analysis features', 'financial metrics', 'AI stock analysis', 'stock screener', 'technical analysis tools'],
 });
@@ -209,7 +209,7 @@ export default function FeaturesPage() {
           <div className="text-center">
             <h2 className="text-3xl font-bold text-white sm:text-4xl">How We Compare</h2>
             <p className="mt-4 text-white/60">
-              Deep Terminal vs Bloomberg Terminal vs Yahoo Finance
+              Deep vs Bloomberg Terminal vs Yahoo Finance
             </p>
           </div>
 
@@ -219,7 +219,7 @@ export default function FeaturesPage() {
                 <tr className="border-b border-white/10">
                   <th className="py-4 px-4 text-left text-sm font-medium text-white/60">Feature</th>
                   <th className="py-4 px-4 text-center">
-                    <span className="text-cyan-400 font-semibold">Deep Terminal</span>
+                    <span className="text-cyan-400 font-semibold">Deep</span>
                   </th>
                   <th className="py-4 px-4 text-center text-sm font-medium text-white/60">Bloomberg</th>
                   <th className="py-4 px-4 text-center text-sm font-medium text-white/60">Yahoo Finance</th>
