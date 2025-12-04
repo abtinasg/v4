@@ -167,8 +167,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error saving risk assessment:', error);
+    // Return more detailed error for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('Error details:', { message: errorMessage, stack: errorStack });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: errorMessage },
       { status: 500 }
     );
   }
