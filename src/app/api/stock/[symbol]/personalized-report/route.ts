@@ -299,15 +299,15 @@ export async function POST(
         'X-Title': 'Deepin - Personalized Report',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o',
+        model: 'anthropic/claude-3.5-sonnet',
         messages: [
           {
             role: 'user',
             content: prompt,
           },
         ],
-        max_tokens: 16000,
-        temperature: 0.3,
+        max_tokens: 8192,
+        temperature: 0.4,
       }),
     });
 
