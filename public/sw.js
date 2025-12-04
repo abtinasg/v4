@@ -1,8 +1,7 @@
-const CACHE_NAME = 'deep-terminal-v1';
+const CACHE_NAME = 'deep-terminal-v2-watchlist-redesign';
 const urlsToCache = [
   '/',
   '/dashboard',
-  '/dashboard/watchlist',
   '/dashboard/news',
   '/offline.html'
 ];

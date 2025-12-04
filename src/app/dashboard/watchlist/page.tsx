@@ -71,15 +71,15 @@ interface StatCardProps {
 
 function StatCard({ label, value, subValue, trend, icon }: StatCardProps) {
   return (
-    <div className="relative group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300">
+    <div className="relative group p-4 sm:p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300">
       {/* Subtle glow on hover */}
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-white/40 mb-2">{label}</p>
+          <p className="text-xs sm:text-sm font-medium text-white/40 mb-1 sm:mb-2">{label}</p>
           <p className={cn(
-            'text-2xl font-semibold tracking-tight',
+            'text-xl sm:text-2xl font-semibold tracking-tight',
             trend === 'up' && 'text-emerald-400',
             trend === 'down' && 'text-red-400',
             (!trend || trend === 'neutral') && 'text-white'
@@ -87,11 +87,11 @@ function StatCard({ label, value, subValue, trend, icon }: StatCardProps) {
             {value}
           </p>
           {subValue && (
-            <p className="text-sm text-white/40 mt-1">{subValue}</p>
+            <p className="text-xs sm:text-sm text-white/40 mt-1">{subValue}</p>
           )}
         </div>
         {icon && (
-          <div className="p-2.5 rounded-xl bg-white/[0.04] text-white/40">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.04] text-white/40 hidden sm:block">
             {icon}
           </div>
         )}

@@ -35,21 +35,21 @@ export default function StockAnalysisPage() {
 
   return (
     <div className="min-h-screen bg-[#04060A]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-16">
         
         {/* Hero Section - Primary */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-16 lg:mb-20"
+          className="mb-10 sm:mb-14 lg:mb-20"
         >
           {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white tracking-tight mb-3">
+          <div className="text-center mb-5 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl lg:text-5xl font-semibold text-white tracking-tight mb-2 sm:mb-3">
               Stock Analysis
             </h1>
-            <p className="text-base sm:text-lg text-white/40 font-light max-w-xl mx-auto leading-relaxed">
+            <p className="text-sm sm:text-base lg:text-lg text-white/40 font-light max-w-xl mx-auto leading-relaxed">
               Institutional-grade insights powered by AI
             </p>
           </div>
@@ -58,40 +58,40 @@ export default function StockAnalysisPage() {
           <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto">
             <div 
               className={cn(
-                'relative rounded-2xl transition-all duration-300',
+                'relative rounded-xl sm:rounded-2xl transition-all duration-300',
                 'bg-white/[0.02] border',
                 isFocused 
                   ? 'border-[#00C9E4]/30 shadow-[0_0_40px_rgba(0,201,228,0.08)]' 
                   : 'border-white/[0.06]'
               )}
             >
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+              <Search className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white/30" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                placeholder="Search any stock (AAPL, MSFT, TSLA...)"
+                placeholder="Search stocks..."
                 className={cn(
-                  'w-full bg-transparent pl-14 pr-36 py-5',
-                  'text-lg text-white placeholder:text-white/40',
+                  'w-full bg-transparent pl-11 sm:pl-14 pr-24 sm:pr-36 py-3.5 sm:py-5',
+                  'text-base sm:text-lg text-white placeholder:text-white/40',
                   'focus:outline-none'
                 )}
               />
               <button
                 type="submit"
                 className={cn(
-                  'absolute right-3 top-1/2 -translate-y-1/2',
-                  'flex items-center gap-2 px-6 py-3 rounded-xl',
+                  'absolute right-2 sm:right-3 top-1/2 -translate-y-1/2',
+                  'flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl',
                   'bg-gradient-to-r from-[#00C9E4] to-[#00C9E4]/80',
-                  'text-sm font-semibold text-[#04060A]',
+                  'text-xs sm:text-sm font-semibold text-[#04060A]',
                   'hover:shadow-[0_0_24px_rgba(0,201,228,0.3)]',
                   'transition-all duration-200'
                 )}
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Analyze</span>
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Analyze</span>
               </button>
             </div>
           </form>
@@ -102,7 +102,7 @@ export default function StockAnalysisPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-16 lg:mb-20"
+          className="mb-10 sm:mb-14 lg:mb-20"
         >
           <div className="mb-6">
             <h2 className="text-lg font-medium text-white/90">Popular Stocks</h2>

@@ -349,51 +349,51 @@ export default function AIAssistantPage() {
   }, [setFeedback])
 
   return (
-    <div className="h-[calc(100vh-7rem)] sm:h-[calc(100vh-8rem)] flex flex-col max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="h-[calc(100vh-8rem)] sm:h-[calc(100vh-8rem)] flex flex-col max-w-5xl mx-auto px-3 sm:px-6 lg:px-8">
       {/* Header - Clean & Premium */}
       <motion.header
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-6 lg:py-8"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-4 sm:py-6 lg:py-8"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           {/* AI Avatar */}
           <div className="relative">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 backdrop-blur-sm border border-white/[0.08] flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
-              <Sparkles className="w-5 h-5 text-white/70" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500/20 to-cyan-500/20 backdrop-blur-sm border border-white/[0.08] flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white/70" />
             </div>
             {/* Status indicator */}
             <div className={cn(
-              "absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[#0c0e14]",
+              "absolute -bottom-0.5 -right-0.5 h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-full border-2 border-[#0c0e14]",
               isLoadingContext ? "bg-amber-400" : "bg-emerald-400"
             )} />
           </div>
           
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
-              AI Financial Assistant
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-white tracking-tight">
+              AI Assistant
             </h1>
-            <p className="text-sm text-white/40 font-light mt-1 leading-relaxed">
+            <p className="text-xs sm:text-sm text-white/40 font-light mt-0.5 sm:mt-1 leading-relaxed hidden sm:block">
               Intelligent insights powered by real-time market data
             </p>
           </div>
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={fetchMarketContext}
             disabled={isLoadingContext}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl transition-all duration-200"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-lg sm:rounded-xl transition-all duration-200"
             title="Refresh market data"
           >
-            <RefreshCw className={cn("w-4 h-4", isLoadingContext && 'animate-spin')} />
+            <RefreshCw className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", isLoadingContext && 'animate-spin')} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
           <button
             onClick={clearMessages}
-            className="px-4 py-2.5 text-sm text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl transition-all duration-200"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-white/60 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-lg sm:rounded-xl transition-all duration-200"
           >
             Clear
           </button>
@@ -405,26 +405,25 @@ export default function AIAssistantPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex-1 bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-2xl overflow-hidden flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+        className="flex-1 bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-xl sm:rounded-2xl overflow-hidden flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
       >
         {/* Messages Area */}
         <div 
           ref={messagesContainerRef}
-          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6"
+          className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 space-y-3 sm:space-y-6"
         >
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 lg:py-16">
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12 lg:py-16">
               {/* AI Avatar - Large */}
-              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500/15 to-cyan-500/15 backdrop-blur-sm border border-white/[0.06] flex items-center justify-center mb-6 shadow-[0_12px_32px_rgba(0,0,0,0.15)]">
-                <Sparkles className="w-7 h-7 text-white/50" />
+              <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500/15 to-cyan-500/15 backdrop-blur-sm border border-white/[0.06] flex items-center justify-center mb-4 sm:mb-6 shadow-[0_12px_32px_rgba(0,0,0,0.15)]">
+                <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-white/50" />
               </div>
               
-              <h3 className="text-xl font-medium text-white tracking-tight mb-3">
+              <h3 className="text-lg sm:text-xl font-medium text-white tracking-tight mb-2 sm:mb-3">
                 Start a Conversation
               </h3>
-              <p className="text-white/40 text-sm font-light max-w-md mx-auto text-center leading-relaxed px-4">
+              <p className="text-white/40 text-xs sm:text-sm font-light max-w-md mx-auto text-center leading-relaxed px-4">
                 Ask about stocks, market trends, financial metrics, or investment strategies. 
-                I use real-time data from multiple sources.
               </p>
             </div>
           ) : (

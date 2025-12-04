@@ -290,7 +290,7 @@ export default async function StockAnalysisPage({ params }: PageProps) {
       </div>
 
       {/* Content - Premium Spacing */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 space-y-8 lg:space-y-12">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-12 space-y-6 sm:space-y-8 lg:space-y-12">
         
         {/* Company Header */}
         <Suspense fallback={<CompanyHeaderSkeleton />}>

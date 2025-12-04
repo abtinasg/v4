@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { 
   LayoutDashboard, 
   LineChart, 
-  Star, 
+  Briefcase, 
   Newspaper,
   MessageSquare,
   Terminal,
@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Home' },
   { href: '/dashboard/stock-analysis', icon: LineChart, label: 'Stocks' },
-  { href: '/dashboard/watchlist', icon: Star, label: 'Watchlist' },
+  { href: '/dashboard/portfolio', icon: Briefcase, label: 'Portfolio' },
   { href: '/dashboard/news', icon: Newspaper, label: 'News' },
   { href: '/dashboard/ai-assistant', icon: MessageSquare, label: 'AI' },
 ]
@@ -96,7 +96,7 @@ export function BottomNavigation() {
               {/* Label - hidden for center item */}
               {!isCenter && (
                 <span className={cn(
-                  "text-[9px] font-medium mt-0.5 transition-colors",
+                  "text-[10px] font-medium mt-1 transition-colors",
                   isActive ? "text-cyan-400" : "text-gray-500"
                 )}>
                   {item.label}

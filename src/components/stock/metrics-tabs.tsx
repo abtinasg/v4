@@ -2522,7 +2522,8 @@ export function MetricsTabs({ symbol, metrics, sector, industry }: MetricsTabsPr
         >
           {/* Premium Tab List */}
           <TabsList className={cn(
-            'w-full justify-start glass-premium rounded-2xl p-1.5 h-auto flex-wrap gap-1',
+            'w-full justify-start glass-premium rounded-xl sm:rounded-2xl p-1 sm:p-1.5 h-auto flex-wrap gap-0.5 sm:gap-1',
+            'overflow-x-auto scrollbar-hide',
             isSticky && 'rounded-none border-b border-white/10'
           )}>
           {TABS.map((tab, index) => (
@@ -2530,7 +2531,8 @@ export function MetricsTabs({ symbol, metrics, sector, industry }: MetricsTabsPr
               key={tab.value}
               value={tab.value}
               className={cn(
-                'flex items-center gap-2.5 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+                'flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-300',
+                'whitespace-nowrap',
                 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500',
                 'data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-500/20',
                 'data-[state=inactive]:text-gray-400 data-[state=inactive]:hover:text-white',
@@ -2538,8 +2540,8 @@ export function MetricsTabs({ symbol, metrics, sector, industry }: MetricsTabsPr
               )}
               style={{ animationDelay: `${index * 30}ms` }}
             >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
+              <tab.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>

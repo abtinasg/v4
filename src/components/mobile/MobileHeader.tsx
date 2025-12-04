@@ -67,10 +67,13 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              {/* Credits - refined mobile style */}
-              <div className="flex items-center h-9 px-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.12]">
+              {/* Credits - link to pricing */}
+              <Link 
+                href="/pricing"
+                className="flex items-center h-9 px-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.12] active:scale-95 transition-transform"
+              >
                 <CreditBadge showIcon size="sm" className="border-0 bg-transparent p-0 text-[12px]" />
-              </div>
+              </Link>
 
               {/* Search */}
               {showSearch && (
@@ -83,16 +86,17 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
                 </button>
               )}
 
-              {/* Notifications */}
-              <button
+              {/* Alerts/Notifications - link to watchlist */}
+              <Link
+                href="/dashboard/watchlist"
                 className="relative p-2.5 rounded-xl hover:bg-white/[0.04] text-white/40 active:scale-95 transition-all duration-200"
-                aria-label="Notifications"
+                aria-label="Watchlist & Alerts"
               >
                 <Bell className="w-[18px] h-[18px]" strokeWidth={1.5} />
                 {hasNotifications && (
                   <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#0a0c10]" />
                 )}
-              </button>
+              </Link>
 
               {/* User */}
               <UserButton

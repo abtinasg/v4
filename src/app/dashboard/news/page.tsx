@@ -145,7 +145,7 @@ export default function NewsPage() {
   const sentiments: SentimentFilter[] = ['all', 'bullish', 'bearish', 'neutral']
 
   return (
-    <div className="min-h-screen p-6 sm:p-8 lg:p-12">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8 xl:p-12">
       {/* Update AI context with news data */}
       <NewsContextUpdater news={news} />
       
@@ -154,7 +154,7 @@ export default function NewsPage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
+          className="mb-6 sm:mb-8 lg:mb-12"
         >
           <AIMarketReport />
         </motion.div>
@@ -164,16 +164,16 @@ export default function NewsPage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-12"
+          className="mb-6 sm:mb-8 lg:mb-12"
         >
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-                <Newspaper className="w-7 h-7 text-white/60" />
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-3 sm:p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
+                <Newspaper className="w-5 h-5 sm:w-7 sm:h-7 text-white/60" />
               </div>
               <div>
-                <h1 className="text-3xl sm:text-4xl font-semibold text-white tracking-tight">Market Intelligence</h1>
-                <p className="text-sm text-white/40 mt-1 font-light">Real-time financial news and market updates</p>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white tracking-tight">Market Intelligence</h1>
+                <p className="text-xs sm:text-sm text-white/40 mt-1 font-light">Real-time financial news and market updates</p>
               </div>
             </div>
             <button
@@ -196,7 +196,7 @@ export default function NewsPage() {
 
           {/* Sentiment Overview - Primary Information */}
           {filteredNews.length > 0 && (
-            <div className="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="mb-6 sm:mb-8 lg:mb-12 grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3">
               {(['bullish', 'neutral', 'bearish'] as NewsItem['sentiment'][]).map(sent => {
                 const percentage = sentimentStats.total
                   ? Math.round((sentimentStats.sentiments[sent] / sentimentStats.total) * 100)
@@ -204,7 +204,7 @@ export default function NewsPage() {
                 const isPositive = sent === 'bullish'
 
                 return (
-                  <GlassCard key={sent} className="p-6 border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl">
+                  <GlassCard key={sent} className="p-4 sm:p-6 border border-white/[0.04] bg-white/[0.015] backdrop-blur-xl">
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-xs uppercase tracking-wider text-white/30 font-light">
                         {sent}
@@ -220,10 +220,10 @@ export default function NewsPage() {
                         {sentimentStats.sentiments[sent]}
                       </span>
                     </div>
-                    <div className="flex items-end justify-between mb-4">
-                      <p className="text-4xl font-light text-white tracking-tight">{percentage}%</p>
+                    <div className="flex items-end justify-between mb-3 sm:mb-4">
+                      <p className="text-3xl sm:text-4xl font-light text-white tracking-tight">{percentage}%</p>
                       {sentimentStats.topCategory && isPositive && (
-                        <p className="text-[10px] text-white/30 text-right font-light">
+                        <p className="text-[10px] text-white/30 text-right font-light hidden sm:block">
                           Leading theme
                           <span className="block text-sm text-white/80 font-normal mt-0.5">
                             {sentimentStats.topCategory}
@@ -393,11 +393,11 @@ export default function NewsPage() {
                         )}
                       </div>
 
-                      <h2 className="text-3xl lg:text-4xl font-light text-white leading-[1.2] tracking-tight">
+                      <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-light text-white leading-[1.2] tracking-tight">
                         {featuredNews.headline}
                       </h2>
 
-                      <p className="text-base text-white/50 leading-[1.6] font-light line-clamp-4">
+                      <p className="text-sm sm:text-base text-white/50 leading-[1.6] font-light line-clamp-3 sm:line-clamp-4">
                         {featuredNews.summary}
                       </p>
 
@@ -436,7 +436,7 @@ export default function NewsPage() {
                     </div>
 
                     <div className="lg:col-span-1">
-                      <div className="relative h-72 lg:h-full min-h-[400px] rounded-2xl overflow-hidden bg-white/[0.02] border border-white/[0.04]">
+                      <div className="relative h-48 sm:h-60 lg:h-full min-h-[200px] lg:min-h-[400px] rounded-2xl overflow-hidden bg-white/[0.02] border border-white/[0.04]">
                         {featuredNews.image ? (
                           <img
                             src={featuredNews.image}
