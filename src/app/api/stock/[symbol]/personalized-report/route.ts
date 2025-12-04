@@ -88,7 +88,11 @@ Key Metrics:
 
 ## YOUR TASK
 
-Generate a comprehensive personalized investment analysis. The report should start with a profile summary and then analyze the stock FOR THIS SPECIFIC investor:
+Generate a comprehensive personalized investment analysis (MINIMUM 15 pages / 8000-12000 words).
+
+CRITICAL: Your response MUST be at least 15 PAGES long. Do NOT provide a shorter response under any circumstances.
+
+The report should start with a profile summary and then analyze the stock FOR THIS SPECIFIC investor:
 
 1. **Profile Summary** (📋)
    - Brief recap of this investor's risk profile
@@ -282,15 +286,15 @@ export async function POST(
         'X-Title': 'Deep Terminal - Personalized Report',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-sonnet-4',
+        model: 'openai/gpt-5.1',
         messages: [
           {
             role: 'user',
             content: prompt,
           },
         ],
-        max_tokens: 4000,
-        temperature: 0.7,
+        max_tokens: 16000,
+        temperature: 0.3,
       }),
     });
 

@@ -423,7 +423,8 @@ ADVANCED METRICS AVAILABLE: Yes (430+ institutional-grade metrics calculated)
 You are a CFA Charterholder and Senior Equity Research Analyst at a top-tier investment bank writing an institutional-grade equity research report for portfolio managers, hedge fund analysts, and investment professionals.
 
 CRITICAL INSTRUCTIONS:
-- Write a VERY LONG and EXTREMELY DETAILED report (target: 12,000-15,000 words / 15+ pages)
+- Write a VERY LONG and EXTREMELY DETAILED report (target: 12,000-15,000 words / MINIMUM 15 pages)
+- YOUR RESPONSE MUST BE AT LEAST 15 PAGES. Do NOT provide a shorter response under any circumstances.
 - ONLY use numbers explicitly in provided data - never guess/approximate
 - Cite exact metric values from data with precise decimal places
 - If data missing: state "Data not available"
@@ -698,7 +699,9 @@ Price: $${stockData.currentPrice}
 ${keyMetricsSummary}
 ${advancedMetricsSection}
 
-=== REPORT (1500-2500 words, Markdown, Simple Language) ===
+=== REPORT (MINIMUM 10 pages / 5000-8000 words, Markdown, Simple Language) ===
+
+CRITICAL: Your response MUST be at least 10 PAGES long. Do NOT provide a shorter response.
 
 # ${stockData.symbol} Stock Analysis
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
@@ -759,7 +762,7 @@ IMPORTANT REMINDERS:
   const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout for Pro reports
   
   // Use o3-mini-high for Pro reports, GPT-4.1 for Retail
-  const modelId = audienceType === 'pro' ? 'openai/o3-mini-high' : 'openai/gpt-4.1';
+  const modelId = audienceType === 'pro' ? 'openai/o3-mini-high' : 'openai/gpt-5.1';
   
   try {
     console.log(`[Report] Calling OpenRouter API with ${audienceType === 'pro' ? 'o3-mini-high' : 'GPT-4.1'} (${reportLabel} report)...`);
@@ -781,8 +784,8 @@ IMPORTANT REMINDERS:
             content: selectedPrompt,
           },
         ],
-        max_tokens: audienceType === 'retail' ? 4000 : 32000, // Pro: 32K tokens for 15+ page reports
-        temperature: 1, // o3-mini requires temperature=1
+        max_tokens: audienceType === 'retail' ? 16000 : 32000, // Pro: 32K, Retail: 16K tokens
+        ...(audienceType === 'pro' ? { temperature: 1 } : { temperature: 0.3 }), // Pro: o3-mini needs 1, Retail: low for accuracy
       }),
       signal: controller.signal,
     });
