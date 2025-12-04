@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, FileText, Loader2, AlertCircle, Sparkles, Shield, TrendingUp, BarChart3, CheckCircle2, Users, GraduationCap } from 'lucide-react';
+import { Download, FileText, Loader2, AlertCircle, Sparkles, Shield, TrendingUp, BarChart3, CheckCircle2, Users, GraduationCap, Zap, ArrowRight, Clock, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
@@ -52,19 +52,6 @@ const loadingStages = [
     icon: FileText,
   },
 ];
-
-const reportFeatures = {
-  pro: [
-    { text: 'CFA-Level Analysis', icon: Shield },
-    { text: '400+ Metrics', icon: BarChart3 },
-    { text: 'Professional Grade', icon: Sparkles },
-  ],
-  retail: [
-    { text: 'Simple Language', icon: GraduationCap },
-    { text: 'Easy to Understand', icon: Users },
-    { text: 'AI-Powered', icon: Sparkles },
-  ],
-};
 
 export function StockReportGenerator({ symbol, companyName }: StockReportGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
