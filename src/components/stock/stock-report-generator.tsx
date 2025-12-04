@@ -26,6 +26,20 @@ interface ReportResponse {
   };
 }
 
+// Feature tags for each report type
+const reportFeatures = {
+  pro: [
+    { icon: Shield, text: 'CFA-Level' },
+    { icon: BarChart3, text: '400+ Metrics' },
+    { icon: TrendingUp, text: 'DCF Model' },
+  ],
+  retail: [
+    { icon: Users, text: 'Beginner-Friendly' },
+    { icon: GraduationCap, text: 'Educational' },
+    { icon: Zap, text: 'Quick Read' },
+  ],
+};
+
 const loadingStages = [
   {
     label: 'Market Data',
