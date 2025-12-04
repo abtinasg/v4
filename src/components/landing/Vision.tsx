@@ -50,7 +50,7 @@ export function Vision() {
           className="text-subhead text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-16"
         >
           We believe every trader deserves the tools that move markets. 
-          Deep brings institutional-caliber analytics to those ready to trade with conviction.
+          Deepin brings institutional-caliber analytics to those ready to trade with conviction.
         </p>
 
         {/* Vision Cards */}

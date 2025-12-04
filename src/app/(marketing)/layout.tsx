@@ -61,8 +61,8 @@ export default function MarketingLayout({
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.jpeg" alt="Deep" className="h-10 w-10 rounded-lg object-cover" />
-            <span className="text-lg font-semibold text-white">Deep</span>
+            <img src="/logo.jpeg" alt="Deepin" className="h-10 w-10 rounded-lg object-cover" />
+            <span className="text-lg font-semibold text-white">Deepin</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -109,7 +109,7 @@ export default function MarketingLayout({
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-violet-600">
                   <span className="text-sm font-bold text-white">DT</span>
                 </div>
-                <span className="text-lg font-semibold text-white">Deep</span>
+                <span className="text-lg font-semibold text-white">Deepin</span>
               </Link>
               <p className="mt-4 max-w-xs text-sm text-white/40">
                 Professional stock analysis platform with 190+ institutional-grade metrics and AI-powered insights.
@@ -194,7 +194,7 @@ export default function MarketingLayout({
           {/* Bottom Bar */}
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 sm:flex-row">
             <p className="text-sm text-white/30">
-              © {new Date().getFullYear()} Deep. All rights reserved.
+              © {new Date().getFullYear()} Deepin. All rights reserved.
             </p>
             <p className="text-xs text-white/20">
               Stock data provided by Yahoo Finance. Not financial advice.

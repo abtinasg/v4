@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'About Deep - Our Mission & Story',
-  description: 'Learn about Deep, the professional stock analysis platform making institutional-grade research accessible to everyone. Our mission, team, and values.',
+  title: 'About Deepin - Our Mission & Story',
+  description: 'Learn about Deepin, the professional stock analysis platform making institutional-grade research accessible to everyone. Our mission, team, and values.',
   path: '/about',
   keywords: ['about deep', 'stock analysis company', 'financial technology', 'fintech startup'],
 });
@@ -54,12 +54,12 @@ const timeline = [
   {
     year: '2024',
     title: 'The Beginning',
-    description: 'Deep was founded with a simple mission: democratize access to professional stock analysis.',
+    description: 'Deepin was founded with a simple mission: democratize access to professional stock analysis.',
   },
   {
     year: '2024',
     title: 'AI Integration',
-    description: 'Integrated Deep AI for intelligent analysis and natural language insights on any stock.',
+    description: 'Integrated Deepin AI for intelligent analysis and natural language insights on any stock.',
   },
   {
     year: '2024',
@@ -102,7 +102,7 @@ export default function AboutPage() {
             </h1>
             <p className="mt-6 text-lg text-white/60">
               We believe every investor deserves access to the same quality of analysis that 
-              institutions have. Deep brings institutional-grade stock research to 
+              institutions have. Deepin brings institutional-grade stock research to 
               individual investors at a fraction of the cost.
             </p>
           </div>
@@ -136,7 +136,7 @@ export default function AboutPage() {
                 Bloomberg terminals and institutional access. We're changing that.
               </p>
               <p className="mt-4 text-white/60">
-                Deep combines real-time market data, 190+ institutional-grade financial metrics, and 
+                Deepin combines real-time market data, 190+ institutional-grade financial metrics, and 
                 AI-powered insights to give every investor the tools they need to make 
                 informed decisions. Whether you're analyzing your first stock or managing 
                 a portfolio, we've got you covered.
@@ -241,7 +241,7 @@ export default function AboutPage() {
               Ready to Transform Your Research?
             </h2>
             <p className="mt-4 text-lg text-white/60 max-w-2xl mx-auto">
-              Join thousands of investors who've upgraded their analysis workflow with Deep.
+              Join thousands of investors who've upgraded their analysis workflow with Deepin.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <Link

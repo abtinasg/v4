@@ -20,7 +20,7 @@ const pillars = [
   {
     icon: BrainCircuit,
     title: 'AI Orchestrator',
-    description: 'Deep AI intelligence with advanced reasoning and custom fine-tuned models.',
+    description: 'Deepin AI intelligence with advanced reasoning and custom fine-tuned models.',
     color: '#8B5CF6',
     gradient: 'from-[#8B5CF6]/20 to-[#8B5CF6]/5'
   },

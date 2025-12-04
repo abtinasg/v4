@@ -4,7 +4,7 @@ const clauses = [
   {
     title: '1. Acceptance of Terms',
     detail:
-      'By creating an account, purchasing credits, or accessing any Deep feature you agree to these Terms of Service and any policies referenced here. If you are using the platform on behalf of an organization, you confirm you have authority to bind that entity.',
+      'By creating an account, purchasing credits, or accessing any Deepin feature you agree to these Terms of Service and any policies referenced here. If you are using the platform on behalf of an organization, you confirm you have authority to bind that entity.',
   },
   {
     title: '2. Eligibility & Accounts',
@@ -19,7 +19,7 @@ const clauses = [
   {
     title: '4. Market Data & Third-Party Content',
     detail:
-      'Quotes, fundamentals, and news are sourced from third parties (e.g., Yahoo Finance). Deep does not guarantee accuracy, timeliness, or availability of this data and may suspend feeds without liability.',
+      'Quotes, fundamentals, and news are sourced from third parties (e.g., Yahoo Finance). Deepin does not guarantee accuracy, timeliness, or availability of this data and may suspend feeds without liability.',
   },
   {
     title: '5. Acceptable Use',
@@ -34,7 +34,7 @@ const clauses = [
   {
     title: '7. Limitation of Liability',
     detail:
-      'To the maximum extent permitted by law Deep is not liable for indirect, incidental, or consequential damages, lost profits, or trading losses. Aggregate liability is limited to the fees paid in the preceding three months.',
+      'To the maximum extent permitted by law Deepin is not liable for indirect, incidental, or consequential damages, lost profits, or trading losses. Aggregate liability is limited to the fees paid in the preceding three months.',
   },
   {
     title: '8. Termination',
@@ -50,7 +50,7 @@ const clauses = [
 
 export const metadata: Metadata = {
   title: 'Terms of Service | Deep',
-  description: 'Review the legal terms that govern your use of Deep and its credit-based analytics platform.',
+  description: 'Review the legal terms that govern your use of Deepin and its credit-based analytics platform.',
 }
 
 export default function TermsPage() {
@@ -61,7 +61,7 @@ export default function TermsPage() {
           <p className="text-xs uppercase tracking-[0.3em] text-violet-400">Terms of Service</p>
           <h1 className="mt-4 text-4xl font-bold">The rules for using Deep</h1>
           <p className="mt-4 text-base text-white/70">
-            Last updated: November 30, 2025. These terms describe your rights and responsibilities when accessing Deep, purchasing credits,
+            Last updated: November 30, 2025. These terms describe your rights and responsibilities when accessing Deepin, purchasing credits,
             or using any related APIs, emails, AI tooling, or market data.
           </p>
         </header>

@@ -24,10 +24,10 @@ export function DashboardSidebar() {
       <div className="px-6 py-6">
         <Link href="/dashboard" className="flex items-center gap-3">
           <div className="relative">
-            <img src="/logo.jpeg" alt="Deep" className="h-8 w-8 rounded-lg object-cover" />
+            <img src="/logo.jpeg" alt="Deepin" className="h-8 w-8 rounded-lg object-cover" />
             <div className="absolute inset-0 bg-[#00C9E4]/20 blur-xl rounded-full" />
           </div>
-          <span className="text-lg font-semibold text-white tracking-tight">Deep</span>
+          <span className="text-lg font-semibold text-white tracking-tight">Deepin</span>
         </Link>
       </div>
 

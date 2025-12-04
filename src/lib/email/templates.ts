@@ -27,7 +27,7 @@ export function welcomeEmail(userName: string): string {
       <div class="container">
         <div class="card">
           <div class="logo">🚀 Deep</div>
-          <h1 class="title">Welcome to Deep, ${userName}!</h1>
+          <h1 class="title">Welcome to Deepin, ${userName}!</h1>
           <p class="text">
             You've just joined the most powerful financial analysis platform. 
             Get ready to access real-time market data, AI-powered insights, and professional-grade tools.
@@ -46,7 +46,7 @@ export function welcomeEmail(userName: string): string {
           <a href="https://deepinhq.com/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
             <p>Need help? Reply to this email or visit our support center.</p>
-            <p>© 2025 Deep. All rights reserved.</p>
+            <p>© 2025 Deepin. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@ export function trialEndingEmail(userName: string, daysLeft: number): string {
           <a href="https://deepinhq.com/pricing" class="button">Upgrade Now →</a>
           <div class="footer">
             <p>Questions? We're here to help.</p>
-            <p>© 2025 Deep. All rights reserved.</p>
+            <p>© 2025 Deepin. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -125,7 +125,7 @@ export function paymentReceiptEmail(
           <a href="https://deepinhq.com/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
             <p>This receipt was sent to your registered email.</p>
-            <p>© 2025 Deep. All rights reserved.</p>
+            <p>© 2025 Deepin. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -154,7 +154,7 @@ export function passwordResetEmail(resetLink: string): string {
           </p>
           <div class="footer">
             <p>For security, this request was received from your account.</p>
-            <p>© 2025 Deep. All rights reserved.</p>
+            <p>© 2025 Deepin. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -179,7 +179,7 @@ export function alertNotificationEmail(
     <body>
       <div class="container">
         <div class="card">
-          <div class="logo">🔔 Deep Alert</div>
+          <div class="logo">🔔 Deepin Alert</div>
           <h1 class="title">Price Alert Triggered!</h1>
           <p class="text">Hey ${userName}, your alert for <span class="highlight">${symbol}</span> has been triggered.</p>
           <div class="stat-box">
@@ -190,7 +190,7 @@ export function alertNotificationEmail(
           <a href="https://deepinhq.com/dashboard/stock-analysis/${symbol}" class="button">View ${symbol} →</a>
           <div class="footer">
             <p>Manage your alerts in the dashboard.</p>
-            <p>© 2025 Deep. All rights reserved.</p>
+            <p>© 2025 Deepin. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -236,7 +236,7 @@ export function loginNotificationEmail(
           <a href="https://deepinhq.com/dashboard" class="button">Go to Dashboard →</a>
           <div class="footer">
             <p>This is an automated security notification.</p>
-            <p>© 2025 Deep. All rights reserved.</p>
+            <p>© 2025 Deepin. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -276,7 +276,7 @@ export function lowCreditsEmail(
           <a href="https://deepinhq.com/pricing" class="button">Buy Credits →</a>
           <div class="footer">
             <p>Top up now to continue using all features without interruption.</p>
-            <p>© 2025 Deep. All rights reserved.</p>
+            <p>© 2025 Deepin. All rights reserved.</p>
           </div>
         </div>
       </div>

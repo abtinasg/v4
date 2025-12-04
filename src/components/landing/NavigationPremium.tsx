@@ -39,7 +39,7 @@ export function NavigationPremium() {
               href="/" 
               className="flex items-center gap-2 group"
             >
-              <img src="/logo.jpeg" alt="Deep" className="h-7 w-7 rounded-lg object-cover shadow-[0_2px_8px_rgba(99,102,241,0.3)]" />
+              <img src="/logo.jpeg" alt="Deepin" className="h-7 w-7 rounded-lg object-cover shadow-[0_2px_8px_rgba(99,102,241,0.3)]" />
               <span className="text-sm font-bold text-white tracking-tight">
                 DeepIn
               </span>

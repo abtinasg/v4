@@ -40,7 +40,7 @@ export default function SignUpPage() {
             <div className="relative">
               {/* Soft ambient glow behind logo */}
               <div className="absolute inset-0 w-14 h-14 bg-[#00C9E4]/20 rounded-2xl blur-xl" />
-              <img src="/logo.jpeg" alt="Deep" className="relative w-14 h-14 rounded-2xl object-cover shadow-[0_8px_32px_rgba(0,201,228,0.15)]" />
+              <img src="/logo.jpeg" alt="Deepin" className="relative w-14 h-14 rounded-2xl object-cover shadow-[0_8px_32px_rgba(0,201,228,0.15)]" />
             </div>
           </div>
 

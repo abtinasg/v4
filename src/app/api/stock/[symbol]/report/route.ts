@@ -1,5 +1,5 @@
 /**
- * Deep - AI Stock Report Generator API
+ * Deepin - AI Stock Report Generator API
  * 
  * POST /api/stock/[symbol]/report
  * 
@@ -773,7 +773,7 @@ IMPORTANT REMINDERS:
       headers: {
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.com',
-        'X-Title': 'Deep - Stock Analysis',
+        'X-Title': 'Deepin - Stock Analysis',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

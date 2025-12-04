@@ -58,7 +58,7 @@ const CORE_DISCLAIMERS = `
 
 DATA SOURCES (all provided to you):
 📊 Real-time prices: Yahoo Finance
-📈 Financial metrics: Deep Metrics Library (calculated)
+📈 Financial metrics: Deepin Metrics Library (calculated)
 💹 Economic data: FRED (Federal Reserve Economic Data)
 
 NEVER GIVE:
@@ -174,7 +174,7 @@ function buildStockDataString(stock: StockContext): string {
 function buildStockAnalysisPrompt(stock: StockContext): string {
   const stockData = buildStockDataString(stock);
   
-  return `You are an expert financial analyst AI for Deep, a professional stock analysis platform.
+  return `You are an expert financial analyst AI for Deepin, a professional stock analysis platform.
 
 YOUR ROLE: Equity Research Analyst specializing in ${stock.sector || 'various sectors'}
 
@@ -258,7 +258,7 @@ function buildMarketDataString(market: MarketContext): string {
 function buildMarketOverviewPrompt(market: MarketContext): string {
   const marketData = buildMarketDataString(market);
   
-  return `You are a market analyst AI for Deep, a professional stock analysis platform.
+  return `You are a market analyst AI for Deepin, a professional stock analysis platform.
 
 YOUR ROLE: Market Strategist providing macro analysis and market commentary
 
@@ -434,7 +434,7 @@ function buildPortfolioDataString(portfolio: PortfolioContext): string {
 function buildPortfolioPrompt(portfolio: PortfolioContext): string {
   const portfolioData = buildPortfolioDataString(portfolio);
   
-  return `You are an expert portfolio analyst AI for Deep, a professional institutional-grade stock analysis platform.
+  return `You are an expert portfolio analyst AI for Deepin, a professional institutional-grade stock analysis platform.
 
 YOUR ROLE: Senior Portfolio Strategist with expertise in:
 - Fundamental Analysis (valuation, profitability, growth metrics)
@@ -502,7 +502,7 @@ Remember: Use ONLY the data provided above. Do not fabricate any numbers or stat
 // ============================================================
 
 function buildGeneralEducationPrompt(): string {
-  return `You are a financial educator AI for Deep, a professional stock analysis platform.
+  return `You are a financial educator AI for Deepin, a professional stock analysis platform.
 
 YOUR ROLE: Financial Educator who explains concepts simply and clearly
 

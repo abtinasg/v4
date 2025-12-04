@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, TrendingUp, Clock, ArrowRight } from 'lucide-react'
+import { Search, X, TrendingUp, TrendingDown, Clock, ArrowRight, Flame, Monitor, BarChart3, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
@@ -177,18 +177,18 @@ export function MobileSearch({
                     </h3>
                     <div className="space-y-1">
                       {[
-                        { label: 'Top Gainers', icon: '📈' },
-                        { label: 'Top Losers', icon: '📉' },
-                        { label: 'Most Active', icon: '🔥' },
-                        { label: 'Tech Stocks', icon: '💻' },
-                        { label: 'ETFs', icon: '📊' },
+                        { label: 'Top Gainers', Icon: TrendingUp },
+                        { label: 'Top Losers', Icon: TrendingDown },
+                        { label: 'Most Active', Icon: Flame },
+                        { label: 'Tech Stocks', Icon: Monitor },
+                        { label: 'ETFs', Icon: BarChart3 },
                       ].map((item) => (
                         <button
                           key={item.label}
                           className="flex items-center justify-between w-full px-3 py-3 rounded-lg hover:bg-white/[0.05] transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <span className="text-lg">{item.icon}</span>
+                            <item.Icon className="h-4 w-4 text-gray-400" />
                             <span className="text-sm text-gray-300">{item.label}</span>
                           </div>
                           <ArrowRight className="w-4 h-4 text-gray-600" />

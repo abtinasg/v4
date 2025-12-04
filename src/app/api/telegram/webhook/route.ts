@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         }
 
         message += '\n━━━━━━━━━━━━━━━\n';
-        message += '🚀 <b>Deep</b> | @DeepTerminal';
+        message += '🚀 <b>Deepin</b> | @DeepTerminal';
 
         await sendToChannel(message);
         break;

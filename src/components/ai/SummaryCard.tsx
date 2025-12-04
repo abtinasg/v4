@@ -9,7 +9,7 @@
 import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, ChevronUp, Sparkles, RefreshCw } from 'lucide-react'
+import { ChevronDown, ChevronUp, Sparkles, RefreshCw, Building2, TrendingUp, DollarSign, AlertTriangle, BarChart3, AlertCircle } from 'lucide-react'
 import type { StockSummary } from '@/lib/ai/stock-summary'
 import { cn } from '@/lib/utils'
 
@@ -47,31 +47,31 @@ export function SummaryCard({
       key: 'businessOverview',
       title: 'Business Overview',
       content: summary.sections.businessOverview,
-      icon: '🏢',
+      icon: Building2,
     },
     {
       key: 'recentPerformance',
       title: 'Recent Performance',
       content: summary.sections.recentPerformance,
-      icon: '📈',
+      icon: TrendingUp,
     },
     {
       key: 'valuationAssessment',
       title: 'Valuation Assessment',
       content: summary.sections.valuationAssessment,
-      icon: '💰',
+      icon: DollarSign,
     },
     {
       key: 'risksAndOpportunities',
       title: 'Risks & Opportunities',
       content: summary.sections.risksAndOpportunities,
-      icon: '⚠️',
+      icon: AlertTriangle,
     },
     {
       key: 'technicalSetup',
       title: 'Technical Setup',
       content: summary.sections.technicalSetup,
-      icon: '📊',
+      icon: BarChart3,
     },
   ]
 
@@ -150,7 +150,7 @@ export function SummaryCard({
                 className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">{section.icon}</span>
+                  <section.icon className="h-5 w-5 text-muted-foreground" />
                   <span className="font-medium">{section.title}</span>
                 </div>
                 
@@ -180,8 +180,8 @@ export function SummaryCard({
         <p className="text-xs text-muted-foreground">
           Generated {new Date(summary.generatedAt).toLocaleString()} • AI analysis based on available data
         </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          ⚠️ Not financial advice • Always do your own research
+        <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
+          <AlertCircle className="h-3 w-3" /> Not financial advice • Always do your own research
         </p>
       </div>
     </Card>

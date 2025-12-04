@@ -11,7 +11,7 @@ import { Metadata } from 'next';
 // ============================================================
 
 export const siteConfig = {
-  name: 'Deep',
+  name: 'Deepin',
   description: 'Professional stock analysis platform with 190+ institutional-grade metrics, AI-powered insights, and comprehensive research tools. The affordable Bloomberg Terminal alternative.',
   url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.deepinhq.com',
   ogImage: '/og-image.png',
@@ -243,7 +243,7 @@ export function generateBlogPostSchema({
   slug,
   publishedAt,
   updatedAt,
-  author = 'Deep Team',
+  author = 'Deepin Team',
   image,
 }: BlogPostSchemaOptions) {
   return {
@@ -306,7 +306,7 @@ export function generateArticleSchema({
   image,
   publishedTime,
   modifiedTime,
-  author = 'Deep Team',
+  author = 'Deepin Team',
 }: ArticleSchemaOptions) {
   return {
     '@context': 'https://schema.org',

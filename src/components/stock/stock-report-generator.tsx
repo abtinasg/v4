@@ -49,7 +49,7 @@ const loadingStages = [
   },
   {
     label: 'AI Analysis',
-    description: 'Processing 400+ metrics with Deep AI',
+    description: 'Processing 400+ metrics with Deepin AI',
     keywords: ['analyzing', 'processing'],
     icon: Sparkles,
   },
@@ -222,7 +222,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
         year: 'numeric',
       }), margin + 8, yPosition + 12);
       doc.text(isRetail ? 'Simplified' : 'Comprehensive', margin + 65, yPosition + 12);
-      doc.text('Deep AI', margin + 120, yPosition + 12);
+      doc.text('Deepin AI', margin + 120, yPosition + 12);
 
       doc.setFontSize(8);
       doc.setTextColor(...textMuted);
@@ -240,7 +240,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
       doc.setTextColor(isRetail ? 13 : 180, isRetail ? 148 : 83, isRetail ? 136 : 9);
-      doc.text(isRetail ? '📚 EDUCATIONAL PURPOSE' : '⚠️ IMPORTANT DISCLAIMER', margin + 4, yPosition + 5);
+      doc.text(isRetail ? 'EDUCATIONAL PURPOSE' : 'IMPORTANT DISCLAIMER', margin + 4, yPosition + 5);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.text(isRetail 
@@ -341,7 +341,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       
       const disclaimer = isRetail
         ? 'This report is provided for educational and informational purposes only. It is not intended to be, and should not be construed as, financial advice, an offer to sell, or a solicitation of an offer to buy any securities. The information contained herein is based on sources believed to be reliable, but its accuracy cannot be guaranteed. Past performance is not indicative of future results. Always consult with a qualified financial advisor before making any investment decisions.'
-        : 'This institutional research report is provided for informational purposes only and does not constitute an offer to sell or a solicitation of an offer to buy any securities. The information and opinions expressed herein are based on sources believed to be reliable, but their accuracy and completeness cannot be guaranteed. This report does not take into account the specific investment objectives, financial situation, or particular needs of any specific recipient. Recipients should seek professional advice before making any investment decision. The authors and Deep disclaim all liability for any loss or damage arising from reliance on this report.';
+        : 'This institutional research report is provided for informational purposes only and does not constitute an offer to sell or a solicitation of an offer to buy any securities. The information and opinions expressed herein are based on sources believed to be reliable, but their accuracy and completeness cannot be guaranteed. This report does not take into account the specific investment objectives, financial situation, or particular needs of any specific recipient. Recipients should seek professional advice before making any investment decision. The authors and Deepin disclaim all liability for any loss or damage arising from reliance on this report.';
       
       const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth - 10);
       let disclaimerY = yPosition + 10;
@@ -376,7 +376,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
 
     try {
       // Generate AI report (the API fetches market data internally)
-      setProgress(audienceType === 'retail' ? 'Creating simple analysis...' : 'Analyzing with Deep AI...');
+      setProgress(audienceType === 'retail' ? 'Creating simple analysis...' : 'Analyzing with Deepin AI...');
       const reportResponse = await fetch(`/api/stock/${symbol}/report`, {
         method: 'POST',
         headers: {
@@ -436,7 +436,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white tracking-tight">AI Research Reports</h3>
-              <p className="text-sm text-white/40 mt-1">Powered by Deep AI</p>
+              <p className="text-sm text-white/40 mt-1">Powered by Deepin AI</p>
             </div>
           </div>
         </div>

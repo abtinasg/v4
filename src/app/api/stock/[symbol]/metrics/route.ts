@@ -1,5 +1,5 @@
 /**
- * Deep - Main Metrics API Endpoint
+ * Deepin - Main Metrics API Endpoint
  *
  * GET /api/stock/[symbol]/metrics
  *

@@ -1,6 +1,6 @@
 'use client'
 
-import { Monitor } from 'lucide-react'
+import { Monitor, Lightbulb } from 'lucide-react'
 
 export function DesktopOnlyNotice() {
   return (
@@ -21,8 +21,8 @@ export function DesktopOnlyNotice() {
         </p>
         
         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-          <p className="text-sm text-gray-500">
-            💡 Minimum screen width: <span className="text-white font-medium">1024px</span>
+          <p className="text-sm text-gray-500 flex items-center justify-center gap-1">
+            <Lightbulb className="h-4 w-4" /> Minimum screen width: <span className="text-white font-medium">1024px</span>
           </p>
         </div>
       </div>

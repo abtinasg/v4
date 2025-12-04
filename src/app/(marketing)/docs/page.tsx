@@ -18,7 +18,7 @@ import { generatePageMetadata, JsonLd, generateFAQSchema, generateBreadcrumbSche
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Documentation',
-  description: 'Learn how to use Deep effectively. Guides, tutorials, and API documentation for stock analysis.',
+  description: 'Learn how to use Deepin effectively. Guides, tutorials, and API documentation for stock analysis.',
   path: '/docs',
 });
 
@@ -47,7 +47,7 @@ const categories = [
   },
   {
     title: 'Financial Metrics',
-    description: 'Deep dive into 50+ financial metrics.',
+    description: 'Deepin dive into 50+ financial metrics.',
     icon: BarChart3,
     articles: [
       { title: 'Valuation Metrics Explained', href: '/docs/valuation-metrics', time: '15 min' },
@@ -134,7 +134,7 @@ export default function DocsPage() {
               Documentation
             </h1>
             <p className="mt-6 text-lg text-white/60">
-              Everything you need to know about using Deep. 
+              Everything you need to know about using Deepin. 
               From getting started to advanced features.
             </p>
 
@@ -230,7 +230,7 @@ export default function DocsPage() {
               <Download className="h-8 w-8 text-cyan-400" />
               <h3 className="mt-4 font-semibold text-white">API Reference</h3>
               <p className="mt-2 text-sm text-white/40">
-                Technical documentation for developers integrating with Deep.
+                Technical documentation for developers integrating with Deepin.
               </p>
               <Link
                 href="/docs/api"
@@ -245,7 +245,7 @@ export default function DocsPage() {
               <Settings className="h-8 w-8 text-cyan-400" />
               <h3 className="mt-4 font-semibold text-white">System Status</h3>
               <p className="mt-2 text-sm text-white/40">
-                Check the current status of Deep services.
+                Check the current status of Deepin services.
               </p>
               <Link
                 href="/status"

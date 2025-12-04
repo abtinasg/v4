@@ -21,7 +21,7 @@ const cookieTypes = [
 
 export const metadata: Metadata = {
   title: 'Cookie Policy | Deep',
-  description: 'Understand how Deep uses cookies and similar technologies and how you can manage your preferences.',
+  description: 'Understand how Deepin uses cookies and similar technologies and how you can manage your preferences.',
 }
 
 export default function CookiePolicyPage() {
@@ -33,7 +33,7 @@ export default function CookiePolicyPage() {
           <h1 className="mt-4 text-4xl font-bold">How and why we use cookies</h1>
           <p className="mt-4 text-base text-white/70">
             Last updated: November 30, 2025. This cookie policy explains what cookies are, which types we use, and how you can control your preferences
-            when browsing Deep across the web and our dashboard.
+            when browsing Deepin across the web and our dashboard.
           </p>
         </header>
 

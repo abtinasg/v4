@@ -21,7 +21,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Deep - Professional Stock Analysis Platform",
+  title: "Deepin - Professional Stock Analysis Platform",
   description: "AI-powered financial analysis platform with 190+ institutional metrics",
   keywords: "stock analysis, financial data, AI analysis, bloomberg alternative",
   manifest: '/manifest.json',
@@ -101,7 +101,7 @@ export default function RootLayout({
           <meta name="mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-          <meta name="apple-mobile-web-app-title" content="Deep" />
+          <meta name="apple-mobile-web-app-title" content="Deepin" />
         </head>
         <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}>
           <ThemeProvider

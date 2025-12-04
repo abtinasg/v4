@@ -114,7 +114,7 @@ export function AIMarketReport({ className }: AIMarketReportProps) {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">AI Market Overview</h3>
-            <p className="text-xs text-white/50">Powered by Deep AI</p>
+            <p className="text-xs text-white/50">Powered by Deepin AI</p>
           </div>
         </div>
         <button
@@ -288,7 +288,7 @@ export function AIMarketReport({ className }: AIMarketReportProps) {
           <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
             <span className="text-xs text-gray-500 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Deep AI</span>
+              <span>Deepin AI</span>
             </span>
             <span className="text-xs text-gray-500">
               {new Date(report.generatedAt).toLocaleTimeString()}

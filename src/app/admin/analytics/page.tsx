@@ -156,7 +156,7 @@ export default function AdminAnalyticsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
-          <p className="text-slate-400 mt-1">Deep insights into platform usage and trends</p>
+          <p className="text-slate-400 mt-1">Deepin insights into platform usage and trends</p>
         </div>
         <div className="flex items-center gap-2">
           <select

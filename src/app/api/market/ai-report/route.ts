@@ -114,7 +114,7 @@ Respond with valid JSON only.`
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepinhq.com',
-        'X-Title': 'Deep - AI Market Report',
+        'X-Title': 'Deepin - AI Market Report',
       },
       body: JSON.stringify({
         model: 'openai/gpt-4.1',

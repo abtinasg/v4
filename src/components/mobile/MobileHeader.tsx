@@ -55,7 +55,7 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
           <div className="flex items-center justify-between h-16 px-5">
             {/* Logo */}
             <Link href="/dashboard" className="flex items-center gap-3">
-              <img src="/logo.jpeg" alt="Deep" className="w-8 h-8 rounded-xl object-cover" />
+              <img src="/logo.jpeg" alt="Deepin" className="w-8 h-8 rounded-xl object-cover" />
               {title ? (
                 <span className="text-[15px] font-medium text-white/90 tracking-[-0.01em]">{title}</span>
               ) : (

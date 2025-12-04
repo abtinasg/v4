@@ -207,7 +207,7 @@ export default function AdminLayout({
                   </div>
                   <div>
                     <h1 className="font-bold text-lg text-white">Admin Panel</h1>
-                    <p className="text-xs text-slate-400">Deep</p>
+                    <p className="text-xs text-slate-400">Deepin</p>
                   </div>
                 </div>
                 <button 

@@ -83,7 +83,7 @@ Adapt your explanation to the user's level of understanding.`,
     name: 'Chat Assistant',
     slug: 'chat-assistant',
     category: 'general',
-    systemPrompt: `You are Deep's AI assistant. Help users with:
+    systemPrompt: `You are Deepin's AI assistant. Help users with:
 - Stock research and analysis
 - Understanding financial metrics
 - Market insights and trends

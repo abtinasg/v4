@@ -64,12 +64,12 @@ export const AI_MODELS: AIModel[] = [
     tier: 'premium',
     contextWindow: 256000,
     speed: 'medium',
-    capabilities: ['Deep Analysis', 'Complex Reasoning', 'Financial Modeling'],
+    capabilities: ['Deepin Analysis', 'Complex Reasoning', 'Financial Modeling'],
     icon: <Crown className="w-4 h-4 text-amber-400" />,
   },
   {
     id: 'anthropic/claude-sonnet-4.5',
-    name: 'Deep AI Pro',
+    name: 'Deepin AI Pro',
     provider: 'anthropic',
     description: 'Exceptional at nuanced financial analysis',
     tier: 'premium',
@@ -80,7 +80,7 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'openai/gpt-4o',
-    name: 'Deep AI Standard',
+    name: 'Deepin AI Standard',
     provider: 'openai',
     description: 'Fast and capable for most tasks',
     tier: 'standard',
@@ -91,7 +91,7 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'anthropic/claude-3.5-haiku',
-    name: 'Deep AI Fast',
+    name: 'Deepin AI Fast',
     provider: 'anthropic',
     description: 'Ultra-fast responses for quick queries',
     tier: 'free',

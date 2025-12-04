@@ -163,7 +163,7 @@ export function formatNewsForTelegram(news: {
 
   // تگ چنل
   message += '\n\n━━━━━━━━━━━━━━━\n';
-  message += '🚀 <b>Deep</b> | @deepinhq';
+  message += '🚀 <b>Deepin</b> | @deepinhq';
 
   return message;
 }
@@ -191,7 +191,7 @@ export function formatPriceAlertForTelegram(alert: {
   }
 
   message += '\n━━━━━━━━━━━━━━━\n';
-  message += '🚀 <b>Deep</b> | @deepinhq';
+  message += '🚀 <b>Deepin</b> | @deepinhq';
 
   return message;
 }

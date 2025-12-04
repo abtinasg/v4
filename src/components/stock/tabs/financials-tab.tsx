@@ -433,7 +433,7 @@ export function FinancialsTab({ metrics }: FinancialsTabProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Profitability */}
         <MetricCard
-          title="💰 Profitability"
+          title="Profitability"
           description="How efficiently the company generates profit"
           icon={<DollarSign className="h-5 w-5" />}
           metrics={profitabilityMetrics}
@@ -441,7 +441,7 @@ export function FinancialsTab({ metrics }: FinancialsTabProps) {
 
         {/* Liquidity */}
         <MetricCard
-          title="💧 Liquidity"
+          title="Liquidity"
           description="Ability to meet short-term obligations"
           icon={<Droplets className="h-5 w-5" />}
           metrics={liquidityMetrics}
@@ -449,7 +449,7 @@ export function FinancialsTab({ metrics }: FinancialsTabProps) {
 
         {/* Leverage */}
         <MetricCard
-          title="🧱 Leverage / Solvency"
+          title="Leverage / Solvency"
           description="Financial stability and debt management"
           icon={<Building2 className="h-5 w-5" />}
           metrics={leverageMetrics}
@@ -457,7 +457,7 @@ export function FinancialsTab({ metrics }: FinancialsTabProps) {
 
         {/* Efficiency */}
         <MetricCard
-          title="⚙️ Efficiency"
+          title="Efficiency"
           description="How well the company uses its assets"
           icon={<Settings className="h-5 w-5" />}
           metrics={efficiencyMetrics}
@@ -465,7 +465,7 @@ export function FinancialsTab({ metrics }: FinancialsTabProps) {
 
         {/* Cash Flow */}
         <MetricCard
-          title="💵 Cash Flow"
+          title="Cash Flow"
           description="Cash generation and deployment"
           icon={<Banknote className="h-5 w-5" />}
           metrics={cashFlowMetrics}
@@ -473,7 +473,7 @@ export function FinancialsTab({ metrics }: FinancialsTabProps) {
 
         {/* Growth */}
         <MetricCard
-          title="📈 Growth"
+          title="Growth"
           description="Historical and sustainable growth rates"
           icon={<TrendingUp className="h-5 w-5" />}
           metrics={growthMetrics}
@@ -482,7 +482,7 @@ export function FinancialsTab({ metrics }: FinancialsTabProps) {
         {/* DuPont Analysis - Full Width */}
         <div className="lg:col-span-2">
           <MetricCard
-            title="📐 DuPont Analysis"
+            title="DuPont Analysis"
             description="ROE decomposition: NPM × Asset Turnover × Equity Multiplier"
             icon={<Layers className="h-5 w-5" />}
             metrics={dupontMetrics}

@@ -30,9 +30,9 @@ const stages = [
 ]
 
 const models = [
-  { name: 'Deep AI', specialty: 'Reasoning' },
-  { name: 'Deep AI', specialty: 'Analysis' },
-  { name: 'Deep AI', specialty: 'Markets' },
+  { name: 'Deepin AI', specialty: 'Reasoning' },
+  { name: 'Deepin AI', specialty: 'Analysis' },
+  { name: 'Deepin AI', specialty: 'Markets' },
 ]
 
 export function AIOrchestrator() {
@@ -52,7 +52,7 @@ export function AIOrchestrator() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.06] px-4 py-1.5 text-xs font-medium text-[#8B5CF6] mb-6">
               <BrainCircuit className="h-3.5 w-3.5" />
-              AI Deep Dive
+              AI Deepin Dive
             </div>
 
             <h2 className="text-display text-3xl md:text-4xl lg:text-5xl text-white mb-6">

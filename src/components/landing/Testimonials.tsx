@@ -4,7 +4,7 @@ import { Quote, Star } from 'lucide-react'
 
 const testimonials = [
   {
-    quote: "Deep changed how I approach trading. The AI orchestrator catches patterns I'd never see on my own.",
+    quote: "Deepin changed how I approach trading. The AI orchestrator catches patterns I'd never see on my own.",
     author: 'Michael Chen',
     role: 'Day Trader',
     avatar: 'MC',
@@ -18,7 +18,7 @@ const testimonials = [
     rating: 5
   },
   {
-    quote: "The Deep AI analysis is brilliant. Getting comprehensive market insights in seconds is game-changing.",
+    quote: "The Deepin AI analysis is brilliant. Getting comprehensive market insights in seconds is game-changing.",
     author: 'David Park',
     role: 'Quantitative Analyst',
     avatar: 'DP',

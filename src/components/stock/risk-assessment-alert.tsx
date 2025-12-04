@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, ArrowRight, X, Shield, Loader2 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, X, Shield, Loader2, PieChart, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { RiskAssessmentQuiz } from './risk-assessment-quiz';
@@ -103,10 +103,12 @@ export function RiskAssessmentAlert({ className }: RiskAssessmentAlertProps) {
                       Risk Capacity Analysis
                     </span>
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/[0.03] text-[11px] text-white/50">
-                      📊 Asset Allocation
+                      <PieChart className="h-3 w-3" />
+                      Asset Allocation
                     </span>
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/[0.03] text-[11px] text-white/50">
-                      🧠 Behavioral Insights
+                      <Brain className="h-3 w-3" />
+                      Behavioral Insights
                     </span>
                   </div>
 

@@ -4,7 +4,7 @@ const obligations = [
   {
     title: '1. Subject Matter & Duration',
     bullets: [
-      'Processor: Deep Ltd., registered in the United Kingdom.',
+      'Processor: Deepin Ltd., registered in the United Kingdom.',
       'Controller: The customer identified in the applicable subscription or credit purchase.',
       'Purpose: Deliver analytics, credits, alerts, and AI services on behalf of the controller for the duration of the customer account plus legally required retention periods.',
     ],
@@ -20,7 +20,7 @@ const obligations = [
     title: '3. Confidentiality & Security',
     bullets: [
       'All personnel with access to personal data are bound by confidentiality agreements and receive regular security training.',
-      'Deep maintains technical and organizational measures including encryption, access controls, monitoring, and incident response playbooks audited at least annually.',
+      'Deepin maintains technical and organizational measures including encryption, access controls, monitoring, and incident response playbooks audited at least annually.',
     ],
   },
   {
@@ -61,7 +61,7 @@ const obligations = [
 
 export const metadata: Metadata = {
   title: 'Data Processing Agreement | Deep',
-  description: 'Standard contractual commitments describing how Deep processes personal data as a processor under GDPR.',
+  description: 'Standard contractual commitments describing how Deepin processes personal data as a processor under GDPR.',
 }
 
 export default function DataProcessingAgreementPage() {
@@ -72,7 +72,7 @@ export default function DataProcessingAgreementPage() {
           <p className="text-xs uppercase tracking-[0.3em] text-emerald-400">Data Processing Agreement</p>
           <h1 className="mt-4 text-4xl font-bold">Controller–Processor commitments</h1>
           <p className="mt-4 text-base text-white/70">
-            Last updated: November 30, 2025. This DPA supplements the Terms of Service and applies whenever Deep processes personal data on behalf
+            Last updated: November 30, 2025. This DPA supplements the Terms of Service and applies whenever Deepin processes personal data on behalf
             of a customer subject to GDPR, UK GDPR, or similar laws.
           </p>
         </header>

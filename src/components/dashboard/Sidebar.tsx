@@ -215,7 +215,7 @@ export function Sidebar() {
       <div className="relative h-[72px] flex items-center justify-between px-4 border-b border-white/[0.06]">
         <Link href="/dashboard" className="flex items-center gap-3">
           <div className="relative">
-            <img src="/logo.jpeg" alt="Deep" className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-cyan-500/20" />
+            <img src="/logo.jpeg" alt="Deepin" className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-cyan-500/20" />
             {/* Glow effect */}
             <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 blur-md opacity-40" />
           </div>
