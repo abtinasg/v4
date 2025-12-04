@@ -91,6 +91,11 @@ Key Metrics:
 Generate a comprehensive personalized investment analysis (MINIMUM 15 pages / 8000-12000 words).
 
 CRITICAL: Your response MUST be at least 15 PAGES long. Do NOT provide a shorter response under any circumstances.
+You must expand on every point significantly.
+- For every risk, provide a mitigation strategy.
+- For every metric, explain "Why this matters to YOU" based on the user's profile.
+- Use analogies and clear explanations.
+- Provide hypothetical scenarios (e.g., "If the market drops 10%...").
 
 The report should start with a profile summary and then analyze the stock FOR THIS SPECIFIC investor:
 
@@ -98,42 +103,49 @@ The report should start with a profile summary and then analyze the stock FOR TH
    - Brief recap of this investor's risk profile
    - What kind of investments suit them best
    - Their key behavioral tendencies to watch out for
+   - **Detailed breakdown** of their psychometric scoring
 
 2. **Stock-Profile Match Analysis** (🎯)
    - Give a MATCH SCORE (1-10) showing how well ${symbol} fits this investor
    - Explain exactly why it matches or doesn't match their profile
    - Compare stock's volatility/beta to their risk tolerance
    - Assess if the stock's characteristics align with their investment style
+   - **Deep dive** into the compatibility of this stock with their long-term goals
 
 3. **Risk Analysis Tailored to This Investor** (⚠️)
    - Identify specific risks that matter MOST to a ${categoryInfo.label} investor
    - How the stock's volatility compares to what they can handle
    - Red flags specific to their capacity and willingness scores
    - How their behavioral biases might affect decisions about this stock
+   - **Scenario Analysis:** Best case, Base case, and Worst case scenarios for this stock
 
 4. **Portfolio Integration** (📊)
    - What percentage of their EQUITY portion should go to this stock (max %)
    - How it fits with their ${allocation.stocks}/${allocation.bonds} target allocation
    - Diversification considerations for their risk level
    - Complementary holdings they should consider
+   - **Rebalancing strategy:** When to buy more and when to sell
 
 5. **Personalized Entry Strategy** (✅)
    - Entry approach suited to their risk tolerance (DCA vs lump sum)
    - Position sizing recommendation based on their profile
    - Stop-loss levels appropriate for their risk capacity
    - When to add or reduce position based on their risk profile
+   - **Specific price targets** for entry and exit based on valuation
 
 6. **Key Metrics That Matter for This Investor** (📈)
    - Highlight 5-7 metrics most relevant to their specific profile
    - Explain each metric's importance for their investment style
    - Flag any concerning values based on their risk capacity
    - Show how each metric affects suitability for them
+   - **Historical context:** How these metrics compare to the 5-year average
 
 7. **Final Recommendation** (💡)
    - Clear BUY / HOLD / AVOID rating for THIS investor
    - Why this recommendation makes sense for their specific profile
    - What would need to change for a different recommendation
    - Realistic return expectations aligned with their risk tolerance
+   - **Executive Summary** of the entire report for quick reading
 
 ## FORMATTING GUIDELINES
 
