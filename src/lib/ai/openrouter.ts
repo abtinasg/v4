@@ -102,6 +102,17 @@ export interface ChatCompletionOptions {
   topP?: number
   stream?: boolean
   stopSequences?: string[]
+  tools?: any[] // Function calling tools
+  toolChoice?: 'auto' | 'none' | { type: 'function'; function: { name: string } }
+}
+
+export interface ToolCall {
+  id: string
+  type: 'function'
+  function: {
+    name: string
+    arguments: string
+  }
 }
 
 export interface ChatCompletionResponse {
@@ -111,7 +122,8 @@ export interface ChatCompletionResponse {
     index: number
     message: {
       role: 'assistant'
-      content: string
+      content: string | null
+      tool_calls?: ToolCall[]
     }
     finishReason: string
   }[]
@@ -214,7 +226,7 @@ export class OpenRouterClient {
   async chatCompletion(options: ChatCompletionOptions): Promise<ChatCompletionResponse> {
     const model = options.model || DEFAULT_MODEL
     
-    const body = {
+    const body: Record<string, any> = {
       model,
       messages: options.messages,
       max_tokens: options.maxTokens || 2048,
@@ -222,6 +234,12 @@ export class OpenRouterClient {
       top_p: options.topP ?? 1,
       stream: false,
       stop: options.stopSequences,
+    }
+
+    // Add tools if provided
+    if (options.tools && options.tools.length > 0) {
+      body.tools = options.tools
+      body.tool_choice = options.toolChoice || 'auto'
     }
 
     try {
@@ -251,6 +269,7 @@ export class OpenRouterClient {
           message: {
             role: 'assistant',
             content: choice.message.content,
+            tool_calls: choice.message.tool_calls,
           },
           finishReason: choice.finish_reason,
         })),

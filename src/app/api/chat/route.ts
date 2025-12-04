@@ -4,6 +4,8 @@
  * POST /api/chat
  * Request: { messages, context, stockData? }
  * Response: Streaming SSE
+ * 
+ * Supports function calling for real-time FMP data fetching
  */
 
 import { NextRequest } from 'next/server'
@@ -25,8 +27,10 @@ import {
   DEFAULT_MODEL,
   OPENROUTER_MODELS,
   estimateMessageTokens,
-  type OpenRouterModel 
+  type OpenRouterModel,
+  type ToolCall,
 } from '@/lib/ai/openrouter'
+import { AI_TOOLS, executeAITool, formatToolResult } from '@/lib/ai/tools'
 
 // Helper to get display name for model
 function getModelDisplayName(model: string): string {
@@ -371,15 +375,66 @@ export async function POST(request: NextRequest) {
         }
       })
     } else {
-      // Non-streaming response
+      // Non-streaming response with tool calling support
       try {
         const selectedModel = model || DEFAULT_MODEL
-        const response = await client.chatWithFallback({
-          model: selectedModel,
-          messages: aiMessages,
-          maxTokens: 4096,
-          temperature: 0.7,
-        })
+        let currentMessages = [...aiMessages]
+        let finalResponse: any = null
+        let iterations = 0
+        const MAX_TOOL_ITERATIONS = 3 // Prevent infinite loops
+
+        // Tool calling loop
+        while (iterations < MAX_TOOL_ITERATIONS) {
+          iterations++
+          
+          const response = await client.chatWithFallback({
+            model: selectedModel,
+            messages: currentMessages,
+            maxTokens: 4096,
+            temperature: 0.7,
+            tools: AI_TOOLS,
+            toolChoice: 'auto',
+          })
+
+          const choice = response.choices[0]
+          
+          // Check if AI wants to call tools
+          if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
+            console.log(`[Chat] AI requested ${choice.message.tool_calls.length} tool calls`)
+            
+            // Add assistant's tool call message
+            currentMessages.push({
+              role: 'assistant',
+              content: choice.message.content || '',
+            })
+
+            // Execute each tool and add results
+            for (const toolCall of choice.message.tool_calls) {
+              const args = JSON.parse(toolCall.function.arguments)
+              console.log(`[Chat] Executing tool: ${toolCall.function.name}`, args)
+              
+              const result = await executeAITool(toolCall.function.name, args)
+              const formattedResult = formatToolResult(toolCall.function.name, result)
+              
+              // Add tool result as user message (tool response format)
+              currentMessages.push({
+                role: 'user',
+                content: `[Tool Result for ${toolCall.function.name}]: ${formattedResult}`,
+              })
+            }
+            
+            // Continue the loop to get AI's final response with tool results
+            continue
+          }
+          
+          // No more tool calls, we have the final response
+          finalResponse = response
+          break
+        }
+
+        if (!finalResponse) {
+          throw new Error('Failed to get final response after tool calls')
+        }
         
         // Deduct credits after successful response
         await deductCredits(user.id, 'chat_message', {
@@ -388,9 +443,9 @@ export async function POST(request: NextRequest) {
         
         return new Response(
           JSON.stringify({
-            message: response.choices[0]?.message.content || '',
-            usage: response.usage,
-            model: response.model,
+            message: finalResponse.choices[0]?.message.content || '',
+            usage: finalResponse.usage,
+            model: finalResponse.model,
           }),
           { 
             status: 200, 
