@@ -28,11 +28,12 @@ import { MetricsCalculator } from '../../../../../../lib/metrics';
 // Force Node.js runtime
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120;
+export const maxDuration = 180; // Increased from 120 to 180 seconds
 
 // Retry configuration
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 2000;
+const OPENROUTER_TIMEOUT_MS = 120000; // 120 second timeout for OpenRouter calls
 
 /**
  * Sleep utility for retry delays
@@ -437,11 +438,11 @@ ADVANCED METRICS AVAILABLE: Yes (430+ institutional-grade metrics calculated)
   const CFA_PRO_ANALYSIS_PROMPT = `
 You are a CFA Charterholder writing an institutional equity research report.
 
-CRITICAL LENGTH REQUIREMENT:
-- MINIMUM 15 FULL PAGES when converted to PDF
-- Target: 12,000-15,000 words
-- Each section MUST have substantial depth with multiple detailed paragraphs
-- DO NOT provide shorter responses
+LENGTH REQUIREMENT:
+- Target: 8-10 pages when converted to PDF
+- Target: 6,000-8,000 words
+- Each section should have good depth with detailed paragraphs
+- Focus on quality over quantity
 
 DATA RULES:
 - ONLY use numbers from provided data - never guess
@@ -544,9 +545,9 @@ DATA RULES:
 - Copy exact values (e.g., if data says "ROE: 23.47%", write "ROE of 23.47%")
 
 LENGTH REQUIREMENT:
-- MINIMUM 10 FULL PAGES
-- Target: 5,000-8,000 words
-- DO NOT provide shorter responses
+- Target: 5-7 pages when converted to PDF
+- Target: 3,000-5,000 words
+- Focus on clarity and educational value
 
 === DATA ===
 ${stockData.symbol} - ${stockData.companyName}
@@ -596,8 +597,11 @@ End: _"This analysis is for educational purposes only. Always do your own resear
   const selectedPrompt = audienceType === 'retail' ? RETAIL_SUMMARY_PROMPT : CFA_PRO_ANALYSIS_PROMPT;
   const reportLabel = audienceType === 'retail' ? 'Retail' : 'Pro';
 
-  // Call OpenRouter API with retry logic
+  // Call OpenRouter API with retry logic and timeout
   async function callWithRetry(attempt: number = 1): Promise<string> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), OPENROUTER_TIMEOUT_MS);
+
     try {
       console.log(`[Report] API attempt ${attempt}/${MAX_RETRIES + 1} for ${stockData.symbol} (${reportLabel})...`);
 
@@ -610,12 +614,15 @@ End: _"This analysis is for educational purposes only. Always do your own resear
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'anthropic/claude-sonnet-4.5', // Unified model for both Pro and Retail
+          model: 'anthropic/claude-3.5-sonnet', // Faster model for better reliability
           messages: [{ role: 'user', content: selectedPrompt }],
-          max_tokens: 40000, // Increased to 40K for both types
+          max_tokens: 16000, // Reduced from 40K to 16K for faster generation
           temperature: 0.3,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -633,6 +640,7 @@ End: _"This analysis is for educational purposes only. Always do your own resear
       return content;
 
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error(`[Report] Attempt ${attempt} failed:`, error);
 
       // Retry logic
