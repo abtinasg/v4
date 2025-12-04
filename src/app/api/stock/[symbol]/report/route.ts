@@ -420,15 +420,18 @@ ADVANCED METRICS AVAILABLE: Yes (430+ institutional-grade metrics calculated)
 ` : '';
 
   const CFA_PRO_ANALYSIS_PROMPT = `
-You are a CFA Charterholder and Senior Equity Research Analyst writing an institutional-grade equity research report for portfolio managers and investment professionals.
+You are a CFA Charterholder and Senior Equity Research Analyst at a top-tier investment bank writing an institutional-grade equity research report for portfolio managers, hedge fund analysts, and investment professionals.
 
-STRICT RULES:
+CRITICAL INSTRUCTIONS:
+- Write a VERY LONG and EXTREMELY DETAILED report (target: 12,000-15,000 words / 15+ pages)
 - ONLY use numbers explicitly in provided data - never guess/approximate
 - Cite exact metric values from data with precise decimal places
 - If data missing: state "Data not available"
 - NO buy/sell recommendations
-- Be extremely thorough and detailed in your analysis
+- Each section must have multiple detailed paragraphs with deep analysis
+- Include extensive quantitative analysis with specific numbers
 - This report should be suitable for institutional investors making multi-million dollar decisions
+- Be exhaustive in your coverage - leave no stone unturned
 
 === DATA ===
 ${stockData.symbol} - ${stockData.companyName}
@@ -438,14 +441,14 @@ Price: $${stockData.currentPrice}
 ${keyMetricsSummary}
 ${advancedMetricsSection}
 
-=== REPORT (5000-8000 words, Markdown, Highly Detailed) ===
+=== COMPREHENSIVE INSTITUTIONAL REPORT (12,000-15,000 words, 15+ pages, Markdown) ===
 
 # ${stockData.symbol} INSTITUTIONAL EQUITY RESEARCH REPORT
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-Write an extremely comprehensive and detailed research report. Each section should be thorough with multiple paragraphs. Include specific numbers and percentages wherever possible.
+Write an EXHAUSTIVE and COMPREHENSIVE research report. This should be the most detailed analysis possible. Each section requires MULTIPLE PARAGRAPHS with in-depth discussion. Include ALL available metrics with detailed interpretation.
 
-## 0. Executive Summary
+## 0. Executive Summary (2-3 paragraphs)
 - Summarize the scope of the data you received:
   - What key sections are present (macro, valuation, cash flow, risk, etc.),
   - Which of the 27 metric groups are populated with data for this stock,
@@ -778,7 +781,7 @@ IMPORTANT REMINDERS:
             content: selectedPrompt,
           },
         ],
-        max_tokens: audienceType === 'retail' ? 4000 : 16000, // Pro gets much more detailed output
+        max_tokens: audienceType === 'retail' ? 4000 : 32000, // Pro: 32K tokens for 15+ page reports
         temperature: 1, // o3-mini requires temperature=1
       }),
       signal: controller.signal,

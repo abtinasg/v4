@@ -16,6 +16,7 @@ import {
   checkAndResetMonthlyCredits,
 } from '@/lib/credits';
 import { getCategoryDisplayInfo, type RiskProfileResult } from '@/lib/risk-assessment';
+import { getFMPRawData } from '@/lib/data/fmp-adapter';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -229,24 +230,39 @@ export async function POST(
       );
     }
 
-    // Fetch stock metrics from our internal API
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-    
-    const metricsResponse = await fetch(`${baseUrl}/api/stock/${upperSymbol}/metrics`, {
-      headers: {
-        'Cookie': request.headers.get('cookie') || '',
-      },
-    });
-
-    if (!metricsResponse.ok) {
+    // Fetch stock data directly from FMP
+    let metricsData;
+    try {
+      const fmpData = await getFMPRawData(upperSymbol);
+      if (!fmpData.profile && !fmpData.quote) {
+        throw new Error('No data returned from FMP');
+      }
+      metricsData = {
+        symbol: upperSymbol,
+        companyName: fmpData.profile?.companyName || companyName,
+        sector: fmpData.profile?.sector || 'N/A',
+        industry: fmpData.profile?.industry || 'N/A',
+        price: fmpData.quote?.price || 0,
+        marketCap: fmpData.quote?.marketCap || 0,
+        pe: fmpData.quote?.pe || fmpData.ratios?.[0]?.priceToEarningsRatio || null,
+        pb: fmpData.ratios?.[0]?.priceToBookRatio || null,
+        dividendYield: fmpData.ratios?.[0]?.dividendYield || 0,
+        beta: fmpData.profile?.beta || null,
+        grossMargin: fmpData.ratios?.[0]?.grossProfitMargin || null,
+        operatingMargin: fmpData.ratios?.[0]?.operatingProfitMargin || null,
+        netMargin: fmpData.ratios?.[0]?.netProfitMargin || null,
+        roe: fmpData.keyMetrics?.[0]?.returnOnEquity || null,
+        roa: fmpData.keyMetrics?.[0]?.returnOnAssets || null,
+        debtToEquity: fmpData.ratios?.[0]?.debtToEquityRatio || null,
+        currentRatio: fmpData.ratios?.[0]?.currentRatio || null,
+      };
+    } catch (error) {
+      console.error(`[PersonalizedReport] Failed to fetch data for ${upperSymbol}:`, error);
       return NextResponse.json(
-        { error: 'Failed to fetch stock data' },
+        { error: 'Failed to fetch stock data', details: error instanceof Error ? error.message : 'Unknown error' },
         { status: 500 }
       );
     }
-
-    const metricsData = await metricsResponse.json();
 
     // Generate personalized prompt
     const prompt = generatePersonalizedPrompt(
@@ -262,7 +278,7 @@ export async function POST(
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': baseUrl,
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.co',
         'X-Title': 'Deep Terminal - Personalized Report',
       },
       body: JSON.stringify({
