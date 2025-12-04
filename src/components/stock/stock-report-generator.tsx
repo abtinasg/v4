@@ -113,170 +113,249 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       const margin = 20;
       const contentWidth = pageWidth - margin * 2;
       let yPosition = margin;
+      let pageNumber = 1;
 
       const isRetail = selectedAudience === 'retail';
 
-      // Colors - Different themes for Pro vs Retail
+      // Colors - Professional themes
       const primaryColor: [number, number, number] = isRetail 
         ? [6, 182, 212]   // Cyan for Retail
-        : [139, 92, 246]; // Violet for Pro
+        : [79, 70, 229];  // Indigo for Pro (more professional)
       const accentColor: [number, number, number] = isRetail
         ? [20, 184, 166]  // Teal accent for Retail
-        : [124, 58, 237]; // Purple accent for Pro
-      const textDark: [number, number, number] = [30, 41, 59];
-      const textMuted: [number, number, number] = [100, 116, 139];
+        : [99, 102, 241]; // Lighter indigo for Pro
+      const headerBg: [number, number, number] = isRetail
+        ? [240, 253, 250] // Light cyan
+        : [238, 242, 255]; // Light indigo
+      const textDark: [number, number, number] = [17, 24, 39];
+      const textMuted: [number, number, number] = [107, 114, 128];
+      const borderColor: [number, number, number] = [229, 231, 235];
+
+      // Add page header and footer
+      const addPageHeaderFooter = (isFirstPage: boolean = false) => {
+        // Top bar
+        doc.setFillColor(...primaryColor);
+        doc.rect(0, 0, pageWidth, isFirstPage ? 8 : 3, 'F');
+        
+        // Footer line
+        doc.setDrawColor(...borderColor);
+        doc.setLineWidth(0.3);
+        doc.line(margin, pageHeight - 18, pageWidth - margin, pageHeight - 18);
+        
+        // Page number
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...textMuted);
+        doc.text(`Page ${pageNumber}`, pageWidth - margin - 15, pageHeight - 12);
+        
+        // Footer branding
+        doc.setFontSize(8);
+        doc.text('Deep Terminal', margin, pageHeight - 12);
+        doc.text(reportData.symbol, margin + 30, pageHeight - 12);
+      };
 
       // Helper function to add new page
       const checkNewPage = (neededSpace: number = 20) => {
-        if (yPosition + neededSpace > pageHeight - margin) {
+        if (yPosition + neededSpace > pageHeight - 25) {
           doc.addPage();
-          // Add header bar on new pages
-          doc.setFillColor(...primaryColor);
-          doc.rect(0, 0, pageWidth, 2, 'F');
-          yPosition = margin;
+          pageNumber++;
+          addPageHeaderFooter();
+          yPosition = margin + 5;
           return true;
         }
         return false;
       };
 
       // ===== COVER PAGE =====
-      // Header gradient bar
-      doc.setFillColor(...primaryColor);
-      doc.rect(0, 0, pageWidth, isRetail ? 4 : 3, 'F');
+      addPageHeaderFooter(true);
 
-      // Title section
-      yPosition = 40;
+      // Logo/Brand area
+      yPosition = 35;
+      doc.setFillColor(...headerBg);
+      doc.roundedRect(margin, yPosition - 8, contentWidth, 45, 4, 4, 'F');
+      
+      // Symbol
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(32);
-      doc.setTextColor(...textDark);
-      doc.text(reportData.symbol, margin, yPosition);
+      doc.setFontSize(42);
+      doc.setTextColor(...primaryColor);
+      doc.text(reportData.symbol, margin + 8, yPosition + 12);
 
-      yPosition += 12;
+      // Company name
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(14);
-      doc.setTextColor(...textMuted);
-      doc.text(reportData.companyName, margin, yPosition);
+      doc.setFontSize(16);
+      doc.setTextColor(...textDark);
+      doc.text(reportData.companyName, margin + 8, yPosition + 24);
 
-      // Report type badge - Different for Pro vs Retail
-      yPosition += 20;
+      // Report type badge
+      yPosition += 50;
       doc.setFillColor(...primaryColor);
-      const badgeText = isRetail ? 'INVESTOR GUIDE' : 'EQUITY RESEARCH REPORT';
-      const badgeWidth = isRetail ? 42 : 60;
-      doc.roundedRect(margin, yPosition - 5, badgeWidth, 8, 2, 2, 'F');
+      const badgeText = isRetail ? 'RETAIL INVESTOR GUIDE' : 'INSTITUTIONAL EQUITY RESEARCH';
+      const badgeWidth = isRetail ? 55 : 70;
+      doc.roundedRect(margin, yPosition - 5, badgeWidth, 10, 2, 2, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255);
+      doc.text(badgeText, margin + 4, yPosition + 2);
+
+      // Metadata box
+      yPosition += 25;
+      doc.setFillColor(250, 250, 250);
+      doc.roundedRect(margin, yPosition - 5, contentWidth, 35, 3, 3, 'F');
+      doc.setDrawColor(...borderColor);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(margin, yPosition - 5, contentWidth, 35, 3, 3, 'S');
+
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
-      doc.setTextColor(255, 255, 255);
-      doc.text(badgeText, margin + 3, yPosition);
+      doc.setTextColor(...textMuted);
+      doc.text('REPORT DATE', margin + 8, yPosition + 3);
+      doc.text('ANALYSIS TYPE', margin + 65, yPosition + 3);
+      doc.text('AI ENGINE', margin + 120, yPosition + 3);
 
-      // Metadata
-      yPosition += 20;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
+      doc.setTextColor(...textDark);
+      doc.text(new Date(reportData.generatedAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }), margin + 8, yPosition + 12);
+      doc.text(isRetail ? 'Simplified' : 'Comprehensive', margin + 65, yPosition + 12);
+      doc.text('Deep AI', margin + 120, yPosition + 12);
+
+      doc.setFontSize(8);
       doc.setTextColor(...textMuted);
-      doc.text(
-        `Generated: ${new Date(reportData.generatedAt).toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })}`,
-        margin,
-        yPosition,
-      );
+      doc.text(new Date(reportData.generatedAt).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }), margin + 8, yPosition + 20);
+      doc.text(isRetail ? '~5 pages' : '~15 pages', margin + 65, yPosition + 20);
+      doc.text('o3-mini-high', margin + 120, yPosition + 20);
 
-      yPosition += 8;
-      const poweredByText = isRetail 
-        ? 'Powered by Deep AI • Easy-to-Understand Analysis'
-        : 'Powered by Deep AI • Institutional-Grade Analysis';
-      doc.text(poweredByText, margin, yPosition);
+      // Disclaimer box
+      yPosition += 50;
+      doc.setFillColor(isRetail ? 240 : 254, isRetail ? 253 : 243, isRetail ? 250 : 199); // Light teal or amber
+      doc.roundedRect(margin, yPosition - 3, contentWidth, 20, 2, 2, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(isRetail ? 13 : 180, isRetail ? 148 : 83, isRetail ? 136 : 9);
+      doc.text(isRetail ? '📚 EDUCATIONAL PURPOSE' : '⚠️ IMPORTANT DISCLAIMER', margin + 4, yPosition + 5);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.text(isRetail 
+        ? 'This report is for educational purposes only and should not be considered financial advice.'
+        : 'This report is for informational purposes only. It does not constitute investment advice or recommendations.',
+        margin + 4, yPosition + 12);
 
-      // Retail-specific: Add a friendly intro box
-      if (isRetail) {
-        yPosition += 15;
-        doc.setFillColor(240, 253, 250); // Light cyan background
-        doc.roundedRect(margin, yPosition - 2, contentWidth, 18, 3, 3, 'F');
-        doc.setDrawColor(...primaryColor);
-        doc.setLineWidth(0.3);
-        doc.roundedRect(margin, yPosition - 2, contentWidth, 18, 3, 3, 'S');
-        
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(...primaryColor);
-        doc.text('📚 What is this report?', margin + 4, yPosition + 4);
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(...textMuted);
-        doc.text('This is a simplified stock analysis written in plain English for individual investors.', margin + 4, yPosition + 11);
-        
-        yPosition += 20;
-      }
-
-      // Divider
-      yPosition += 5;
-      doc.setDrawColor(226, 232, 240);
-      doc.setLineWidth(0.5);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      // Start content on new page
+      doc.addPage();
+      pageNumber++;
+      addPageHeaderFooter();
+      yPosition = margin + 10;
 
       // ===== REPORT CONTENT =====
-      yPosition += 15;
       const reportText = markdownToText(reportData.report);
       const sections = reportText.split(/\n{2,}/);
 
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(isRetail ? 11 : 10); // Slightly larger font for Retail
+      doc.setFontSize(isRetail ? 11 : 10);
       doc.setTextColor(...textDark);
+
+      let sectionNumber = 0;
 
       for (const section of sections) {
         const trimmedSection = section.trim();
         if (!trimmedSection) continue;
 
-        // Check if this looks like a header (starts with emoji or all caps)
+        // Check if this looks like a header
         const hasEmoji = /^[\u{1F300}-\u{1F9FF}]/u.test(trimmedSection);
-        const isHeader = hasEmoji || 
-          (trimmedSection === trimmedSection.toUpperCase() && trimmedSection.length < 60);
+        const isAllCaps = trimmedSection === trimmedSection.toUpperCase() && trimmedSection.length < 80;
+        const startsWithNumber = /^\d+\./.test(trimmedSection);
+        const isHeader = hasEmoji || isAllCaps || startsWithNumber;
 
         if (isHeader) {
-          checkNewPage(25);
-          yPosition += 10;
+          sectionNumber++;
+          checkNewPage(35);
+          
+          // Section divider
+          if (sectionNumber > 1) {
+            yPosition += 5;
+            doc.setDrawColor(...borderColor);
+            doc.setLineWidth(0.3);
+            doc.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 10;
+          }
+          
+          // Section header with background
+          doc.setFillColor(...headerBg);
+          doc.roundedRect(margin, yPosition - 4, contentWidth, 12, 2, 2, 'F');
+          
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(isRetail ? 13 : 12);
+          doc.setFontSize(isRetail ? 12 : 11);
           doc.setTextColor(...primaryColor);
-          doc.text(trimmedSection, margin, yPosition);
-          yPosition += 8;
+          doc.text(trimmedSection, margin + 4, yPosition + 4);
+          
+          yPosition += 16;
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(isRetail ? 11 : 10);
           doc.setTextColor(...textDark);
         } else {
-          // Regular paragraph - handle bullet points
-          const lines = doc.splitTextToSize(trimmedSection, contentWidth);
+          // Regular paragraph
+          const lines = doc.splitTextToSize(trimmedSection, contentWidth - 4);
           for (const line of lines) {
             checkNewPage(8);
+            
             // Style bullet points
             if (line.startsWith('•')) {
-              doc.setTextColor(...accentColor);
-              doc.text('•', margin, yPosition);
+              doc.setFillColor(...accentColor);
+              doc.circle(margin + 2, yPosition - 1.5, 1, 'F');
               doc.setTextColor(...textDark);
-              doc.text(line.substring(1).trim(), margin + 4, yPosition);
+              doc.text(line.substring(1).trim(), margin + 6, yPosition);
             } else {
-              doc.text(line, margin, yPosition);
+              doc.text(line, margin + 2, yPosition);
             }
-            yPosition += isRetail ? 7 : 6; // More spacing for Retail
+            yPosition += isRetail ? 6.5 : 5.5;
           }
-          yPosition += 4;
+          yPosition += 3;
         }
       }
 
-      // ===== FOOTER ON LAST PAGE =====
+      // ===== FINAL PAGE - DISCLAIMER =====
+      checkNewPage(50);
+      yPosition = Math.max(yPosition + 15, pageHeight - 80);
+      
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(margin, yPosition - 5, contentWidth, 45, 3, 3, 'F');
+      doc.setDrawColor(...borderColor);
+      doc.roundedRect(margin, yPosition - 5, contentWidth, 45, 3, 3, 'S');
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(...textDark);
+      doc.text('Legal Disclaimer', margin + 4, yPosition + 3);
+      
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
+      doc.setFontSize(7);
       doc.setTextColor(...textMuted);
       
-      const disclaimerText = isRetail 
-        ? 'This report is for educational purposes only. Always do your own research before investing.'
-        : 'This report is for informational purposes only and does not constitute financial advice.';
-      doc.text(disclaimerText, margin, pageHeight - 15);
-      doc.text(`© ${new Date().getFullYear()} Deep Terminal`, margin, pageHeight - 10);
+      const disclaimer = isRetail
+        ? 'This report is provided for educational and informational purposes only. It is not intended to be, and should not be construed as, financial advice, an offer to sell, or a solicitation of an offer to buy any securities. The information contained herein is based on sources believed to be reliable, but its accuracy cannot be guaranteed. Past performance is not indicative of future results. Always consult with a qualified financial advisor before making any investment decisions.'
+        : 'This institutional research report is provided for informational purposes only and does not constitute an offer to sell or a solicitation of an offer to buy any securities. The information and opinions expressed herein are based on sources believed to be reliable, but their accuracy and completeness cannot be guaranteed. This report does not take into account the specific investment objectives, financial situation, or particular needs of any specific recipient. Recipients should seek professional advice before making any investment decision. The authors and Deep Terminal disclaim all liability for any loss or damage arising from reliance on this report.';
+      
+      const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth - 10);
+      let disclaimerY = yPosition + 10;
+      for (const line of disclaimerLines) {
+        doc.text(line, margin + 4, disclaimerY);
+        disclaimerY += 4.5;
+      }
+
+      // Branding
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(...primaryColor);
+      doc.text(`© ${new Date().getFullYear()} Deep Terminal`, margin + 4, yPosition + 38);
+      doc.setFont('helvetica', 'normal');
+      doc.text('deepterm.co', margin + 50, yPosition + 38);
 
       // Save the PDF
       const filename = `${reportData.symbol}_${isRetail ? 'Retail' : 'Pro'}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
