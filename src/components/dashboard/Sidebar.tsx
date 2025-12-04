@@ -215,7 +215,7 @@ export function Sidebar() {
       <div className="relative h-[72px] flex items-center justify-between px-4 border-b border-white/[0.06]">
         <Link href="/dashboard" className="flex items-center gap-3">
           <div className="relative">
-            <img src="/logo.jpeg" alt="Deepin" className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-cyan-500/20" />
+            <img src="/logo.jpeg" alt="Deepin" className="w-10 h-10 rounded-xl object-cover shadow-lg" />
             {/* Glow effect */}
             <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 blur-md opacity-40" />
           </div>
@@ -353,7 +353,7 @@ export function Sidebar() {
               </div>
               <Link
                 href="/pricing"
-                className="relative block w-full px-3 py-2 text-xs font-semibold text-center text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
+                className="relative block w-full px-3 py-2 text-xs font-semibold text-center text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg transition-all shadow-lg"
               >
                 Buy Credits
               </Link>
@@ -367,7 +367,7 @@ export function Sidebar() {
             >
               <Link
                 href="/pricing"
-                className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-500/20"
+                className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all shadow-lg"
                 title={`${creditBalance !== null ? creditBalance.toLocaleString() : '...'} Credits`}
               >
                 <Coins className="w-4 h-4 text-white" />
@@ -393,7 +393,7 @@ export function Sidebar() {
                 className="w-9 h-9 rounded-full object-cover ring-2 ring-white/[0.1] ring-offset-2 ring-offset-[#0C1017]"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
                 <span className="text-sm font-semibold text-white">
                   {user?.firstName?.charAt(0) || 'U'}
                 </span>

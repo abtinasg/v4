@@ -526,7 +526,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
               onClick={() => handleGenerateReport('retail')}
               disabled={isGenerating}
               size="sm"
-              className="w-full h-10 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white border-0 font-semibold text-xs transition-all duration-300 shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg group-hover:shadow-cyan-500/30"
+              className="w-full h-10 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white border-0 font-semibold text-xs transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
             >
               {isGenerating && selectedAudience === 'retail' ? (
                 <>

@@ -130,11 +130,11 @@ export default function AdminDashboardPage() {
 
   const colorClasses = {
     emerald: 'from-emerald-400 to-emerald-600 shadow-emerald-500/30',
-    blue: 'from-blue-400 to-blue-600 shadow-blue-500/30',
+    blue: 'from-blue-400 to-blue-600',
     amber: 'from-amber-400 to-amber-600 shadow-amber-500/30',
     purple: 'from-purple-400 to-purple-600 shadow-purple-500/30',
     green: 'from-green-400 to-green-600 shadow-green-500/30',
-    cyan: 'from-cyan-400 to-cyan-600 shadow-cyan-500/30',
+    cyan: 'from-cyan-400 to-cyan-600',
   }
 
   return (

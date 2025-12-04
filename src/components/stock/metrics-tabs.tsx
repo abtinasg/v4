@@ -2534,7 +2534,7 @@ export function MetricsTabs({ symbol, metrics, sector, industry }: MetricsTabsPr
                 'flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-300',
                 'whitespace-nowrap',
                 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500',
-                'data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-500/20',
+                'data-[state=active]:text-white data-[state=active]:shadow-lg',
                 'data-[state=inactive]:text-gray-400 data-[state=inactive]:hover:text-white',
                 'data-[state=inactive]:hover:bg-white/5'
               )}

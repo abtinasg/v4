@@ -392,7 +392,7 @@ export default function WatchlistPage() {
                 'h-10 px-5 rounded-xl font-medium',
                 'bg-gradient-to-r from-cyan-500 to-blue-500',
                 'hover:from-cyan-400 hover:to-blue-400',
-                'shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30',
+                'shadow-lg',
                 'transition-all duration-300'
               )}
             >
@@ -595,7 +595,7 @@ export default function WatchlistPage() {
                   'px-6 py-3 rounded-xl font-medium',
                   'bg-gradient-to-r from-cyan-500 to-blue-500',
                   'hover:from-cyan-400 hover:to-blue-400',
-                  'shadow-lg shadow-cyan-500/20'
+                  'shadow-lg'
                 )}
               >
                 <Plus className="w-4 h-4 mr-2" />

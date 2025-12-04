@@ -55,7 +55,7 @@ export function BottomNavigation() {
                 <div className={cn(
                   "relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
                   isActive 
-                    ? "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30" 
+                    ? "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg" 
                     : "bg-white/10 border border-white/10"
                 )}>
                   <Icon className={cn(
