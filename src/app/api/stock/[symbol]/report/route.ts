@@ -761,11 +761,11 @@ IMPORTANT REMINDERS:
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout for Pro reports
   
-  // Use o3-mini-high for Pro reports, GPT-4.1 for Retail
-  const modelId = audienceType === 'pro' ? 'openai/o3-mini-high' : 'openai/gpt-5.1';
+  // Use gpt-4o for Pro reports (fast + quality), gpt-5.1 for Retail
+  const modelId = audienceType === 'pro' ? 'openai/gpt-4o' : 'openai/gpt-5.1';
   
   try {
-    console.log(`[Report] Calling OpenRouter API with ${audienceType === 'pro' ? 'o3-mini-high' : 'GPT-4.1'} (${reportLabel} report)...`);
+    console.log(`[Report] Calling OpenRouter API with ${audienceType === 'pro' ? 'gpt-4o' : 'gpt-5.1'} (${reportLabel} report)...`);
     const startTime = Date.now();
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -785,7 +785,7 @@ IMPORTANT REMINDERS:
           },
         ],
         max_tokens: audienceType === 'retail' ? 16000 : 32000, // Pro: 32K, Retail: 16K tokens
-        ...(audienceType === 'pro' ? { temperature: 1 } : { temperature: 0.3 }), // Pro: o3-mini needs 1, Retail: low for accuracy
+        temperature: 0.3, // Low temperature for accuracy
       }),
       signal: controller.signal,
     });
