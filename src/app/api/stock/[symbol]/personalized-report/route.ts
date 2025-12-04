@@ -137,19 +137,6 @@ Write a detailed, long-form analysis for the remaining sections. Use full paragr
 OUTPUT ONLY THE CONTENT FOR SECTIONS 5-9. START DIRECTLY WITH SECTION 5.`;
 }
 
-## FORMATTING GUIDELINES
-
-- Use clear section headers with emojis as shown above
-- Keep language accessible but professional
-- Be specific with numbers, percentages, and scores
-- ALWAYS relate advice back to their specific risk profile
-- Use bullet points for easy scanning
-- Avoid generic advice - everything must be personalized
-- Include the Match Score prominently at the top of section 2
-
-Write the complete personalized analysis now:`;
-}
-
 export async function POST(
   request: NextRequest,
   context: RouteContext
