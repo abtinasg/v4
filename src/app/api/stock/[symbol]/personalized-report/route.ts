@@ -276,7 +276,7 @@ export async function POST(
       riskProfile
     );
 
-    // Call Claude API via OpenRouter
+    // Call OpenRouter API
     const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -286,7 +286,7 @@ export async function POST(
         'X-Title': 'Deep Terminal - Personalized Report',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5.1',
+        model: 'openai/gpt-4o',
         messages: [
           {
             role: 'user',

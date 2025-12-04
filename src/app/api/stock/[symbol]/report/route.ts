@@ -761,11 +761,11 @@ IMPORTANT REMINDERS:
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout for Pro reports
   
-  // Use gpt-4o for Pro reports (fast + quality), gpt-5.1 for Retail
-  const modelId = audienceType === 'pro' ? 'openai/gpt-4o' : 'openai/gpt-5.1';
+  // Use gpt-4o for Pro reports (fast + quality), gpt-4o-mini for Retail
+  const modelId = audienceType === 'pro' ? 'openai/gpt-4o' : 'openai/gpt-4o-mini';
   
   try {
-    console.log(`[Report] Calling OpenRouter API with ${audienceType === 'pro' ? 'gpt-4o' : 'gpt-5.1'} (${reportLabel} report)...`);
+    console.log(`[Report] Calling OpenRouter API with ${audienceType === 'pro' ? 'gpt-4o' : 'gpt-4o-mini'} (${reportLabel} report)...`);
     const startTime = Date.now();
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
