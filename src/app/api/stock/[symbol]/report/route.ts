@@ -420,13 +420,15 @@ ADVANCED METRICS AVAILABLE: Yes (430+ institutional-grade metrics calculated)
 ` : '';
 
   const CFA_PRO_ANALYSIS_PROMPT = `
-You are a CFA Charterholder writing an institutional equity research report.
+You are a CFA Charterholder and Senior Equity Research Analyst writing an institutional-grade equity research report for portfolio managers and investment professionals.
 
 STRICT RULES:
 - ONLY use numbers explicitly in provided data - never guess/approximate
-- Cite exact metric values from data
+- Cite exact metric values from data with precise decimal places
 - If data missing: state "Data not available"
 - NO buy/sell recommendations
+- Be extremely thorough and detailed in your analysis
+- This report should be suitable for institutional investors making multi-million dollar decisions
 
 === DATA ===
 ${stockData.symbol} - ${stockData.companyName}
@@ -436,12 +438,12 @@ Price: $${stockData.currentPrice}
 ${keyMetricsSummary}
 ${advancedMetricsSection}
 
-=== REPORT (2500-3500 words, Markdown) ===
+=== REPORT (5000-8000 words, Markdown, Highly Detailed) ===
 
-# ${stockData.symbol} EQUITY RESEARCH REPORT
+# ${stockData.symbol} INSTITUTIONAL EQUITY RESEARCH REPORT
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-Write comprehensive research report with these sections:
+Write an extremely comprehensive and detailed research report. Each section should be thorough with multiple paragraphs. Include specific numbers and percentages wherever possible.
 
 ## 0. Executive Summary
 - Summarize the scope of the data you received:
@@ -751,13 +753,13 @@ IMPORTANT REMINDERS:
 
   // Call OpenRouter API with timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout (leaving 30s buffer)
+  const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout for Pro reports
   
-  // Use GPT-4.1 for faster response times while maintaining quality
-  const modelId = 'openai/gpt-4.1';
+  // Use o3-mini-high for Pro reports, GPT-4.1 for Retail
+  const modelId = audienceType === 'pro' ? 'openai/o3-mini-high' : 'openai/gpt-4.1';
   
   try {
-    console.log(`[Report] Calling OpenRouter API with GPT-4.1 (${reportLabel} report)...`);
+    console.log(`[Report] Calling OpenRouter API with ${audienceType === 'pro' ? 'o3-mini-high' : 'GPT-4.1'} (${reportLabel} report)...`);
     const startTime = Date.now();
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -769,15 +771,15 @@ IMPORTANT REMINDERS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: modelId, // GPT-4.1 - faster with excellent quality
+        model: modelId, // o3-mini-high for Pro (highest quality), GPT-4.1 for Retail (faster)
         messages: [
           {
             role: 'user',
             content: selectedPrompt,
           },
         ],
-        max_tokens: audienceType === 'retail' ? 4000 : 8000, // GPT-4.1 handles longer outputs well
-        temperature: 0.1, // Lower for faster, more focused responses
+        max_tokens: audienceType === 'retail' ? 4000 : 16000, // Pro gets much more detailed output
+        temperature: 1, // o3-mini requires temperature=1
       }),
       signal: controller.signal,
     });

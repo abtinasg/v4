@@ -34,24 +34,13 @@ export function RiskAssessmentAlert({ className }: RiskAssessmentAlertProps) {
       }
     };
 
-    // Check localStorage for dismissal
-    const dismissed = localStorage.getItem('riskAssessmentDismissed');
-    if (dismissed) {
-      const dismissedTime = parseInt(dismissed, 10);
-      // Re-show after 24 hours
-      if (Date.now() - dismissedTime > 24 * 60 * 60 * 1000) {
-        localStorage.removeItem('riskAssessmentDismissed');
-      } else {
-        setIsDismissed(true);
-      }
-    }
-
+    // No localStorage check - always show unless user has completed assessment
     checkAssessment();
   }, []);
 
   const handleDismiss = () => {
+    // Just hide for this session, will show again on refresh
     setIsDismissed(true);
-    localStorage.setItem('riskAssessmentDismissed', Date.now().toString());
   };
 
   const handleStartQuiz = () => {
@@ -64,7 +53,7 @@ export function RiskAssessmentAlert({ className }: RiskAssessmentAlertProps) {
     // Optionally show a success message or refresh the page
   };
 
-  // Don't show if loading, has assessment, or dismissed
+  // Don't show if loading, has assessment, or dismissed for this session
   if (isLoading || hasAssessment || isDismissed) {
     return null;
   }
@@ -156,14 +145,21 @@ export function RiskAssessmentAlert({ className }: RiskAssessmentAlertProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-2xl my-8"
+              className="w-full max-w-2xl my-4 sm:my-8 relative"
             >
+              {/* Close button - fixed position */}
+              <button
+                onClick={() => setShowQuiz(false)}
+                className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50 p-2 rounded-full bg-black/50 hover:bg-black/70 border border-white/10 transition-colors"
+              >
+                <X className="h-5 w-5 text-white" />
+              </button>
               <RiskAssessmentQuiz
                 onComplete={handleQuizComplete}
                 onClose={() => setShowQuiz(false)}

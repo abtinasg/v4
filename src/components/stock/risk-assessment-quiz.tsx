@@ -191,14 +191,7 @@ export function RiskAssessmentQuiz({ onComplete, onClose, isModal = false }: Ris
     
     return (
       <div className="relative max-w-2xl mx-auto">
-        {isModal && onClose && (
-          <button
-            onClick={onClose}
-            className="absolute -top-2 -right-2 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
-          >
-            <X className="h-5 w-5 text-white/60" />
-          </button>
-        )}
+        {/* Close button handled by parent modal */}
 
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -352,15 +345,8 @@ export function RiskAssessmentQuiz({ onComplete, onClose, isModal = false }: Ris
   }
 
   return (
-    <div className="relative max-w-2xl mx-auto">
-      {isModal && onClose && (
-        <button
-          onClick={onClose}
-          className="absolute -top-2 -right-2 z-10 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
-        >
-          <X className="h-5 w-5 text-white/60" />
-        </button>
-      )}
+    <div className="relative max-w-2xl mx-auto pt-8">
+      {/* Close button handled by parent modal */}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
