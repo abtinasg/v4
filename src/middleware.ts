@@ -60,7 +60,7 @@ export default clerkMiddleware(async (auth, request) => {
     
     // If no valid access cookie, return 404 (hide admin panel existence)
     if (!hasAccessCookie) {
-      return new NextResponse('Not Found', { status: 404 })
+      return NextResponse.json({ error: 'Not Found' }, { status: 404 })
     }
   }
 
@@ -83,7 +83,7 @@ export default clerkMiddleware(async (auth, request) => {
     if (!userId) {
       const signInUrl = new URL('/sign-in', request.url)
       signInUrl.searchParams.set('redirect_url', request.url)
-      return Response.redirect(signInUrl)
+      return NextResponse.redirect(signInUrl)
     }
 
     // Check if user needs onboarding (only for routes that require it)
@@ -97,13 +97,12 @@ export default clerkMiddleware(async (auth, request) => {
         return NextResponse.next()
       }
 
-      // No cookie - check via API instead of blocking
-      // Let the page handle the check client-side to avoid redirect loops
-      // Only redirect to onboarding if user explicitly doesn't have the cookie
-      // We'll rely on the dashboard pages to do a client-side check
+      // No cookie - let the page handle the check client-side
       return NextResponse.next()
     }
   }
+  
+  return NextResponse.next()
 })
 
 export const config = {
