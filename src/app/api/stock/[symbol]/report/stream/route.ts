@@ -1,9 +1,13 @@
 /**
- * Streaming Report Generation API
- * 
+ * Streaming Report Generation API (REBUILT)
+ *
  * POST /api/stock/[symbol]/report/stream
- * 
- * Returns a streaming response for real-time report generation
+ *
+ * IMPROVEMENTS:
+ * - Increased token limit: 8,000 (was 4,000)
+ * - Optimized prompt for better quality
+ * - Better error handling
+ * - Consistent with other report types
  */
 
 import { NextRequest } from 'next/server';
@@ -130,12 +134,13 @@ Leverage: Debt/Equity=${(stockData.metrics.debtToEquity || 0).toFixed(2)}x
 Cash Flow: FCF=$${((stockData.metrics.freeCashflow || 0) / 1e9).toFixed(2)}B, Operating CF=$${((stockData.metrics.operatingCashflow || 0) / 1e9).toFixed(2)}B
 `;
 
-    const prompt = `You are a CFA Charterholder writing an institutional equity research report.
+    const prompt = `You are a CFA Charterholder writing a concise equity research report for real-time streaming.
 
 RULES:
 - ONLY use numbers from provided data
 - If data missing: state "Data not available"
 - NO buy/sell recommendations
+- Target length: 3,000-4,000 words (suitable for 5-7 page PDF)
 
 === DATA ===
 ${stockData.symbol} - ${stockData.companyName}
@@ -144,32 +149,32 @@ Price: $${stockData.currentPrice}
 
 ${keyMetricsSummary}
 
-=== REPORT (1500-2000 words, Markdown) ===
+=== WRITE COMPREHENSIVE BUT CONCISE REPORT ===
 
 # ${stockData.symbol} EQUITY RESEARCH REPORT
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-Write concise research report:
+Write detailed research report with these sections (each needs 2-3 solid paragraphs):
 
 ## Executive Summary
-Brief overview of business quality, valuation stance, key risks.
+Business quality snapshot, valuation stance, key risks, central investment question.
 
-## Business Overview  
-What company does, revenue model, competitive position.
+## Business Overview & Competitive Position
+What company does, revenue model, competitive moat, industry dynamics.
 
 ## Financial Analysis
-- Profitability (margins, returns)
-- Financial Health (liquidity, leverage)
-- Cash Flow strength
+- Profitability: margins, returns (ROE, ROA)
+- Financial Health: liquidity, leverage, debt coverage
+- Cash Flow: operating CF, free CF, cash conversion
 
-## Valuation & Growth
-Current valuation metrics, growth potential.
+## Valuation & Growth Profile
+Current valuation metrics (P/E, EV/EBITDA, etc.), growth rates, sustainability.
 
 ## Risk Assessment
-Key financial and business risks.
+Key financial and business risks. Market volatility considerations.
 
 ## Investment Synthesis
-Strengths, weaknesses, bull/bear case (NOT advice).
+Key strengths, key weaknesses, bull case, bear case, portfolio perspective (NOT advice).
 
 End with: _"Analysis based solely on data provided by Deep; not investment advice."_`;
 
@@ -187,8 +192,8 @@ End with: _"Analysis based solely on data provided by Deep; not investment advic
       body: JSON.stringify({
         model: 'anthropic/claude-sonnet-4.5',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 4000,
-        temperature: 0.2,
+        max_tokens: 8000, // Increased from 4000 to 8000
+        temperature: 0.3, // Consistent with other reports
         stream: true,
       }),
     });
