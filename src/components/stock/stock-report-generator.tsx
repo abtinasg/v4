@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, FileText, Loader2, AlertCircle, Sparkles, Shield, TrendingUp, BarChart3, CheckCircle2 } from 'lucide-react';
+import { Download, FileText, Loader2, AlertCircle, Sparkles, Shield, TrendingUp, BarChart3, CheckCircle2, Users, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
+
+type AudienceType = 'pro' | 'retail';
 
 interface StockReportGeneratorProps {
   symbol: string;
@@ -50,14 +52,22 @@ const loadingStages = [
   },
 ];
 
-const reportFeatures = [
-  { text: 'CFA-Level Analysis', icon: Shield },
-  { text: '400+ Metrics', icon: BarChart3 },
-  { text: 'AI-Powered', icon: Sparkles },
-];
+const reportFeatures = {
+  pro: [
+    { text: 'CFA-Level Analysis', icon: Shield },
+    { text: '400+ Metrics', icon: BarChart3 },
+    { text: 'Professional Grade', icon: Sparkles },
+  ],
+  retail: [
+    { text: 'Simple Language', icon: GraduationCap },
+    { text: 'Easy to Understand', icon: Users },
+    { text: 'AI-Powered', icon: Sparkles },
+  ],
+};
 
 export function StockReportGenerator({ symbol, companyName }: StockReportGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedAudience, setSelectedAudience] = useState<AudienceType | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
   const normalizedProgress = progress.toLowerCase();
@@ -68,7 +78,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
   const progressPercent =
     activeStageIndex === -1 ? 0 : ((activeStageIndex + 1) / loadingStages.length) * 100;
   const animatedWidth = isGenerating ? Math.min(100, Math.max(12, progressPercent || 10)) : 0;
-  const progressMessage = progress || 'Preparing institutional-grade PDF...';
+  const progressMessage = progress || (selectedAudience === 'retail' ? 'Creating simple analysis...' : 'Preparing institutional-grade PDF...');
 
   /**
    * Convert markdown to formatted text for PDF
@@ -219,7 +229,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       doc.text(`© ${new Date().getFullYear()} AI Research Platform`, margin, pageHeight - 10);
 
       // Save the PDF
-      const filename = `${reportData.symbol}_Research_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      const filename = `${reportData.symbol}_${selectedAudience === 'retail' ? 'Simple' : 'Research'}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
       setProgress('PDF downloaded successfully!');
     } catch (err) {
@@ -228,14 +238,15 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
     }
   };
 
-  const handleGenerateReport = async () => {
+  const handleGenerateReport = async (audienceType: AudienceType) => {
     setIsGenerating(true);
+    setSelectedAudience(audienceType);
     setError(null);
     setProgress('Initializing report generation...');
 
     try {
       // Generate AI report (the API fetches market data internally)
-      setProgress('Analyzing with Claude AI...');
+      setProgress(audienceType === 'retail' ? 'Creating simple analysis...' : 'Analyzing with Claude AI...');
       const reportResponse = await fetch(`/api/stock/${symbol}/report`, {
         method: 'POST',
         headers: {
@@ -244,6 +255,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
         body: JSON.stringify({
           companyName,
           reportType: 'full',
+          audienceType,
         }),
       });
 
@@ -293,35 +305,92 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
               <FileText className="h-6 w-6 text-violet-400" />
             </div>
             <div>
-              <div className="flex items-center gap-3">
-                <h3 className="text-lg font-semibold text-white tracking-tight">AI Research Report</h3>
-                <span className="px-2.5 py-1 text-[10px] font-semibold rounded-full bg-gradient-to-r from-violet-500/20 to-cyan-500/15 text-violet-300 border border-violet-500/25 uppercase tracking-wide">
-                  Pro
-                </span>
-              </div>
+              <h3 className="text-lg font-semibold text-white tracking-tight">AI Research Reports</h3>
               <p className="text-sm text-white/40 mt-1">Powered by Claude AI</p>
             </div>
           </div>
         </div>
 
-        {/* Features Pills */}
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          {reportFeatures.map((feature, idx) => (
-            <div 
-              key={idx} 
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06] transition-colors hover:bg-white/[0.05]"
-            >
-              <feature.icon className="h-3.5 w-3.5 text-cyan-400/70" />
-              <span className="text-xs text-white/50 font-medium">{feature.text}</span>
+        {/* Report Type Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {/* Pro Report Card */}
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-violet-500/30 transition-all">
+            <div className="flex items-center gap-2 mb-3">
+              <Shield className="h-4 w-4 text-violet-400" />
+              <span className="text-sm font-semibold text-white">Pro Report</span>
+              <span className="px-2 py-0.5 text-[9px] font-semibold rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/25 uppercase">
+                CFA-Level
+              </span>
             </div>
-          ))}
-        </div>
+            <p className="text-xs text-white/40 mb-4 leading-relaxed">
+              Institutional-grade analysis with 400+ metrics, valuation models, and professional terminology.
+            </p>
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {reportFeatures.pro.map((feature, idx) => (
+                <span key={idx} className="text-[10px] text-white/50 px-2 py-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                  {feature.text}
+                </span>
+              ))}
+            </div>
+            <Button
+              onClick={() => handleGenerateReport('pro')}
+              disabled={isGenerating}
+              size="sm"
+              className="w-full h-10 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white border-0 font-semibold text-xs transition-all duration-300 shadow-lg shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+            >
+              {isGenerating && selectedAudience === 'pro' ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-3.5 w-3.5" />
+                  Generate Pro Report
+                </>
+              )}
+            </Button>
+          </div>
 
-        {/* Description */}
-        <p className="text-sm text-white/45 mb-6 leading-relaxed max-w-lg">
-          Generate a comprehensive equity research report with institutional-grade analysis, 
-          valuation models, risk assessment, and AI-powered insights.
-        </p>
+          {/* Retail Report Card */}
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition-all">
+            <div className="flex items-center gap-2 mb-3">
+              <GraduationCap className="h-4 w-4 text-emerald-400" />
+              <span className="text-sm font-semibold text-white">Simple Report</span>
+              <span className="px-2 py-0.5 text-[9px] font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/25 uppercase">
+                Easy Read
+              </span>
+            </div>
+            <p className="text-xs text-white/40 mb-4 leading-relaxed">
+              Clear, jargon-free analysis perfect for beginners. Technical terms explained in plain English.
+            </p>
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {reportFeatures.retail.map((feature, idx) => (
+                <span key={idx} className="text-[10px] text-white/50 px-2 py-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                  {feature.text}
+                </span>
+              ))}
+            </div>
+            <Button
+              onClick={() => handleGenerateReport('retail')}
+              disabled={isGenerating}
+              size="sm"
+              className="w-full h-10 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white border-0 font-semibold text-xs transition-all duration-300 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+            >
+              {isGenerating && selectedAudience === 'retail' ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-3.5 w-3.5" />
+                  Generate Simple Report
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
 
         {/* Error State */}
         <AnimatePresence>
@@ -406,26 +475,6 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Generate Button */}
-        <Button
-          onClick={handleGenerateReport}
-          disabled={isGenerating}
-          size="lg"
-          className="w-full h-12 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white border-0 font-semibold text-sm transition-all duration-300 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2.5 h-4 w-4 animate-spin" />
-              Generating Report...
-            </>
-          ) : (
-            <>
-              <Download className="mr-2.5 h-4 w-4" />
-              Generate PDF Report
-            </>
-          )}
-        </Button>
 
         {/* Footer info */}
         <div className="mt-4 flex items-center justify-center gap-4">

@@ -30,6 +30,7 @@ export const maxDuration = 120; // 120 seconds timeout (Vercel Pro limit)
 interface StockReportRequest {
   includeCharts?: boolean;
   reportType?: 'full' | 'summary' | 'deep-dive';
+  audienceType?: 'pro' | 'retail'; // pro = CFA-level, retail = simple language
 }
 
 interface StockDataForReport {
@@ -399,8 +400,9 @@ function calculateVolatility(prices: number[]): number {
 /**
  * Generate AI analysis using Claude Opus 4.5 via OpenRouter
  * Now uses 430+ metrics for comprehensive analysis
+ * @param audienceType 'pro' for CFA-level analysis, 'retail' for simple language
  */
-async function generateAIAnalysis(stockData: StockDataForReport): Promise<string> {
+async function generateAIAnalysis(stockData: StockDataForReport, audienceType: 'pro' | 'retail' = 'pro'): Promise<string> {
   // Prepare a concise summary of key metrics (instead of full JSON dump)
   const keyMetricsSummary = `
 KEY FINANCIAL METRICS:
@@ -658,13 +660,101 @@ OUTPUT FORMAT:
   _"Analysis based solely on data provided by Deep Terminal; not investment advice."_
 `;
 
+  // =====================================================
+  // RETAIL INVESTOR PROMPT - Simple, educational language
+  // =====================================================
+  const RETAIL_SUMMARY_PROMPT = `
+You are an expert financial analyst and CFA Charterholder, but your current role is to explain complex stock analysis to a non-professional, retail investor using simple language.
+
+Persona & communication style:
+- You have deep professional experience (CFA Level III, portfolio manager background).
+- However, you are now acting as a teacher and guide for a normal retail investor.
+- You MUST use SIMPLE, clear language, short sentences, and avoid unnecessary jargon.
+- When you must use a technical term (e.g., ROE, free cash flow), you briefly explain what it means in plain language.
+- Write in very clear, simple English appropriate for non-professional retail investors.
+- You provide general, educational explanations only and you MUST NOT give personal investment advice or explicit "buy/sell/hold" recommendations.
+
+STRICT DATA CONTRACT – NON-NEGOTIABLE RULES:
+1. You MUST ONLY use numerical values (prices, ratios, metrics, scores, rates, growth figures, yields, etc.) that are explicitly present in the provided JSON/context.
+2. You are STRICTLY FORBIDDEN from:
+   - Guessing or estimating any number,
+   - Rounding numbers to new values,
+   - Using your training data to recall or infer any price, multiple, macro value, benchmark, or index level,
+   - Using any external benchmarks or averages unless they are explicitly provided in the context.
+3. When you reference a metric, you MUST copy the exact numeric value and formatting from the input.
+   - Example: If the input says "ROE: 23.47%", you MUST write "ROE of 23.47%".
+4. You MUST NOT introduce any new numeric value that is not directly present in the input.
+
+=== DATA ===
+${stockData.symbol} - ${stockData.companyName}
+Sector: ${stockData.sector} | Industry: ${stockData.industry}
+Price: $${stockData.currentPrice}
+
+${keyMetricsSummary}
+${advancedMetricsSection}
+
+=== REPORT (1500-2500 words, Markdown, Simple Language) ===
+
+# ${stockData.symbol} Stock Analysis
+**${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
+
+Write a clear, easy-to-understand report with these sections:
+
+## 📊 Quick Summary
+- In 3-4 simple sentences, explain: What does this company do? Is it doing well financially? What's the overall picture?
+- Use everyday language a non-investor could understand.
+
+## 🏢 What Does This Company Do?
+- Explain the business in plain terms: What products/services do they sell? Who are their customers?
+- Avoid jargon. If you mention the industry, explain why it matters.
+
+## 💰 Is the Company Making Money?
+- Explain profitability in simple terms using the provided metrics.
+- Use phrases like "For every $100 in sales, the company keeps $X as profit" to explain margins.
+- If ROE or ROIC are provided, explain what they mean in plain English.
+
+## 📈 Is the Company Growing?
+- Describe growth using the provided metrics.
+- Explain if sales/profits are going up or down, and by how much.
+- Keep it simple: "Revenue grew by X%" is enough.
+
+## 💵 Is the Stock Expensive or Cheap?
+- Explain valuation metrics (P/E, P/B, etc.) in simple terms.
+- Example: "The P/E ratio of X means investors pay $X for every $1 the company earns."
+- DO NOT say if it's a good or bad price - just explain what the numbers mean.
+
+## ⚠️ What Are the Risks?
+- List 3-5 key risks in simple bullet points.
+- Use plain language: "The company has a lot of debt" instead of "elevated leverage ratios."
+
+## ✅ Strengths and ❌ Weaknesses
+- Create two simple lists:
+  - **Strengths**: What the company does well (based on the data)
+  - **Weaknesses**: Where the company could improve
+
+## 📝 The Bottom Line
+- Summarize in 2-3 sentences what a regular person should understand about this stock.
+- Remind the reader this is educational only, not advice.
+- End with: _"This analysis is for educational purposes only. Always do your own research before making investment decisions."_
+
+IMPORTANT REMINDERS:
+- Use ONLY the numbers provided in the data above
+- Explain every technical term in simple words
+- Keep sentences short and clear
+- DO NOT give buy/sell recommendations
+- DO NOT make up any numbers or use external benchmarks
+`;
+
+  // Select the appropriate prompt based on audience type
+  const selectedPrompt = audienceType === 'retail' ? RETAIL_SUMMARY_PROMPT : CFA_PRO_ANALYSIS_PROMPT;
+  const reportLabel = audienceType === 'retail' ? 'Retail' : 'Pro';
 
   // Call OpenRouter API with timeout
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout (leaving 30s buffer)
   
   try {
-    console.log('[Report] Calling OpenRouter API with Claude Sonnet 4.5...');
+    console.log(`[Report] Calling OpenRouter API with Claude Sonnet 4.5 (${reportLabel} report)...`);
     const startTime = Date.now();
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -680,10 +770,10 @@ OUTPUT FORMAT:
         messages: [
           {
             role: 'user',
-            content: CFA_PRO_ANALYSIS_PROMPT,
+            content: selectedPrompt,
           },
         ],
-        max_tokens: 6000, // Optimized for faster generation (2500-3500 words)
+        max_tokens: audienceType === 'retail' ? 4000 : 6000, // Retail reports are shorter
         temperature: 0.2, // Lower for more focused, faster responses
       }),
       signal: controller.signal,
@@ -802,6 +892,8 @@ export async function POST(
 
     // Get request body
     const body: StockReportRequest = await request.json().catch(() => ({}));
+    const audienceType = body.audienceType || 'pro'; // Default to pro if not specified
+    console.log(`[Report] Audience type: ${audienceType}`);
 
     // Fetch stock data directly using FMP adapter (same as metrics endpoint)
     console.log(`[Report] Fetching stock data for ${upperSymbol}...`);
@@ -878,8 +970,8 @@ export async function POST(
     console.log(`[Report] Stock data fetched successfully for ${upperSymbol}`);
 
     // Generate AI analysis
-    console.log(`[Report] Generating AI analysis for ${upperSymbol}...`);
-    const analysisMarkdown = await generateAIAnalysis(stockData);
+    console.log(`[Report] Generating AI analysis for ${upperSymbol} (${audienceType} audience)...`);
+    const analysisMarkdown = await generateAIAnalysis(stockData, audienceType);
 
     console.log(`[Report] Report generated successfully for ${upperSymbol}`);
 
