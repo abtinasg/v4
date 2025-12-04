@@ -56,7 +56,6 @@ import {
   AddStockModal,
   PriceAlertModal,
 } from '@/components/watchlist'
-import { FullDataButton } from '@/components/mobile/full-data-button'
 
 // ============================================================
 // PREMIUM STAT CARD
@@ -759,7 +758,6 @@ export default function WatchlistPage() {
         </Dialog>
 
         {/* Full Data Button for Mobile */}
-        <FullDataButton />
       </div>
     </div>
   )

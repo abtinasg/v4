@@ -16,7 +16,6 @@ import {
   Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FullDataButton } from '@/components/mobile';
 
 interface SectorAllocation {
   sector: string;

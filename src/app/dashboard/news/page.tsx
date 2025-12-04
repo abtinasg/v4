@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/cinematic'
 import { NewsContextUpdater } from '@/components/ai'
 import { AIMarketReport } from '@/components/dashboard/AIMarketReport'
-import { FullDataButton } from '@/components/mobile/full-data-button'
 
 interface NewsItem {
   id: string
@@ -705,7 +704,6 @@ export default function NewsPage() {
       </AnimatePresence>
 
       {/* Full Data Button for Mobile */}
-      <FullDataButton />
     </div>
   )
 }

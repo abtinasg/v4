@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { CompareView } from '@/components/stock/CompareView';
-import { FullDataButton } from '@/components/mobile';
 
 export const metadata: Metadata = {
   title: 'Compare Stocks | Deep Terminal',
@@ -28,7 +27,6 @@ export default async function ComparePage({ searchParams }: PageProps) {
   return (
     <div className="p-6">
       <CompareView initialSymbols={initialSymbols} />
-      <FullDataButton />
     </div>
   );
 }

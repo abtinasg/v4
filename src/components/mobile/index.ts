@@ -12,6 +12,5 @@ export {
   ScrollCard 
 } from './MobileCards'
 export { useMobileGestures, useIsMobile, useSafeArea } from './MobileGestures'
-export { FullDataButton } from './full-data-button'
 export { DesktopOnlyNotice } from './desktop-only-notice'
 export { IOSInstallPrompt } from './ios-install-prompt'

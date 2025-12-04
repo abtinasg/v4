@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { Screener } from '@/components/stock/Screener';
-import { FullDataButton } from '@/components/mobile';
 
 export const metadata: Metadata = {
   title: 'Stock Screener | Deep Terminal',
@@ -72,7 +71,6 @@ export default async function ScreenerPage({ searchParams }: PageProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       <Screener initialFilters={initialFilters} />
-      <FullDataButton />
     </div>
   );
 }

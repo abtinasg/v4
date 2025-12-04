@@ -24,7 +24,6 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FullDataButton } from '@/components/mobile';
 
 interface Alert {
   id: string;
@@ -491,7 +490,6 @@ function CreateAlertModal({
           </div>
         </form>
       </div>
-      <FullDataButton />
     </div>
   );
 }

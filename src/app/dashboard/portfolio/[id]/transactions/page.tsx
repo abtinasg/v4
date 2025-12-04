@@ -17,7 +17,6 @@ import {
   Filter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FullDataButton } from '@/components/mobile';
 
 interface Transaction {
   id: string;
@@ -255,7 +254,6 @@ export default function PortfolioTransactionsPage() {
           </div>
         </div>
       )}
-      <FullDataButton />
     </div>
   );
 }

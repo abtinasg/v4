@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Search, ArrowRight, GitCompareArrows, SlidersHorizontal, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { FullDataButton } from '@/components/mobile'
 
 const popularStocks = [
   { symbol: 'AAPL', name: 'Apple Inc.' },
@@ -207,7 +206,6 @@ export default function StockAnalysisPage() {
       </div>
 
       {/* Full Data Button for Mobile */}
-      <FullDataButton />
     </div>
   )
 }
