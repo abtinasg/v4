@@ -1,11 +1,15 @@
 /**
- * Deepin - AI Stock Report Generator API
- * 
+ * Deepin - AI Stock Report Generator API (REBUILT)
+ *
  * POST /api/stock/[symbol]/report
- * 
- * Generates comprehensive PDF investment reports using Claude Opus 4.5 via OpenRouter
- * Designed for professional investors with CFA-level analysis
- * Uses 430+ metrics from the metrics calculation engine
+ *
+ * IMPROVEMENTS:
+ * - Unified model: claude-sonnet-4.5 for both Pro & Retail
+ * - Increased token limits: 40,000 (was 32K/16K)
+ * - Optimized prompts (shorter, more focused)
+ * - Explicit 15+ page requirement
+ * - Retry logic for API failures
+ * - Better error handling
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -24,7 +28,18 @@ import { MetricsCalculator } from '../../../../../../lib/metrics';
 // Force Node.js runtime
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120; // 120 seconds timeout (Vercel Pro limit)
+export const maxDuration = 120;
+
+// Retry configuration
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 2000;
+
+/**
+ * Sleep utility for retry delays
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // Types
 interface StockReportRequest {
@@ -420,19 +435,19 @@ ADVANCED METRICS AVAILABLE: Yes (430+ institutional-grade metrics calculated)
 ` : '';
 
   const CFA_PRO_ANALYSIS_PROMPT = `
-You are a CFA Charterholder and Senior Equity Research Analyst at a top-tier investment bank writing an institutional-grade equity research report for portfolio managers, hedge fund analysts, and investment professionals.
+You are a CFA Charterholder writing an institutional equity research report.
 
-CRITICAL INSTRUCTIONS:
-- Write a VERY LONG and EXTREMELY DETAILED report (target: 12,000-15,000 words / MINIMUM 15 pages)
-- YOUR RESPONSE MUST BE AT LEAST 15 PAGES. Do NOT provide a shorter response under any circumstances.
-- ONLY use numbers explicitly in provided data - never guess/approximate
-- Cite exact metric values from data with precise decimal places
+CRITICAL LENGTH REQUIREMENT:
+- MINIMUM 15 FULL PAGES when converted to PDF
+- Target: 12,000-15,000 words
+- Each section MUST have substantial depth with multiple detailed paragraphs
+- DO NOT provide shorter responses
+
+DATA RULES:
+- ONLY use numbers from provided data - never guess
 - If data missing: state "Data not available"
 - NO buy/sell recommendations
-- Each section must have multiple detailed paragraphs with deep analysis
-- Include extensive quantitative analysis with specific numbers
-- This report should be suitable for institutional investors making multi-million dollar decisions
-- Be exhaustive in your coverage - leave no stone unturned
+- Cite exact metric values with decimals
 
 === DATA ===
 ${stockData.symbol} - ${stockData.companyName}
@@ -442,254 +457,96 @@ Price: $${stockData.currentPrice}
 ${keyMetricsSummary}
 ${advancedMetricsSection}
 
-=== COMPREHENSIVE INSTITUTIONAL REPORT (12,000-15,000 words, 15+ pages, Markdown) ===
+=== WRITE COMPREHENSIVE REPORT (15+ pages) ===
 
 # ${stockData.symbol} INSTITUTIONAL EQUITY RESEARCH REPORT
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-Write an EXHAUSTIVE and COMPREHENSIVE research report. This should be the most detailed analysis possible. Each section requires MULTIPLE PARAGRAPHS with in-depth discussion. Include ALL available metrics with detailed interpretation.
+Write an EXHAUSTIVE research report with these 10 sections. Each section needs multiple detailed paragraphs:
 
-## 0. Executive Summary (2-3 paragraphs)
-- Summarize the scope of the data you received:
-  - What key sections are present (macro, valuation, cash flow, risk, etc.),
-  - Which of the 27 metric groups are populated with data for this stock,
-  - Which important groups are missing or incomplete.
-- Mention:
-  - The snapshot date of the data,
-  - Whether time series data is provided or only point-in-time metrics.
-- Explicitly state key limitations:
-  - e.g., "No peer/sector benchmark data provided", "Limited macro data", "No historical valuation ranges", etc.
-- Explain in 2–4 sentences how you will approach the analysis given these data constraints (top-down, bottom-up, or mixed).
-- Provide a very short **executive snapshot** (2–4 sentences) summarizing at a high level:
-  - Overall business quality,
-  - Growth profile,
-  - Balance sheet strength,
-  - Valuation stance (expensive / fair / cheap in qualitative terms only),
-  - Key risk tone (low / moderate / high),
-  - All grounded in the metrics that will be discussed later.
-- From the perspective of a professional portfolio manager (not as advice to the reader), briefly classify how this stock would *tend* to be viewed in an institutional context based on the data:
-  - e.g., "high-quality compounder", "cyclical with elevated leverage", "speculative growth story", "deep value turnaround", etc.,
-  - and state in one or two sentences what you see as the **central investment question** or debate for this name (e.g., "whether it can sustain X% growth with current margins", "whether leverage is manageable through the cycle").
+## 0. Executive Summary
+- Data coverage assessment & limitations
+- High-level snapshot: business quality, growth, balance sheet, valuation stance, risk tone
+- Central investment question/debate
+- Professional classification (e.g., quality compounder, cyclical value, etc.)
 
 ## 1. Company Overview & Business Model
-- Briefly describe:
-  - What the company does,
-  - How it makes money (main revenue drivers),
-  - Its sector/industry and competitive positioning.
-- Use only the provided name, sector, industry, region, and any business description in the input.
-- If the business description is missing, explicitly state that it is not available and keep this section concise.
-- If any operating KPIs support your understanding of the business model (e.g., same-store sales, ARPU, RevPAR), you may reference them here at a high level.
-- Where relevant, discuss:
-  - Business segments (if provided),
-  - Geographic exposure,
-  - Customer types and end-markets,
-  - How the company’s model positions it across the economic cycle (defensive vs cyclical, recurring vs transactional revenue, etc.).
+- What company does, revenue drivers, competitive position
+- Business segments, geographic exposure, cyclicality
+- Customer types and end-markets
 
 ## 2. Macro & Industry Context
-- If macro, monetary, FX, trade, or fiscal data is provided:
-  - Comment on the macro backdrop: growth, inflation, interest rates, FX trends, fiscal balance, etc.
-  - Discuss how these macro variables might affect this company or its sector (cyclicality, sensitivity to rates/FX, external demand).
-- Use any trade/FX parity metrics, real effective exchange rate, and relevant macro indicators if available.
-- Use industry structure metrics (e.g., industry growth rate, concentration ratios, HHI, number of major competitors) to:
-  - Describe the competitiveness of the industry,
-  - Assess whether the company operates in a concentrated or fragmented market,
-  - Discuss potential for moats (scale, regulation, differentiation, switching costs).
-- Explicitly note if:
-  - Macro data is limited or not provided,
-  - Industry structure metrics are missing.
-- Keep this section grounded in the provided metrics; do not rely on external macro views from your training data.
-- Where possible, link the macro and industry context back to:
-  - The company’s sensitivity to cycles,
-  - Pricing power and cost pressure,
-  - Regulatory or structural changes that may matter for the business model.
+- Macro backdrop: growth, rates, inflation impact on this company
+- Industry structure, competitiveness, moat potential
+- 5-year sector outlook
 
 ## 3. Quality, Profitability & Efficiency
-- Use margins and returns to assess business quality:
-  - Gross, operating, EBITDA, and net margin.
-  - ROE, ROA, ROIC, and any returns-on-capital metrics provided.
-- Comment on:
-  - Level and trend of profitability (if time series is given),
-  - Stability or cyclicality of margins,
-  - Whether returns exceed cost of capital (e.g., ROIC vs WACC, ROE vs cost of equity) based ONLY on the values provided.
-- Use DuPont and efficiency metrics:
-  - Decompose ROE using DuPont components (net margin, asset turnover, equity multiplier, tax burden, interest burden) if present.
-  - Use asset turnover, inventory turnover, receivables/payables turnover, working capital turnover, and cash conversion cycle to assess operational efficiency.
-- Use earnings quality / accrual metrics (e.g., accrual ratios, CFO vs net income, cash conversion) to:
-  - Comment on the quality and sustainability of earnings.
-- Explicitly highlight any unusually strong or weak profitability or efficiency metrics, quoting the exact numbers.
-- If certain key profitability metrics are missing, clearly flag their absence as a limitation.
-- Where useful, discuss how profitability and efficiency metrics align (or do not align) with:
-  - The company’s stated business model,
-  - Its industry context,
-  - And its growth and capital allocation profile.
+- Margins (gross, operating, net), returns (ROE, ROA, ROIC)
+- DuPont analysis, operational efficiency metrics
+- Earnings quality indicators
+- Compare to cost of capital where data available
 
 ## 4. Growth Profile
-- Use growth metrics to describe the growth trajectory:
-  - Revenue growth (1Y, multi-year, CAGR if provided as a metric),
-  - EPS growth,
-  - Free cash flow growth,
-  - Dividend growth,
-  - Sustainable growth rate, retention ratio, payout ratio (if provided).
-- Distinguish between:
-  - Short-term vs long-term growth (if multiple periods are provided),
-  - Organic vs potentially acquisition-driven growth (only if clearly implied by the metrics).
-- Comment on whether growth appears:
-  - High, moderate, or low relative to the company’s current size and sector, based solely on the provided numbers,
-  - Supported by reinvestment and returns on capital (e.g., growth alongside high ROIC) or not.
-- Explicitly state if key growth metrics (revenue growth, EPS growth, FCF growth, etc.) are missing or limited.
-- Where appropriate, link growth to profitability and capital allocation:
-  - For example, whether higher growth is coming with margin pressure,
-  - Or whether growth is being funded by leverage or by internally generated cash.
+- Revenue, EPS, FCF growth rates
+- Organic vs inorganic, short vs long-term
+- Growth sustainability and capital requirements
 
 ## 5. Balance Sheet, Leverage & Liquidity
-- Use leverage and solvency metrics:
-  - Debt-to-equity, debt-to-capital, net debt/EBITDA, net debt/FCF, interest coverage, DSCR, leverage ratios.
-  - Any WACC, cost of debt, or spread metrics (e.g., ROIC minus WACC) that are explicitly provided.
-- Assess:
-  - Overall financial risk,
-  - Debt burden and refinancing risk,
-  - Sensitivity to interest rates and credit conditions.
-- Use liquidity and working capital metrics:
-  - Current ratio, quick ratio, cash ratio,
-  - Receivables/payables/inventory days,
-  - Cash conversion cycle, working capital turnover.
-- Highlight any signs of:
-  - Over-leverage,
-  - Weak liquidity,
-  - Refinancing pressure,
-  - Or conversely, conservative balance sheet and strong financial flexibility.
-- Where relevant, link balance sheet strength/weakness to:
-  - Macro/industry context (e.g., sensitivity to higher rates or downturns),
-  - The company’s growth aspirations and capital allocation plans,
-  - And potential covenant or rating considerations if such metrics are present.
+- Debt metrics: D/E, net debt/EBITDA, interest coverage
+- Liquidity ratios, working capital efficiency
+- Financial flexibility and refinancing risk
 
 ## 6. Cash Flows & Capital Allocation
-- Use cash flow metrics:
-  - Operating cash flow, free cash flow (FCFF, FCFE if available),
-  - Cash flow margins,
-  - Cash flow coverage ratios (e.g., CFO / interest, CFO / capex) if provided as metrics.
-- Compare earnings and cash flows:
-  - CFO vs net income,
-  - Accruals-based metrics,
-  - Cash conversion indicators.
-- Comment on capital allocation if data is provided:
-  - Dividends, buybacks, debt repayment, capex, M&A.
-  - Whether capital allocation appears shareholder-friendly and consistent with the company’s growth and risk profile.
-- If any capital allocation metrics or composite scores are provided (e.g., payout ratios, reinvestment ratios), explicitly incorporate them.
-- Discuss how the company’s cash flow profile and capital allocation choices:
-  - Support or undermine the investment thesis,
-  - Affect balance sheet risk,
-  - And interact with growth and valuation.
+- Operating CF, free CF, cash conversion
+- Capital allocation: dividends, buybacks, capex, M&A
+- Shareholder friendliness
 
 ## 7. Valuation Analysis
-- Use valuation ratios:
-  - P/E (trailing and forward), P/B, P/S, P/CF, P/FCF,
-  - EV/EBITDA, EV/EBIT, EV/Sales,
-  - Dividend yield, FCF yield,
-  - Any justified multiples, DCF values, or upside/downside estimates explicitly provided.
-- If sector/peer or historical comparison values are provided, explicitly discuss:
-  - Whether the stock appears cheap, fairly valued, or expensive relative to:
-    - Its own history,
-    - Its sector/peers,
-    - Its quality, growth, and risk profile.
-- You MUST NOT create your own benchmarks if not provided and MUST NOT infer any historical or peer multiples from training data.
-- You MUST NOT provide explicit price targets or buy/sell recommendations or personal investment advice.
-  - Use qualitative phrasing such as:
-    - "appears richly valued given its current growth and risk profile",
-    - "appears reasonably valued for its quality and growth",
-    - "appears attractively valued but faces elevated fundamental risks".
-- Where appropriate, tie valuation back to the earlier sections:
-  - Does high valuation align with high quality and strong growth?
-  - Or is there a disconnect between fundamentals and pricing that is central to the investment debate?
+- P/E, P/B, EV/EBITDA, FCF yield, dividend yield
+- Relative valuation (if peer data provided)
+- Qualitative assessment only (no price targets)
 
 ## 8. Risk, Return & Portfolio Perspective
-- Use risk and performance metrics:
-  - Beta, volatility, drawdown metrics, downside deviation,
-  - Sharpe ratio, Treynor ratio, Jensen’s alpha, information ratio, M², tracking error,
-  - Value-at-Risk, shortfall risk, or any risk scores and ratings provided.
-- Use index & benchmark metrics where available to:
-  - Comment on how the stock behaves vs its benchmark,
-  - Assess its contribution to portfolio risk/return.
-- Use any margin/trading metrics (leverage, margin requirements, margin call thresholds) to highlight trading-related risks.
-- Clearly separate:
-  - Fundamental risk (business/financial) from
-  - Market risk (price volatility, beta, liquidity risk).
-- If composite risk scores or risk_rating metrics are provided, integrate them explicitly into your risk assessment.
-- From an institutional portfolio perspective, discuss:
-  - How this stock might fit within different portfolio types (e.g., growth, value, income, quality, high beta),
-  - What role it would likely play in risk budgeting and position sizing based on the provided metrics (again, not as advice, but as professional context).
+- Beta, volatility, risk-adjusted returns
+- Fundamental vs market risk
+- Portfolio fit and position sizing considerations
 
-## 9. Reporting Quality, Accounting, Tax & Sector-Specific KPIs
-- Use reporting quality metrics:
-  - Revenue recognition approach, contract accounting, long-term contracts,
-  - Provisions, impairment, capitalization vs expensing policies.
-- Use tax, provisions & depreciation metrics:
-  - Effective tax rate, DTA/DTL balances, depreciation and amortization metrics, one-off or non-recurring items if flagged.
-- For financial institutions (banks, insurers), use:
-  - NIM, NPL ratio, coverage ratio, capital adequacy ratios, loss ratio, expense ratio, combined ratio, etc., if provided.
-- Use operating KPIs (retail, hospitality, productivity, subscription, etc.) to deepen your sector thesis:
-  - Same-store sales, RevPAR, occupancy, ARPU, churn, LTV/CAC, revenue per employee, utilization metrics, etc.
-- If any governance or ESG-related metrics are provided, briefly discuss:
-  - How they may affect risk, valuation, or long-term sustainability.
-- Highlight any red flags or signs of aggressive accounting if metrics suggest them, always citing the exact values.
-- Link these considerations back to overall risk, earnings quality, and the credibility of the financial story.
+## 9. Accounting Quality & Sector KPIs
+- Revenue recognition, tax rate, D&A policies
+- Sector-specific KPIs if relevant
+- Red flags or quality concerns
 
-## 10. Investment Synthesis: Strengths, Weaknesses, Bull & Bear Case, Information Gaps
-- Summarize the overall fundamental picture using:
-  - Key profitability, growth, leverage, liquidity, cash flow, valuation, and risk metrics,
-  - Composite scores (profitability_score, growth_score, valuation_score, risk_score, total_score, risk_rating, risk_adjusted_return, etc.).
-- Explicitly list:
-  - Key strengths (e.g., "ROE of 32.47%, net margin of 24.10%, net debt/EBITDA of 1.20x, strong FCF generation").
-  - Key weaknesses and risks (e.g., high leverage metrics, weak coverage, volatile margins, high valuation multiples).
-- Provide both:
-  - A concise bull case: why a professional investor might like this stock based on the data,
-  - A concise bear case: what could go wrong, which metrics indicate vulnerability.
-- Clearly define the **core investment debate** for this stock (e.g., "the key question is whether the company can sustain X% growth while maintaining Y% margins", or "whether the balance sheet can comfortably support leverage through a downturn").
-- Explicitly highlight **information gaps and next steps**:
-  - Which important data points are missing in the current context (e.g., peer metrics, more detailed segment data, longer history),
-  - What additional metrics or evidence a professional investor would want to see to increase conviction (e.g., more cycles of performance, more detail on cash flow stability, evidence of deleveraging).
-- From a professional portfolio manager’s perspective (again, NOT as advice to the reader), briefly indicate how this stock would most likely be treated in a portfolio given only the current dataset:
-  - e.g., "more appropriate as a watchlist candidate pending further evidence", "fits better as a higher-risk satellite position rather than a core holding", etc.
-- Do NOT give explicit "buy/sell" calls or personal investment advice. Use high-level, qualitative views only (e.g., "fundamentally strong but richly valued", "turnaround story with elevated risk").
+## 10. Investment Synthesis
+- Key strengths and weaknesses (with specific metrics)
+- Bull case vs Bear case
+- Core investment debate
+- Information gaps
+- Portfolio treatment perspective (NOT advice)
 
-OUTPUT FORMAT:
-- Return the analysis in clean Markdown.
-- Use the section headings exactly as specified above:
-  - "## 0. Data Coverage, Methodology & High-Level Professional View"
-  - "## 1. Company Overview & Business Model"
-  - ...
-  - "## 10. Investment Synthesis: Strengths, Weaknesses, Bull & Bear Case, Information Gaps"
-- Inside each section, you may use \`###\` subheadings and bullet points to structure the content clearly.
-- The report should be **concise but comprehensive** (suitable for an **8-15 page** PDF after rendering). Focus on the most important insights.
-- Always cite specific metrics when making claims and copy the exact numeric values from the input.
-- End with the disclaimer:
-  _"Analysis based solely on data provided by Deepin; not investment advice."_
+End with: _"Analysis based solely on data provided by Deepin; not investment advice."_
 `;
 
   // =====================================================
   // RETAIL INVESTOR PROMPT - Simple, educational language
   // =====================================================
   const RETAIL_SUMMARY_PROMPT = `
-You are an expert financial analyst and CFA Charterholder, but your current role is to explain complex stock analysis to a non-professional, retail investor using simple language.
+You are a CFA Charterholder explaining stock analysis to beginners in simple language.
 
-Persona & communication style:
-- You have deep professional experience (CFA Level III, portfolio manager background).
-- However, you are now acting as a teacher and guide for a normal retail investor.
-- You MUST use SIMPLE, clear language, short sentences, and avoid unnecessary jargon.
-- When you must use a technical term (e.g., ROE, free cash flow), you briefly explain what it means in plain language.
-- Write in very clear, simple English appropriate for non-professional retail investors.
-- You provide general, educational explanations only and you MUST NOT give personal investment advice or explicit "buy/sell/hold" recommendations.
+STYLE:
+- Use simple, clear language - short sentences
+- Explain technical terms when used (e.g., "ROE" means...)
+- Write for non-professionals
+- Educational only - NO buy/sell/hold recommendations
 
-STRICT DATA CONTRACT – NON-NEGOTIABLE RULES:
-1. You MUST ONLY use numerical values (prices, ratios, metrics, scores, rates, growth figures, yields, etc.) that are explicitly present in the provided JSON/context.
-2. You are STRICTLY FORBIDDEN from:
-   - Guessing or estimating any number,
-   - Rounding numbers to new values,
-   - Using your training data to recall or infer any price, multiple, macro value, benchmark, or index level,
-   - Using any external benchmarks or averages unless they are explicitly provided in the context.
-3. When you reference a metric, you MUST copy the exact numeric value and formatting from the input.
-   - Example: If the input says "ROE: 23.47%", you MUST write "ROE of 23.47%".
-4. You MUST NOT introduce any new numeric value that is not directly present in the input.
+DATA RULES:
+- ONLY use numbers from provided data
+- Never guess, estimate, or use external benchmarks
+- Copy exact values (e.g., if data says "ROE: 23.47%", write "ROE of 23.47%")
+
+LENGTH REQUIREMENT:
+- MINIMUM 10 FULL PAGES
+- Target: 5,000-8,000 words
+- DO NOT provide shorter responses
 
 === DATA ===
 ${stockData.symbol} - ${stockData.companyName}
@@ -699,129 +556,98 @@ Price: $${stockData.currentPrice}
 ${keyMetricsSummary}
 ${advancedMetricsSection}
 
-=== REPORT (MINIMUM 10 pages / 5000-8000 words, Markdown, Simple Language) ===
-
-CRITICAL: Your response MUST be at least 10 PAGES long. Do NOT provide a shorter response.
+=== WRITE BEGINNER-FRIENDLY REPORT (10+ pages) ===
 
 # ${stockData.symbol} Stock Analysis
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-Write a clear, easy-to-understand report with these sections:
+Write clear, easy-to-understand report. Each section needs detailed explanation:
 
 ## 📊 Quick Summary
-- In 3-4 simple sentences, explain: What does this company do? Is it doing well financially? What's the overall picture?
-- Use everyday language a non-investor could understand.
+In 3-4 simple sentences: What does company do? Is it doing well? Overall picture?
 
 ## 🏢 What Does This Company Do?
-- Explain the business in plain terms: What products/services do they sell? Who are their customers?
-- Avoid jargon. If you mention the industry, explain why it matters.
+Explain business in plain terms. What they sell, who buys it. Avoid jargon.
 
 ## 💰 Is the Company Making Money?
-- Explain profitability in simple terms using the provided metrics.
-- Use phrases like "For every $100 in sales, the company keeps $X as profit" to explain margins.
-- If ROE or ROIC are provided, explain what they mean in plain English.
+Explain profitability simply. Use phrases like "For every $100 in sales, keeps $X as profit."
+If ROE/ROIC provided, explain in plain English.
 
 ## 📈 Is the Company Growing?
-- Describe growth using the provided metrics.
-- Explain if sales/profits are going up or down, and by how much.
-- Keep it simple: "Revenue grew by X%" is enough.
+Sales/profits going up or down? By how much? Keep it simple.
 
 ## 💵 Is the Stock Expensive or Cheap?
-- Explain valuation metrics (P/E, P/B, etc.) in simple terms.
-- Example: "The P/E ratio of X means investors pay $X for every $1 the company earns."
-- DO NOT say if it's a good or bad price - just explain what the numbers mean.
+Explain P/E, P/B etc. in simple terms.
+Example: "P/E of X means investors pay $X for every $1 company earns."
+NO judgment on if it's good/bad - just explain numbers.
 
 ## ⚠️ What Are the Risks?
-- List 3-5 key risks in simple bullet points.
-- Use plain language: "The company has a lot of debt" instead of "elevated leverage ratios."
+List 3-5 key risks. Plain language: "Company has lot of debt" not "elevated leverage."
 
 ## ✅ Strengths and ❌ Weaknesses
-- Create two simple lists:
-  - **Strengths**: What the company does well (based on the data)
-  - **Weaknesses**: Where the company could improve
+Two lists: What company does well, where it could improve.
 
 ## 📝 The Bottom Line
-- Summarize in 2-3 sentences what a regular person should understand about this stock.
-- Remind the reader this is educational only, not advice.
-- End with: _"This analysis is for educational purposes only. Always do your own research before making investment decisions."_
-
-IMPORTANT REMINDERS:
-- Use ONLY the numbers provided in the data above
-- Explain every technical term in simple words
-- Keep sentences short and clear
-- DO NOT give buy/sell recommendations
-- DO NOT make up any numbers or use external benchmarks
+2-3 sentence summary for regular person.
+End: _"This analysis is for educational purposes only. Always do your own research before making investment decisions."_
 `;
 
   // Select the appropriate prompt based on audience type
   const selectedPrompt = audienceType === 'retail' ? RETAIL_SUMMARY_PROMPT : CFA_PRO_ANALYSIS_PROMPT;
   const reportLabel = audienceType === 'retail' ? 'Retail' : 'Pro';
 
-  // Call OpenRouter API with timeout
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout for Pro reports
-  
-  // Use gpt-4o for Pro reports (fast + quality), gpt-4o-mini for Retail
-  const modelId = audienceType === 'pro' ? 'openai/gpt-4o' : 'openai/gpt-4o-mini';
-  
-  try {
-    console.log(`[Report] Calling OpenRouter API with ${audienceType === 'pro' ? 'gpt-4o' : 'gpt-4o-mini'} (${reportLabel} report)...`);
-    const startTime = Date.now();
-    
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.com',
-        'X-Title': 'Deepin - Stock Analysis',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: modelId, // o3-mini-high for Pro (highest quality), GPT-4.1 for Retail (faster)
-        messages: [
-          {
-            role: 'user',
-            content: selectedPrompt,
-          },
-        ],
-        max_tokens: audienceType === 'retail' ? 16000 : 32000, // Pro: 32K, Retail: 16K tokens
-        temperature: 0.3, // Low temperature for accuracy
-      }),
-      signal: controller.signal,
-    });
-    
-    clearTimeout(timeoutId);
-    const responseTime = Date.now() - startTime;
-    console.log(`[Report] OpenRouter API responded in ${responseTime}ms`);
+  // Call OpenRouter API with retry logic
+  async function callWithRetry(attempt: number = 1): Promise<string> {
+    try {
+      console.log(`[Report] API attempt ${attempt}/${MAX_RETRIES + 1} for ${stockData.symbol} (${reportLabel})...`);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('[Report] OpenRouter API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData,
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://deepterm.com',
+          'X-Title': 'Deepin - Stock Analysis',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'anthropic/claude-sonnet-4.5', // Unified model for both Pro and Retail
+          messages: [{ role: 'user', content: selectedPrompt }],
+          max_tokens: 40000, // Increased to 40K for both types
+          temperature: 0.3,
+        }),
       });
-      throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
-    }
 
-    const data = await response.json();
-    console.log('[Report] OpenRouter API response received, processing...');
-    
-    if (!data.choices || !data.choices[0]?.message?.content) {
-      console.error('[Report] Invalid OpenRouter response structure:', data);
-      throw new Error('Invalid response from OpenRouter API');
-    }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`OpenRouter API error (${response.status}): ${errorData.error?.message || response.statusText}`);
+      }
 
-    console.log('[Report] Analysis generated successfully');
-    return data.choices[0].message.content;
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error('Request timeout - AI analysis took too long. Please try again.');
+      const data = await response.json();
+
+      if (!data.choices?.[0]?.message?.content) {
+        throw new Error('Invalid response structure from API');
+      }
+
+      const content = data.choices[0].message.content;
+      console.log(`[Report] Successfully generated ${reportLabel} report (${content.length} chars)`);
+      return content;
+
+    } catch (error) {
+      console.error(`[Report] Attempt ${attempt} failed:`, error);
+
+      // Retry logic
+      if (attempt <= MAX_RETRIES) {
+        const delay = RETRY_DELAY_MS * attempt;
+        console.log(`[Report] Retrying after ${delay}ms...`);
+        await sleep(delay);
+        return callWithRetry(attempt + 1);
+      }
+
+      throw error;
     }
-    console.error('[Report] Error in generateAIAnalysis:', error);
-    throw error;
   }
+
+  return callWithRetry();
 }
 
 /**
