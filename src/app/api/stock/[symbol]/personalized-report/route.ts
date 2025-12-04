@@ -28,7 +28,7 @@ import { getFMPRawData } from '@/lib/data/fmp-adapter';
 // Force Node.js runtime
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120;
+export const maxDuration = 180; // Increased from 120 to 180 seconds
 
 interface PersonalizedReportRequest {
   companyName?: string;
@@ -46,6 +46,7 @@ const PERSONALIZED_REPORT_CREDIT_COST = 15;
 // Retry configuration
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 2000;
+const OPENROUTER_TIMEOUT_MS = 120000; // 120 second timeout for OpenRouter calls
 
 /**
  * Sleep utility for retry delays
@@ -68,11 +69,11 @@ function generatePersonalizedReportPrompt(
 
   return `You are an expert CFA Charterholder and Behavioral Finance Specialist generating a COMPREHENSIVE personalized investment analysis.
 
-CRITICAL LENGTH REQUIREMENT:
-- Your response MUST be AT LEAST 15 FULL PAGES when converted to PDF
-- This means approximately 7,500-10,000 words
-- Each section MUST have substantial depth with multiple detailed paragraphs
-- DO NOT provide a shorter response under any circumstances
+LENGTH REQUIREMENT:
+- Target: 8-10 pages when converted to PDF
+- Target: 5,000-7,000 words
+- Each section should have good depth with detailed paragraphs
+- Focus on quality and personalized insights over length
 
 PURPOSE: Educational analysis matching this specific investor's risk profile. NOT investment advice.
 
@@ -135,11 +136,11 @@ STOCK FINANCIAL DATA: ${symbol} (${companyName})
 • Current Ratio: ${metricsData.currentRatio?.toFixed(2) || 'N/A'}
 
 ═══════════════════════════════════════════════════════════════
-YOUR TASK: WRITE A COMPREHENSIVE 9-SECTION ANALYSIS (15+ PAGES)
+YOUR TASK: WRITE A COMPREHENSIVE 9-SECTION ANALYSIS
 ═══════════════════════════════════════════════════════════════
 
-Write an EXHAUSTIVE, DETAILED analysis covering ALL 9 sections below.
-Each section MUST have multiple substantial paragraphs with deep analysis.
+Write a detailed analysis covering ALL 9 sections below.
+Each section should have clear, well-organized paragraphs.
 
 ## 1. 📋 INVESTOR PROFILE SUMMARY
 
@@ -290,8 +291,8 @@ CRITICAL FORMATTING & OUTPUT RULES
 
 1. **Output in clean Markdown** with proper section headers
 2. **Use emojis** for section headers as shown above (📋 🏰 🌍 🎯 ⚠️ 📊 ✅ 📈 💡)
-3. **Each section MUST be substantial** - no short paragraphs
-4. **Total length MUST exceed 7,500 words / 15 pages**
+3. **Each section should be clear and well-organized**
+4. **Target: 5,000-7,000 words / 8-10 pages**
 5. **Use ONLY the data provided** - no guessing or hallucinating numbers
 6. **If data is missing**, state "Data not available" and work with what you have
 7. **This is EDUCATIONAL ONLY** - include this disclaimer at the end:
@@ -300,17 +301,20 @@ _"This personalized analysis is for educational purposes only and does not const
 
 ═══════════════════════════════════════════════════════════════
 
-**BEGIN YOUR COMPREHENSIVE 15+ PAGE ANALYSIS NOW:**`;
+**BEGIN YOUR PERSONALIZED ANALYSIS NOW:**`;
 }
 
 /**
- * Call OpenRouter API with retry logic
+ * Call OpenRouter API with retry logic and timeout
  */
 async function callOpenRouterWithRetry(
   prompt: string,
   symbol: string,
   attempt: number = 1
 ): Promise<string> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), OPENROUTER_TIMEOUT_MS);
+
   try {
     console.log(`[PersonalizedReport] API call attempt ${attempt}/${MAX_RETRIES + 1} for ${symbol}`);
 
@@ -323,12 +327,15 @@ async function callOpenRouterWithRetry(
         'X-Title': 'Deepin - Personalized Report',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-sonnet-4.5', // Latest and best model
+        model: 'anthropic/claude-3.5-sonnet', // Faster model for better reliability
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 40000, // Increased from 16,384 to 40,000
-        temperature: 0.3, // Slightly higher for better prose
+        max_tokens: 16000, // Reduced from 40K to 16K for faster generation
+        temperature: 0.3,
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -346,6 +353,7 @@ async function callOpenRouterWithRetry(
     return content;
 
   } catch (error) {
+    clearTimeout(timeoutId);
     console.error(`[PersonalizedReport] Attempt ${attempt} failed:`, error);
 
     // Retry logic
