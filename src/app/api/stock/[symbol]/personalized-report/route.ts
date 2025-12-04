@@ -97,6 +97,7 @@ You must expand on every point significantly.
 - For every metric, explain "Why this matters to YOU" based on the user's profile.
 - Use analogies and clear explanations.
 - Provide hypothetical scenarios (e.g., "If the market drops 10%...").
+- **Avoid bullet points where possible; use full, detailed paragraphs.**
 
 The report should start with a profile summary and then analyze the stock FOR THIS SPECIFIC investor:
 
@@ -106,42 +107,54 @@ The report should start with a profile summary and then analyze the stock FOR TH
    - Their key behavioral tendencies to watch out for
    - **Detailed breakdown** of their psychometric scoring
 
-2. **Stock-Profile Match Analysis** (🎯)
+2. **Business Overview & Competitive Moat** (🏰)
+   - Detailed explanation of the company's business model
+   - Analysis of their competitive advantage (Moat)
+   - Revenue drivers and key markets
+   - **SWOT Analysis:** Strengths, Weaknesses, Opportunities, Threats
+
+3. **Macroeconomic Backdrop** (🌍)
+   - How current interest rates affect this company
+   - Impact of inflation and economic growth on this sector
+   - Geopolitical risks relevant to this stock
+   - **Sector Outlook:** Where is this industry heading in the next 5 years?
+
+4. **Stock-Profile Match Analysis** (🎯)
    - Give a MATCH SCORE (1-10) showing how well ${symbol} fits this investor
    - Explain exactly why it matches or doesn't match their profile
    - Compare stock's volatility/beta to their risk tolerance
    - Assess if the stock's characteristics align with their investment style
    - **Deep dive** into the compatibility of this stock with their long-term goals
 
-3. **Risk Analysis Tailored to This Investor** (⚠️)
+5. **Risk Analysis Tailored to This Investor** (⚠️)
    - Identify specific risks that matter MOST to a ${categoryInfo.label} investor
    - How the stock's volatility compares to what they can handle
    - Red flags specific to their capacity and willingness scores
    - How their behavioral biases might affect decisions about this stock
    - **Scenario Analysis:** Best case, Base case, and Worst case scenarios for this stock
 
-4. **Portfolio Integration** (📊)
+6. **Portfolio Integration** (📊)
    - What percentage of their EQUITY portion should go to this stock (max %)
    - How it fits with their ${allocation.stocks}/${allocation.bonds} target allocation
    - Diversification considerations for their risk level
    - Complementary holdings they should consider
    - **Rebalancing strategy:** When to buy more and when to sell
 
-5. **Hypothetical Investment Considerations** (✅)
+7. **Hypothetical Investment Considerations** (✅)
    - Educational discussion on entry approaches (e.g., DCA vs lump sum) suited to their risk tolerance
    - General position sizing principles based on their profile
    - Discussion on risk management and stop-loss concepts appropriate for their risk capacity
    - When an investor with this profile might consider adding or reducing positions
    - **Valuation Context:** How current valuation compares to historical norms
 
-6. **Key Metrics That Matter for This Investor** (📈)
+8. **Key Metrics That Matter for This Investor** (📈)
    - Highlight 5-7 metrics most relevant to their specific profile
    - Explain each metric's importance for their investment style
    - Flag any concerning values based on their risk capacity
    - Show how each metric affects suitability for them
    - **Historical context:** How these metrics compare to the 5-year average
 
-7. **Suitability Verdict** (💡)
+9. **Suitability Verdict** (💡)
    - Clear SUITABILITY RATING (High / Medium / Low) for THIS investor profile
    - Why this rating makes sense for their specific profile
    - What factors would improve or worsen the suitability
