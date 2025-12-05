@@ -60,6 +60,9 @@ export type { BrainstormIdea, BrainstormToggleProps, BrainstormOutputProps } fro
 export { InteractiveChart, ComparisonChart, MetricBar, parseChartFromResponse } from './InteractiveChart'
 export type { InteractiveChartProps, ComparisonChartProps, ChartData, ParsedChart } from './InteractiveChart'
 
+// AI PDF Viewer with streaming and annotations
+export { AiPdfViewer } from './AiPdfViewer'
+
 // Re-export store hooks for convenience
 export {
   useChatStore,

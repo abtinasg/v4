@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, FileText, Loader2, AlertCircle, Sparkles, Shield, TrendingUp, BarChart3, CheckCircle2, Users, GraduationCap, Zap, ArrowRight, Clock, FileCheck } from 'lucide-react';
+import { Download, FileText, Loader2, AlertCircle, Sparkles, Shield, TrendingUp, BarChart3, CheckCircle2, Users, GraduationCap, Zap, ArrowRight, Clock, FileCheck, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import { PersonalizedReportGenerator } from './personalized-report-generator';
+import { AiPdfViewer } from '@/components/ai/AiPdfViewer';
 
 type AudienceType = 'pro' | 'retail';
 
@@ -72,6 +73,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
   const [selectedAudience, setSelectedAudience] = useState<AudienceType | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
+  const [showViewer, setShowViewer] = useState(false);
   const normalizedProgress = progress.toLowerCase();
   const derivedStageIndex = loadingStages.findIndex((stage) =>
     stage.keywords.some((keyword) => normalizedProgress.includes(keyword)),
@@ -456,6 +458,46 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           </div>
         </div>
 
+        {/* Streaming Viewer Option - NEW */}
+        <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-5 w-5 text-indigo-400" />
+                <h4 className="text-sm font-semibold text-white">AI Streaming Viewer (NEW)</h4>
+                <span className="px-2 py-0.5 text-[9px] font-semibold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/25 uppercase tracking-wide">
+                  Beta
+                </span>
+              </div>
+              <p className="text-xs text-white/50 mb-3 leading-relaxed">
+                Watch AI generate your report in real-time with streaming. Highlight key sections, add notes, and download when complete.
+              </p>
+              <div className="flex flex-wrap gap-1.5 mb-0">
+                <span className="text-[10px] text-indigo-400/70 px-2.5 py-1 rounded-full bg-indigo-500/[0.08] border border-indigo-500/15 flex items-center gap-1.5">
+                  <Zap className="h-3 w-3" />
+                  Real-time Streaming
+                </span>
+                <span className="text-[10px] text-indigo-400/70 px-2.5 py-1 rounded-full bg-indigo-500/[0.08] border border-indigo-500/15 flex items-center gap-1.5">
+                  <Eye className="h-3 w-3" />
+                  Highlight & Annotate
+                </span>
+                <span className="text-[10px] text-indigo-400/70 px-2.5 py-1 rounded-full bg-indigo-500/[0.08] border border-indigo-500/15 flex items-center gap-1.5">
+                  <Download className="h-3 w-3" />
+                  Export to PDF
+                </span>
+              </div>
+            </div>
+            <Button
+              onClick={() => setShowViewer(true)}
+              size="sm"
+              className="h-10 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border-0 font-semibold text-xs transition-all duration-300 shadow-lg shadow-indigo-500/20 rounded-lg"
+            >
+              <Sparkles className="mr-2 h-3.5 w-3.5" />
+              Open Viewer
+            </Button>
+          </div>
+        </div>
+
         {/* Report Type Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {/* Pro Report Card */}
@@ -653,6 +695,17 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           <span className="text-xs text-white/30">Professional PDF Export</span>
         </div>
       </div>
+
+      {/* AI PDF Viewer Modal */}
+      <AnimatePresence>
+        {showViewer && (
+          <AiPdfViewer 
+            symbol={symbol} 
+            companyName={companyName} 
+            onClose={() => setShowViewer(false)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
