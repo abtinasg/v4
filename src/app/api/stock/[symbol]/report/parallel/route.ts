@@ -22,6 +22,7 @@ import {
   checkAndResetMonthlyCredits,
 } from '@/lib/credits';
 import { getFMPRawData } from '@/lib/data/fmp-adapter';
+import { getCached, setCached } from '@/lib/cache/report-cache';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -480,58 +481,71 @@ export async function POST(
     const audienceType = body.audienceType || 'pro';
     console.log(`[ParallelReport] Audience type: ${audienceType}`);
 
-    // === Fetch Stock Data ===
+    // === Fetch Stock Data (with caching) ===
     console.log(`[ParallelReport] Fetching stock data for ${upperSymbol}...`);
     const dataStartTime = Date.now();
     
     let stockData: StockData;
-    try {
-      const fmpRawData = await getFMPRawData(upperSymbol);
-      
-      if (!fmpRawData.profile && !fmpRawData.quote) {
-        throw new Error('No data returned from FMP');
+    const cacheKey = `fmp-data:${upperSymbol}`;
+    
+    // Try to get from cache first
+    const cachedData = getCached<StockData>(cacheKey);
+    if (cachedData) {
+      stockData = cachedData;
+      console.log(`[ParallelReport] Using cached data for ${upperSymbol}`);
+    } else {
+      // Fetch fresh data
+      try {
+        const fmpRawData = await getFMPRawData(upperSymbol);
+        
+        if (!fmpRawData.profile && !fmpRawData.quote) {
+          throw new Error('No data returned from FMP');
+        }
+        
+        const dataFetchTime = Date.now() - dataStartTime;
+        console.log(`[ParallelReport] Data fetched in ${dataFetchTime}ms`);
+        
+        const { profile, quote, keyMetrics, ratios, cashFlows } = fmpRawData;
+        const latestMetrics = keyMetrics?.[0];
+        const latestRatios = ratios?.[0];
+        const latestCashFlow = cashFlows?.[0];
+        
+        stockData = {
+          symbol: upperSymbol,
+          companyName: profile?.companyName || quote?.name || upperSymbol,
+          sector: profile?.sector || 'N/A',
+          industry: profile?.industry || 'N/A',
+          currentPrice: quote?.price || 0,
+          marketCap: quote?.marketCap || profile?.marketCap || 0,
+          metrics: {
+            pe: quote?.pe || latestRatios?.priceToEarningsRatio,
+            grossMargin: latestRatios?.grossProfitMargin,
+            operatingMargin: latestRatios?.operatingProfitMargin,
+            profitMargin: latestRatios?.netProfitMargin,
+            returnOnEquity: latestMetrics?.returnOnEquity,
+            returnOnAssets: latestMetrics?.returnOnAssets,
+            currentRatio: latestMetrics?.currentRatio || latestRatios?.currentRatio,
+            quickRatio: latestRatios?.quickRatio,
+            debtToEquity: latestRatios?.debtToEquityRatio,
+            freeCashflow: latestCashFlow?.freeCashFlow,
+            operatingCashflow: latestCashFlow?.operatingCashFlow,
+            revenueGrowth: null,
+            earningsGrowth: null,
+          },
+        };
+        
+        // Cache the data for 5 minutes
+        setCached(cacheKey, stockData);
+      } catch (error) {
+        console.error(`[ParallelReport] Failed to fetch data for ${upperSymbol}:`, error);
+        return NextResponse.json(
+          { 
+            error: `Could not retrieve market data for ${upperSymbol}`,
+            details: 'Market data API may be temporarily unavailable.'
+          },
+          { status: 503 }
+        );
       }
-      
-      const dataFetchTime = Date.now() - dataStartTime;
-      console.log(`[ParallelReport] Data fetched in ${dataFetchTime}ms`);
-      
-      const { profile, quote, keyMetrics, ratios, cashFlows } = fmpRawData;
-      const latestMetrics = keyMetrics?.[0];
-      const latestRatios = ratios?.[0];
-      const latestCashFlow = cashFlows?.[0];
-      
-      stockData = {
-        symbol: upperSymbol,
-        companyName: profile?.companyName || quote?.name || upperSymbol,
-        sector: profile?.sector || 'N/A',
-        industry: profile?.industry || 'N/A',
-        currentPrice: quote?.price || 0,
-        marketCap: quote?.marketCap || profile?.marketCap || 0,
-        metrics: {
-          pe: quote?.pe || latestRatios?.priceToEarningsRatio,
-          grossMargin: latestRatios?.grossProfitMargin,
-          operatingMargin: latestRatios?.operatingProfitMargin,
-          profitMargin: latestRatios?.netProfitMargin,
-          returnOnEquity: latestMetrics?.returnOnEquity,
-          returnOnAssets: latestMetrics?.returnOnAssets,
-          currentRatio: latestMetrics?.currentRatio || latestRatios?.currentRatio,
-          quickRatio: latestRatios?.quickRatio,
-          debtToEquity: latestRatios?.debtToEquityRatio,
-          freeCashflow: latestCashFlow?.freeCashFlow,
-          operatingCashflow: latestCashFlow?.operatingCashFlow,
-          revenueGrowth: null,
-          earningsGrowth: null,
-        },
-      };
-    } catch (error) {
-      console.error(`[ParallelReport] Failed to fetch data for ${upperSymbol}:`, error);
-      return NextResponse.json(
-        { 
-          error: `Could not retrieve market data for ${upperSymbol}`,
-          details: 'Market data API may be temporarily unavailable.'
-        },
-        { status: 503 }
-      );
     }
     
     console.log(`[ParallelReport] Stock data prepared successfully`);

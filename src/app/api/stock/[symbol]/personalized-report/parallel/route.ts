@@ -21,6 +21,7 @@ import {
 } from '@/lib/credits';
 import { getCategoryDisplayInfo, type RiskProfileResult } from '@/lib/risk-assessment';
 import { getFMPRawData } from '@/lib/data/fmp-adapter';
+import { getCached, setCached } from '@/lib/cache/report-cache';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -430,43 +431,55 @@ export async function POST(
       );
     }
 
-    // Fetch stock data
+    // Fetch stock data (with caching)
     console.log(`[ParallelPersonalized] Fetching data for ${upperSymbol}...`);
     let metricsData;
-    try {
-      const fmpData = await getFMPRawData(upperSymbol);
+    const cacheKey = `fmp-metrics:${upperSymbol}`;
+    
+    // Try cache first
+    const cachedMetrics = getCached<any>(cacheKey);
+    if (cachedMetrics) {
+      metricsData = cachedMetrics;
+      console.log(`[ParallelPersonalized] Using cached data for ${upperSymbol}`);
+    } else {
+      // Fetch fresh data
+      try {
+        const fmpData = await getFMPRawData(upperSymbol);
 
-      if (!fmpData.profile && !fmpData.quote) {
-        throw new Error('No data returned from FMP');
+        if (!fmpData.profile && !fmpData.quote) {
+          throw new Error('No data returned from FMP');
+        }
+
+        metricsData = {
+          symbol: upperSymbol,
+          companyName: fmpData.profile?.companyName || companyName,
+          sector: fmpData.profile?.sector || 'N/A',
+          industry: fmpData.profile?.industry || 'N/A',
+          price: fmpData.quote?.price || 0,
+          marketCap: fmpData.quote?.marketCap || 0,
+          pe: fmpData.quote?.pe || fmpData.ratios?.[0]?.priceToEarningsRatio || null,
+          pb: fmpData.ratios?.[0]?.priceToBookRatio || null,
+          dividendYield: fmpData.ratios?.[0]?.dividendYield || 0,
+          beta: fmpData.profile?.beta || null,
+          grossMargin: fmpData.ratios?.[0]?.grossProfitMargin || null,
+          operatingMargin: fmpData.ratios?.[0]?.operatingProfitMargin || null,
+          netMargin: fmpData.ratios?.[0]?.netProfitMargin || null,
+          roe: fmpData.keyMetrics?.[0]?.returnOnEquity || null,
+          roa: fmpData.keyMetrics?.[0]?.returnOnAssets || null,
+          debtToEquity: fmpData.ratios?.[0]?.debtToEquityRatio || null,
+          currentRatio: fmpData.ratios?.[0]?.currentRatio || null,
+        };
+
+        // Cache for 5 minutes
+        setCached(cacheKey, metricsData);
+        console.log(`[ParallelPersonalized] Data fetched and cached successfully`);
+      } catch (error) {
+        console.error(`[ParallelPersonalized] Failed to fetch data:`, error);
+        return NextResponse.json(
+          { error: 'Failed to fetch stock data' },
+          { status: 500 }
+        );
       }
-
-      metricsData = {
-        symbol: upperSymbol,
-        companyName: fmpData.profile?.companyName || companyName,
-        sector: fmpData.profile?.sector || 'N/A',
-        industry: fmpData.profile?.industry || 'N/A',
-        price: fmpData.quote?.price || 0,
-        marketCap: fmpData.quote?.marketCap || 0,
-        pe: fmpData.quote?.pe || fmpData.ratios?.[0]?.priceToEarningsRatio || null,
-        pb: fmpData.ratios?.[0]?.priceToBookRatio || null,
-        dividendYield: fmpData.ratios?.[0]?.dividendYield || 0,
-        beta: fmpData.profile?.beta || null,
-        grossMargin: fmpData.ratios?.[0]?.grossProfitMargin || null,
-        operatingMargin: fmpData.ratios?.[0]?.operatingProfitMargin || null,
-        netMargin: fmpData.ratios?.[0]?.netProfitMargin || null,
-        roe: fmpData.keyMetrics?.[0]?.returnOnEquity || null,
-        roa: fmpData.keyMetrics?.[0]?.returnOnAssets || null,
-        debtToEquity: fmpData.ratios?.[0]?.debtToEquityRatio || null,
-        currentRatio: fmpData.ratios?.[0]?.currentRatio || null,
-      };
-
-      console.log(`[ParallelPersonalized] Data fetched successfully`);
-    } catch (error) {
-      console.error(`[ParallelPersonalized] Failed to fetch data:`, error);
-      return NextResponse.json(
-        { error: 'Failed to fetch stock data' },
-        { status: 500 }
-      );
     }
 
     // Generate chunks in parallel
