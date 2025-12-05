@@ -46,7 +46,7 @@ export function Navigation() {
               </div>
               <span className="text-lg font-semibold tracking-tight">
                 <span className="text-white">Deep</span>
-                <span className="bg-gradient-to-r from-[#5B7CFF] to-[#00C9E4] bg-clip-text text-transparent">Terminal</span>
+                <span className="bg-gradient-to-r from-[#5B7CFF] to-[#00C9E4] bg-clip-text text-transparent">in</span>
               </span>
             </Link>
 

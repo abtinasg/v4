@@ -44,12 +44,6 @@ export default function Home() {
         {/* Hero Section - Main value proposition */}
         <Hero />
 
-        {/* Trust Bar - Social proof and metrics */}
-        <TrustBar />
-
-        {/* Vision Section - Company values */}
-        <Vision />
-
         {/* Features Section - Core product features */}
         <Features />
 

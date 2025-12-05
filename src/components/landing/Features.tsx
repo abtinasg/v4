@@ -10,7 +10,6 @@ const features = [
     description: 'Bloomberg-style command interface. Type any stock symbol and get instant comprehensive analysis with real-time data.',
     bullets: ['Real-time market data', 'Keyboard shortcuts', 'Multi-panel layouts'],
     color: '#5B7CFF',
-    gradient: 'from-[#5B7CFF]/20 to-[#5B7CFF]/5',
     span: 'lg:col-span-2'
   },
   {
@@ -19,7 +18,6 @@ const features = [
     description: 'Track your favorite stocks with real-time prices, customizable alerts, and personal notes.',
     bullets: ['Price alerts', 'Custom notes', 'Quick actions'],
     color: '#00C9E4',
-    gradient: 'from-[#00C9E4]/20 to-[#00C9E4]/5',
     span: ''
   },
   {
@@ -28,7 +26,6 @@ const features = [
     description: 'Ask questions in plain English. Get intelligent, data-backed answers powered by 3 specialized AI models.',
     bullets: ['Natural language', '3 AI models', 'Instant insights'],
     color: '#8B5CF6',
-    gradient: 'from-[#8B5CF6]/20 to-[#8B5CF6]/5',
     span: ''
   },
   {
@@ -37,7 +34,6 @@ const features = [
     description: 'Institutional-grade metrics covering valuation, profitability, growth, technical indicators, and more.',
     bullets: ['Valuation ratios', 'Technical signals', 'Quality scores'],
     color: '#22C55E',
-    gradient: 'from-[#22C55E]/20 to-[#22C55E]/5',
     span: ''
   },
   {
@@ -46,7 +42,6 @@ const features = [
     description: 'Track your investments with P&L calculations, target prices, and stop-loss levels.',
     bullets: ['P&L tracking', 'Price targets', 'Position sizing'],
     color: '#F59E0B',
-    gradient: 'from-[#F59E0B]/20 to-[#F59E0B]/5',
     span: ''
   },
   {
@@ -55,83 +50,79 @@ const features = [
     description: 'Never miss an opportunity. Get notified via email and push when your conditions are met.',
     bullets: ['Email alerts', 'Push notifications', 'Custom conditions'],
     color: '#EF4444',
-    gradient: 'from-[#EF4444]/20 to-[#EF4444]/5',
     span: 'lg:col-span-2'
   },
 ]
 
 export function Features() {
   return (
-    <section id="features" className="relative py-28 md:py-36 bg-[#030508] overflow-hidden">
-      {/* Premium ambient background */}
+    <section id="features" className="relative py-32 md:py-48 bg-[#030508] overflow-hidden">
+      {/* 1. Ambient Background - Calm & Premium */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
-        <div className="absolute top-[20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#5B7CFF]/[0.04] blur-[150px]" />
-        <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#00C9E4]/[0.03] blur-[120px]" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+        {/* Soft, large blurs for atmosphere */}
+        <div className="absolute top-[10%] left-[20%] w-[800px] h-[800px] rounded-full bg-[#5B7CFF]/[0.02] blur-[180px]" />
+        <div className="absolute bottom-[10%] right-[20%] w-[800px] h-[800px] rounded-full bg-[#8B5CF6]/[0.02] blur-[180px]" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#5B7CFF]/20 bg-[#5B7CFF]/[0.06] px-5 py-2 text-sm font-medium text-[#5B7CFF] mb-8">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#5B7CFF] animate-pulse" />
-            Core Features
+        
+        {/* 2. Information Hierarchy - Header */}
+        <div className="max-w-3xl mx-auto text-center mb-24">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-md mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#5B7CFF]" />
+            <span className="text-xs font-medium tracking-widest text-gray-400 uppercase">Platform Capabilities</span>
           </div>
 
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-white mb-6">
-            Everything You Need for{' '}
-            <span className="bg-gradient-to-r from-[#5B7CFF] via-[#00C9E4] to-[#8B5CF6] bg-clip-text text-transparent">
+          {/* Headline */}
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mb-8 leading-[1.1]">
+            Everything You Need for <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5B7CFF] via-[#00C9E4] to-[#8B5CF6]">
               Professional Analysis
             </span>
           </h2>
 
-          <p className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-light">
+          {/* Subheadline */}
+          <p className="text-xl text-gray-400 font-light leading-relaxed">
             From real-time market data to AI-powered insights, Deep Terminal gives you the tools that institutional investors use — at a fraction of the cost.
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature) => (
+        {/* 3. Premium Card Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {features.map((feature, i) => (
             <div
               key={feature.title}
-              className={`group relative rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-transparent backdrop-blur-sm overflow-hidden transition-all duration-500 hover:border-white/[0.12] ${feature.span}`}
+              className={`group relative p-8 lg:p-10 rounded-3xl border border-white/[0.08] bg-[#0A0F18]/60 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] hover:border-white/[0.15] ${feature.span}`}
             >
-              {/* Hover gradient */}
-              <div
-                className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
+              {/* Soft Gradient Glow on Hover */}
+              <div 
+                className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                style={{ background: `radial-gradient(800px circle at top right, ${feature.color}08, transparent 40%)` }}
               />
 
-              {/* Top glow line */}
-              <div
-                className="absolute top-0 left-8 right-8 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                style={{ background: `linear-gradient(to right, transparent, ${feature.color}50, transparent)` }}
-              />
-
-              <div className="relative p-8">
+              <div className="relative flex flex-col h-full">
                 {/* Icon */}
-                <div
-                  className="h-14 w-14 rounded-2xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110"
-                  style={{
-                    background: `linear-gradient(135deg, ${feature.color}25, ${feature.color}10)`,
-                    boxShadow: `0 0 30px ${feature.color}15`
-                  }}
+                <div 
+                  className="h-14 w-14 rounded-2xl flex items-center justify-center mb-8 border border-white/[0.08] bg-white/[0.02] group-hover:scale-110 transition-transform duration-500"
                 >
-                  <feature.icon className="h-7 w-7" style={{ color: feature.color }} />
+                  <feature.icon className="h-6 w-6" style={{ color: feature.color }} />
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                <p className="text-base text-gray-400 leading-relaxed mb-6">{feature.description}</p>
+                <div className="mb-auto">
+                  <h3 className="text-2xl font-medium text-white mb-3 tracking-tight">{feature.title}</h3>
+                  <p className="text-base text-gray-400 font-light leading-relaxed mb-8">
+                    {feature.description}
+                  </p>
+                </div>
 
-                {/* Bullets */}
-                <div className="space-y-2.5">
+                {/* Bullets - Minimal & Clean */}
+                <div className="space-y-3 pt-6 border-t border-white/[0.04]">
                   {feature.bullets.map((bullet) => (
-                    <div key={bullet} className="flex items-center gap-3 text-sm text-gray-300">
-                      <div
-                        className="h-1.5 w-1.5 rounded-full"
-                        style={{ backgroundColor: feature.color, boxShadow: `0 0 8px ${feature.color}` }}
-                      />
+                    <div key={bullet} className="flex items-center gap-3 text-sm text-gray-400 font-light group-hover:text-gray-300 transition-colors">
+                      <div className="w-1 h-1 rounded-full bg-gray-600 group-hover:bg-white transition-colors" />
                       {bullet}
                     </div>
                   ))}
@@ -141,14 +132,14 @@ export function Features() {
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="text-center mt-16">
+        {/* 5. CTA */}
+        <div className="text-center mt-24">
           <Link
             href="/sign-up"
-            className="group inline-flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.02] px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-[#5B7CFF]/30 hover:bg-[#5B7CFF]/[0.05]"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-black font-medium transition-all hover:bg-gray-200 hover:scale-[1.02] shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]"
           >
-            Explore All Features
-            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+            <span>Explore All Features</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
