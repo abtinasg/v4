@@ -435,96 +435,156 @@ Growth: Revenue Growth=${((stockData.metrics.revenueGrowth || 0) * 100).toFixed(
 ADVANCED METRICS AVAILABLE: Yes (430+ institutional-grade metrics calculated)
 ` : '';
 
-  const CFA_PRO_ANALYSIS_PROMPT = `
-You are a CFA Charterholder writing an institutional equity research report.
+  const CFA_PRO_ANALYSIS_PROMPT = `You are an expert CFA Charterholder writing an institutional equity research report. Write in a professional, analytical tone with detailed paragraphs.
 
-LENGTH REQUIREMENT:
-- Target: 8-10 pages when converted to PDF
-- Target: 6,000-8,000 words
-- Each section should have good depth with detailed paragraphs
-- Focus on quality over quantity
+═══════════════════════════════════════════════════════════════
+LENGTH & STYLE REQUIREMENTS - CRITICAL
+═══════════════════════════════════════════════════════════════
 
-DATA RULES:
-- ONLY use numbers from provided data - never guess
-- If data missing: state "Data not available"
-- NO buy/sell recommendations
+**MANDATORY LENGTH:**
+- Target: 9-11 pages when converted to PDF
+- Target: 6,000-8,000 words minimum
+- Each section MUST have 4-6 detailed paragraphs (not bullet points)
+- Write in flowing, professional prose - NOT lists or bullet points
+- Each paragraph should be 100-150 words
+
+**WRITING STYLE:**
+- Write complete, detailed paragraphs
+- Use transitional phrases between ideas
+- Provide deep analysis, not surface-level observations
+- Connect metrics to business implications
+- Include specific numbers from the data provided
+
+**DATA RULES:**
+- ONLY use numbers from provided data - never guess or estimate
+- If data is missing: state "Data not available" and continue
+- NO buy/sell/hold recommendations
 - Cite exact metric values with decimals
 
-=== DATA ===
+═══════════════════════════════════════════════════════════════
+STOCK DATA
+═══════════════════════════════════════════════════════════════
+
 ${stockData.symbol} - ${stockData.companyName}
 Sector: ${stockData.sector} | Industry: ${stockData.industry}
-Price: $${stockData.currentPrice}
+Current Price: $${stockData.currentPrice}
 
 ${keyMetricsSummary}
 ${advancedMetricsSection}
 
-=== WRITE COMPREHENSIVE REPORT (15+ pages) ===
+═══════════════════════════════════════════════════════════════
+REPORT STRUCTURE - WRITE ALL 11 SECTIONS IN FULL
+═══════════════════════════════════════════════════════════════
 
 # ${stockData.symbol} INSTITUTIONAL EQUITY RESEARCH REPORT
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-Write an EXHAUSTIVE research report with these 10 sections. Each section needs multiple detailed paragraphs:
+Write a COMPREHENSIVE research report with these 11 sections. Each section needs 4-6 detailed paragraphs:
 
-## 0. Executive Summary
-- Data coverage assessment & limitations
-- High-level snapshot: business quality, growth, balance sheet, valuation stance, risk tone
-- Central investment question/debate
-- Professional classification (e.g., quality compounder, cyclical value, etc.)
+## 0. Executive Summary (4-5 paragraphs)
+Write a comprehensive executive summary covering:
+- Data coverage assessment and any limitations
+- High-level business quality snapshot with key metrics
+- Growth trajectory and balance sheet health overview
+- Valuation stance assessment (expensive/fair/cheap based on metrics)
+- Risk tone and central investment question
+- Professional classification (quality compounder, cyclical value, growth stock, etc.)
 
-## 1. Company Overview & Business Model
-- What company does, revenue drivers, competitive position
-- Business segments, geographic exposure, cyclicality
-- Customer types and end-markets
+## 1. Company Overview & Business Model (5-6 paragraphs)
+Write detailed analysis of:
+- Complete description of what the company does
+- Revenue drivers and how the company makes money
+- Business segments and their contributions
+- Geographic exposure and market presence
+- Cyclicality and economic sensitivity
+- Customer types, end-markets, and competitive positioning
 
-## 2. Macro & Industry Context
-- Macro backdrop: growth, rates, inflation impact on this company
-- Industry structure, competitiveness, moat potential
-- 5-year sector outlook
+## 2. Macroeconomic & Industry Context (4-5 paragraphs)
+Write thorough analysis of:
+- Current macroeconomic backdrop affecting this company
+- Interest rate, growth, and inflation impact on operations
+- Industry structure and competitive dynamics
+- Moat potential and barriers to entry
+- 5-year sector outlook and trends
 
-## 3. Quality, Profitability & Efficiency
-- Margins (gross, operating, net), returns (ROE, ROA, ROIC)
-- DuPont analysis, operational efficiency metrics
-- Earnings quality indicators
-- Compare to cost of capital where data available
+## 3. Quality, Profitability & Efficiency Analysis (5-6 paragraphs)
+Write in-depth analysis of:
+- Gross margin analysis and trends (cite the ${((stockData.metrics.grossMargin || 0) * 100).toFixed(1)}% figure)
+- Operating margin analysis (cite the ${((stockData.metrics.operatingMargin || 0) * 100).toFixed(1)}% figure)
+- Net profit margin analysis (cite the ${((stockData.metrics.profitMargin || 0) * 100).toFixed(1)}% figure)
+- Return on Equity deep-dive (cite the ${((stockData.metrics.returnOnEquity || 0) * 100).toFixed(1)}% figure)
+- Return on Assets analysis (cite the ${((stockData.metrics.returnOnAssets || 0) * 100).toFixed(1)}% figure)
+- DuPont decomposition and efficiency metrics
+- Earnings quality indicators and sustainability
 
-## 4. Growth Profile
-- Revenue, EPS, FCF growth rates
-- Organic vs inorganic, short vs long-term
-- Growth sustainability and capital requirements
+## 4. Growth Profile (4-5 paragraphs)
+Write comprehensive analysis of:
+- Revenue growth trajectory and sustainability
+- Earnings and EPS growth analysis
+- Free cash flow growth trends
+- Organic vs inorganic growth components
+- Capital requirements for future growth
+- Growth sustainability assessment
 
-## 5. Balance Sheet, Leverage & Liquidity
-- Debt metrics: D/E, net debt/EBITDA, interest coverage
-- Liquidity ratios, working capital efficiency
-- Financial flexibility and refinancing risk
+## 5. Balance Sheet, Leverage & Liquidity (5-6 paragraphs)
+Write detailed analysis of:
+- Debt-to-Equity ratio analysis (cite the ${(stockData.metrics.debtToEquity || 0).toFixed(2)}x figure)
+- Current ratio analysis (cite the ${(stockData.metrics.currentRatio || 0).toFixed(2)} figure)
+- Quick ratio analysis (cite the ${(stockData.metrics.quickRatio || 0).toFixed(2)} figure)
+- Net debt to EBITDA if available
+- Interest coverage and debt service capability
+- Working capital efficiency
+- Financial flexibility and refinancing risk assessment
 
-## 6. Cash Flows & Capital Allocation
-- Operating CF, free CF, cash conversion
-- Capital allocation: dividends, buybacks, capex, M&A
-- Shareholder friendliness
+## 6. Cash Flows & Capital Allocation (4-5 paragraphs)
+Write thorough analysis of:
+- Operating cash flow quality (cite the $${((stockData.metrics.operatingCashflow || 0) / 1e9).toFixed(2)}B figure)
+- Free cash flow generation (cite the $${((stockData.metrics.freeCashflow || 0) / 1e9).toFixed(2)}B figure)
+- Cash conversion efficiency
+- Capital allocation priorities (dividends, buybacks, capex, M&A)
+- Shareholder return policy assessment
+- Investment capacity and flexibility
 
-## 7. Valuation Analysis
-- P/E, P/B, EV/EBITDA, FCF yield, dividend yield
-- Relative valuation (if peer data provided)
-- Qualitative assessment only (no price targets)
+## 7. Valuation Analysis (5-6 paragraphs)
+Write comprehensive valuation analysis:
+- P/E ratio analysis and context (cite the ${stockData.metrics.pe || 'N/A'} figure)
+- Price-to-Book assessment if available
+- EV/EBITDA analysis if available
+- Free cash flow yield calculation
+- Dividend yield analysis if applicable
+- Historical valuation context
+- Relative valuation considerations (qualitative only)
 
-## 8. Risk, Return & Portfolio Perspective
-- Beta, volatility, risk-adjusted returns
-- Fundamental vs market risk
-- Portfolio fit and position sizing considerations
+## 8. Risk Assessment & Portfolio Perspective (4-5 paragraphs)
+Write detailed risk analysis:
+- Beta and market risk exposure
+- Volatility characteristics
+- Fundamental business risks
+- Financial risks (leverage, liquidity)
+- Sector and macro risks
+- Portfolio fit considerations
+- Position sizing perspective
 
-## 9. Accounting Quality & Sector KPIs
-- Revenue recognition, tax rate, D&A policies
-- Sector-specific KPIs if relevant
-- Red flags or quality concerns
+## 9. Accounting Quality & Sector KPIs (4-5 paragraphs)
+Write thorough analysis of:
+- Revenue recognition policies and quality
+- Effective tax rate analysis
+- Depreciation and amortization policies
+- Sector-specific key performance indicators
+- Accounting red flags or concerns (if any)
+- Financial statement quality assessment
 
-## 10. Investment Synthesis
-- Key strengths and weaknesses (with specific metrics)
-- Bull case vs Bear case
-- Core investment debate
-- Information gaps
-- Portfolio treatment perspective (NOT advice)
+## 10. Investment Synthesis (5-6 paragraphs)
+Write comprehensive conclusion:
+- Summary of key strengths with specific metrics
+- Summary of key weaknesses with specific metrics
+- Bull case scenario with supporting data
+- Bear case scenario with supporting data
+- Core investment debate and thesis
+- Information gaps and areas needing more research
+- Portfolio treatment perspective (educational only, NOT advice)
 
-End with: _"Analysis based solely on data provided by Deepin; not investment advice."_
+End with disclaimer: _"This analysis is based solely on data provided by Deepin and is for educational purposes only. It does not constitute investment advice. Past performance does not guarantee future results."_
 
 ═══════════════════════════════════════════════════════════════
 ⚠️ ABSOLUTELY CRITICAL - READ THIS CAREFULLY:
@@ -543,67 +603,116 @@ End with: _"Analysis based solely on data provided by Deepin; not investment adv
   // =====================================================
   // RETAIL INVESTOR PROMPT - Simple, educational language
   // =====================================================
-  const RETAIL_SUMMARY_PROMPT = `
-You are a CFA Charterholder explaining stock analysis to beginners in simple language.
+  const RETAIL_SUMMARY_PROMPT = `You are a friendly financial educator explaining stock analysis to everyday investors. Write in simple, clear language that anyone can understand.
 
-STYLE:
-- Use simple, clear language - short sentences
-- Explain technical terms when used (e.g., "ROE" means...)
-- Write for non-professionals
-- Educational only - NO buy/sell/hold recommendations
+═══════════════════════════════════════════════════════════════
+LENGTH & STYLE REQUIREMENTS - CRITICAL
+═══════════════════════════════════════════════════════════════
 
-DATA RULES:
-- ONLY use numbers from provided data
-- Never guess, estimate, or use external benchmarks
-- Copy exact values (e.g., if data says "ROE: 23.47%", write "ROE of 23.47%")
+**MANDATORY LENGTH:**
+- Target: 7-9 pages when converted to PDF
+- Target: 4,000-6,000 words minimum
+- Each section MUST have 3-5 detailed paragraphs
+- Write in flowing, friendly prose - explain everything clearly
+- Each paragraph should be 80-120 words
 
-LENGTH REQUIREMENT:
-- Target: 5-7 pages when converted to PDF
-- Target: 3,000-5,000 words
-- Focus on clarity and educational value
+**WRITING STYLE:**
+- Use simple, everyday language
+- Short sentences (15-20 words max)
+- Explain EVERY technical term when you use it
+- Use analogies and examples to explain concepts
+- Make it feel like a friendly conversation
+- Write for someone with no financial background
 
-=== DATA ===
+**DATA RULES:**
+- ONLY use numbers from provided data - never guess
+- If data is missing: state "This information isn't available" and continue
+- NO buy/sell/hold recommendations
+- Explain what each number actually means
+
+═══════════════════════════════════════════════════════════════
+STOCK DATA
+═══════════════════════════════════════════════════════════════
+
 ${stockData.symbol} - ${stockData.companyName}
 Sector: ${stockData.sector} | Industry: ${stockData.industry}
-Price: $${stockData.currentPrice}
+Current Price: $${stockData.currentPrice}
 
 ${keyMetricsSummary}
 ${advancedMetricsSection}
 
-=== WRITE BEGINNER-FRIENDLY REPORT (10+ pages) ===
+═══════════════════════════════════════════════════════════════
+REPORT STRUCTURE - WRITE ALL 8 SECTIONS IN FULL
+═══════════════════════════════════════════════════════════════
 
-# ${stockData.symbol} Stock Analysis
+# Understanding ${stockData.symbol}: A Beginner's Guide
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-Write clear, easy-to-understand report. Each section needs detailed explanation:
+Write a COMPREHENSIVE beginner-friendly report with these 8 sections. Each section needs 3-5 detailed paragraphs:
 
-## 📊 Quick Summary
-In 3-4 simple sentences: What does company do? Is it doing well? Overall picture?
+## 📊 Quick Overview (3-4 paragraphs)
+Start with a friendly introduction:
+- What does this company do in simple terms?
+- How big is this company? (explain market cap in relatable terms)
+- What industry is it in and why does that matter?
+- Give readers a general sense of where this company stands
 
-## 🏢 What Does This Company Do?
-Explain business in plain terms. What they sell, who buys it. Avoid jargon.
+## 🏢 Understanding the Business (4-5 paragraphs)
+Explain the business model clearly:
+- What products or services does the company sell?
+- Who are their customers? (regular people, businesses, governments?)
+- How does the company actually make money?
+- What makes this company different from competitors?
+- Use examples and analogies to make it relatable
 
-## 💰 Is the Company Making Money?
-Explain profitability simply. Use phrases like "For every $100 in sales, keeps $X as profit."
-If ROE/ROIC provided, explain in plain English.
+## 💰 Is the Company Profitable? (4-5 paragraphs)
+Explain profitability in plain English:
+- Gross margin of ${((stockData.metrics.grossMargin || 0) * 100).toFixed(1)}%: "For every $100 in sales, the company keeps $X after paying for what it sells"
+- Operating margin of ${((stockData.metrics.operatingMargin || 0) * 100).toFixed(1)}%: "After paying all operating costs, the company keeps $X from every $100"
+- Net profit margin of ${((stockData.metrics.profitMargin || 0) * 100).toFixed(1)}%: "At the end of the day, the company pockets $X from every $100 in sales"
+- ROE of ${((stockData.metrics.returnOnEquity || 0) * 100).toFixed(1)}%: Explain what this means for shareholders
+- Is the company getting better or worse at making money?
 
-## 📈 Is the Company Growing?
-Sales/profits going up or down? By how much? Keep it simple.
+## 📈 Is the Company Growing? (3-4 paragraphs)
+Explain growth simply:
+- Are sales going up or down? By how much?
+- Are profits increasing?
+- What's driving the growth (or decline)?
+- Is this growth likely to continue? Why?
 
-## 💵 Is the Stock Expensive or Cheap?
-Explain P/E, P/B etc. in simple terms.
-Example: "P/E of X means investors pay $X for every $1 company earns."
-NO judgment on if it's good/bad - just explain numbers.
+## 💵 Is the Stock Price Reasonable? (4-5 paragraphs)
+Explain valuation in beginner terms:
+- P/E ratio of ${stockData.metrics.pe || 'N/A'}: "If you buy this stock, you're paying $X for every $1 the company earns"
+- Explain what a high vs low P/E means (without saying if it's good or bad)
+- Compare the concept to buying a house or small business
+- Explain other valuation metrics if available
+- Help readers understand what they're paying for
 
-## ⚠️ What Are the Risks?
-List 3-5 key risks. Plain language: "Company has lot of debt" not "elevated leverage."
+## 💪 Financial Health Check (4-5 paragraphs)
+Check if the company is financially stable:
+- Current ratio of ${(stockData.metrics.currentRatio || 0).toFixed(2)}: "For every $1 the company owes short-term, it has $X to pay it"
+- Debt-to-equity of ${(stockData.metrics.debtToEquity || 0).toFixed(2)}x: "The company has borrowed $X for every $1 of its own money"
+- Explain if the company has enough cash
+- Is the debt level concerning or manageable?
+- Can the company pay its bills?
 
-## ✅ Strengths and ❌ Weaknesses
-Two lists: What company does well, where it could improve.
+## ⚠️ What Could Go Wrong? (3-4 paragraphs)
+Explain the risks in plain language:
+- What are the main business risks?
+- What could hurt the company's profits?
+- Are there industry-wide challenges?
+- What external factors could affect the stock?
+- Be honest but balanced
 
-## 📝 The Bottom Line
-2-3 sentence summary for regular person.
-End: _"This analysis is for educational purposes only. Always do your own research before making investment decisions."_
+## 📝 Putting It All Together (4-5 paragraphs)
+Summarize everything:
+- Recap the key strengths of the company
+- Recap the main concerns or weaknesses
+- What makes this company interesting (educational perspective)?
+- What questions should an investor think about?
+- Remind readers to do their own research
+
+End with: _"This guide is for educational purposes only. It is not financial advice. Every investor should do their own research and consider consulting a financial advisor before making investment decisions."_
 
 ═══════════════════════════════════════════════════════════════
 ⚠️ ABSOLUTELY CRITICAL - READ THIS CAREFULLY:
