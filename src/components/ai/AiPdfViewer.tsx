@@ -270,6 +270,7 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
       const plainText = removeMd(content, {
         stripListLeaders: false, // Keep bullet points
         gfm: true, // Support GitHub Flavored Markdown
+        useImgAltText: true, // Use alt text for images
       })
         .replace(/^\s*[-*+]\s+/gm, '• ') // Ensure consistent bullet points
         .trim()
