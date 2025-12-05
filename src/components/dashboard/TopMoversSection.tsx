@@ -133,14 +133,14 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 p-1 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+          <div className="flex gap-1 p-1 rounded-xl bg-white/[0.02] border border-white/[0.04] overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value as TabValue)}
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg',
-                  'text-xs font-medium transition-all duration-200',
+                  'flex-1 flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 rounded-lg min-w-0',
+                  'text-[10px] sm:text-xs font-medium transition-all duration-200 whitespace-nowrap',
                   activeTab === tab.value
                     ? `bg-${tab.color}-500/10 text-${tab.color}-400 border border-${tab.color}-500/20`
                     : 'text-white/40 hover:text-white/60 border border-transparent'
@@ -160,8 +160,8 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
                                'rgba(245, 158, 11, 0.2)',
                 } : {}}
               >
-                <tab.icon className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <tab.icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                <span className="truncate">{tab.label}</span>
               </button>
             ))}
           </div>
@@ -170,10 +170,10 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
         {/* Table */}
         <div className="p-6 pt-4">
           {/* Table Header */}
-          <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs text-white/30 uppercase tracking-wide font-medium border-b border-white/[0.04]">
-            <div className="col-span-4">Symbol</div>
+          <div className="grid grid-cols-8 sm:grid-cols-12 gap-2 sm:gap-4 px-3 sm:px-4 py-2 text-[10px] sm:text-xs text-white/30 uppercase tracking-wide font-medium border-b border-white/[0.04]">
+            <div className="col-span-3 sm:col-span-4">Symbol</div>
             <div className="col-span-2 text-right">Price</div>
-            <div className="col-span-2 text-right">Change</div>
+            <div className="col-span-3 sm:col-span-2 text-right">Change</div>
             <div className="col-span-2 text-right hidden sm:block">Volume</div>
             <div className="col-span-2 text-right hidden sm:block">Mkt Cap</div>
           </div>
@@ -190,19 +190,19 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
             >
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-4 px-4 py-3 animate-pulse">
-                    <div className="col-span-4 flex items-center gap-3">
-                      <div className="h-4 w-12 bg-white/[0.06] rounded" />
-                      <div className="h-3 w-20 bg-white/[0.04] rounded hidden sm:block" />
+                  <div key={i} className="grid grid-cols-8 sm:grid-cols-12 gap-2 sm:gap-4 px-3 sm:px-4 py-3 animate-pulse">
+                    <div className="col-span-3 sm:col-span-4 flex items-center gap-2 sm:gap-3">
+                      <div className="h-4 w-10 sm:w-12 bg-white/[0.06] rounded" />
+                      <div className="h-3 w-16 sm:w-20 bg-white/[0.04] rounded hidden sm:block" />
                     </div>
-                    <div className="col-span-2"><div className="h-4 w-16 bg-white/[0.06] rounded ml-auto" /></div>
-                    <div className="col-span-2"><div className="h-4 w-14 bg-white/[0.06] rounded ml-auto" /></div>
+                    <div className="col-span-2"><div className="h-4 w-12 sm:w-16 bg-white/[0.06] rounded ml-auto" /></div>
+                    <div className="col-span-3 sm:col-span-2"><div className="h-4 w-12 sm:w-14 bg-white/[0.06] rounded ml-auto" /></div>
                     <div className="col-span-2 hidden sm:block"><div className="h-4 w-12 bg-white/[0.04] rounded ml-auto" /></div>
                     <div className="col-span-2 hidden sm:block"><div className="h-4 w-14 bg-white/[0.04] rounded ml-auto" /></div>
                   </div>
                 ))
               ) : sortedData.length === 0 ? (
-                <div className="px-4 py-8 text-center text-white/40 text-sm">
+                <div className="px-3 sm:px-4 py-8 text-center text-white/40 text-sm">
                   No data available
                 </div>
               ) : (
@@ -213,22 +213,22 @@ export function TopMoversSection({ className }: TopMoversSectionProps) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
                     className={cn(
-                      'grid grid-cols-12 gap-4 px-4 py-3',
+                      'grid grid-cols-8 sm:grid-cols-12 gap-2 sm:gap-4 px-3 sm:px-4 py-3',
                       'hover:bg-white/[0.02] transition-colors duration-150 cursor-pointer'
                     )}
                   >
-                    <div className="col-span-4 flex items-center gap-3 min-w-0">
-                      <span className="text-sm font-medium text-white">{stock.symbol}</span>
+                    <div className="col-span-3 sm:col-span-4 flex items-center gap-2 sm:gap-3 min-w-0">
+                      <span className="text-xs sm:text-sm font-medium text-white">{stock.symbol}</span>
                       <span className="text-xs text-white/30 truncate hidden sm:block">{stock.name}</span>
                     </div>
                     <div className="col-span-2 text-right">
-                      <span className="text-sm text-white tabular-nums">
+                      <span className="text-xs sm:text-sm text-white tabular-nums">
                         ${stock.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </div>
-                    <div className="col-span-2 text-right">
+                    <div className="col-span-3 sm:col-span-2 text-right">
                       <span className={cn(
-                        'text-sm font-medium tabular-nums',
+                        'text-xs sm:text-sm font-medium tabular-nums',
                         stock.changePercent >= 0 ? 'text-emerald-400' : 'text-rose-400'
                       )}>
                         {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%

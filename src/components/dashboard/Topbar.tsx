@@ -211,13 +211,13 @@ export function Topbar() {
           <div className="flex-1" />
 
           {/* Right Section: Search → Notifications → User */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Search Button - Premium, wider design */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="group flex items-center gap-3 h-11 px-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/[0.10] rounded-xl transition-all duration-200"
+              className="group flex items-center gap-2 sm:gap-3 h-10 sm:h-11 px-3 sm:px-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/[0.10] rounded-xl transition-all duration-200"
             >
-              <Search className="w-[18px] h-[18px] text-white/40 group-hover:text-white/60 transition-colors" strokeWidth={1.5} />
+              <Search className="w-4 sm:w-[18px] h-4 sm:h-[18px] text-white/40 group-hover:text-white/60 transition-colors" strokeWidth={1.5} />
               <span className="hidden md:block text-[15px] text-white/40 group-hover:text-white/60 transition-colors tracking-[-0.01em] min-w-[140px] text-left">
                 Search stocks...
               </span>
@@ -230,7 +230,7 @@ export function Topbar() {
             {/* Credit Badge - Subtle integration */}
             <CreditModal 
               trigger={
-                <button className="hidden sm:flex items-center gap-2 h-10 px-4 bg-emerald-500/[0.06] hover:bg-emerald-500/[0.10] border border-emerald-500/[0.12] hover:border-emerald-500/[0.20] rounded-xl transition-all duration-200">
+                <button className="flex items-center gap-1.5 sm:gap-2 h-9 sm:h-10 px-2.5 sm:px-4 bg-emerald-500/[0.06] hover:bg-emerald-500/[0.10] border border-emerald-500/[0.12] hover:border-emerald-500/[0.20] rounded-xl transition-all duration-200">
                   <CreditBadge showIcon={true} size="sm" className="border-0 bg-transparent p-0" />
                 </button>
               }

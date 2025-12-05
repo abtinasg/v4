@@ -204,6 +204,20 @@ export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose
     }
   }, [])
 
+  const clearAllHighlights = useCallback(async () => {
+    try {
+      // Delete all highlights for this symbol
+      for (const highlight of highlights) {
+        await fetch(`/api/pdf-annotations?id=${highlight.id}`, {
+          method: 'DELETE',
+        })
+      }
+      setHighlights([])
+    } catch (error) {
+      console.error('Failed to clear highlights:', error)
+    }
+  }, [highlights])
+
   useEffect(() => {
     // Start streaming on mount
     startStreaming()
@@ -377,14 +391,14 @@ export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose
     >
       <div className={`mx-auto h-full ${isFullscreen ? 'max-w-full' : 'max-w-6xl'} flex flex-col`}>
         {/* Header */}
-        <div className="flex items-center justify-between gap-4 bg-zinc-900/95 p-4 rounded-t-lg border border-zinc-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
-              <FileText className="h-5 w-5 text-violet-400" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-zinc-900/95 p-3 sm:p-4 rounded-t-lg border border-zinc-800">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold text-white">{symbol} - AI Report</h2>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-lg font-semibold text-white truncate">{symbol} - AI Report</h2>
                 {isCached && (
                   <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     Cached
@@ -396,25 +410,26 @@ export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose
           </div>
 
           {/* Toolbar */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-wrap w-full sm:w-auto justify-end">
             {/* Highlight Mode Toggle */}
             <Button
               variant={isSelectionMode ? 'default' : 'outline'}
               size="sm"
               onClick={() => setIsSelectionMode(!isSelectionMode)}
               disabled={isStreaming}
+              className="text-xs sm:text-sm px-2 sm:px-3"
             >
-              <Highlighter className="h-4 w-4 mr-2" />
-              {isSelectionMode ? 'Highlighting' : 'Highlight'}
+              <Highlighter className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline">{isSelectionMode ? 'Highlighting' : 'Highlight'}</span>
             </Button>
 
             {/* Color Picker */}
             {isSelectionMode && (
-              <div className="flex gap-1 px-2">
+              <div className="flex gap-1 px-1 sm:px-2">
                 {HIGHLIGHT_COLORS.map((color) => (
                   <button
                     key={color.value}
-                    className={`w-6 h-6 rounded-full border-2 ${
+                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 ${
                       selectedColor === color.value ? 'border-white' : 'border-transparent'
                     }`}
                     style={{ backgroundColor: color.dark }}
@@ -425,15 +440,29 @@ export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose
               </div>
             )}
 
+            {/* Clear Highlights */}
+            {highlights.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearAllHighlights}
+                className="text-xs sm:text-sm px-2 sm:px-3 text-red-400 hover:text-red-300 border-red-500/30 hover:border-red-500/50"
+              >
+                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Clear</span>
+              </Button>
+            )}
+
             {/* Download PDF */}
             <Button
               variant="outline"
               size="sm"
               onClick={downloadPdf}
               disabled={!content || isStreaming}
+              className="text-xs sm:text-sm px-2 sm:px-3"
             >
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
+              <Download className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Download PDF</span>
             </Button>
 
             {/* Fullscreen Toggle */}
@@ -441,18 +470,20 @@ export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose
               variant="outline"
               size="sm"
               onClick={() => setIsFullscreen(!isFullscreen)}
+              className="px-2 sm:px-3"
             >
               {isFullscreen ? (
-                <Minimize2 className="h-4 w-4" />
+                <Minimize2 className="h-3 w-3 sm:h-4 sm:w-4" />
               ) : (
-                <Maximize2 className="h-4 w-4" />
+                <Maximize2 className="h-3 w-3 sm:h-4 sm:w-4" />
               )}
             </Button>
 
             {/* Close */}
             {onClose && (
-              <Button variant="outline" size="sm" onClick={onClose}>
-                Close
+              <Button variant="outline" size="sm" onClick={onClose} className="text-xs sm:text-sm px-2 sm:px-3">
+                <span className="hidden sm:inline">Close</span>
+                <span className="sm:hidden">✕</span>
               </Button>
             )}
           </div>
@@ -460,7 +491,7 @@ export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose
 
         {/* Content Area */}
         <div className="flex-1 bg-zinc-900/95 border-x border-b border-zinc-800 rounded-b-lg overflow-hidden">
-          <div className="h-full overflow-y-auto p-8 relative">
+          <div className="h-full overflow-y-auto p-4 sm:p-8 relative">
             {error && (
               <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
                 {error}

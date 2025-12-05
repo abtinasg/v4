@@ -103,7 +103,7 @@ export function CreditOverview({
         </div>
         
         {/* Usage Stats Row */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {/* Today's Usage */}
           <div className={cn(
             'relative p-5 rounded-xl overflow-hidden',
@@ -142,7 +142,7 @@ export function CreditOverview({
         </div>
         
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <Button 
             onClick={onBuyCredits}
             className={cn(

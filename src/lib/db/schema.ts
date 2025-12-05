@@ -924,7 +924,7 @@ export const aiReports = pgTable('ai_reports', {
     riskScore?: number;
     generatedAt?: string;
   }>(),
-  expiresAt: timestamp('expires_at', { withTimezone: true }), // Reports expire after 24 hours
+  expiresAt: timestamp('expires_at', { withTimezone: true }), // Reports expire after 5 hours
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({

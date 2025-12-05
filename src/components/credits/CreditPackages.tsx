@@ -38,7 +38,7 @@ export function CreditPackages({ onPurchase, className }: CreditPackagesProps) {
   
   if (loading) {
     return (
-      <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5', className)}>
+      <div className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3', className)}>
         {[1, 2, 3].map(i => (
           <div 
             key={i} 
@@ -61,7 +61,7 @@ export function CreditPackages({ onPurchase, className }: CreditPackagesProps) {
   }
   
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5', className)}>
+    <div className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3', className)}>
       {packages.map((pkg) => (
         <div 
           key={pkg.id} 
