@@ -90,8 +90,10 @@ export function DashboardHero({ className }: DashboardHeroProps) {
   useEffect(() => {
     fetchMarketData()
     fetchAiAnalysis()
-    const marketInterval = setInterval(fetchMarketData, 60000)
-    const analysisInterval = setInterval(fetchAiAnalysis, 300000)
+    // Market data every 2 minutes
+    const marketInterval = setInterval(fetchMarketData, 120000)
+    // AI Analysis every 15 minutes (matches server cache)
+    const analysisInterval = setInterval(fetchAiAnalysis, 900000)
     return () => {
       clearInterval(marketInterval)
       clearInterval(analysisInterval)
