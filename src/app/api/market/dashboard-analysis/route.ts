@@ -31,6 +31,52 @@ export const maxDuration = 60
 
 const yahooFinance = new YahooFinance()
 
+// ========== CACHE CONFIGURATION ==========
+// 15-minute cache for AI Market Analysis to reduce API costs
+const CACHE_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+
+interface CachedAnalysis {
+  analysis: string
+  marketMood: 'bullish' | 'bearish' | 'neutral' | 'mixed'
+  indices: MarketIndex[]
+  economicIndicators: EconomicData | null
+  sentimentBreakdown: { bullish: number; bearish: number; neutral: number }
+  newsCount: number
+  timestamp: string
+  cachedAt: number
+}
+
+// In-memory cache (works for single instance, consider Redis for multi-instance)
+let analysisCache: CachedAnalysis | null = null
+
+function isCacheValid(): boolean {
+  if (!analysisCache) return false
+  const now = Date.now()
+  return (now - analysisCache.cachedAt) < CACHE_DURATION_MS
+}
+
+function getCachedAnalysis(): CachedAnalysis | null {
+  if (isCacheValid()) {
+    return analysisCache
+  }
+  return null
+}
+
+function setCachedAnalysis(data: Omit<CachedAnalysis, 'cachedAt'>): void {
+  analysisCache = {
+    ...data,
+    cachedAt: Date.now()
+  }
+}
+
+function getCacheRemainingTime(): number {
+  if (!analysisCache) return 0
+  const elapsed = Date.now() - analysisCache.cachedAt
+  const remaining = CACHE_DURATION_MS - elapsed
+  return Math.max(0, Math.floor(remaining / 1000)) // seconds
+}
+// ========================================
+
 // Use Vercel URL in production, or custom URL, or localhost for dev
 function getBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
@@ -461,6 +507,34 @@ export async function GET(request: Request) {
       )
     }
 
+    // ========== CHECK CACHE FIRST ==========
+    const cachedData = getCachedAnalysis()
+    if (cachedData) {
+      console.log('Returning cached AI Market Analysis (cache hit)')
+      
+      const response = NextResponse.json({
+        success: true,
+        analysis: cachedData.analysis,
+        marketMood: cachedData.marketMood,
+        indices: cachedData.indices,
+        economicIndicators: cachedData.economicIndicators,
+        sentimentBreakdown: cachedData.sentimentBreakdown,
+        newsCount: cachedData.newsCount,
+        timestamp: cachedData.timestamp,
+        cached: true,
+        cacheExpiresIn: getCacheRemainingTime()
+      })
+      
+      // Note: No credits deducted for cached response
+      response.headers.set('X-Credit-Balance', String(creditCheck.remainingBalance + (creditCheck.requiredCredits || 0)))
+      response.headers.set('X-RateLimit-Remaining', String(rateLimitResult.remaining))
+      response.headers.set('X-Cache-Status', 'HIT')
+      response.headers.set('X-Cache-Expires-In', String(getCacheRemainingTime()))
+      
+      return response
+    }
+    // =======================================
+
     // Fetch all data in parallel
     const [marketData, economicData, news] = await Promise.all([
       fetchMarketData(),
@@ -507,6 +581,20 @@ export async function GET(request: Request) {
       neutral: news.filter(n => n.sentiment === 'neutral').length
     }
 
+    // ========== CACHE THE RESULT ==========
+    const cacheData = {
+      analysis,
+      marketMood,
+      indices: marketData?.indices || [],
+      economicIndicators: economicData,
+      sentimentBreakdown,
+      newsCount: news.length,
+      timestamp: new Date().toISOString()
+    }
+    setCachedAnalysis(cacheData)
+    console.log('AI Market Analysis cached for 15 minutes')
+    // ======================================
+
     const response = NextResponse.json({
       success: true,
       analysis,
@@ -515,12 +603,15 @@ export async function GET(request: Request) {
       economicIndicators: economicData,
       sentimentBreakdown,
       newsCount: news.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      cached: false,
+      cacheExpiresIn: getCacheRemainingTime()
     })
     
     // Add credit headers
     response.headers.set('X-Credit-Balance', String(creditCheck.remainingBalance))
     response.headers.set('X-RateLimit-Remaining', String(rateLimitResult.remaining))
+    response.headers.set('X-Cache-Status', 'MISS')
     
     return response
 

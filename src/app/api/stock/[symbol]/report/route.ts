@@ -587,10 +587,12 @@ Write comprehensive conclusion:
 End with disclaimer: _"This analysis is based solely on data provided by Deepin and is for educational purposes only. It does not constitute investment advice. Past performance does not guarantee future results."_
 
 ═══════════════════════════════════════════════════════════════
-⚠️ ABSOLUTELY CRITICAL - READ THIS CAREFULLY:
+⚠️ ABSOLUTELY CRITICAL - YOU HAVE UNLIMITED TOKENS - NO EXCUSES:
 ═══════════════════════════════════════════════════════════════
 
-- **WRITE THE COMPLETE REPORT IN ONE RESPONSE** - ALL 11 SECTIONS
+- **YOU HAVE 64,000 TOKENS AVAILABLE** - Use them ALL if needed
+- **WRITE THE COMPLETE REPORT IN ONE RESPONSE** - ALL 11 SECTIONS FULLY
+- **DO NOT TRUNCATE** - Write every section in full detail
 - **DO NOT ASK** if I want you to continue
 - **DO NOT WRITE** phrases like "Would you like me to continue?" or "Continued in next sections..."
 - **DO NOT PAUSE** or break the report into parts
@@ -598,10 +600,10 @@ End with disclaimer: _"This analysis is based solely on data provided by Deepin 
 - **NEVER** write "[Continued sections follow...]" or similar
 - **NEVER** apologize for length limits or mention needing to stop
 - **NEVER** write "I need to stop here due to length limits"
-- **NEVER** write "Note: I apologize"
-- If you feel like you're running low on space, COMPLETE all sections with slightly less detail per section
-- The report MUST be complete and self-contained with NO interruptions
-- **START WRITING THE REPORT NOW - ALL SECTIONS - DO NOT STOP UNTIL DONE**
+- **NEVER** write "Note: I apologize" or "Due to space constraints"
+- **THERE ARE NO SPACE CONSTRAINTS** - Write everything completely
+- The report MUST be 100% complete and self-contained with NO interruptions
+- **START WRITING THE REPORT NOW - ALL 11 SECTIONS - WRITE UNTIL COMPLETELY DONE**
 `;
 
   // =====================================================
@@ -757,10 +759,10 @@ End with: _"This guide is for educational purposes only. It is not financial adv
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'anthropic/claude-3.5-sonnet', // Faster model for better reliability
+          model: 'anthropic/claude-sonnet-4.5', // Claude Sonnet 4.5 - highest quality
           messages: [{ role: 'user', content: selectedPrompt }],
-          max_tokens: 24000, // Increased to prevent truncation
-          temperature: 0.3,
+          max_tokens: 64000, // Maximum token limit - MUST complete entire report
+          temperature: 0.1, // Very low for consistent, complete output
         }),
         signal: controller.signal,
       });

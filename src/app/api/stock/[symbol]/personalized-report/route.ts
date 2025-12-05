@@ -339,10 +339,10 @@ async function callOpenRouterWithRetry(
         'X-Title': 'Deepin - Personalized Report',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3.5-sonnet', // Faster model for better reliability
+        model: 'anthropic/claude-sonnet-4.5', // Claude Sonnet 4.5 - highest quality
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 16000, // Reduced from 40K to 16K for faster generation
-        temperature: 0.3,
+        max_tokens: 64000, // Maximum token limit - MUST complete entire report
+        temperature: 0.1, // Very low for consistent, complete output
       }),
       signal: controller.signal,
     });
