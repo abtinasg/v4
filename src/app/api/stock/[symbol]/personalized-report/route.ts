@@ -300,8 +300,20 @@ CRITICAL FORMATTING & OUTPUT RULES
 _"This personalized analysis is for educational purposes only and does not constitute investment advice. All investors should conduct their own research and consult with a qualified financial advisor before making investment decisions. Past performance does not guarantee future results."_
 
 ═══════════════════════════════════════════════════════════════
+⚠️ ABSOLUTELY CRITICAL - READ THIS CAREFULLY:
+═══════════════════════════════════════════════════════════════
 
-**BEGIN YOUR PERSONALIZED ANALYSIS NOW:**`;
+- **WRITE THE COMPLETE REPORT IN ONE RESPONSE** - ALL 9 SECTIONS
+- **DO NOT ASK** if I want you to continue
+- **DO NOT WRITE** phrases like "Would you like me to continue?" or "Continued in next sections..."
+- **DO NOT PAUSE** or break the report into parts
+- **NEVER** say things like "[Note: I can continue...]" or "[Shall I proceed...]"
+- If you run out of space, prioritize completing all sections with slightly less detail
+- The report MUST be complete and self-contained
+
+═══════════════════════════════════════════════════════════════
+
+**BEGIN YOUR PERSONALIZED ANALYSIS NOW - WRITE ALL 9 SECTIONS COMPLETELY:**`;
 }
 
 /**
