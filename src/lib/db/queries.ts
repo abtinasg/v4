@@ -1,4 +1,4 @@
-import { eq, and, desc, asc, gte, lte, sql, count } from 'drizzle-orm'
+import { eq, and, desc, asc, gte, lte, sql, count, gt } from 'drizzle-orm'
 import { db } from './index'
 import { 
   users, 
@@ -10,6 +10,7 @@ import {
   portfolioHoldings,
   riskProfiles,
   detailedRiskAssessments,
+  aiReports,
   type NewUser,
   type NewWatchlist,
   type NewWatchlistItem,
@@ -19,6 +20,7 @@ import {
   type NewPortfolioHolding,
   type NewRiskProfile,
   type NewDetailedRiskAssessment,
+  type NewAiReport,
 } from './schema'
 
 // ==================== USER QUERIES ====================
@@ -660,6 +662,99 @@ export const detailedRiskAssessmentQueries = {
   },
 }
 
+// ==================== AI REPORTS QUERIES ====================
+
+export const aiReportQueries = {
+  // Get active report for a user/symbol/type (not expired)
+  getActive: async (userId: string, symbol: string, reportType: 'pro' | 'retail' | 'personalized') => {
+    const result = await db.query.aiReports.findFirst({
+      where: and(
+        eq(aiReports.userId, userId),
+        eq(aiReports.symbol, symbol.toUpperCase()),
+        eq(aiReports.reportType, reportType),
+        gt(aiReports.expiresAt, new Date()),
+      ),
+      orderBy: desc(aiReports.createdAt),
+    })
+    return result
+  },
+
+  // Get pending or generating report
+  getPending: async (userId: string, symbol: string, reportType: 'pro' | 'retail' | 'personalized') => {
+    const result = await db.query.aiReports.findFirst({
+      where: and(
+        eq(aiReports.userId, userId),
+        eq(aiReports.symbol, symbol.toUpperCase()),
+        eq(aiReports.reportType, reportType),
+        sql`${aiReports.status} IN ('pending', 'generating')`,
+      ),
+      orderBy: desc(aiReports.createdAt),
+    })
+    return result
+  },
+
+  // Create new report
+  create: async (data: NewAiReport) => {
+    const [report] = await db.insert(aiReports).values({
+      ...data,
+      symbol: data.symbol.toUpperCase(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+    }).returning()
+    return report
+  },
+
+  // Update report status and content
+  update: async (id: string, data: Partial<Pick<NewAiReport, 'status' | 'content' | 'error' | 'metadata'>>) => {
+    const [updated] = await db
+      .update(aiReports)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(aiReports.id, id))
+      .returning()
+    return updated
+  },
+
+  // Append content to report (for streaming)
+  appendContent: async (id: string, newContent: string) => {
+    const report = await db.query.aiReports.findFirst({
+      where: eq(aiReports.id, id),
+    })
+    const updatedContent = (report?.content || '') + newContent
+    const [updated] = await db
+      .update(aiReports)
+      .set({ content: updatedContent, updatedAt: new Date() })
+      .where(eq(aiReports.id, id))
+      .returning()
+    return updated
+  },
+
+  // Get recent reports for a user
+  getRecent: async (userId: string, limit: number = 10) => {
+    const results = await db.query.aiReports.findMany({
+      where: eq(aiReports.userId, userId),
+      orderBy: desc(aiReports.createdAt),
+      limit,
+    })
+    return results
+  },
+
+  // Delete expired reports (cleanup job)
+  deleteExpired: async () => {
+    const deleted = await db
+      .delete(aiReports)
+      .where(lte(aiReports.expiresAt, new Date()))
+      .returning()
+    return deleted.length
+  },
+
+  // Get by ID
+  getById: async (id: string) => {
+    const result = await db.query.aiReports.findFirst({
+      where: eq(aiReports.id, id),
+    })
+    return result
+  },
+}
+
 // Export all query helpers
 export const queries = {
   user: userQueries,
@@ -671,4 +766,5 @@ export const queries = {
   analytics: analyticsQueries,
   riskProfile: riskProfileQueries,
   detailedRiskAssessment: detailedRiskAssessmentQueries,
+  aiReport: aiReportQueries,
 }

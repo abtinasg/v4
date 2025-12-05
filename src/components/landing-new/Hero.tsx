@@ -61,16 +61,7 @@ export function Hero() {
         </div>
 
         {/* Trust line */}
-        <div className="mt-16 pt-10 border-t border-white/5">
-          <p className="text-[13px] text-zinc-500 mb-4">Trusted by investors at</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 opacity-40">
-            <span className="text-[15px] font-medium text-zinc-400">Goldman Sachs</span>
-            <span className="text-[15px] font-medium text-zinc-400">Morgan Stanley</span>
-            <span className="text-[15px] font-medium text-zinc-400">BlackRock</span>
-            <span className="text-[15px] font-medium text-zinc-400">Fidelity</span>
-            <span className="text-[15px] font-medium text-zinc-400">Citadel</span>
-          </div>
-        </div>
+      
       </div>
     </section>
   )

@@ -4,11 +4,12 @@
  * POST /api/stock/[symbol]/personalized-report/stream
  *
  * Streams personalized investment reports based on user's risk profile
+ * Saves report to database for persistence across page refreshes
  */
 
 import { NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { userQueries, detailedRiskAssessmentQueries } from '@/lib/db/queries';
+import { userQueries, detailedRiskAssessmentQueries, aiReportQueries } from '@/lib/db/queries';
 import {
   checkCredits,
   deductCredits,
@@ -180,6 +181,82 @@ export async function POST(
       });
     }
 
+    // Check for existing completed report
+    const existingReport = await aiReportQueries.getActive(user.id, upperSymbol, 'personalized');
+    if (existingReport && existingReport.status === 'completed' && existingReport.content) {
+      console.log(`[PersonalizedStream] Using cached report for ${upperSymbol}`);
+      
+      // Return cached report as stream
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          // Send metadata
+          const metadata = {
+            type: 'metadata',
+            symbol: upperSymbol,
+            companyName: existingReport.companyName,
+            cached: true,
+            reportId: existingReport.id,
+            ...existingReport.metadata,
+            generatedAt: existingReport.createdAt?.toISOString(),
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
+          
+          // Send content in chunks
+          const content = existingReport.content || '';
+          const chunkSize = 100;
+          for (let i = 0; i < content.length; i += chunkSize) {
+            const chunk = content.slice(i, i + chunkSize);
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: chunk })}\n\n`));
+          }
+          
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          controller.close();
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
+    }
+
+    // Check for pending report
+    const pendingReport = await aiReportQueries.getPending(user.id, upperSymbol, 'personalized');
+    if (pendingReport) {
+      // Return current progress
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          const metadata = {
+            type: 'metadata',
+            symbol: upperSymbol,
+            reportId: pendingReport.id,
+            status: pendingReport.status,
+            resuming: true,
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
+          
+          if (pendingReport.content) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: pendingReport.content })}\n\n`));
+          }
+          
+          controller.close();
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
+    }
+
     // Get risk assessment
     const assessment = await detailedRiskAssessmentQueries.getByUserId(user.id);
     if (!assessment) {
@@ -310,16 +387,33 @@ export async function POST(
       });
     }
 
+    const categoryInfo = getCategoryDisplayInfo(riskProfile.category);
+
+    // Create report record in database
+    const reportRecord = await aiReportQueries.create({
+      userId: user.id,
+      symbol: upperSymbol,
+      companyName: metricsData.companyName,
+      reportType: 'personalized',
+      status: 'generating',
+      metadata: {
+        sector: metricsData.sector,
+        riskCategory: categoryInfo.label,
+        riskScore: riskProfile.finalScore,
+        generatedAt: new Date().toISOString(),
+      },
+    });
+
     // Deduct credits
     await deductCredits(user.id, 'ai_analysis', {
       symbol: upperSymbol,
       endpoint: '/api/stock/[symbol]/personalized-report/stream',
     });
 
-    const categoryInfo = getCategoryDisplayInfo(riskProfile.category);
-
     // Create streaming response
     const encoder = new TextEncoder();
+    let fullContent = '';
+
     const stream = new ReadableStream({
       async start(controller) {
         // Send metadata first
@@ -330,6 +424,7 @@ export async function POST(
           sector: metricsData.sector,
           riskCategory: categoryInfo.label,
           riskScore: riskProfile.finalScore,
+          reportId: reportRecord.id,
           generatedAt: new Date().toISOString(),
         };
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
@@ -357,12 +452,20 @@ export async function POST(
                 const data = line.slice(6);
                 if (data === '[DONE]') {
                   controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                  
+                  // Save completed report to database
+                  await aiReportQueries.update(reportRecord.id, {
+                    status: 'completed',
+                    content: fullContent,
+                  });
+                  
                   continue;
                 }
                 try {
                   const parsed = JSON.parse(data);
                   const content = parsed.choices?.[0]?.delta?.content;
                   if (content) {
+                    fullContent += content;
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content })}\n\n`));
                   }
                 } catch (e) {
@@ -373,6 +476,12 @@ export async function POST(
           }
         } catch (error) {
           console.error('[PersonalizedStream] Stream error:', error);
+          // Mark report as failed
+          await aiReportQueries.update(reportRecord.id, {
+            status: 'failed',
+            error: error instanceof Error ? error.message : 'Stream error',
+            content: fullContent,
+          });
         } finally {
           controller.close();
         }

@@ -12,6 +12,8 @@ export const investmentHorizonEnum = pgEnum('investment_horizon', ['short_term',
 export const investmentExperienceEnum = pgEnum('investment_experience', ['beginner', 'intermediate', 'advanced'])
 export const portfolioTransactionTypeEnum = pgEnum('portfolio_transaction_type', ['buy', 'sell', 'dividend', 'split', 'transfer_in', 'transfer_out'])
 export const portfolioAlertTypeEnum = pgEnum('portfolio_alert_type', ['price_above', 'price_below', 'percent_change', 'portfolio_value', 'daily_gain_loss', 'news'])
+export const aiReportTypeEnum = pgEnum('ai_report_type', ['pro', 'retail', 'personalized'])
+export const aiReportStatusEnum = pgEnum('ai_report_status', ['pending', 'generating', 'completed', 'failed'])
 
 // ==================== USERS TABLE ====================
 export const users = pgTable('users', {
@@ -905,6 +907,34 @@ export const pdfAnnotations = pgTable('pdf_annotations', {
   userSymbolIdx: index('pdf_annotations_user_symbol_idx').on(table.userId, table.symbol),
 }))
 
+// ==================== AI REPORTS TABLE ====================
+// Stores generated AI reports so users can access them after closing/refreshing
+export const aiReports = pgTable('ai_reports', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  symbol: varchar('symbol', { length: 10 }).notNull(),
+  companyName: varchar('company_name', { length: 255 }),
+  reportType: aiReportTypeEnum('report_type').notNull(),
+  status: aiReportStatusEnum('status').notNull().default('pending'),
+  content: text('content'), // The full markdown content of the report
+  error: text('error'), // Error message if generation failed
+  metadata: jsonb('metadata').$type<{
+    sector?: string;
+    riskCategory?: string;
+    riskScore?: number;
+    generatedAt?: string;
+  }>(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }), // Reports expire after 24 hours
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('ai_reports_user_id_idx').on(table.userId),
+  symbolIdx: index('ai_reports_symbol_idx').on(table.symbol),
+  userSymbolTypeIdx: index('ai_reports_user_symbol_type_idx').on(table.userId, table.symbol, table.reportType),
+  statusIdx: index('ai_reports_status_idx').on(table.status),
+  expiresAtIdx: index('ai_reports_expires_at_idx').on(table.expiresAt),
+}))
+
 // ==================== TYPE EXPORTS ====================
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -972,3 +1002,7 @@ export type NewDetailedRiskAssessment = typeof detailedRiskAssessments.$inferIns
 // PDF Annotations Types
 export type PdfAnnotation = typeof pdfAnnotations.$inferSelect
 export type NewPdfAnnotation = typeof pdfAnnotations.$inferInsert
+
+// AI Reports Types
+export type AiReport = typeof aiReports.$inferSelect
+export type NewAiReport = typeof aiReports.$inferInsert

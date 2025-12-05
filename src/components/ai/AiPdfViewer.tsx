@@ -40,6 +40,7 @@ const HIGHLIGHT_COLORS = [
 export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose }: AiPdfViewerProps) {
   const [content, setContent] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
+  const [isCached, setIsCached] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [highlights, setHighlights] = useState<Highlight[]>([])
   const [selectedColor, setSelectedColor] = useState(HIGHLIGHT_COLORS[0].value)
@@ -132,6 +133,9 @@ export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose
               // Metadata can be logged but not stored if not used
               if (parsed.type === 'metadata') {
                 console.log('Report metadata:', parsed)
+                if (parsed.cached) {
+                  setIsCached(true)
+                }
               } else if (parsed.type === 'content' && parsed.content) {
                 setContent((prev) => prev + parsed.content)
               }
@@ -379,7 +383,14 @@ export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose
               <FileText className="h-5 w-5 text-violet-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">{symbol} - AI Report</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-white">{symbol} - AI Report</h2>
+                {isCached && (
+                  <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    Cached
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-zinc-400">{companyName}</p>
             </div>
           </div>

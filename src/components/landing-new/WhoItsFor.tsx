@@ -6,7 +6,7 @@ const personas = [
   {
     icon: TrendingUp,
     title: 'Retail Investors',
-    description: 'Individual investors who want professional-grade tools without the Bloomberg price tag. Make smarter decisions with AI-powered insights.',
+    description: 'Individual investors who want professional-grade tools. Make smarter decisions with AI-powered insights.',
   },
   {
     icon: Briefcase,

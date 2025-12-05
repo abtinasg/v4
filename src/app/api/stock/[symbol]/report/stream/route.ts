@@ -8,6 +8,7 @@
  * - Optimized prompt for better quality
  * - Better error handling
  * - Consistent with other report types
+ * - Saves report to database for persistence
  */
 
 import { NextRequest } from 'next/server';
@@ -21,6 +22,7 @@ import {
   checkAndResetMonthlyCredits,
 } from '@/lib/credits';
 import { getFMPRawData } from '@/lib/data/fmp-adapter';
+import { aiReportQueries } from '@/lib/db/queries';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -77,6 +79,85 @@ export async function POST(
 
     const { symbol } = await params;
     const upperSymbol = symbol.toUpperCase();
+
+    // Parse request body to get audienceType
+    const body = await request.json().catch(() => ({}));
+    const audienceType = (body.audienceType === 'retail' ? 'retail' : 'pro') as 'pro' | 'retail';
+
+    // Check for existing completed report
+    const existingReport = await aiReportQueries.getActive(user.id, upperSymbol, audienceType);
+    if (existingReport && existingReport.status === 'completed' && existingReport.content) {
+      console.log(`[StreamReport] Using cached report for ${upperSymbol} (${audienceType})`);
+      
+      // Return cached report as stream
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          // Send metadata
+          const metadata = {
+            type: 'metadata',
+            symbol: upperSymbol,
+            companyName: existingReport.companyName,
+            cached: true,
+            reportId: existingReport.id,
+            generatedAt: existingReport.createdAt?.toISOString(),
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
+          
+          // Send content in chunks
+          const content = existingReport.content || '';
+          const chunkSize = 100;
+          for (let i = 0; i < content.length; i += chunkSize) {
+            const chunk = content.slice(i, i + chunkSize);
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: chunk })}\n\n`));
+          }
+          
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          controller.close();
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
+    }
+
+    // Check for pending report
+    const pendingReport = await aiReportQueries.getPending(user.id, upperSymbol, audienceType);
+    if (pendingReport) {
+      // Return current progress
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          const metadata = {
+            type: 'metadata',
+            symbol: upperSymbol,
+            reportId: pendingReport.id,
+            status: pendingReport.status,
+            resuming: true,
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
+          
+          if (pendingReport.content) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: pendingReport.content })}\n\n`));
+          }
+          
+          controller.close();
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
+    }
 
     if (!process.env.OPENROUTER_API_KEY) {
       return new Response(JSON.stringify({ error: 'AI service not configured' }), {
@@ -207,6 +288,19 @@ End with: _"Analysis based solely on data provided by Deep; not investment advic
       });
     }
 
+    // Create report record in database
+    const reportRecord = await aiReportQueries.create({
+      userId: user.id,
+      symbol: upperSymbol,
+      companyName: stockData.companyName,
+      reportType: audienceType,
+      status: 'generating',
+      metadata: {
+        sector: stockData.sector,
+        generatedAt: new Date().toISOString(),
+      },
+    });
+
     // Deduct credits
     await deductCredits(user.id, 'ai_analysis', {
       symbol: upperSymbol,
@@ -215,6 +309,8 @@ End with: _"Analysis based solely on data provided by Deep; not investment advic
 
     // Create streaming response
     const encoder = new TextEncoder();
+    let fullContent = '';
+
     const stream = new ReadableStream({
       async start(controller) {
         // Send metadata first
@@ -223,6 +319,7 @@ End with: _"Analysis based solely on data provided by Deep; not investment advic
           symbol: upperSymbol,
           companyName: stockData.companyName,
           sector: stockData.sector,
+          reportId: reportRecord.id,
           generatedAt: new Date().toISOString(),
         };
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
@@ -250,12 +347,20 @@ End with: _"Analysis based solely on data provided by Deep; not investment advic
                 const data = line.slice(6);
                 if (data === '[DONE]') {
                   controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                  
+                  // Save completed report to database
+                  await aiReportQueries.update(reportRecord.id, {
+                    status: 'completed',
+                    content: fullContent,
+                  });
+                  
                   continue;
                 }
                 try {
                   const parsed = JSON.parse(data);
                   const content = parsed.choices?.[0]?.delta?.content;
                   if (content) {
+                    fullContent += content;
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content })}\n\n`));
                   }
                 } catch (e) {
@@ -266,6 +371,12 @@ End with: _"Analysis based solely on data provided by Deep; not investment advic
           }
         } catch (error) {
           console.error('[StreamReport] Stream error:', error);
+          // Mark report as failed
+          await aiReportQueries.update(reportRecord.id, {
+            status: 'failed',
+            error: error instanceof Error ? error.message : 'Stream error',
+            content: fullContent, // Save partial content
+          });
         } finally {
           controller.close();
         }
