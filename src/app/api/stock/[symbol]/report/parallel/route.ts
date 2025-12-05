@@ -40,6 +40,7 @@ const AGGREGATION_MAX_TOKENS = 12000; // Higher token limit for aggregation to a
 // Types
 interface StockReportRequest {
   audienceType?: 'pro' | 'retail';
+  stockData?: StockData; // Optional client-provided data
 }
 
 interface StockData {
@@ -466,18 +467,32 @@ export async function POST(
     console.log(`[ParallelReport] Audience type: ${audienceType}`);
 
     // === Fetch Stock Data (with caching) ===
-    console.log(`[ParallelReport] Fetching stock data for ${upperSymbol}...`);
-    const dataStartTime = Date.now();
-    
     let stockData: StockData;
-    const cacheKey = `fmp-data:${upperSymbol}`;
     
-    // Try to get from cache first
-    const cachedData = getCached<StockData>(cacheKey);
-    if (cachedData) {
-      stockData = cachedData;
-      console.log(`[ParallelReport] Using cached data for ${upperSymbol}`);
+    // Use passed stockData if available and valid, otherwise fetch from FMP
+    if (body.stockData && body.stockData.metrics) {
+      console.log(`[ParallelReport] Using client-provided stock data (skipping FMP fetch)`);
+      stockData = {
+        symbol: upperSymbol,
+        companyName: body.stockData.companyName || upperSymbol,
+        sector: body.stockData.sector || 'N/A',
+        industry: body.stockData.industry || 'N/A',
+        currentPrice: body.stockData.currentPrice || 0,
+        marketCap: body.stockData.marketCap || 0,
+        metrics: body.stockData.metrics,
+      };
     } else {
+      console.log(`[ParallelReport] No client data, fetching stock data for ${upperSymbol}...`);
+      const dataStartTime = Date.now();
+      
+      const cacheKey = `fmp-data:${upperSymbol}`;
+      
+      // Try to get from cache first
+      const cachedData = getCached<StockData>(cacheKey);
+      if (cachedData) {
+        stockData = cachedData;
+        console.log(`[ParallelReport] Using cached data for ${upperSymbol}`);
+      } else {
       // Fetch fresh data
       try {
         const fmpRawData = await getFMPRawData(upperSymbol);
@@ -541,6 +556,7 @@ export async function POST(
           },
           { status: 503 }
         );
+      }
       }
     }
     

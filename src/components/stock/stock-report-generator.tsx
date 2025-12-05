@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import { PersonalizedReportGenerator } from './personalized-report-generator';
+import { useChatStore } from '@/lib/stores/chat-store';
 
 type AudienceType = 'pro' | 'retail';
 
@@ -384,6 +385,9 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
     setProgress('Initializing report generation...');
 
     try {
+      // Get stock context from store to pass to API (eliminates FMP fetch)
+      const stockContext = useChatStore.getState().context.stock;
+      
       // Generate AI report (the API fetches market data internally)
       // Use parallel endpoint for faster generation (30-45s vs 60-90s)
       setProgress(audienceType === 'retail' ? 'Creating simple analysis...' : 'Analyzing with Deepin AI...');
@@ -401,6 +405,30 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
           companyName,
           reportType: 'full',
           audienceType,
+          // Pass existing stock data instead of re-fetching
+          stockData: stockContext ? {
+            symbol: stockContext.symbol,
+            companyName: stockContext.name,
+            sector: stockContext.sector,
+            industry: stockContext.industry,
+            currentPrice: stockContext.quote?.price,
+            marketCap: stockContext.quote?.marketCap,
+            metrics: {
+              pe: stockContext.metrics?.pe,
+              grossMargin: stockContext.metrics?.grossMargin,
+              operatingMargin: stockContext.metrics?.operatingMargin,
+              profitMargin: stockContext.metrics?.netMargin,
+              returnOnEquity: stockContext.metrics?.roe,
+              returnOnAssets: stockContext.metrics?.roa,
+              currentRatio: stockContext.metrics?.currentRatio,
+              quickRatio: stockContext.metrics?.quickRatio,
+              debtToEquity: stockContext.metrics?.debtToEquity,
+              freeCashflow: stockContext.metrics?.freeCashFlow,
+              operatingCashflow: stockContext.metrics?.operatingCashFlow,
+              revenueGrowth: stockContext.metrics?.revenueGrowth,
+              earningsGrowth: stockContext.metrics?.earningsGrowth,
+            },
+          } : undefined,
         }),
       });
 

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import { cn } from '@/lib/utils';
 import { getCategoryDisplayInfo, type RiskProfileResult } from '@/lib/risk-assessment';
+import { useChatStore } from '@/lib/stores/chat-store';
 
 interface PersonalizedReportGeneratorProps {
   symbol: string;
@@ -484,6 +485,9 @@ export function PersonalizedReportGenerator({ symbol, companyName }: Personalize
     setProgress('Analyzing stock with your risk profile...');
 
     try {
+      // Get stock context from store to pass to API (eliminates FMP fetch)
+      const stockContext = useChatStore.getState().context.stock;
+      
       // Use parallel endpoint for faster generation (30-45s vs 60-90s)
       const useParallel = true;
       const endpoint = useParallel 
@@ -493,7 +497,33 @@ export function PersonalizedReportGenerator({ symbol, companyName }: Personalize
       const reportResponse = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ companyName }),
+        body: JSON.stringify({ 
+          companyName,
+          // Pass existing stock data instead of re-fetching
+          stockData: stockContext ? {
+            symbol: stockContext.symbol,
+            companyName: stockContext.name,
+            sector: stockContext.sector,
+            industry: stockContext.industry,
+            currentPrice: stockContext.quote?.price,
+            marketCap: stockContext.quote?.marketCap,
+            metrics: {
+              pe: stockContext.metrics?.pe,
+              grossMargin: stockContext.metrics?.grossMargin,
+              operatingMargin: stockContext.metrics?.operatingMargin,
+              profitMargin: stockContext.metrics?.netMargin,
+              returnOnEquity: stockContext.metrics?.roe,
+              returnOnAssets: stockContext.metrics?.roa,
+              currentRatio: stockContext.metrics?.currentRatio,
+              quickRatio: stockContext.metrics?.quickRatio,
+              debtToEquity: stockContext.metrics?.debtToEquity,
+              freeCashflow: stockContext.metrics?.freeCashFlow,
+              operatingCashflow: stockContext.metrics?.operatingCashFlow,
+              revenueGrowth: stockContext.metrics?.revenueGrowth,
+              earningsGrowth: stockContext.metrics?.earningsGrowth,
+            },
+          } : undefined,
+        }),
       });
 
       if (!reportResponse.ok) {
