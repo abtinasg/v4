@@ -506,9 +506,21 @@ export async function POST(
         console.log(`[ParallelReport] Data fetched in ${dataFetchTime}ms`);
         
         const { profile, quote, keyMetrics, ratios, cashFlows } = fmpRawData;
-        const latestMetrics = keyMetrics?.[0];
-        const latestRatios = ratios?.[0];
-        const latestCashFlow = cashFlows?.[0];
+        
+        // Validate data structure and provide specific error messages
+        if (!keyMetrics || !Array.isArray(keyMetrics)) {
+          console.warn(`[ParallelReport] Missing or invalid keyMetrics for ${upperSymbol}`);
+        }
+        if (!ratios || !Array.isArray(ratios)) {
+          console.warn(`[ParallelReport] Missing or invalid ratios for ${upperSymbol}`);
+        }
+        if (!cashFlows || !Array.isArray(cashFlows)) {
+          console.warn(`[ParallelReport] Missing or invalid cashFlows for ${upperSymbol}`);
+        }
+        
+        const latestMetrics = keyMetrics?.[0] || null;
+        const latestRatios = ratios?.[0] || null;
+        const latestCashFlow = cashFlows?.[0] || null;
         
         stockData = {
           symbol: upperSymbol,
@@ -518,17 +530,17 @@ export async function POST(
           currentPrice: quote?.price || 0,
           marketCap: quote?.marketCap || profile?.marketCap || 0,
           metrics: {
-            pe: quote?.pe || latestRatios?.priceToEarningsRatio,
-            grossMargin: latestRatios?.grossProfitMargin,
-            operatingMargin: latestRatios?.operatingProfitMargin,
-            profitMargin: latestRatios?.netProfitMargin,
-            returnOnEquity: latestMetrics?.returnOnEquity,
-            returnOnAssets: latestMetrics?.returnOnAssets,
-            currentRatio: latestMetrics?.currentRatio || latestRatios?.currentRatio,
-            quickRatio: latestRatios?.quickRatio,
-            debtToEquity: latestRatios?.debtToEquityRatio,
-            freeCashflow: latestCashFlow?.freeCashFlow,
-            operatingCashflow: latestCashFlow?.operatingCashFlow,
+            pe: quote?.pe || latestRatios?.priceToEarningsRatio || null,
+            grossMargin: latestRatios?.grossProfitMargin || null,
+            operatingMargin: latestRatios?.operatingProfitMargin || null,
+            profitMargin: latestRatios?.netProfitMargin || null,
+            returnOnEquity: latestMetrics?.returnOnEquity || null,
+            returnOnAssets: latestMetrics?.returnOnAssets || null,
+            currentRatio: latestMetrics?.currentRatio || latestRatios?.currentRatio || null,
+            quickRatio: latestRatios?.quickRatio || null,
+            debtToEquity: latestRatios?.debtToEquityRatio || null,
+            freeCashflow: latestCashFlow?.freeCashFlow || null,
+            operatingCashflow: latestCashFlow?.operatingCashFlow || null,
             revenueGrowth: null,
             earningsGrowth: null,
           },

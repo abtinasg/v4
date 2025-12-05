@@ -423,10 +423,18 @@ export async function POST(
 
     // Check credits
     await checkAndResetMonthlyCredits(user.id);
-    const hasCredits = await checkCredits(user.id, 'ai_analysis');
-    if (!hasCredits) {
+    const creditCheck = await checkCredits(user.id, 'ai_analysis');
+    if (!creditCheck.success) {
       return NextResponse.json(
-        { error: 'Insufficient credits' },
+        { 
+          success: false,
+          error: 'insufficient_credits',
+          message: 'You do not have enough credits for this action.',
+          details: {
+            currentBalance: creditCheck.currentBalance,
+            requiredCredits: creditCheck.requiredCredits,
+          },
+        },
         { status: 402 }
       );
     }

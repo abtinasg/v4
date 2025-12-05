@@ -10,10 +10,13 @@ interface CacheEntry<T> {
   timestamp: number;
 }
 
+// Supported cache data types
+type CacheableData = Record<string, any> | string | number | boolean | null;
+
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // In-memory cache storage
-const cache = new Map<string, CacheEntry<any>>();
+const cache = new Map<string, CacheEntry<CacheableData>>();
 
 /**
  * Get data from cache if it exists and is not expired
