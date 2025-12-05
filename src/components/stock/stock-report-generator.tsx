@@ -385,8 +385,14 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
 
     try {
       // Generate AI report (the API fetches market data internally)
+      // Use parallel endpoint for faster generation (30-45s vs 60-90s)
       setProgress(audienceType === 'retail' ? 'Creating simple analysis...' : 'Analyzing with Deepin AI...');
-      const reportResponse = await fetch(`/api/stock/${symbol}/report`, {
+      const useParallel = true; // Enable parallel processing for better performance
+      const endpoint = useParallel 
+        ? `/api/stock/${symbol}/report/parallel` 
+        : `/api/stock/${symbol}/report`;
+      
+      const reportResponse = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
