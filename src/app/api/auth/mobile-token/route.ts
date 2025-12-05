@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { SignJWT } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.MOBILE_JWT_SECRET || process.env.CLERK_SECRET_KEY
-);
+// Use a dedicated secret for mobile JWT tokens
+const MOBILE_SECRET = process.env.MOBILE_JWT_SECRET || 'deepin-mobile-jwt-secret-2024-secure-key';
+const JWT_SECRET = new TextEncoder().encode(MOBILE_SECRET);
 
 export async function POST() {
   try {

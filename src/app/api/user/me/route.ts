@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import { clerkClient } from '@clerk/nextjs/server';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.MOBILE_JWT_SECRET || process.env.CLERK_SECRET_KEY
-);
+// Use same secret as mobile-token endpoint
+const MOBILE_SECRET = process.env.MOBILE_JWT_SECRET || 'deepin-mobile-jwt-secret-2024-secure-key';
+const JWT_SECRET = new TextEncoder().encode(MOBILE_SECRET);
 
 export async function GET(request: NextRequest) {
   try {
