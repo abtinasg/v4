@@ -85,14 +85,15 @@ export function Hero() {
             {/* Headlines */}
             <div className='space-y-6 relative'>
               <h1 className='text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1]'>
-                Professional<br />
+                Invest with <br />
                 <span className='text-transparent bg-clip-text bg-gradient-to-r from-[#5B7CFF] via-[#8B5CF6] to-[#00C9E4] animate-gradient-x'>
-                  AI 
+                  Superhuman
                 </span>{' '}
-               stock research
+                Insight
               </h1>
               <p className='text-lg md:text-xl text-gray-400 font-light leading-relaxed max-w-lg'>
-               Fundamental stock analysis with 432 institutional metrics and AI, so retail investors can make decisions like professionals
+                The professional-grade terminal for modern investors. 
+                Real-time data, AI-powered analysis, and institutional metrics—simplified.
               </p>
             </div>
 
@@ -118,7 +119,7 @@ export function Hero() {
                 href='/sign-up'
                 className='relative inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-[#5B7CFF] px-8 text-base font-semibold text-white transition-all hover:bg-[#4A6AE0] hover:scale-[1.02] shadow-[0_0_20px_-5px_rgba(91,124,255,0.5)]'
               >
-                <span>Get started free</span>
+                <span>Start Free Trial</span>
                 <ArrowRight className='h-4 w-4' />
               </Link>
               
@@ -133,10 +134,12 @@ export function Hero() {
             {/* Social Proof */}
             <div className='flex items-center gap-4 pt-4 border-t border-white/[0.05] w-full max-w-md'>
               <div className='flex -space-x-3'>
-               
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className='h-8 w-8 rounded-full border-2 border-[#030508] bg-gray-800' />
+                ))}
               </div>
               <div className='text-sm text-gray-500'>
-                 <span className='text-white font-medium'>70+</span>  analysis credits included · No credit card required
+                Trusted by <span className='text-white font-medium'>10,000+</span> investors
               </div>
             </div>
           </div>
