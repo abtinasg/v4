@@ -228,7 +228,7 @@ export default function PromoPage() {
             </div>
           </div>
 
-          {/* Product Preview */}
+          {/* Terminal Pro Preview */}
           <div 
             className={`relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-blue-500/10 transition-all duration-700 delay-500 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -236,8 +236,8 @@ export default function PromoPage() {
           >
             <div className="absolute inset-0 bg-gradient-to-t from-[#09090B] via-transparent to-transparent z-10 pointer-events-none" />
             <img
-              src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1200&h=600&fit=crop"
-              alt="Deepin Dashboard Preview"
+              src="/terminal.jpeg"
+              alt="Terminal Pro Interface"
               className="w-full aspect-[16/9] object-cover"
             />
           </div>
