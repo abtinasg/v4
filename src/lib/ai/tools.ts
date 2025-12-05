@@ -5,7 +5,7 @@
  * when context is missing or user asks for specific data
  */
 
-import { getAllFinancialData } from '@/lib/data/fmp';
+import { getAllFinancialData, getQuoteRealtime } from '@/lib/data/fmp';
 
 // Tool definitions for OpenRouter/OpenAI function calling
 export const AI_TOOLS = [
@@ -136,13 +136,13 @@ export async function executeAITool(
 }
 
 async function getStockQuote(symbol: string) {
-  const data = await getAllFinancialData(symbol.toUpperCase());
+  // Use real-time quote (no cache) for AI assistant
+  const quote = await getQuoteRealtime(symbol.toUpperCase());
   
-  if (!data.quote) {
+  if (!quote) {
     return { success: false, error: `No quote data found for ${symbol}` };
   }
 
-  const quote = data.quote;
   return {
     success: true,
     data: {
@@ -162,6 +162,7 @@ async function getStockQuote(symbol: string) {
       previousClose: quote.previousClose,
       yearHigh: quote.yearHigh,
       yearLow: quote.yearLow,
+      timestamp: new Date().toISOString(), // Add timestamp for clarity
     }
   };
 }

@@ -314,6 +314,43 @@ async function fmpFetch<T>(endpoint: string, params: Record<string, string> = {}
   }
 }
 
+// Fetch helper WITHOUT cache - for real-time data
+async function fmpFetchNoCache<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
+  if (!FMP_API_KEY) {
+    throw new FMPError('FMP_API_KEY is not configured');
+  }
+
+  const url = new URL(`${FMP_BASE_URL}${endpoint}`);
+  url.searchParams.set('apikey', FMP_API_KEY);
+  
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+
+  try {
+    const response = await fetch(url.toString(), {
+      cache: 'no-store',
+      next: { revalidate: 0 },
+    });
+
+    if (!response.ok) {
+      throw new FMPError(`FMP API error: ${response.status}`, response.status);
+    }
+
+    const data = await response.json();
+    
+    // Check for FMP error responses
+    if (data && data['Error Message']) {
+      throw new FMPError(data['Error Message']);
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof FMPError) throw error;
+    throw new FMPError(`FMP fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 // ============================================================================
 // API FUNCTIONS
 // ============================================================================
@@ -340,6 +377,19 @@ export async function getQuote(symbol: string): Promise<FMPQuote | null> {
     return data?.[0] || null;
   } catch (error) {
     console.error(`FMP getQuote error for ${symbol}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get real-time quote WITHOUT cache - for AI assistant and live data
+ */
+export async function getQuoteRealtime(symbol: string): Promise<FMPQuote | null> {
+  try {
+    const data = await fmpFetchNoCache<FMPQuote[]>('/quote', { symbol });
+    return data?.[0] || null;
+  } catch (error) {
+    console.error(`FMP getQuoteRealtime error for ${symbol}:`, error);
     return null;
   }
 }
