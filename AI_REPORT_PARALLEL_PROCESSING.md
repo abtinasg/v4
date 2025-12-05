@@ -238,12 +238,14 @@ const removed = cleanupExpiredEntries();
 
 ## Configuration
 
-### Timeouts
+### Configuration Constants
 
 ```typescript
 const OPENROUTER_TIMEOUT_MS = 35000; // 35s per chunk (optimized from 45s)
 const AGGREGATION_TIMEOUT_MS = 20000; // 20s for aggregation (optimized from 30s)
 const RETRY_DELAY_MS = 1000; // 1s retry delay (optimized from 2s)
+const DEFAULT_MAX_TOKENS = 8000; // Token limit for chunk generation
+const AGGREGATION_MAX_TOKENS = 12000; // Token limit for aggregation
 ```
 
 ### Retry Logic
@@ -258,9 +260,11 @@ const RETRY_DELAY_MS = 2000; // Exponential backoff
 ```typescript
 {
   model: 'anthropic/claude-sonnet-4.5',
-  max_tokens: 8000,  // Per chunk
+  max_tokens: DEFAULT_MAX_TOKENS,  // 8000 per chunk
   temperature: 0.1    // Low for consistency
 }
+
+// Aggregation step uses AGGREGATION_MAX_TOKENS (12000) to accommodate combined content
 ```
 
 ## Error Handling

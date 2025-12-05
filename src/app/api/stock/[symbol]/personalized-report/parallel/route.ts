@@ -43,6 +43,8 @@ const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000; // Reduced from 2000ms to 1000ms for faster retries
 const OPENROUTER_TIMEOUT_MS = 35000; // Reduced from 45s to 35s per chunk (parallel)
 const AGGREGATION_TIMEOUT_MS = 20000; // Reduced from 30s to 20s for aggregation
+const DEFAULT_MAX_TOKENS = 8000; // Default token limit for chunk generation
+const AGGREGATION_MAX_TOKENS = 12000; // Higher token limit for aggregation to accommodate combined content
 
 /**
  * Sleep utility for retry delays
@@ -262,7 +264,7 @@ async function callOpenRouterWithRetry(
   timeoutMs: number,
   label: string,
   attempt: number = 1,
-  maxTokens: number = 8000
+  maxTokens: number = DEFAULT_MAX_TOKENS
 ): Promise<string> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -521,7 +523,7 @@ export async function POST(
         AGGREGATION_TIMEOUT_MS,
         'Aggregation',
         1,
-        12000 // Higher token limit for aggregation to accommodate combined content
+        AGGREGATION_MAX_TOKENS
       );
       const aggTime = Date.now() - aggStartTime;
       console.log(`[ParallelPersonalized] Aggregation completed in ${aggTime}ms`);
