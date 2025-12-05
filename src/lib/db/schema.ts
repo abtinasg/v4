@@ -877,6 +877,32 @@ export const detailedRiskAssessmentsRelations = relations(detailedRiskAssessment
   }),
 }))
 
+// ==================== PDF ANNOTATIONS TABLE ====================
+export const pdfAnnotations = pgTable('pdf_annotations', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  symbol: varchar('symbol', { length: 10 }).notNull(),
+  reportType: varchar('report_type', { length: 50 }).default('standard'),
+  
+  // Highlight data
+  text: text('text').notNull(),
+  color: varchar('color', { length: 20 }).notNull(),
+  position: jsonb('position').$type<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  }>().notNull(),
+  note: text('note'),
+  
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('pdf_annotations_user_id_idx').on(table.userId),
+  symbolIdx: index('pdf_annotations_symbol_idx').on(table.symbol),
+  userSymbolIdx: index('pdf_annotations_user_symbol_idx').on(table.userId, table.symbol),
+}))
+
 // ==================== TYPE EXPORTS ====================
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -940,3 +966,7 @@ export type NewPushSubscription = typeof pushSubscriptions.$inferInsert
 // Detailed Risk Assessment Types
 export type DetailedRiskAssessment = typeof detailedRiskAssessments.$inferSelect
 export type NewDetailedRiskAssessment = typeof detailedRiskAssessments.$inferInsert
+
+// PDF Annotations Types
+export type PdfAnnotation = typeof pdfAnnotations.$inferSelect
+export type NewPdfAnnotation = typeof pdfAnnotations.$inferInsert
