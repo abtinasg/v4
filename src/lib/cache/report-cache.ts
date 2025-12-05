@@ -5,23 +5,21 @@
  * Cache TTL: 5 minutes (financial data doesn't change frequently)
  */
 
-interface CacheEntry<T> {
-  data: T;
+interface CacheEntry {
+  data: unknown;
   timestamp: number;
 }
-
-// Supported cache data types
-type CacheableData = Record<string, any> | string | number | boolean | null;
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // In-memory cache storage
-const cache = new Map<string, CacheEntry<CacheableData>>();
+const cache = new Map<string, CacheEntry>();
 
 /**
  * Get data from cache if it exists and is not expired
+ * Note: Type T is asserted by the caller. The cache stores unknown types.
  */
-export function getCached<T>(key: string): T | null {
+export function getCached<T = unknown>(key: string): T | null {
   const entry = cache.get(key);
   
   if (!entry) {
@@ -42,10 +40,11 @@ export function getCached<T>(key: string): T | null {
 
 /**
  * Store data in cache with current timestamp
+ * Note: Accepts any serializable data. Type safety is maintained by the caller.
  */
-export function setCached<T>(key: string, data: T): void {
+export function setCached<T = unknown>(key: string, data: T): void {
   cache.set(key, {
-    data,
+    data: data as unknown,
     timestamp: Date.now(),
   });
 }
