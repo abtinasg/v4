@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { portfolios, portfolioHoldings } from '@/lib/db/schema';
+import { portfolios, portfolioHoldings, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -19,19 +19,31 @@ interface CSVRow {
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const { userId: clerkId } = await auth();
 
-    if (!userId) {
+    if (!clerkId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const portfolioId = params.id;
+    // Get internal user ID from Clerk ID
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const { id: portfolioId } = await params;
 
     // Verify portfolio ownership
     const portfolio = await db
@@ -40,7 +52,7 @@ export async function POST(
       .where(
         and(
           eq(portfolios.id, portfolioId),
-          eq(portfolios.userId, userId)
+          eq(portfolios.userId, user.id)
         )
       )
       .limit(1);
@@ -83,7 +95,7 @@ export async function POST(
         }
 
         await db.insert(portfolioHoldings).values({
-          userId,
+          userId: user.id,
           portfolioId,
           symbol: row.symbol.toUpperCase(),
           quantity: row.quantity.toString(),
