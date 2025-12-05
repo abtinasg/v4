@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Download, Highlighter, Save, Trash2, FileText, Loader2, Maximize2, Minimize2 } from 'lucide-react'
+import { Download, Highlighter, Trash2, FileText, Loader2, Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import jsPDF from 'jspdf'
 import { marked } from 'marked'
 
@@ -36,7 +36,6 @@ const HIGHLIGHT_COLORS = [
 
 export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) {
   const [content, setContent] = useState('')
-  const [metadata, setMetadata] = useState<any>(null)
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [highlights, setHighlights] = useState<Highlight[]>([])
@@ -46,21 +45,34 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
   const contentRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    // Start streaming on mount
-    startStreaming()
-    
-    // Load saved highlights
-    loadHighlights()
-    
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
+  const loadHighlights = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/pdf-annotations?symbol=${symbol}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.annotations) {
+          const loadedHighlights = data.annotations.map((ann: {
+            id: string
+            text: string
+            color: string
+            position: { top: number; left: number; width: number; height: number }
+            note?: string
+          }) => ({
+            id: ann.id,
+            text: ann.text,
+            color: ann.color,
+            position: ann.position,
+            note: ann.note,
+          }))
+          setHighlights(loadedHighlights)
+        }
       }
+    } catch (err) {
+      console.error('Failed to load highlights:', err)
     }
-  }, [])
+  }, [symbol])
 
-  const startStreaming = async () => {
+  const startStreaming = useCallback(async () => {
     setIsStreaming(true)
     setError(null)
     setContent('')
@@ -109,8 +121,9 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
             try {
               const parsed = JSON.parse(data)
               
+              // Metadata can be logged but not stored if not used
               if (parsed.type === 'metadata') {
-                setMetadata(parsed)
+                console.log('Report metadata:', parsed)
               } else if (parsed.type === 'content' && parsed.content) {
                 setContent((prev) => prev + parsed.content)
               }
@@ -130,30 +143,9 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
     } finally {
       setIsStreaming(false)
     }
-  }
+  }, [symbol])
 
-  const loadHighlights = async () => {
-    try {
-      const response = await fetch(`/api/pdf-annotations?symbol=${symbol}`)
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.annotations) {
-          const loadedHighlights = data.annotations.map((ann: any) => ({
-            id: ann.id,
-            text: ann.text,
-            color: ann.color,
-            position: ann.position,
-            note: ann.note,
-          }))
-          setHighlights(loadedHighlights)
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load highlights:', err)
-    }
-  }
-
-  const saveHighlight = async (highlight: Highlight) => {
+  const saveHighlight = useCallback(async (highlight: Highlight) => {
     try {
       const response = await fetch('/api/pdf-annotations', {
         method: 'POST',
@@ -181,10 +173,38 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
           }])
         }
       }
-    } catch (err) {
-      console.error('Failed to save highlight:', err)
+    } catch (error) {
+      console.error('Failed to save highlight:', error)
     }
-  }
+  }, [symbol])
+
+  const removeHighlight = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(`/api/pdf-annotations?id=${id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setHighlights((prev) => prev.filter((h) => h.id !== id))
+      }
+    } catch (error) {
+      console.error('Failed to remove highlight:', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Start streaming on mount
+    startStreaming()
+    
+    // Load saved highlights
+    loadHighlights()
+    
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [startStreaming, loadHighlights])
 
   const handleTextSelection = useCallback(() => {
     if (!isSelectionMode || !contentRef.current) return
@@ -213,21 +233,7 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
 
     saveHighlight(highlight)
     selection.removeAllRanges()
-  }, [isSelectionMode, selectedColor, highlights])
-
-  const removeHighlight = async (id: string) => {
-    try {
-      const response = await fetch(`/api/pdf-annotations?id=${id}`, {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        setHighlights((prev) => prev.filter((h) => h.id !== id))
-      }
-    } catch (err) {
-      console.error('Failed to remove highlight:', err)
-    }
-  }
+  }, [isSelectionMode, selectedColor, saveHighlight])
 
   const downloadPdf = async () => {
     try {
@@ -346,7 +352,7 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
           onMouseUp={handleTextSelection}
         />
       )
-    } catch (err) {
+    } catch {
       return <pre className="whitespace-pre-wrap font-mono text-sm">{content}</pre>
     }
   }
