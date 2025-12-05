@@ -31,9 +31,9 @@ export const maxDuration = 180;
 
 // Configuration
 const MAX_RETRIES = 2;
-const RETRY_DELAY_MS = 2000;
-const OPENROUTER_TIMEOUT_MS = 45000; // 45 seconds per chunk (parallel)
-const AGGREGATION_TIMEOUT_MS = 30000; // 30 seconds for aggregation
+const RETRY_DELAY_MS = 1000; // Reduced from 2000ms to 1000ms for faster retries
+const OPENROUTER_TIMEOUT_MS = 35000; // Reduced from 45s to 35s per chunk (parallel)
+const AGGREGATION_TIMEOUT_MS = 20000; // Reduced from 30s to 20s for aggregation
 
 // Types
 interface StockReportRequest {
@@ -295,53 +295,26 @@ function generateAggregationPrompt(
 ): string {
   const reportType = audienceType === 'retail' ? 'Beginner-Friendly Stock Analysis' : 'Institutional Equity Research Report';
   
-  return `You are an expert editor combining sections of a ${reportType} into a final cohesive document.
+  return `Combine these 3 report sections into one cohesive ${reportType} for ${stockData.symbol} - ${stockData.companyName}.
 
-STOCK: ${stockData.symbol} - ${stockData.companyName}
-REPORT TYPE: ${reportType}
+REQUIREMENTS:
+- Add title: # ${stockData.symbol} ${reportType.toUpperCase()}
+  **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
+- Keep all sections in order, maintain all content
+- Fix formatting inconsistencies, ensure smooth flow
+- Remove redundancy, add brief transitions between sections
+- Output complete report immediately
 
-You have received 3 separately-generated sections:
-
-═══════════════════════════════════════════════════════════════
 SECTION 1:
-═══════════════════════════════════════════════════════════════
 ${chunks[0]}
 
-═══════════════════════════════════════════════════════════════
 SECTION 2:
-═══════════════════════════════════════════════════════════════
 ${chunks[1]}
 
-═══════════════════════════════════════════════════════════════
 SECTION 3:
-═══════════════════════════════════════════════════════════════
 ${chunks[2]}
 
-═══════════════════════════════════════════════════════════════
-YOUR TASK:
-═══════════════════════════════════════════════════════════════
-
-Combine these 3 sections into ONE cohesive, well-formatted report with:
-
-1. **Add a proper report title at the top:**
-   # ${stockData.symbol} ${reportType.toUpperCase()}
-   **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
-
-2. **Keep all sections in order** - do NOT reorder, remove, or add sections
-
-3. **Smooth transitions** - add brief transitional sentences between major sections if needed
-
-4. **Consistent formatting** - ensure headers, paragraphs, and spacing are uniform
-
-5. **Remove any redundancy** - if sections repeat information, keep the most detailed version
-
-6. **Ensure flow** - the report should read as one cohesive document, not 3 separate pieces
-
-7. **Maintain all technical content** - do NOT remove analysis, metrics, or insights
-
-8. **Fix any formatting issues** - ensure proper markdown formatting
-
-OUTPUT THE COMPLETE, COMBINED REPORT NOW:`;
+OUTPUT COMPLETE COMBINED REPORT:`;
 }
 
 /**
@@ -351,13 +324,15 @@ async function callOpenRouterWithRetry(
   prompt: string,
   timeoutMs: number,
   label: string,
-  attempt: number = 1
+  attempt: number = 1,
+  maxTokens: number = 8000
 ): Promise<string> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const callStartTime = Date.now();
 
   try {
-    console.log(`[ParallelReport] ${label} - attempt ${attempt}/${MAX_RETRIES + 1}`);
+    console.log(`[ParallelReport] ${label} - attempt ${attempt}/${MAX_RETRIES + 1} (timeout: ${timeoutMs}ms)`);
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -370,7 +345,7 @@ async function callOpenRouterWithRetry(
       body: JSON.stringify({
         model: 'anthropic/claude-sonnet-4.5',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 8000, // Smaller chunks = fewer tokens needed per call
+        max_tokens: maxTokens,
         temperature: 0.1,
       }),
       signal: controller.signal,
@@ -390,21 +365,28 @@ async function callOpenRouterWithRetry(
     }
 
     const content = data.choices[0].message.content;
-    console.log(`[ParallelReport] ${label} - success (${content.length} chars)`);
+    const callDuration = Date.now() - callStartTime;
+    console.log(`[ParallelReport] ${label} - success (${content.length} chars, ${callDuration}ms)`);
     return content;
 
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error(`[ParallelReport] ${label} - attempt ${attempt} failed:`, error);
+    const callDuration = Date.now() - callStartTime;
+    const isTimeout = error instanceof Error && error.name === 'AbortError';
+    console.error(`[ParallelReport] ${label} - attempt ${attempt} failed after ${callDuration}ms (timeout: ${isTimeout}):`, error);
 
     // Retry logic
     if (attempt <= MAX_RETRIES) {
       const delay = RETRY_DELAY_MS * attempt;
       console.log(`[ParallelReport] ${label} - retrying after ${delay}ms...`);
       await sleep(delay);
-      return callOpenRouterWithRetry(prompt, timeoutMs, label, attempt + 1);
+      return callOpenRouterWithRetry(prompt, timeoutMs, label, attempt + 1, maxTokens);
     }
 
+    // Add more context to the error
+    if (isTimeout) {
+      throw new Error(`${label} timed out after ${timeoutMs}ms across ${MAX_RETRIES + 1} attempts`);
+    }
     throw error;
   }
 }
@@ -603,7 +585,9 @@ export async function POST(
       finalReport = await callOpenRouterWithRetry(
         aggregationPrompt,
         AGGREGATION_TIMEOUT_MS,
-        'Aggregation'
+        'Aggregation',
+        1,
+        12000 // Higher token limit for aggregation to accommodate combined content
       );
       const aggTime = Date.now() - aggStartTime;
       console.log(`[ParallelReport] Aggregation completed in ${aggTime}ms`);

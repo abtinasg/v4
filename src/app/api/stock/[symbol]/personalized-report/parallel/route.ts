@@ -40,9 +40,9 @@ interface RouteContext {
 
 // Configuration
 const MAX_RETRIES = 2;
-const RETRY_DELAY_MS = 2000;
-const OPENROUTER_TIMEOUT_MS = 45000; // 45 seconds per chunk
-const AGGREGATION_TIMEOUT_MS = 30000; // 30 seconds for aggregation
+const RETRY_DELAY_MS = 1000; // Reduced from 2000ms to 1000ms for faster retries
+const OPENROUTER_TIMEOUT_MS = 35000; // Reduced from 45s to 35s per chunk (parallel)
+const AGGREGATION_TIMEOUT_MS = 20000; // Reduced from 30s to 20s for aggregation
 
 /**
  * Sleep utility for retry delays
@@ -232,53 +232,26 @@ function generatePersonalizedAggregationPrompt(
   chunks: string[],
   categoryLabel: string
 ): string {
-  return `You are an expert editor combining sections of a Personalized Investment Analysis into a final cohesive document.
+  return `Combine these 3 personalized analysis sections for ${symbol} - ${companyName} (${categoryLabel} Investor).
 
-STOCK: ${symbol} - ${companyName}
-INVESTOR TYPE: ${categoryLabel}
+REQUIREMENTS:
+- Add title: # ${symbol} PERSONALIZED INVESTMENT ANALYSIS
+  **${companyName}** | Tailored for ${categoryLabel} Investor | ${new Date().toISOString().split('T')[0]}
+- Keep all sections 1-9 in order, maintain all personalized content
+- Fix formatting, ensure smooth flow and transitions
+- Remove redundancy while keeping detailed analysis
+- Output complete report immediately
 
-You have received 3 separately-generated sections:
-
-═══════════════════════════════════════════════════════════════
 SECTION 1:
-═══════════════════════════════════════════════════════════════
 ${chunks[0]}
 
-═══════════════════════════════════════════════════════════════
 SECTION 2:
-═══════════════════════════════════════════════════════════════
 ${chunks[1]}
 
-═══════════════════════════════════════════════════════════════
 SECTION 3:
-═══════════════════════════════════════════════════════════════
 ${chunks[2]}
 
-═══════════════════════════════════════════════════════════════
-YOUR TASK:
-═══════════════════════════════════════════════════════════════
-
-Combine these 3 sections into ONE cohesive personalized analysis with:
-
-1. **Add a proper report title at the top:**
-   # ${symbol} PERSONALIZED INVESTMENT ANALYSIS
-   **${companyName}** | Tailored for ${categoryLabel} Investor | ${new Date().toISOString().split('T')[0]}
-
-2. **Keep all sections in order** (sections 1-9)
-
-3. **Smooth transitions** between major sections
-
-4. **Consistent formatting** throughout
-
-5. **Remove any redundancy** while keeping detailed analysis
-
-6. **Ensure coherent flow** - reads as one document
-
-7. **Maintain all personalized insights** - don't remove profile-specific analysis
-
-8. **Fix formatting issues** - ensure proper markdown
-
-OUTPUT THE COMPLETE, COMBINED PERSONALIZED REPORT NOW:`;
+OUTPUT COMPLETE COMBINED REPORT:`;
 }
 
 /**
@@ -288,13 +261,15 @@ async function callOpenRouterWithRetry(
   prompt: string,
   timeoutMs: number,
   label: string,
-  attempt: number = 1
+  attempt: number = 1,
+  maxTokens: number = 8000
 ): Promise<string> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const callStartTime = Date.now();
 
   try {
-    console.log(`[ParallelPersonalized] ${label} - attempt ${attempt}/${MAX_RETRIES + 1}`);
+    console.log(`[ParallelPersonalized] ${label} - attempt ${attempt}/${MAX_RETRIES + 1} (timeout: ${timeoutMs}ms)`);
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -307,7 +282,7 @@ async function callOpenRouterWithRetry(
       body: JSON.stringify({
         model: 'anthropic/claude-sonnet-4.5',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 8000,
+        max_tokens: maxTokens,
         temperature: 0.1,
       }),
       signal: controller.signal,
@@ -327,20 +302,27 @@ async function callOpenRouterWithRetry(
       throw new Error('No content in API response');
     }
 
-    console.log(`[ParallelPersonalized] ${label} - success (${content.length} chars)`);
+    const callDuration = Date.now() - callStartTime;
+    console.log(`[ParallelPersonalized] ${label} - success (${content.length} chars, ${callDuration}ms)`);
     return content;
 
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error(`[ParallelPersonalized] ${label} - attempt ${attempt} failed:`, error);
+    const callDuration = Date.now() - callStartTime;
+    const isTimeout = error instanceof Error && error.name === 'AbortError';
+    console.error(`[ParallelPersonalized] ${label} - attempt ${attempt} failed after ${callDuration}ms (timeout: ${isTimeout}):`, error);
 
     if (attempt <= MAX_RETRIES) {
       const delay = RETRY_DELAY_MS * attempt;
       console.log(`[ParallelPersonalized] ${label} - retrying after ${delay}ms...`);
       await sleep(delay);
-      return callOpenRouterWithRetry(prompt, timeoutMs, label, attempt + 1);
+      return callOpenRouterWithRetry(prompt, timeoutMs, label, attempt + 1, maxTokens);
     }
 
+    // Add more context to the error
+    if (isTimeout) {
+      throw new Error(`${label} timed out after ${timeoutMs}ms across ${MAX_RETRIES + 1} attempts`);
+    }
     throw error;
   }
 }
@@ -537,7 +519,9 @@ export async function POST(
       finalReport = await callOpenRouterWithRetry(
         aggregationPrompt,
         AGGREGATION_TIMEOUT_MS,
-        'Aggregation'
+        'Aggregation',
+        1,
+        12000 // Higher token limit for aggregation to accommodate combined content
       );
       const aggTime = Date.now() - aggStartTime;
       console.log(`[ParallelPersonalized] Aggregation completed in ${aggTime}ms`);
