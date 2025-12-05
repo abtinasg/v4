@@ -25,6 +25,7 @@ interface Highlight {
 interface AiPdfViewerProps {
   symbol: string
   companyName: string
+  audienceType?: 'pro' | 'retail' | 'personalized'
   onClose?: () => void
 }
 
@@ -36,7 +37,7 @@ const HIGHLIGHT_COLORS = [
   { name: 'Purple', value: '#e9d5ff', dark: '#d8b4fe' },
 ]
 
-export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) {
+export function AiPdfViewer({ symbol, companyName, audienceType = 'pro', onClose }: AiPdfViewerProps) {
   const [content, setContent] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -82,13 +83,18 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
     abortControllerRef.current = new AbortController()
     
     try {
-      const response = await fetch(`/api/stock/${symbol}/report/stream`, {
+      // Use different endpoint for personalized reports
+      const endpoint = audienceType === 'personalized' 
+        ? `/api/stock/${symbol}/personalized-report/stream`
+        : `/api/stock/${symbol}/report/stream`
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          audienceType: 'pro', // Default to professional report
+          audienceType,
         }),
         signal: abortControllerRef.current.signal,
       })
@@ -145,7 +151,7 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
     } finally {
       setIsStreaming(false)
     }
-  }, [symbol])
+  }, [symbol, audienceType])
 
   const saveHighlight = useCallback(async (highlight: Highlight) => {
     try {
