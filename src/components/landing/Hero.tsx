@@ -1,21 +1,21 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Zap, BrainCircuit, BarChart3, Activity, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Sparkles, BarChart3, BrainCircuit, Shield, Zap, Activity, TrendingUp, TrendingDown } from 'lucide-react'
 
-// Sparkline SVG component
+// Sparkline component for market data
 function Sparkline({ data, color, positive }: { data: number[]; color: string; positive: boolean }) {
   const max = Math.max(...data)
   const min = Math.min(...data)
   const range = max - min || 1
   const points = data.map((v, i) => `${(i / (data.length - 1)) * 100},${100 - ((v - min) / range) * 70 - 15}`).join(' ')
-  
+
   return (
     <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
       <defs>
         <linearGradient id={`spark-${color.replace('#', '')}`} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.1" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.8" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.9" />
         </linearGradient>
       </defs>
       <polyline
@@ -25,7 +25,7 @@ function Sparkline({ data, color, positive }: { data: number[]; color: string; p
         strokeLinecap="round"
         strokeLinejoin="round"
         points={points}
-        style={{ filter: `drop-shadow(0 0 6px ${color})` }}
+        style={{ filter: `drop-shadow(0 0 8px ${color}50)` }}
       />
     </svg>
   )
@@ -34,224 +34,219 @@ function Sparkline({ data, color, positive }: { data: number[]; color: string; p
 const marketData = [
   { symbol: 'S&P 500', value: '5,892.34', change: '+1.24%', positive: true, data: [45, 52, 48, 61, 55, 70, 65, 78, 72, 85] },
   { symbol: 'NASDAQ', value: '18,724.18', change: '+1.89%', positive: true, data: [30, 42, 38, 55, 48, 62, 58, 75, 82, 90] },
-  { symbol: 'VIX', value: '14.23', change: '-8.2%', positive: false, data: [80, 72, 68, 55, 62, 48, 52, 40, 35, 28] },
+  { symbol: 'DOW', value: '42,156.92', change: '+0.76%', positive: true, data: [55, 58, 52, 60, 65, 62, 68, 72, 70, 78] },
 ]
 
-const featurePills = [
-  { icon: Zap, label: 'Real-time Data' },
-  { icon: BrainCircuit, label: 'AI Orchestration' },
-  { icon: BarChart3, label: '150+ Metrics' },
-  { icon: ShieldCheck, label: 'Bank-grade Security' },
-]
-
-const heroHighlights = [
-  { label: 'Start Free', value: '$0/mo', sublabel: 'No credit card', color: '#00D4FF' },
-  { label: 'Metrics', value: '150+', sublabel: 'Institutional-grade', color: '#22C55E' },
-  { label: 'AI Models', value: '3', sublabel: 'Running in parallel', color: '#8B5CF6' },
+const valuePills = [
+  { icon: Sparkles, label: '70 Free Credits', sublabel: 'On signup', color: '#5B7CFF' },
+  { icon: BarChart3, label: '150+ Metrics', sublabel: 'Institutional-grade', color: '#00C9E4' },
+  { icon: BrainCircuit, label: '3 AI Models', sublabel: 'Multi-model analysis', color: '#8B5CF6' },
+  { icon: Shield, label: 'Bank-Grade Security', sublabel: 'SOC 2 compliant', color: '#22C55E' },
 ]
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#05070B] pt-28 pb-20">
-      {/* Ambient Background */}
+    <section className="relative min-h-screen overflow-hidden bg-[#030508] pt-32 pb-24 lg:pt-40 lg:pb-32">
+      {/* Premium Ambient Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-30%] left-[5%] w-[700px] h-[700px] rounded-full bg-[#00D4FF]/[0.08] blur-[160px]" />
-        <div className="absolute top-[10%] right-[-15%] w-[600px] h-[600px] rounded-full bg-[#8B5CF6]/[0.06] blur-[150px]" />
-        <div className="absolute bottom-[-20%] left-[40%] w-[520px] h-[520px] rounded-full bg-[#3B82F6]/[0.05] blur-[140px]" />
-        
-        {/* Grid */}
-        <div 
-          className="absolute inset-0 opacity-[0.02]"
+        {/* Main gradient orbs */}
+        <div className="absolute top-[-20%] left-[10%] w-[800px] h-[800px] rounded-full bg-[#5B7CFF]/[0.08] blur-[180px]" />
+        <div className="absolute top-[5%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#00C9E4]/[0.06] blur-[160px]" />
+        <div className="absolute bottom-[-10%] left-[30%] w-[500px] h-[500px] rounded-full bg-[#8B5CF6]/[0.05] blur-[150px]" />
+
+        {/* Subtle grid overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.015]"
           style={{
             backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
             backgroundSize: '80px 80px'
           }}
         />
-        
+
         {/* Hero spotlight */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(0,212,255,0.12),transparent)]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(91,124,255,0.12),transparent)]" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6">
-        <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-12 lg:gap-20 items-center min-h-[75vh]">
-          
-          {/* Left: Copy */}
-          <div className="space-y-8">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#00D4FF]/20 bg-[#00D4FF]/[0.08] px-4 py-1.5 text-xs font-medium text-[#00D4FF] glow-cyan">
-              <Activity className="h-3.5 w-3.5 animate-pulse" />
-              Trusted by 10,000+ Retail Investors
+      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-16 lg:gap-24 items-center">
+
+          {/* Left: Content */}
+          <div className="space-y-10">
+            {/* Trust Badge */}
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-[#5B7CFF]/20 bg-[#5B7CFF]/[0.06] px-5 py-2 text-sm font-medium text-[#5B7CFF] backdrop-blur-sm">
+              <Activity className="h-4 w-4 animate-pulse" />
+              <span>Trusted by 10,000+ Investors Worldwide</span>
             </div>
 
-            {/* Headline */}
-            <div>
-              <h1 className="text-display text-5xl md:text-6xl lg:text-7xl text-white leading-tight">
-                <span className="text-gray-400">Stock Analysis Made</span>
-                <br />
+            {/* Main Headline */}
+            <div className="space-y-6">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.08] text-white">
+                Stock Analysis Made{' '}
                 <span className="relative inline-block">
-                  <span className="text-glow-cyan text-transparent bg-clip-text bg-gradient-to-r from-[#00D4FF] via-[#3B82F6] to-[#8B5CF6]">
+                  <span className="bg-gradient-to-r from-[#5B7CFF] via-[#00C9E4] to-[#8B5CF6] bg-clip-text text-transparent">
                     Simple
                   </span>
-                  <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-[#00D4FF]/30 to-[#8B5CF6]/30 -z-10" />
+                  <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-[#5B7CFF]/30 to-[#00C9E4]/30 -z-10" />
                 </span>
                 {' & '}
                 <span className="relative inline-block">
-                  <span className="text-glow-cyan text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] via-[#3B82F6] to-[#00D4FF]">
+                  <span className="bg-gradient-to-r from-[#00C9E4] via-[#8B5CF6] to-[#5B7CFF] bg-clip-text text-transparent">
                     Powerful
                   </span>
-                  <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-[#8B5CF6]/30 to-[#00D4FF]/30 -z-10" />
+                  <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-[#00C9E4]/30 to-[#8B5CF6]/30 -z-10" />
                 </span>
               </h1>
+
+              <p className="text-lg md:text-xl text-gray-400 max-w-xl leading-relaxed font-light">
+                Professional stock analysis tools for retail investors. AI-powered insights,
+                real-time data, and 150+ institutional metrics — without the Bloomberg price tag.
+              </p>
             </div>
 
-            {/* Subheadline */}
-            <p className="text-subhead text-lg text-gray-400 max-w-lg">
-              Professional stock analysis tools designed for retail investors. Get AI-powered insights, real-time data, and 150+ metrics—without the Bloomberg Terminal price tag.
-            </p>
-
-            {/* Value Props */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl">
-              {heroHighlights.map((highlight) => (
+            {/* Value Pills Grid */}
+            <div className="grid grid-cols-2 gap-4 max-w-2xl">
+              {valuePills.map((pill) => (
                 <div
-                  key={highlight.label}
-                  className="group relative overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.01] p-5"
+                  key={pill.label}
+                  className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 backdrop-blur-sm transition-all duration-500 hover:border-white/[0.1] hover:bg-white/[0.03]"
                 >
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                    style={{ background: `linear-gradient(135deg, ${highlight.color}15, transparent)` }}
+                    style={{ background: `linear-gradient(135deg, ${pill.color}10, transparent)` }}
                   />
-                  <div className="relative">
-                    <div className="text-xs font-medium text-gray-500 mb-1">{highlight.label}</div>
+                  <div className="relative flex items-start gap-4">
                     <div
-                      className="text-3xl font-semibold text-white tracking-tight"
-                      style={{ color: highlight.color, textShadow: `0 0 15px ${highlight.color}40` }}
+                      className="h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
+                      style={{
+                        background: `linear-gradient(135deg, ${pill.color}20, ${pill.color}08)`,
+                      }}
                     >
-                      {highlight.value}
+                      <pill.icon className="h-5 w-5" style={{ color: pill.color }} />
                     </div>
-                    <div className="text-xs text-gray-500 mt-2">{highlight.sublabel}</div>
+                    <div>
+                      <div className="text-base font-semibold text-white mb-0.5">{pill.label}</div>
+                      <div className="text-sm text-gray-500">{pill.sublabel}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Feature pills */}
-            <div className="flex flex-wrap gap-3 pt-2">
-              {featurePills.map((pill) => (
-                <div
-                  key={pill.label}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/[0.05] bg-white/[0.02] px-3.5 py-1.5 text-xs text-gray-300"
-                >
-                  <pill.icon className="h-3.5 w-3.5 text-[#00D4FF]" />
-                  {pill.label}
                 </div>
               ))}
             </div>
 
             {/* CTAs */}
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link
                 href="/sign-up"
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#00D4FF] to-[#3B82F6] px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,212,255,0.4)] hover:scale-[1.02]"
+                className="group relative inline-flex items-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-[#5B7CFF] to-[#00C9E4] px-8 py-4 text-base font-semibold text-white transition-all duration-300 hover:shadow-[0_0_40px_rgba(91,124,255,0.4)] hover:scale-[1.02]"
               >
-                Start Free Today
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                <span className="relative z-10">Start Free — Get 70 Credits</span>
+                <ArrowRight className="relative z-10 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#00C9E4] to-[#5B7CFF] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               </Link>
               <Link
-                href="/pricing"
-                className="group inline-flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-[#8B5CF6]/30 hover:bg-[#8B5CF6]/[0.05]"
+                href="#pricing"
+                className="inline-flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-white/[0.15] hover:bg-white/[0.05]"
               >
                 View Pricing
-                <span className="text-xs text-gray-500">→ From $0/mo</span>
               </Link>
             </div>
 
             {/* Social Proof */}
             <div className="flex items-center gap-6 pt-4">
-              <div className="flex items-center -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#8B5CF6] border-2 border-[#05070B] flex items-center justify-center text-xs font-bold text-white">
-                    {i}
+              <div className="flex items-center -space-x-3">
+                {[
+                  { initials: 'JD', colors: 'from-[#5B7CFF] to-[#00C9E4]' },
+                  { initials: 'MK', colors: 'from-[#00C9E4] to-[#8B5CF6]' },
+                  { initials: 'SR', colors: 'from-[#8B5CF6] to-[#5B7CFF]' },
+                  { initials: 'AL', colors: 'from-[#22C55E] to-[#00C9E4]' },
+                ].map((user, i) => (
+                  <div
+                    key={i}
+                    className={`w-10 h-10 rounded-full bg-gradient-to-br ${user.colors} border-2 border-[#030508] flex items-center justify-center text-xs font-bold text-white shadow-lg`}
+                  >
+                    {user.initials}
                   </div>
                 ))}
-                <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-[#05070B] flex items-center justify-center text-xs text-gray-400">
-                  +10k
+                <div className="w-10 h-10 rounded-full bg-[#0A0F18] border-2 border-[#030508] flex items-center justify-center text-xs font-medium text-gray-400">
+                  +10K
                 </div>
               </div>
               <div className="text-sm text-gray-400">
-                Join thousands of retail investors
+                <span className="text-white font-medium">10,000+</span> investors already trading smarter
               </div>
             </div>
           </div>
 
           {/* Right: Terminal Mockup */}
           <div className="relative hidden lg:block">
-            {/* Glow behind */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#00D4FF]/15 via-[#3B82F6]/10 to-[#8B5CF6]/15 blur-3xl rounded-full scale-110 animate-pulse-soft" />
-            
+            {/* Ambient glow behind terminal */}
+            <div className="absolute -inset-8 bg-gradient-to-tr from-[#5B7CFF]/15 via-[#00C9E4]/10 to-[#8B5CF6]/15 blur-3xl rounded-full opacity-60" />
+
             {/* Terminal Card */}
-            <div className="relative rounded-2xl border border-white/[0.08] bg-[#0A0D12]/90 backdrop-blur-xl overflow-hidden shadow-2xl">
+            <div className="relative rounded-2xl border border-white/[0.08] bg-[#0A0F18]/90 backdrop-blur-xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
               {/* Glass reflection */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-transparent pointer-events-none" />
-              
+
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.05]">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
                 <div className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full bg-[#EF4444]/80" />
                   <div className="h-3 w-3 rounded-full bg-[#F59E0B]/80" />
                   <div className="h-3 w-3 rounded-full bg-[#22C55E]/80" />
                 </div>
-                <div className="text-label text-gray-500 flex items-center gap-1.5">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
                   <Activity className="h-3 w-3 text-[#22C55E]" />
-                  LIVE SESSION
+                  <span className="text-[#22C55E] font-medium">LIVE</span>
+                  <span className="text-gray-600">•</span>
+                  <span>Markets Open</span>
                 </div>
               </div>
 
               {/* Content */}
               <div className="p-5 space-y-4">
-                {/* Market Data */}
-                {marketData.map((item, i) => (
+                {/* Market Data Cards */}
+                {marketData.map((item) => (
                   <div
                     key={item.symbol}
-                    className="group rounded-xl border border-white/[0.04] bg-white/[0.01] p-4 hover:border-[#00D4FF]/20 hover:bg-[#00D4FF]/[0.02] transition-all duration-300"
+                    className="group rounded-xl border border-white/[0.04] bg-white/[0.02] p-4 hover:border-[#5B7CFF]/20 hover:bg-[#5B7CFF]/[0.02] transition-all duration-300"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-label text-gray-500 mb-1">{item.symbol}</div>
-                        <div className="flex items-baseline gap-2.5">
+                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">{item.symbol}</div>
+                        <div className="flex items-baseline gap-3">
                           <span className="text-xl font-semibold text-white tabular-nums">{item.value}</span>
-                          <span className={`text-sm font-medium ${item.positive ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
+                          <span className={`flex items-center gap-1 text-sm font-medium ${item.positive ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
+                            {item.positive ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
                             {item.change}
                           </span>
                         </div>
                       </div>
-                      <div className="w-20 h-10">
-                        <Sparkline 
-                          data={item.data} 
-                          color={item.positive ? '#22C55E' : '#EF4444'} 
-                          positive={item.positive} 
+                      <div className="w-24 h-12">
+                        <Sparkline
+                          data={item.data}
+                          color={item.positive ? '#22C55E' : '#EF4444'}
+                          positive={item.positive}
                         />
                       </div>
                     </div>
                   </div>
                 ))}
 
-                {/* AI Status */}
-                <div
-                  className="rounded-xl border border-[#8B5CF6]/20 bg-[#8B5CF6]/[0.05] p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-[#8B5CF6]/20 flex items-center justify-center">
+                {/* AI Status Card */}
+                <div className="rounded-xl border border-[#8B5CF6]/25 bg-gradient-to-br from-[#8B5CF6]/[0.08] to-[#5B7CFF]/[0.04] p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-11 w-11 rounded-xl bg-[#8B5CF6]/20 flex items-center justify-center">
                       <BrainCircuit className="h-5 w-5 text-[#8B5CF6]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-label text-[#8B5CF6] mb-0.5">AI ORCHESTRATOR</div>
-                      <div className="text-xs text-gray-400 truncate">Analyzing 847 signals across 3 models...</div>
+                      <div className="text-xs font-medium text-[#8B5CF6] uppercase tracking-wider mb-0.5">AI Orchestrator</div>
+                      <div className="text-sm text-gray-400 truncate">Analyzing 847 signals across 3 models...</div>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1.5">
                       {[0, 1, 2].map((i) => (
                         <div
                           key={i}
-                          className="h-1.5 w-1.5 rounded-full bg-[#8B5CF6]"
+                          className="h-2 w-2 rounded-full bg-[#8B5CF6] animate-pulse"
+                          style={{ animationDelay: `${i * 200}ms` }}
                         />
                       ))}
                     </div>
@@ -260,19 +255,20 @@ export function Hero() {
               </div>
             </div>
 
-            {/* Floating stat cards */}
-            <div className="pointer-events-none absolute -left-10 top-12 w-40 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 backdrop-blur-xl shadow-2xl">
-              <div className="text-xs text-gray-500 mb-1">Session Score</div>
+            {/* Floating Stats Cards */}
+            <div className="absolute -left-12 top-16 rounded-2xl border border-white/[0.08] bg-[#0A0F18]/95 backdrop-blur-xl px-5 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+              <div className="text-xs text-gray-500 mb-1.5">Session Score</div>
               <div className="text-3xl font-semibold text-white">92</div>
-              <div className="text-xs text-[#22C55E]">+12 vs avg</div>
+              <div className="text-xs text-[#22C55E] mt-1">+12 vs avg</div>
             </div>
-            <div className="pointer-events-none absolute -right-8 bottom-10 w-44 rounded-2xl border border-white/[0.08] bg-[#05070B]/80 px-4 py-3 backdrop-blur-xl shadow-2xl">
-              <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+
+            <div className="absolute -right-10 bottom-16 rounded-2xl border border-white/[0.08] bg-[#0A0F18]/95 backdrop-blur-xl px-5 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.4)] w-48">
+              <div className="flex items-center justify-between text-xs text-gray-500 mb-2.5">
                 <span>AI Confidence</span>
-                <span className="text-[#8B5CF6]">87%</span>
+                <span className="text-[#8B5CF6] font-medium">87%</span>
               </div>
-              <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
-                <div className="h-full w-[87%] rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#00D4FF]" />
+              <div className="h-2 rounded-full bg-white/[0.08] overflow-hidden">
+                <div className="h-full w-[87%] rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#00C9E4]" />
               </div>
               <div className="mt-3 text-[11px] text-gray-500">Monitoring 847 signals</div>
             </div>
