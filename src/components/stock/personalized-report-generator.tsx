@@ -484,7 +484,13 @@ export function PersonalizedReportGenerator({ symbol, companyName }: Personalize
     setProgress('Analyzing stock with your risk profile...');
 
     try {
-      const reportResponse = await fetch(`/api/stock/${symbol}/personalized-report`, {
+      // Use parallel endpoint for faster generation (30-45s vs 60-90s)
+      const useParallel = true;
+      const endpoint = useParallel 
+        ? `/api/stock/${symbol}/personalized-report/parallel` 
+        : `/api/stock/${symbol}/personalized-report`;
+      
+      const reportResponse = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ companyName }),
