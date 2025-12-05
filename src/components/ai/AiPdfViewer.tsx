@@ -5,7 +5,9 @@ import { Download, Highlighter, Trash2, FileText, Loader2, Maximize2, Minimize2 
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import jsPDF from 'jspdf'
-import { marked } from 'marked'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import removeMd from 'remove-markdown'
 
 interface Highlight {
   id: string
@@ -264,13 +266,13 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
       doc.text(`AI-Generated Report - ${new Date().toLocaleDateString()}`, margin, yPosition)
       yPosition += 15
 
-      // Content
-      const plainText = content
-        .replace(/^#{1,6}\s+/gm, '')
-        .replace(/\*\*(.+?)\*\*/g, '$1')
-        .replace(/\*(.+?)\*/g, '$1')
-        .replace(/`(.+?)`/g, '$1')
-        .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+      // Content - Use remove-markdown for reliable conversion
+      const plainText = removeMd(content, {
+        stripListLeaders: false, // Keep bullet points
+        gfm: true, // Support GitHub Flavored Markdown
+      })
+        .replace(/^\s*[-*+]\s+/gm, '• ') // Ensure consistent bullet points
+        .trim()
 
       const sections = plainText.split(/\n{2,}/)
 
@@ -342,19 +344,17 @@ export function AiPdfViewer({ symbol, companyName, onClose }: AiPdfViewerProps) 
   const renderContent = () => {
     if (!content) return null
 
-    try {
-      const html = marked.parse(content) as string
-      return (
-        <div
-          ref={contentRef}
-          className="prose prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: html }}
-          onMouseUp={handleTextSelection}
-        />
-      )
-    } catch {
-      return <pre className="whitespace-pre-wrap font-mono text-sm">{content}</pre>
-    }
+    return (
+      <div
+        ref={contentRef}
+        className="prose prose-invert max-w-none"
+        onMouseUp={handleTextSelection}
+      >
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {content}
+        </ReactMarkdown>
+      </div>
+    )
   }
 
   return (

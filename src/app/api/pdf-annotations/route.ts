@@ -73,9 +73,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { symbol, text, color, position, note, reportType } = body
 
-    if (!symbol || !text || !color || !position) {
+    // Validate required fields with specific error messages
+    const missingFields = []
+    if (!symbol) missingFields.push('symbol')
+    if (!text) missingFields.push('text')
+    if (!color) missingFields.push('color')
+    if (!position) missingFields.push('position')
+
+    if (missingFields.length > 0) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { 
+          error: 'Missing required fields',
+          missingFields,
+          requiredFields: ['symbol', 'text', 'color', 'position']
+        },
         { status: 400 }
       )
     }

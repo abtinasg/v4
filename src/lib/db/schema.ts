@@ -885,15 +885,17 @@ export const pdfAnnotations = pgTable('pdf_annotations', {
   reportType: varchar('report_type', { length: 50 }).default('standard'),
   
   // Highlight data
-  text: text('text').notNull(),
-  color: varchar('color', { length: 20 }).notNull(),
+  text: text('text').notNull(), // The highlighted text content
+  color: varchar('color', { length: 20 }).notNull(), // Hex color code (e.g., #fef08a)
+  // Position coordinates in pixels, relative to the content container's top-left corner
+  // Used to overlay the highlight on the exact location of the text
   position: jsonb('position').$type<{
-    top: number;
-    left: number;
-    width: number;
-    height: number;
+    top: number;    // Distance from top of container in pixels
+    left: number;   // Distance from left of container in pixels
+    width: number;  // Width of highlighted area in pixels
+    height: number; // Height of highlighted area in pixels
   }>().notNull(),
-  note: text('note'),
+  note: text('note'), // Optional note/comment about the highlight
   
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
