@@ -17,7 +17,7 @@ export function UIPreview() {
         <div className="absolute bottom-1/4 right-[-10%] w-[500px] h-[500px] rounded-full bg-[#8B5CF6]/[0.03] blur-[120px]" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-6">
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-display text-3xl md:text-4xl lg:text-5xl text-white mb-4">

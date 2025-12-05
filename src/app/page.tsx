@@ -4,6 +4,9 @@ import {
   TrustBar,
   Vision,
   Features,
+  LiveData,
+  UIPreview,
+  Architecture,
   AIOrchestrator,
   MetricsLibrary,
   Pricing,
@@ -44,8 +47,23 @@ export default function Home() {
         {/* Hero Section - Main value proposition */}
         <Hero />
 
+        {/* Trust Bar - Social proof and metrics */}
+        <TrustBar />
+
+        {/* Vision Section - Company mission */}
+        <Vision />
+
         {/* Features Section - Core product features */}
         <Features />
+
+        {/* Live Data - Real-time market data showcase */}
+        <LiveData />
+
+        {/* UI Preview - Product interface showcase */}
+        <UIPreview />
+
+        {/* Architecture - Technical overview */}
+        <Architecture />
 
         {/* AI Orchestrator - Multi-model AI explanation */}
         <AIOrchestrator />
