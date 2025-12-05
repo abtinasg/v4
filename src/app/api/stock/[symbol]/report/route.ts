@@ -525,6 +525,19 @@ Write an EXHAUSTIVE research report with these 10 sections. Each section needs m
 - Portfolio treatment perspective (NOT advice)
 
 End with: _"Analysis based solely on data provided by Deepin; not investment advice."_
+
+═══════════════════════════════════════════════════════════════
+⚠️ ABSOLUTELY CRITICAL - READ THIS CAREFULLY:
+═══════════════════════════════════════════════════════════════
+
+- **WRITE THE COMPLETE REPORT IN ONE RESPONSE** - ALL 10 SECTIONS
+- **DO NOT ASK** if I want you to continue
+- **DO NOT WRITE** phrases like "Would you like me to continue?" or "Continued in next sections..."
+- **DO NOT PAUSE** or break the report into parts
+- **NEVER** say things like "[Note: I can continue...]" or "[Shall I proceed...]"
+- If you run out of space, prioritize completing all sections with slightly less detail
+- The report MUST be complete and self-contained
+- **START WRITING THE REPORT NOW - ALL SECTIONS**
 `;
 
   // =====================================================
@@ -591,6 +604,19 @@ Two lists: What company does well, where it could improve.
 ## 📝 The Bottom Line
 2-3 sentence summary for regular person.
 End: _"This analysis is for educational purposes only. Always do your own research before making investment decisions."_
+
+═══════════════════════════════════════════════════════════════
+⚠️ ABSOLUTELY CRITICAL - READ THIS CAREFULLY:
+═══════════════════════════════════════════════════════════════
+
+- **WRITE THE COMPLETE REPORT IN ONE RESPONSE** - ALL SECTIONS
+- **DO NOT ASK** if I want you to continue
+- **DO NOT WRITE** phrases like "Would you like me to continue?" or "Continued in next sections..."
+- **DO NOT PAUSE** or break the report into parts
+- **NEVER** say things like "[Note: I can continue...]" or "[Shall I proceed...]"
+- If you run out of space, prioritize completing all sections with slightly less detail
+- The report MUST be complete and self-contained
+- **START WRITING THE REPORT NOW - ALL SECTIONS**
 `;
 
   // Select the appropriate prompt based on audience type
