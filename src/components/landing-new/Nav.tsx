@@ -34,9 +34,11 @@ export function Nav() {
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">D</span>
-              </div>
+              <img
+                src="/logo.jpeg"
+                alt="Deepin"
+                className="h-8 w-8 rounded-lg object-cover"
+              />
               <span className="text-[17px] font-semibold text-white tracking-tight">
                 Deepin
               </span>

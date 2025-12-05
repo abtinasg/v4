@@ -67,7 +67,7 @@ export function Pricing() {
       <div className="mx-auto max-w-6xl px-6">
         {/* Header */}
         <div className="text-center mb-16">
-          <p className="text-[13px] font-medium text-purple-400 uppercase tracking-wider mb-4">
+          <p className="text-[13px] font-medium text-blue-400 uppercase tracking-wider mb-4">
             Pricing
           </p>
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-6">
@@ -87,13 +87,13 @@ export function Pricing() {
               key={plan.name}
               className={`relative rounded-2xl p-8 ${
                 plan.featured
-                  ? 'bg-gradient-to-b from-purple-500/10 to-transparent border-2 border-purple-500/30'
+                  ? 'bg-gradient-to-b from-blue-500/10 to-transparent border-2 border-blue-500/30'
                   : 'bg-white/[0.02] border border-white/[0.06]'
               }`}
             >
               {plan.featured && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500 text-white text-xs font-medium">
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500 text-white text-xs font-medium">
                     <Sparkles className="h-3 w-3" />
                     Most popular
                   </div>
@@ -119,7 +119,7 @@ export function Pricing() {
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3">
-                    <Check className={`h-5 w-5 flex-shrink-0 ${plan.featured ? 'text-purple-400' : 'text-zinc-500'}`} />
+                    <Check className={`h-5 w-5 flex-shrink-0 ${plan.featured ? 'text-blue-400' : 'text-zinc-500'}`} />
                     <span className="text-sm text-zinc-400">{feature}</span>
                   </li>
                 ))}
@@ -129,7 +129,7 @@ export function Pricing() {
                 href={plan.href}
                 className={`block w-full text-center py-3 rounded-xl text-[14px] font-medium transition-all ${
                   plan.featured
-                    ? 'bg-purple-500 hover:bg-purple-400 text-white'
+                    ? 'bg-blue-500 hover:bg-blue-400 text-white'
                     : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
                 }`}
               >

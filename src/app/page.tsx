@@ -1,12 +1,15 @@
-import { Nav, Hero, Product, Workflows, Pricing, Footer } from '@/components/landing-new'
+import { Nav, Hero, WhoItsFor, Features, Product, Workflows, MetricsLibrary, Pricing, Footer } from '@/components/landing-new'
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#09090B] text-white antialiased">
       <Nav />
       <Hero />
+      <WhoItsFor />
+      <Features />
       <Product />
       <Workflows />
+      <MetricsLibrary />
       <Pricing />
       <Footer />
     </main>

@@ -100,7 +100,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
   /**
    * Generate PDF from markdown report - Professional Design
    */
-  const generatePDF = async (reportData: ReportResponse) => {
+  const generatePDF = async (reportData: ReportResponse, audienceType: AudienceType) => {
     try {
       setProgress('Creating PDF document...');
 
@@ -117,7 +117,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
       let yPosition = margin;
       let pageNumber = 1;
 
-      const isRetail = selectedAudience === 'retail';
+      const isRetail = audienceType === 'retail';
 
       // Colors - Professional themes
       const primaryColor: [number, number, number] = isRetail 
@@ -407,7 +407,7 @@ export function StockReportGenerator({ symbol, companyName }: StockReportGenerat
 
       // Generate PDF
       setProgress('Generating PDF document...');
-      await generatePDF(reportData);
+      await generatePDF(reportData, audienceType);
 
       // Clear progress after success
       setTimeout(() => {

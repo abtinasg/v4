@@ -37,9 +37,11 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-2.5 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">D</span>
-              </div>
+              <img
+                src="/logo.jpeg"
+                alt="Deepin"
+                className="h-8 w-8 rounded-lg object-cover"
+              />
               <span className="text-[17px] font-semibold text-white">Deepin</span>
             </Link>
             <p className="text-sm text-zinc-500 max-w-xs mb-6">

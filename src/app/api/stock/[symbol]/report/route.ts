@@ -590,14 +590,18 @@ End with disclaimer: _"This analysis is based solely on data provided by Deepin 
 ⚠️ ABSOLUTELY CRITICAL - READ THIS CAREFULLY:
 ═══════════════════════════════════════════════════════════════
 
-- **WRITE THE COMPLETE REPORT IN ONE RESPONSE** - ALL 10 SECTIONS
+- **WRITE THE COMPLETE REPORT IN ONE RESPONSE** - ALL 11 SECTIONS
 - **DO NOT ASK** if I want you to continue
 - **DO NOT WRITE** phrases like "Would you like me to continue?" or "Continued in next sections..."
 - **DO NOT PAUSE** or break the report into parts
 - **NEVER** say things like "[Note: I can continue...]" or "[Shall I proceed...]"
-- If you run out of space, prioritize completing all sections with slightly less detail
-- The report MUST be complete and self-contained
-- **START WRITING THE REPORT NOW - ALL SECTIONS**
+- **NEVER** write "[Continued sections follow...]" or similar
+- **NEVER** apologize for length limits or mention needing to stop
+- **NEVER** write "I need to stop here due to length limits"
+- **NEVER** write "Note: I apologize"
+- If you feel like you're running low on space, COMPLETE all sections with slightly less detail per section
+- The report MUST be complete and self-contained with NO interruptions
+- **START WRITING THE REPORT NOW - ALL SECTIONS - DO NOT STOP UNTIL DONE**
 `;
 
   // =====================================================
@@ -718,14 +722,18 @@ End with: _"This guide is for educational purposes only. It is not financial adv
 ⚠️ ABSOLUTELY CRITICAL - READ THIS CAREFULLY:
 ═══════════════════════════════════════════════════════════════
 
-- **WRITE THE COMPLETE REPORT IN ONE RESPONSE** - ALL SECTIONS
+- **WRITE THE COMPLETE REPORT IN ONE RESPONSE** - ALL 8 SECTIONS
 - **DO NOT ASK** if I want you to continue
 - **DO NOT WRITE** phrases like "Would you like me to continue?" or "Continued in next sections..."
 - **DO NOT PAUSE** or break the report into parts
 - **NEVER** say things like "[Note: I can continue...]" or "[Shall I proceed...]"
-- If you run out of space, prioritize completing all sections with slightly less detail
-- The report MUST be complete and self-contained
-- **START WRITING THE REPORT NOW - ALL SECTIONS**
+- **NEVER** write "[Continued sections follow...]" or similar
+- **NEVER** apologize for length limits or mention needing to stop
+- **NEVER** write "I need to stop here due to length limits"
+- **NEVER** write "Note: I apologize"
+- If you feel like you're running low on space, COMPLETE all sections with slightly less detail per section
+- The report MUST be complete and self-contained with NO interruptions
+- **START WRITING THE REPORT NOW - ALL SECTIONS - DO NOT STOP UNTIL DONE**
 `;
 
   // Select the appropriate prompt based on audience type
@@ -751,7 +759,7 @@ End with: _"This guide is for educational purposes only. It is not financial adv
         body: JSON.stringify({
           model: 'anthropic/claude-3.5-sonnet', // Faster model for better reliability
           messages: [{ role: 'user', content: selectedPrompt }],
-          max_tokens: 16000, // Reduced from 40K to 16K for faster generation
+          max_tokens: 24000, // Increased to prevent truncation
           temperature: 0.3,
         }),
         signal: controller.signal,
