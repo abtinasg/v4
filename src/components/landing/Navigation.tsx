@@ -8,7 +8,6 @@ const navLinks = [
   { name: 'Product', href: '#features' },
   { name: 'Workflows', href: '#workflows' },
   { name: 'Pricing', href: '#pricing' },
-  { name: 'Sample Report', href: '/sample-report' },
 ]
 
 export function Navigation() {

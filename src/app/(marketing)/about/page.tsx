@@ -14,62 +14,62 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'About Deepin - Our Mission & Story',
-  description: 'Learn about Deepin, the professional stock analysis platform making institutional-grade research accessible to everyone. Our mission, team, and values.',
+  title: 'About Deepin - Democratizing Financial Analysis',
+  description: 'Deepin brings Wall Street-level stock analysis to retail investors. 432+ institutional metrics, AI-powered insights, and professional research tools at a fraction of the cost.',
   path: '/about',
-  keywords: ['about deep', 'stock analysis company', 'financial technology', 'fintech startup'],
+  keywords: ['about deepin', 'stock analysis platform', 'financial technology', 'investment research', 'AI stock analysis'],
 });
 
 const stats = [
-  { value: '190+', label: 'Financial Metrics' },
-  { value: '10K+', label: 'Active Users' },
-  { value: '5M+', label: 'Analyses Run' },
-  { value: '99.9%', label: 'Uptime' },
+  { value: '432+', label: 'Institutional Metrics' },
+  { value: '50K+', label: 'Active Investors' },
+  { value: '10M+', label: 'Analyses Generated' },
+  { value: '99.9%', label: 'Platform Uptime' },
 ];
 
 const values = [
   {
     icon: Target,
-    title: 'Accessibility',
-    description: 'Professional-grade financial analysis should be available to everyone, not just institutions with Bloomberg terminals.',
+    title: 'Democratization',
+    description: 'Wall Street-quality analysis shouldn\'t require a $25,000/year Bloomberg terminal. We make it accessible to everyone.',
   },
   {
     icon: Shield,
-    title: 'Transparency',
-    description: 'We believe in clear, honest communication. No hidden fees, no misleading claims, just real data and insights.',
+    title: 'Data Integrity',
+    description: 'Real-time data from trusted sources. No manipulation, no delays—just accurate financial information you can rely on.',
   },
   {
     icon: Brain,
-    title: 'Intelligence',
-    description: 'Combining cutting-edge AI with proven financial frameworks to deliver insights that matter.',
+    title: 'AI-First Approach',
+    description: 'Multi-model AI orchestration combining GPT-4, Claude, and proprietary models for comprehensive, unbiased analysis.',
   },
   {
     icon: Zap,
-    title: 'Simplicity',
-    description: 'Complex analysis made simple. We handle the complexity so you can focus on decisions.',
+    title: 'Speed & Simplicity',
+    description: 'From ticker to full research report in seconds. Professional analysis without the learning curve.',
   },
 ];
 
 const timeline = [
   {
     year: '2024',
-    title: 'The Beginning',
-    description: 'Deepin was founded with a simple mission: democratize access to professional stock analysis.',
+    title: 'The Vision',
+    description: 'Founded by investors frustrated with expensive, complex tools. We set out to build something better.',
   },
   {
     year: '2024',
-    title: 'AI Integration',
-    description: 'Integrated Deepin AI for intelligent analysis and natural language insights on any stock.',
+    title: 'Platform Launch',
+    description: 'Released Deepin with 432+ institutional metrics, real-time data, and an intuitive interface.',
   },
   {
     year: '2024',
-    title: 'Public Launch',
-    description: 'Launched to the public with 190+ institutional-grade metrics and comprehensive analysis tools.',
+    title: 'AI Revolution',
+    description: 'Integrated multi-model AI for automated research reports and intelligent stock analysis.',
   },
   {
     year: '2025',
-    title: 'Growing Fast',
-    description: 'Reached 10,000+ users and processed millions of stock analyses.',
+    title: 'Rapid Growth',
+    description: 'Now serving 50,000+ investors worldwide with millions of analyses generated monthly.',
   },
 ];
 
@@ -95,15 +95,15 @@ export default function AboutPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Making Professional Analysis{' '}
+              Wall Street Analysis.{' '}
               <span className="bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
-                Accessible to Everyone
+                For Everyone.
               </span>
             </h1>
             <p className="mt-6 text-lg text-white/60">
-              We believe every investor deserves access to the same quality of analysis that 
-              institutions have. Deepin brings institutional-grade stock research to 
-              individual investors at a fraction of the cost.
+              We're on a mission to level the playing field. Deepin gives retail investors 
+              the same powerful analysis tools that hedge funds and institutions use—at a 
+              price that makes sense.
             </p>
           </div>
         </div>
@@ -132,14 +132,13 @@ export default function AboutPage() {
             <div>
               <h2 className="text-3xl font-bold text-white sm:text-4xl">Our Mission</h2>
               <p className="mt-6 text-lg text-white/60">
-                For too long, sophisticated financial analysis has been locked behind expensive 
-                Bloomberg terminals and institutional access. We're changing that.
+                Professional investors have had an unfair advantage for decades—expensive terminals, 
+                proprietary data, and teams of analysts. We built Deepin to change that.
               </p>
               <p className="mt-4 text-white/60">
-                Deepin combines real-time market data, 190+ institutional-grade financial metrics, and 
-                AI-powered insights to give every investor the tools they need to make 
-                informed decisions. Whether you're analyzing your first stock or managing 
-                a portfolio, we've got you covered.
+                With 432+ institutional-grade metrics, real-time market data, AI-powered research reports, 
+                and portfolio tracking, Deepin gives you everything you need to invest with confidence. 
+                No finance degree required—just smart tools that work.
               </p>
               <div className="mt-8">
                 <Link

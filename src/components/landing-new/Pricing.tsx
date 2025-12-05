@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Check, Sparkles } from 'lucide-react'
+import { Check, Sparkles, Zap } from 'lucide-react'
 
 const plans = [
   {
@@ -19,6 +19,7 @@ const plans = [
     cta: 'Get started',
     href: '/sign-up',
     featured: false,
+    trial: false,
   },
   {
     name: 'Pro',
@@ -34,9 +35,29 @@ const plans = [
       'Priority support',
       'API access',
     ],
-    cta: 'Start Pro trial',
-    href: '/sign-up?plan=pro',
+    cta: 'Start 14-day free trial',
+    href: '/sign-up?plan=pro&trial=true',
     featured: true,
+    trial: true,
+  },
+  {
+    name: 'Premium',
+    price: '59',
+    description: 'Advanced tools for professionals',
+    credits: '1,500 credits/mo',
+    features: [
+      '1,500 credits per month',
+      'Everything in Pro',
+      'Advanced DCF models',
+      'Multi-portfolio support',
+      'Custom alerts',
+      'Export to Excel/PDF',
+      'Dedicated support',
+    ],
+    cta: 'Start 14-day free trial',
+    href: '/sign-up?plan=premium&trial=true',
+    featured: false,
+    trial: true,
   },
   {
     name: 'Enterprise',
@@ -45,7 +66,7 @@ const plans = [
     credits: 'Unlimited',
     features: [
       'Unlimited credits',
-      'Everything in Pro',
+      'Everything in Premium',
       'Team collaboration',
       'Custom integrations',
       'Dedicated account manager',
@@ -55,6 +76,7 @@ const plans = [
     cta: 'Contact sales',
     href: '/contact',
     featured: false,
+    trial: false,
   },
 ]
 
@@ -64,7 +86,7 @@ export function Pricing() {
       {/* Section border */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-7xl px-6">
         {/* Header */}
         <div className="text-center mb-16">
           <p className="text-[13px] font-medium text-blue-400 uppercase tracking-wider mb-4">
@@ -76,12 +98,12 @@ export function Pricing() {
             <span className="text-zinc-500">pricing</span>
           </h2>
           <p className="text-lg text-zinc-400 max-w-xl mx-auto">
-            Start free, upgrade when you need more power.
+            Start free, upgrade when you need more power. All paid plans include a <span className="text-blue-400 font-medium">14-day free trial</span>.
           </p>
         </div>
 
         {/* Plans */}
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-5">
           {plans.map((plan) => (
             <div
               key={plan.name}
@@ -135,8 +157,22 @@ export function Pricing() {
               >
                 {plan.cta}
               </Link>
+
+              {plan.trial && (
+                <p className="text-xs text-center text-zinc-500 mt-3 flex items-center justify-center gap-1">
+                  <Zap className="h-3 w-3" />
+                  14 days free, then ${plan.price}/mo
+                </p>
+              )}
             </div>
           ))}
+        </div>
+
+        {/* Crypto Payment Notice */}
+        <div className="mt-12 text-center">
+          <p className="text-sm text-zinc-500">
+            🔐 Pay securely with <span className="text-white">Bitcoin</span>, <span className="text-white">Ethereum</span>, <span className="text-white">USDT</span> and 50+ cryptocurrencies
+          </p>
         </div>
       </div>
     </section>

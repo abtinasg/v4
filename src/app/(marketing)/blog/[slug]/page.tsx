@@ -15,6 +15,619 @@ const blogPosts: Record<string, {
   category: string;
   image: string;
 }> = {
+  'fed-rate-cuts-2025-what-investors-need-to-know': {
+    title: 'Fed Rate Cuts in 2025: What Investors Need to Know',
+    excerpt: 'The Federal Reserve is signaling potential rate cuts in 2025. Here\'s how this could impact your portfolio and which sectors stand to benefit most.',
+    content: `
+## The Fed's 2025 Pivot
+
+After years of aggressive rate hikes to combat inflation, the Federal Reserve is finally signaling a shift. With inflation cooling toward the 2% target and labor markets showing signs of softening, the stage is set for rate cuts in 2025.
+
+### Current State of Rates
+
+As of December 2025, the federal funds rate sits at 4.25-4.50%, down from the peak of 5.25-5.50%. The Fed has already cut rates twice this year, and markets are pricing in additional cuts through 2025.
+
+## What Rate Cuts Mean for Investors
+
+### Winners
+
+**Growth Stocks**: Lower rates reduce the discount rate used to value future cash flows, making growth companies more attractive. Think tech, biotech, and innovative disruptors.
+
+**Real Estate**: REITs and homebuilders benefit from lower mortgage rates and cheaper financing for commercial projects.
+
+**Dividend Stocks**: As bond yields fall, dividend-paying stocks become relatively more attractive for income seekers.
+
+**Small Caps**: Smaller companies often carry more debt, so lower rates directly improve their profitability.
+
+### Sectors to Watch
+
+| Sector | Impact | Why |
+|--------|--------|-----|
+| Technology | Positive | Lower discount rates boost valuations |
+| Real Estate | Positive | Cheaper financing, higher property values |
+| Financials | Mixed | Lower margins but more lending activity |
+| Utilities | Positive | Less competition from bonds |
+| Consumer Discretionary | Positive | Lower rates stimulate spending |
+
+## Historical Perspective
+
+Looking at previous rate cut cycles:
+- **2019**: Markets rallied as the Fed cut rates as "insurance"
+- **2007-2008**: Cuts couldn't prevent recession but supported recovery
+- **2001**: Tech stocks initially fell but eventually recovered
+
+The key lesson: rate cuts are generally positive for stocks, but context matters.
+
+## What to Do Now
+
+1. **Review your portfolio allocation** - Ensure you're not overweight in rate-sensitive sectors that may already be priced for cuts
+2. **Consider growth exposure** - Quality growth stocks with strong fundamentals could outperform
+3. **Don't ignore bonds** - Falling rates mean rising bond prices; consider extending duration
+4. **Stay diversified** - Rate cuts aren't guaranteed; the Fed remains data-dependent
+
+## The Bottom Line
+
+The shift to lower rates creates opportunities, but timing the market is notoriously difficult. Focus on quality companies with strong fundamentals that can thrive in any rate environment.
+
+Use Deepin to analyze how rate-sensitive your portfolio is and identify opportunities in this changing environment.
+    `,
+    author: 'Deepin Team',
+    publishedAt: '2025-12-05',
+    readTime: '7 min read',
+    category: 'Market Analysis',
+    image: '/blog/fed-rates-2025.jpg',
+  },
+  'nvidia-vs-amd-ai-chip-war-2025': {
+    title: 'NVIDIA vs AMD: The AI Chip War Heats Up in 2025',
+    excerpt: 'The battle for AI chip dominance intensifies. We analyze both companies\' strategies, market positions, and what it means for investors.',
+    content: `
+## The Battle for AI Supremacy
+
+The AI revolution has created the most valuable chip market in history, and two companies are fighting for dominance: NVIDIA and AMD. As we head into 2025, the competition is fiercer than ever.
+
+## NVIDIA: The Undisputed Leader
+
+NVIDIA's dominance in AI chips is staggering:
+- **Data Center Revenue**: $14.5B+ quarterly
+- **Market Share**: ~80% of AI training chips
+- **Key Products**: H100, H200, and the upcoming Blackwell architecture
+
+### NVIDIA's Moat
+
+1. **CUDA Ecosystem**: 15+ years of developer tools and libraries
+2. **Software Lock-in**: Rewriting AI code for other platforms is expensive
+3. **First-mover Advantage**: Started AI focus in 2012
+4. **Full-stack Approach**: Hardware, software, and cloud services
+
+### Valuation Concerns
+
+At a P/E over 50, NVIDIA needs to keep growing at exceptional rates to justify its valuation. Any slowdown could trigger a significant correction.
+
+## AMD: The Hungry Challenger
+
+AMD isn't sitting idle:
+- **MI300 Series**: Competitive with NVIDIA's H100
+- **Aggressive Pricing**: 20-30% cheaper than equivalent NVIDIA chips
+- **Data Center Growth**: Revenue growing 100%+ year-over-year
+
+### AMD's Strategy
+
+1. **Price Competition**: Offering more compute per dollar
+2. **Open Source**: Investing in ROCm to challenge CUDA
+3. **Cloud Partnerships**: Working with Microsoft, Google, and Meta
+4. **CPU+GPU Integration**: Leveraging their CPU leadership
+
+### The Underdog Opportunity
+
+AMD trades at a significant discount to NVIDIA. If they can capture even 10% more market share, the stock could see substantial upside.
+
+## Head-to-Head Comparison
+
+| Metric | NVIDIA | AMD |
+|--------|--------|-----|
+| AI Revenue | $14B+/quarter | $2B+/quarter |
+| Market Share | ~80% | ~15% |
+| P/E Ratio | 55+ | 35+ |
+| Gross Margin | 75%+ | 50%+ |
+| R&D Spending | $8B/year | $5B/year |
+
+## Investment Thesis
+
+### Bull Case for NVIDIA
+- AI demand continues to exceed supply
+- New Blackwell architecture extends lead
+- Software moat is nearly impossible to replicate
+- Enterprise AI adoption is just beginning
+
+### Bull Case for AMD
+- Valuation gap is too wide
+- MI300 proves they can compete
+- Cloud customers want an alternative supplier
+- Open-source ecosystem gaining momentum
+
+### Bear Case for Both
+- AI spending could slow if ROI doesn't materialize
+- China restrictions limit market opportunity
+- Competition from custom chips (Google TPU, Amazon Trainium)
+- Chip cycle could turn negative
+
+## The Verdict
+
+**NVIDIA** remains the safer bet for pure AI exposure but carries valuation risk. It's a "quality at a price" investment.
+
+**AMD** offers better value if you believe they can execute and gain share. It's a higher-risk, higher-reward play.
+
+For most investors, a position in both provides diversified exposure to the AI chip boom while hedging against company-specific risks.
+
+## How to Analyze These Stocks
+
+Use Deepin to:
+- Compare valuation metrics side-by-side
+- Track quarterly earnings growth
+- Monitor analyst sentiment changes
+- Get AI-powered analysis of their competitive positions
+    `,
+    author: 'Deepin Team',
+    publishedAt: '2025-12-04',
+    readTime: '9 min read',
+    category: 'Industry',
+    image: '/blog/nvidia-amd-ai.jpg',
+  },
+  'magnificent-7-stocks-still-worth-buying': {
+    title: 'Are the Magnificent 7 Stocks Still Worth Buying in December 2025?',
+    excerpt: 'Apple, Microsoft, Google, Amazon, Meta, NVIDIA, and Tesla have dominated the market. We break down which ones still have room to run.',
+    content: `
+## The Magnificent 7 in 2025
+
+The "Magnificent 7" - Apple, Microsoft, Google, Amazon, Meta, NVIDIA, and Tesla - have dominated market returns. But after massive runs, are they still worth buying?
+
+Let's analyze each one.
+
+## Apple (AAPL)
+
+**Current State**: Trading near all-time highs with a $3.8T market cap.
+
+**Bull Case**:
+- Services revenue growing 15%+ annually
+- Vision Pro creating new revenue streams
+- Massive installed base of 2B+ devices
+- Strongest brand loyalty in tech
+
+**Bear Case**:
+- iPhone growth slowing
+- China exposure and competition
+- Trading at 30+ P/E vs. historical 20-25
+
+**Verdict**: HOLD - Fully valued but high quality
+
+## Microsoft (MSFT)
+
+**Current State**: AI integration across all products driving growth.
+
+**Bull Case**:
+- Azure growing 25%+, gaining cloud share
+- Copilot AI driving Office 365 upgrades
+- GitHub and LinkedIn moats
+- Enterprise relationships are sticky
+
+**Bear Case**:
+- Cloud growth decelerating
+- AI monetization still early
+- Antitrust concerns
+
+**Verdict**: BUY - Best-positioned for enterprise AI
+
+## Alphabet/Google (GOOGL)
+
+**Current State**: Search dominance intact but AI concerns linger.
+
+**Bull Case**:
+- Search still growing despite AI fears
+- YouTube dominant in video advertising
+- Waymo leading autonomous vehicles
+- Cloud growing 30%+
+
+**Bear Case**:
+- ChatGPT threat to Search
+- Antitrust ruling could force changes
+- Ad market cyclicality
+
+**Verdict**: BUY - Undervalued relative to peers
+
+## Amazon (AMZN)
+
+**Current State**: AWS and advertising driving profits.
+
+**Bull Case**:
+- AWS margins expanding
+- Advertising now $50B+ business
+- Retail logistics moat widening
+- Healthcare and Kuiper optionality
+
+**Bear Case**:
+- Retail profitability still weak
+- Heavy capex requirements
+- Labor cost pressures
+
+**Verdict**: BUY - Multiple growth engines
+
+## Meta (META)
+
+**Current State**: Remarkable comeback, AI driving engagement.
+
+**Bull Case**:
+- AI improving ad targeting and engagement
+- Reels competitive with TikTok
+- WhatsApp monetization opportunity
+- Trading at reasonable 22 P/E
+
+**Bear Case**:
+- Reality Labs losing $15B/year
+- Regulatory risks
+- Young user decline on Facebook
+
+**Verdict**: BUY - Best value in Mag 7
+
+## NVIDIA (NVDA)
+
+**Current State**: AI chip monopoly but priced for perfection.
+
+**Bull Case**:
+- Data center demand exceeding supply
+- Blackwell architecture launching
+- Software and services revenue growing
+- 80%+ gross margins
+
+**Bear Case**:
+- Valuation requires flawless execution
+- Customer concentration risk
+- AMD/custom chip competition
+- China revenue restrictions
+
+**Verdict**: HOLD - Great company, full valuation
+
+## Tesla (TSLA)
+
+**Current State**: Most controversial of the group.
+
+**Bull Case**:
+- FSD improvements accelerating
+- Energy storage growing rapidly
+- Robotics optionality (Optimus)
+- Cost leadership in EVs
+
+**Bear Case**:
+- Auto margins compressing
+- EV competition intensifying
+- Valuation assumes FSD success
+- CEO distraction risks
+
+**Verdict**: SPECULATIVE - High risk/reward
+
+## Summary Table
+
+| Stock | Verdict | Key Factor |
+|-------|---------|------------|
+| AAPL | HOLD | Fully valued quality |
+| MSFT | BUY | Enterprise AI leader |
+| GOOGL | BUY | Undervalued |
+| AMZN | BUY | Multiple engines |
+| META | BUY | Best value |
+| NVDA | HOLD | Priced for perfection |
+| TSLA | SPECULATIVE | FSD dependent |
+
+## The Bottom Line
+
+Not all Magnificent 7 stocks are created equal. Microsoft, Google, Amazon, and Meta offer the best risk/reward at current prices. Apple and NVIDIA are great companies trading at full valuations. Tesla requires conviction in autonomous driving.
+
+Use Deepin to analyze these stocks in depth and make your own informed decision.
+    `,
+    author: 'Deepin Team',
+    publishedAt: '2025-12-03',
+    readTime: '11 min read',
+    category: 'Stock Analysis',
+    image: '/blog/magnificent-7.jpg',
+  },
+  'how-to-analyze-earnings-reports-like-a-pro': {
+    title: 'How to Analyze Earnings Reports Like a Wall Street Pro',
+    excerpt: 'Earnings season can make or break your portfolio. Learn the key metrics, red flags, and insights that professional analysts look for.',
+    content: `
+## Why Earnings Matter
+
+Quarterly earnings reports are the most important regular events for stocks. They reveal how a company is actually performing versus expectations and can cause significant price movements.
+
+## The Key Components
+
+### 1. Revenue (Top Line)
+
+Revenue tells you how much the company sold.
+
+**What to look for**:
+- Beat or miss vs. analyst estimates
+- Year-over-year growth rate
+- Organic growth vs. acquisitions
+- Geographic breakdown
+
+**Red flags**:
+- Revenue declining while competitors grow
+- Heavy reliance on one-time deals
+- Currency headwinds being blamed repeatedly
+
+### 2. Earnings Per Share (EPS)
+
+EPS tells you how profitable the company is.
+
+**What to look for**:
+- Beat or miss vs. estimates
+- Quality of beat (revenue-driven vs. cost-cutting)
+- GAAP vs. Non-GAAP differences
+- Share buyback impact
+
+**Red flags**:
+- EPS beats from tax benefits or one-time items
+- Growing gap between GAAP and Non-GAAP
+- Earnings quality declining
+
+### 3. Guidance
+
+Forward guidance is often more important than the quarter itself.
+
+**What to look for**:
+- Full-year guidance changes
+- Quarterly guidance vs. expectations
+- Management tone and confidence
+- Key assumptions
+
+**Red flags**:
+- Guidance cut or lowered outlook
+- Vague or non-committal language
+- Excessive hedging about macro conditions
+
+## The Earnings Call
+
+The conference call with analysts is where the real insights emerge.
+
+### Key Sections
+
+1. **Prepared Remarks**: Management's narrative of the quarter
+2. **Q&A Session**: Where analysts probe weaknesses
+3. **Forward Commentary**: Hints about future performance
+
+### What to Listen For
+
+- CEO and CFO body language and tone
+- How they handle tough questions
+- New initiatives or strategic changes
+- Competitive dynamics mentions
+
+## Professional Analyst Framework
+
+Here's how Wall Street analysts approach earnings:
+
+### Before the Report
+
+1. Review consensus estimates
+2. Note key metrics to watch
+3. Understand recent company news
+4. Check options market for expected move
+
+### During the Report
+
+1. Compare results to estimates immediately
+2. Note any guidance changes
+3. Identify biggest surprises (good or bad)
+4. Watch after-hours price reaction
+
+### After the Report
+
+1. Listen to full earnings call
+2. Read transcript for nuances
+3. Update financial models
+4. Assess if thesis has changed
+
+## Key Metrics by Sector
+
+| Sector | Key Metrics |
+|--------|-------------|
+| Tech/SaaS | ARR, NRR, Rule of 40 |
+| Retail | Same-store sales, inventory |
+| Banks | NIM, loan growth, credit losses |
+| Industrial | Book-to-bill, backlog |
+| Healthcare | Pipeline updates, market share |
+
+## Red Flags Checklist
+
+Watch out for these warning signs:
+
+- ❌ Blaming external factors repeatedly
+- ❌ CFO departure around earnings
+- ❌ Changing accounting methods
+- ❌ Growing receivables faster than revenue
+- ❌ Inventory build-up without explanation
+- ❌ Excessive stock-based compensation
+- ❌ Related party transactions increasing
+
+## Post-Earnings Trading
+
+### Wait Before Acting
+
+- Initial reaction is often wrong
+- Let the dust settle (24-48 hours)
+- Read analyst reactions
+- Assess if the move is justified
+
+### Use Earnings as Entry Points
+
+- Great companies sometimes miss and drop
+- Long-term fundamentals matter more
+- Look for overreactions to buy
+
+## Start Analyzing Like a Pro
+
+Deepin can help you:
+- Track earnings dates and estimates
+- Compare results to expectations instantly
+- Analyze historical earnings trends
+- Get AI-powered earnings analysis
+
+Don't go into earnings season unprepared. Use the tools the pros use.
+    `,
+    author: 'Deepin Team',
+    publishedAt: '2025-12-02',
+    readTime: '10 min read',
+    category: 'Fundamentals',
+    image: '/blog/earnings-analysis.jpg',
+  },
+  'small-cap-stocks-2025-hidden-gems': {
+    title: 'Small-Cap Stocks: Finding Hidden Gems in 2025',
+    excerpt: 'While mega-caps grab headlines, small-cap stocks often offer the best growth potential. Here\'s how to find undervalued opportunities.',
+    content: `
+## The Case for Small Caps
+
+While everyone focuses on the Magnificent 7, small-cap stocks (companies with $300M-$2B market caps) often deliver the best returns. The Russell 2000 is starting to outperform as rate cuts favor smaller companies.
+
+## Why Small Caps Now?
+
+### Rate Cut Tailwind
+
+Small-cap companies typically carry more debt than large caps. As rates fall:
+- Interest expenses decrease
+- Refinancing becomes cheaper
+- Profit margins expand
+- Valuations increase
+
+### Valuation Gap
+
+The small-cap to large-cap valuation ratio is at historic lows:
+- Small caps trade at ~14x forward P/E
+- Large caps trade at ~21x forward P/E
+- This gap hasn't been this wide since 2000
+
+### M&A Activity
+
+Lower rates and cash-rich large caps create an active M&A environment. Small caps are acquisition targets, often at significant premiums.
+
+## How to Find Hidden Gems
+
+### Step 1: Screen for Quality
+
+Start with fundamental filters:
+- Positive free cash flow
+- Growing revenue (10%+ annually)
+- Manageable debt (Debt/EBITDA < 3x)
+- Insider ownership (>5%)
+
+### Step 2: Look for Catalysts
+
+Great small caps need a reason to be discovered:
+- New product launches
+- Market expansion
+- Industry tailwinds
+- Potential acquisition interest
+
+### Step 3: Check the Story
+
+Understand the business:
+- What problem do they solve?
+- How sustainable is their competitive advantage?
+- Is management aligned with shareholders?
+- What's the path to becoming a mid-cap?
+
+## Sectors to Watch
+
+### Healthcare/Biotech
+
+Small biotechs with promising drug pipelines can generate massive returns. Look for:
+- Phase 3 trial catalysts
+- FDA approval timelines
+- Partnership potential with big pharma
+
+### Technology
+
+Small tech companies in hot areas like AI, cybersecurity, and cloud:
+- Specialized AI applications
+- Cybersecurity for specific industries
+- Cloud migration tools
+
+### Industrials
+
+Infrastructure spending and reshoring benefit small industrial companies:
+- Automation equipment
+- Specialty manufacturing
+- Infrastructure services
+
+### Consumer
+
+Emerging brands capturing market share:
+- D2C success stories
+- Regional to national expansion
+- New category creators
+
+## Risk Management
+
+Small caps are inherently riskier. Manage it by:
+
+### Diversification
+
+- Own 10-15 small caps minimum
+- Spread across sectors
+- Mix growth and value styles
+
+### Position Sizing
+
+- Keep individual positions to 2-5% of portfolio
+- Size according to conviction and volatility
+- Be prepared for 50%+ drawdowns
+
+### Due Diligence
+
+- Read SEC filings (10-K, 10-Q)
+- Listen to earnings calls
+- Check for short interest and insider activity
+- Verify the story with industry research
+
+## Red Flags to Avoid
+
+Watch out for these warning signs:
+
+- 🚩 Excessive dilution and stock offerings
+- 🚩 Constant pivoting of business model
+- 🚩 Management with poor track record
+- 🚩 Declining revenue with optimistic projections
+- 🚩 Heavy insider selling
+- 🚩 Promotional language and hype
+
+## Sample Screening Criteria
+
+Here's a starting point for your screen:
+
+| Criteria | Filter |
+|----------|--------|
+| Market Cap | $300M - $2B |
+| Revenue Growth | > 10% YoY |
+| Free Cash Flow | Positive |
+| Debt/EBITDA | < 3x |
+| Insider Ownership | > 5% |
+| Price/Sales | < 3x |
+
+## The Bottom Line
+
+Small-cap investing requires more work but offers greater rewards. With rate cuts favoring smaller companies and valuations at historic lows, 2025 could be a breakout year for small caps.
+
+Use Deepin to:
+- Screen for small caps matching your criteria
+- Analyze fundamentals quickly
+- Compare companies side by side
+- Get AI insights on hidden opportunities
+
+The next 10-bagger is probably a small cap few people are watching. Start hunting.
+    `,
+    author: 'Deepin Team',
+    publishedAt: '2025-12-01',
+    readTime: '8 min read',
+    category: 'Investment Strategy',
+    image: '/blog/small-cap-gems.jpg',
+  },
   'understanding-pe-ratio-beginners-guide': {
     title: 'Understanding P/E Ratio: A Complete Beginner\'s Guide',
     excerpt: 'The Price-to-Earnings ratio is one of the most fundamental metrics in stock analysis. Learn what it means, how to calculate it, and when to use it.',

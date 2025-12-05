@@ -22,7 +22,8 @@ import {
   Coins,
   Gauge,
   Bot,
-  Gift
+  Gift,
+  MessageSquare
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -40,6 +41,12 @@ const sidebarItems = [
     href: '/admin/users', 
     icon: Users,
     description: 'User Management' 
+  },
+  { 
+    title: 'Messages', 
+    href: '/admin/messages', 
+    icon: MessageSquare,
+    description: 'Contact Messages' 
   },
   { 
     title: 'Credits', 

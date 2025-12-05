@@ -1,4 +1,4 @@
-import { Nav, Hero, WhoItsFor, Features, Product, Workflows, MetricsLibrary, Pricing, Footer } from '@/components/landing-new'
+import { Nav, Hero, WhoItsFor, Features, Product, Workflows, MetricsLibrary, Pricing, Contact, Footer } from '@/components/landing-new'
 
 export default function Home() {
   return (
@@ -11,6 +11,7 @@ export default function Home() {
       <Workflows />
       <MetricsLibrary />
       <Pricing />
+      <Contact />
       <Footer />
     </main>
   )

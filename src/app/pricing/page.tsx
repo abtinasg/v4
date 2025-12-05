@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Metadata } from 'next'
-import { ArrowLeft, Check, Coins, Gift, Bitcoin } from 'lucide-react'
+import { ArrowLeft, Check, Coins, Gift, Bitcoin, Zap, Sparkles } from 'lucide-react'
 import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { creditPackages } from '@/lib/db/schema'
@@ -8,12 +8,87 @@ import { eq, asc } from 'drizzle-orm'
 import { CREDIT_COSTS } from '@/lib/credits/config'
 import { generatePageMetadata } from '@/lib/seo'
 import { BuyButton } from '@/components/payments'
+import { SubscriptionCard } from '@/components/payments/SubscriptionCard'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Pricing - Affordable Stock Analysis Credits',
   description: 'Get professional stock analysis at a fraction of the cost. Pay only for what you use with our credit-based pricing. Start free with 100 credits.',
   path: '/pricing',
 });
+
+// Subscription plans
+const subscriptionPlans = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: 0,
+    description: 'Perfect for getting started',
+    credits: 50,
+    features: [
+      '50 credits on signup',
+      'Basic market overview',
+      '5 watchlist symbols',
+      'Core metrics access',
+      'Community support',
+    ],
+    trialDays: 0,
+    isPopular: false,
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: 29,
+    description: 'For serious investors',
+    credits: 500,
+    features: [
+      '500 credits per month',
+      'All 432 metrics',
+      'Unlimited watchlist',
+      'AI-powered reports',
+      'Real-time alerts',
+      'Priority support',
+      'API access',
+    ],
+    trialDays: 14,
+    isPopular: true,
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    price: 59,
+    description: 'Advanced tools for professionals',
+    credits: 1500,
+    features: [
+      '1,500 credits per month',
+      'Everything in Pro',
+      'Advanced DCF models',
+      'Multi-portfolio support',
+      'Custom alerts',
+      'Export to Excel/PDF',
+      'Dedicated support',
+    ],
+    trialDays: 14,
+    isPopular: false,
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 199,
+    description: 'For teams and institutions',
+    credits: 10000,
+    features: [
+      'Unlimited credits',
+      'Everything in Premium',
+      'Team collaboration',
+      'Custom integrations',
+      'Dedicated account manager',
+      'SLA guarantee',
+      'On-premise option',
+    ],
+    trialDays: 14,
+    isPopular: false,
+  },
+]
 
 export default async function PricingPage() {
   const user = await currentUser()
@@ -72,8 +147,42 @@ export default async function PricingPage() {
           Choose Your Trading Edge
         </h1>
         <p className="text-lg text-white/40 max-w-2xl mx-auto font-light leading-relaxed">
-          Professional-grade analysis powered by credits. Pay only for what you use.
+          Professional-grade analysis powered by credits. All paid plans include a <span className="text-blue-400">14-day free trial</span>.
         </p>
+      </div>
+
+      {/* Subscription Plans */}
+      <div className="max-w-7xl mx-auto px-8 pb-24">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-semibold text-white mb-4 tracking-tight">
+            Subscription Plans
+          </h2>
+          <p className="text-white/40 max-w-xl mx-auto font-light">
+            Monthly subscriptions with crypto payments. Start with a 14-day free trial.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {subscriptionPlans.map((plan) => (
+            <SubscriptionCard 
+              key={plan.id} 
+              plan={plan} 
+              isLoggedIn={!!user}
+            />
+          ))}
+        </div>
+        
+        {/* Crypto Payment Notice */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-zinc-500">
+            🔐 Pay securely with <span className="text-white">Bitcoin</span>, <span className="text-white">Ethereum</span>, <span className="text-white">USDT</span> and 50+ cryptocurrencies
+          </p>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        <div className="h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
       </div>
 
       {/* Credit Packages - Secondary */}
@@ -83,7 +192,7 @@ export default async function PricingPage() {
             Credit Packages
           </h2>
           <p className="text-white/40 max-w-xl mx-auto font-light">
-            Flexible pricing that scales with your needs. Credits never expire.
+            Need more credits? Buy one-time packages. Credits never expire.
           </p>
         </div>
         

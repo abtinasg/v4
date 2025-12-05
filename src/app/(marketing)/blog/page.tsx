@@ -12,6 +12,61 @@ export const metadata: Metadata = generatePageMetadata({
 // Blog posts data - in production, this would come from a CMS or MDX files
 const blogPosts = [
   {
+    slug: 'fed-rate-cuts-2025-what-investors-need-to-know',
+    title: 'Fed Rate Cuts in 2025: What Investors Need to Know',
+    excerpt: 'The Federal Reserve is signaling potential rate cuts in 2025. Here\'s how this could impact your portfolio and which sectors stand to benefit most.',
+    author: 'Deepin Team',
+    publishedAt: '2025-12-05',
+    readTime: '7 min read',
+    category: 'Market Analysis',
+    image: '/blog/fed-rates-2025.jpg',
+    featured: true,
+  },
+  {
+    slug: 'nvidia-vs-amd-ai-chip-war-2025',
+    title: 'NVIDIA vs AMD: The AI Chip War Heats Up in 2025',
+    excerpt: 'The battle for AI chip dominance intensifies. We analyze both companies\' strategies, market positions, and what it means for investors.',
+    author: 'Deepin Team',
+    publishedAt: '2025-12-04',
+    readTime: '9 min read',
+    category: 'Industry',
+    image: '/blog/nvidia-amd-ai.jpg',
+    featured: true,
+  },
+  {
+    slug: 'magnificent-7-stocks-still-worth-buying',
+    title: 'Are the Magnificent 7 Stocks Still Worth Buying in December 2025?',
+    excerpt: 'Apple, Microsoft, Google, Amazon, Meta, NVIDIA, and Tesla have dominated the market. We break down which ones still have room to run.',
+    author: 'Deepin Team',
+    publishedAt: '2025-12-03',
+    readTime: '11 min read',
+    category: 'Stock Analysis',
+    image: '/blog/magnificent-7.jpg',
+    featured: false,
+  },
+  {
+    slug: 'how-to-analyze-earnings-reports-like-a-pro',
+    title: 'How to Analyze Earnings Reports Like a Wall Street Pro',
+    excerpt: 'Earnings season can make or break your portfolio. Learn the key metrics, red flags, and insights that professional analysts look for.',
+    author: 'Deepin Team',
+    publishedAt: '2025-12-02',
+    readTime: '10 min read',
+    category: 'Fundamentals',
+    image: '/blog/earnings-analysis.jpg',
+    featured: false,
+  },
+  {
+    slug: 'small-cap-stocks-2025-hidden-gems',
+    title: 'Small-Cap Stocks: Finding Hidden Gems in 2025',
+    excerpt: 'While mega-caps grab headlines, small-cap stocks often offer the best growth potential. Here\'s how to find undervalued opportunities.',
+    author: 'Deepin Team',
+    publishedAt: '2025-12-01',
+    readTime: '8 min read',
+    category: 'Investment Strategy',
+    image: '/blog/small-cap-gems.jpg',
+    featured: false,
+  },
+  {
     slug: 'understanding-pe-ratio-beginners-guide',
     title: 'Understanding P/E Ratio: A Complete Beginner\'s Guide',
     excerpt: 'The Price-to-Earnings ratio is one of the most fundamental metrics in stock analysis. Learn what it means, how to calculate it, and when to use it.',
@@ -20,7 +75,7 @@ const blogPosts = [
     readTime: '8 min read',
     category: 'Fundamentals',
     image: '/blog/pe-ratio.jpg',
-    featured: true,
+    featured: false,
   },
   {
     slug: 'why-you-dont-need-bloomberg-terminal',
@@ -31,7 +86,7 @@ const blogPosts = [
     readTime: '6 min read',
     category: 'Industry',
     image: '/blog/bloomberg-alternative.jpg',
-    featured: true,
+    featured: false,
   },
   {
     slug: 'how-to-use-ai-for-stock-analysis',
@@ -70,11 +125,13 @@ const blogPosts = [
 
 const categories = [
   { name: 'All Posts', slug: 'all' },
+  { name: 'Market Analysis', slug: 'market-analysis' },
+  { name: 'Stock Analysis', slug: 'stock-analysis' },
   { name: 'Fundamentals', slug: 'fundamentals' },
   { name: 'Technical Analysis', slug: 'technical-analysis' },
   { name: 'AI & Technology', slug: 'ai-technology' },
   { name: 'Industry', slug: 'industry' },
-  { name: 'Company', slug: 'company' },
+  { name: 'Investment Strategy', slug: 'investment-strategy' },
 ];
 
 export default function BlogPage() {

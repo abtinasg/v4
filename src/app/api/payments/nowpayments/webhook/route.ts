@@ -3,11 +3,12 @@
  * POST /api/payments/nowpayments/webhook
  * 
  * Handles payment status updates from NOWPayments
+ * Supports both credit package purchases and subscription payments
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { cryptoPayments } from '@/lib/db/schema'
+import { cryptoPayments, userSubscriptions } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { nowPayments, type PaymentStatus } from '@/lib/payments/nowpayments'
 import { addCredits } from '@/lib/credits'
@@ -112,30 +113,97 @@ export async function POST(request: NextRequest) {
       updateData.creditsAdded = true
       updateData.paidAt = new Date()
       
-      // Calculate total credits
-      const totalCredits = parseFloat(payment.creditsAmount) + parseFloat(payment.bonusCredits)
+      // Check if this is a subscription payment
+      const metadata = payment.metadata as { isSubscriptionPayment?: boolean; planId?: string; billingCycle?: string } | null
+      const isSubscriptionPayment = metadata?.isSubscriptionPayment === true
       
-      // Add credits to user
-      try {
-        await addCredits(
-          payment.userId,
-          totalCredits,
-          'purchase',
-          `Crypto payment - Order: ${payload.order_id}`,
-          {
-            packageId: payment.packageId,
-            orderId: payload.order_id,
-            paymentId: payload.payment_id.toString(),
-            payCurrency: payload.pay_currency,
-            actuallyPaid: payload.actually_paid,
+      if (isSubscriptionPayment && metadata?.planId) {
+        // Handle subscription payment
+        try {
+          const now = new Date()
+          const billingCycle = metadata.billingCycle || 'monthly'
+          const periodDays = billingCycle === 'yearly' ? 365 : 30
+          const periodEnd = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000)
+          
+          // Create or update subscription
+          const existingSub = await db.query.userSubscriptions.findFirst({
+            where: eq(userSubscriptions.userId, payment.userId),
+          })
+          
+          if (existingSub) {
+            // Update existing subscription
+            await db.update(userSubscriptions)
+              .set({
+                planId: metadata.planId as 'free' | 'pro' | 'premium' | 'enterprise',
+                status: 'active',
+                currentPeriodStart: now,
+                currentPeriodEnd: periodEnd,
+                trialEndsAt: null,
+                paymentMethod: 'crypto',
+                lastPaymentId: payment.id,
+                updatedAt: now,
+              })
+              .where(eq(userSubscriptions.id, existingSub.id))
+          } else {
+            // Create new subscription
+            await db.insert(userSubscriptions).values({
+              userId: payment.userId,
+              planId: metadata.planId as 'free' | 'pro' | 'premium' | 'enterprise',
+              status: 'active',
+              currentPeriodStart: now,
+              currentPeriodEnd: periodEnd,
+              paymentMethod: 'crypto',
+              lastPaymentId: payment.id,
+            })
           }
-        )
+          
+          // Add subscription credits
+          const totalCredits = parseFloat(payment.creditsAmount)
+          await addCredits(
+            payment.userId,
+            totalCredits,
+            'purchase',
+            `${metadata.planId} subscription - ${billingCycle}`,
+            {
+              orderId: payload.order_id,
+              paymentId: payload.payment_id.toString(),
+              payCurrency: payload.pay_currency,
+              actuallyPaid: payload.actually_paid,
+            }
+          )
+          
+          console.log(`Subscription activated for user ${payment.userId}: ${metadata.planId}`)
+        } catch (subError) {
+          console.error('Failed to activate subscription:', subError)
+          updateData.creditsAdded = false
+        }
+      } else {
+        // Regular credit package purchase
+        // Calculate total credits
+        const totalCredits = parseFloat(payment.creditsAmount) + parseFloat(payment.bonusCredits)
         
-        console.log(`Credits added for user ${payment.userId}: ${totalCredits}`)
-      } catch (creditError) {
-        console.error('Failed to add credits:', creditError)
-        // Don't fail the webhook, but don't mark as credits added
-        updateData.creditsAdded = false
+        // Add credits to user
+        try {
+          await addCredits(
+            payment.userId,
+            totalCredits,
+            'purchase',
+            `Crypto payment - Order: ${payload.order_id}`,
+            {
+              packageId: payment.packageId,
+              orderId: payload.order_id,
+              paymentId: payload.payment_id.toString(),
+              payCurrency: payload.pay_currency,
+              actuallyPaid: payload.actually_paid,
+            }
+          )
+          
+          console.log(`Credits added for user ${payment.userId}: ${totalCredits}`)
+        } catch (creditError) {
+          console.error('Failed to add credits:', creditError)
+          // Don't fail the webhook, but don't mark as credits added
+          updateData.creditsAdded = false
+        }
       }
     }
     

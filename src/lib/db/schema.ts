@@ -14,6 +14,7 @@ export const portfolioTransactionTypeEnum = pgEnum('portfolio_transaction_type',
 export const portfolioAlertTypeEnum = pgEnum('portfolio_alert_type', ['price_above', 'price_below', 'percent_change', 'portfolio_value', 'daily_gain_loss', 'news'])
 export const aiReportTypeEnum = pgEnum('ai_report_type', ['pro', 'retail', 'personalized'])
 export const aiReportStatusEnum = pgEnum('ai_report_status', ['pending', 'generating', 'completed', 'failed'])
+export const contactMessageStatusEnum = pgEnum('contact_message_status', ['new', 'read', 'replied', 'archived'])
 
 // ==================== USERS TABLE ====================
 export const users = pgTable('users', {
@@ -717,6 +718,10 @@ export const cryptoPayments = pgTable('crypto_payments', {
     outcomeAmount?: number
     outcomeCurrency?: string
     networkPrecision?: number
+    // Subscription payment fields
+    planId?: string
+    billingCycle?: string
+    isSubscriptionPayment?: boolean
   }>(),
   
   // Timestamps
@@ -742,6 +747,40 @@ export const cryptoPaymentsRelations = relations(cryptoPayments, ({ one }) => ({
   package: one(creditPackages, {
     fields: [cryptoPayments.packageId],
     references: [creditPackages.id],
+  }),
+}))
+
+// ==================== USER SUBSCRIPTIONS TABLE ====================
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'trial', 'cancelled', 'expired'])
+export const subscriptionPlanEnum = pgEnum('subscription_plan', ['free', 'pro', 'premium', 'enterprise'])
+
+export const userSubscriptions = pgTable('user_subscriptions', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  planId: subscriptionPlanEnum('plan_id').notNull().default('free'),
+  status: subscriptionStatusEnum('status').notNull().default('active'),
+  trialEndsAt: timestamp('trial_ends_at', { withTimezone: true }),
+  currentPeriodStart: timestamp('current_period_start', { withTimezone: true }).notNull().defaultNow(),
+  currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }).notNull(),
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+  // Payment info
+  paymentMethod: varchar('payment_method', { length: 50 }), // 'crypto', 'stripe', etc.
+  lastPaymentId: varchar('last_payment_id', { length: 255 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('user_subscriptions_user_id_idx').on(table.userId),
+  statusIdx: index('user_subscriptions_status_idx').on(table.status),
+  planIdIdx: index('user_subscriptions_plan_id_idx').on(table.planId),
+  trialEndsAtIdx: index('user_subscriptions_trial_ends_at_idx').on(table.trialEndsAt),
+  currentPeriodEndIdx: index('user_subscriptions_current_period_end_idx').on(table.currentPeriodEnd),
+}))
+
+// ==================== USER SUBSCRIPTIONS RELATIONS ====================
+export const userSubscriptionsRelations = relations(userSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSubscriptions.userId],
+    references: [users.id],
   }),
 }))
 
@@ -935,6 +974,27 @@ export const aiReports = pgTable('ai_reports', {
   expiresAtIdx: index('ai_reports_expires_at_idx').on(table.expiresAt),
 }))
 
+// ==================== CONTACT MESSAGES TABLE ====================
+// Stores contact form messages for admin review
+export const contactMessages = pgTable('contact_messages', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  subject: varchar('subject', { length: 500 }),
+  message: text('message').notNull(),
+  status: contactMessageStatusEnum('status').notNull().default('new'),
+  adminReply: text('admin_reply'),
+  repliedAt: timestamp('replied_at', { withTimezone: true }),
+  ipAddress: varchar('ip_address', { length: 45 }),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  statusIdx: index('contact_messages_status_idx').on(table.status),
+  emailIdx: index('contact_messages_email_idx').on(table.email),
+  createdAtIdx: index('contact_messages_created_at_idx').on(table.createdAt),
+}))
+
 // ==================== TYPE EXPORTS ====================
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -991,6 +1051,10 @@ export type NewPromoCodeUsage = typeof promoCodeUsage.$inferInsert
 export type CryptoPayment = typeof cryptoPayments.$inferSelect
 export type NewCryptoPayment = typeof cryptoPayments.$inferInsert
 
+// User Subscription Types
+export type UserSubscription = typeof userSubscriptions.$inferSelect
+export type NewUserSubscription = typeof userSubscriptions.$inferInsert
+
 // Push Subscription Types
 export type PushSubscription = typeof pushSubscriptions.$inferSelect
 export type NewPushSubscription = typeof pushSubscriptions.$inferInsert
@@ -1006,3 +1070,7 @@ export type NewPdfAnnotation = typeof pdfAnnotations.$inferInsert
 // AI Reports Types
 export type AiReport = typeof aiReports.$inferSelect
 export type NewAiReport = typeof aiReports.$inferInsert
+
+// Contact Messages Types
+export type ContactMessage = typeof contactMessages.$inferSelect
+export type NewContactMessage = typeof contactMessages.$inferInsert
