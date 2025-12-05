@@ -5,10 +5,10 @@ import Link from 'next/link'
 import { Menu, X, ChevronRight } from 'lucide-react'
 
 const navLinks = [
-  { name: 'Features', href: '#features' },
+  { name: 'Product', href: '#features' },
+  { name: 'Workflows', href: '#workflows' },
   { name: 'Pricing', href: '#pricing' },
-  { name: 'Terminal', href: '/dashboard/terminal-pro' },
-  { name: 'About', href: '/about' },
+  { name: 'Sample Report', href: '/sample-report' },
 ]
 
 export function Navigation() {
@@ -75,7 +75,7 @@ export function Navigation() {
                 href="/sign-up"
                 className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-[#5B7CFF] to-[#00C9E4] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(91,124,255,0.4)] hover:scale-[1.02]"
               >
-                <span className="relative z-10">Start Free</span>
+                <span className="relative z-10">Get started</span>
                 <ChevronRight className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 <div className="absolute inset-0 bg-gradient-to-r from-[#00C9E4] to-[#5B7CFF] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               </Link>
@@ -135,7 +135,7 @@ export function Navigation() {
                 onClick={() => setMobileOpen(false)}
                 className="block w-full text-center rounded-xl bg-gradient-to-r from-[#5B7CFF] to-[#00C9E4] px-4 py-3.5 text-sm font-semibold text-white"
               >
-                Start Free — Get 70 Credits
+                Get started
               </Link>
             </div>
           </div>

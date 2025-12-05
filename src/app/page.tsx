@@ -2,11 +2,7 @@ import {
   Navigation,
   Hero,
   TrustBar,
-  Vision,
   Features,
-  LiveData,
-  UIPreview,
-  Architecture,
   AIOrchestrator,
   MetricsLibrary,
   Pricing,
@@ -18,26 +14,20 @@ import {
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen bg-[#030508] text-white antialiased overflow-hidden">
+    <main className="relative min-h-screen bg-[#030508] text-white antialiased overflow-x-hidden">
       {/* Global ambient background */}
-      <div className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-none fixed inset-0">
         {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#030508] via-[#030508] to-[#030508]" />
+        <div className="absolute inset-0 bg-[#030508]" />
 
         {/* Subtle grid overlay */}
         <div
-          className="absolute inset-0 opacity-[0.015]"
+          className="absolute inset-0 opacity-[0.02]"
           style={{
-            backgroundImage: "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
             backgroundSize: '80px 80px'
           }}
         />
-
-        {/* Top ambient glow */}
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full bg-[#5B7CFF]/[0.06] blur-[220px]" />
-
-        {/* Bottom accent glow */}
-        <div className="absolute bottom-[-40%] right-[-10%] w-[700px] h-[700px] rounded-full bg-[#00C9E4]/[0.04] blur-[220px]" />
       </div>
 
       <div className="relative z-10">
@@ -50,20 +40,8 @@ export default function Home() {
         {/* Trust Bar - Social proof and metrics */}
         <TrustBar />
 
-        {/* Vision Section - Company mission */}
-        <Vision />
-
         {/* Features Section - Core product features */}
         <Features />
-
-        {/* Live Data - Real-time market data showcase */}
-        <LiveData />
-
-        {/* UI Preview - Product interface showcase */}
-        <UIPreview />
-
-        {/* Architecture - Technical overview */}
-        <Architecture />
 
         {/* AI Orchestrator - Multi-model AI explanation */}
         <AIOrchestrator />

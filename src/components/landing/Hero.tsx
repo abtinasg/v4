@@ -85,15 +85,13 @@ export function Hero() {
             {/* Headlines */}
             <div className='space-y-6 relative'>
               <h1 className='text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1]'>
-                Invest with <br />
+                Professional AI{' '}
                 <span className='text-transparent bg-clip-text bg-gradient-to-r from-[#5B7CFF] via-[#8B5CF6] to-[#00C9E4] animate-gradient-x'>
-                  Superhuman
-                </span>{' '}
-                Insight
+                  stock research.
+                </span>
               </h1>
               <p className='text-lg md:text-xl text-gray-400 font-light leading-relaxed max-w-lg'>
-                The professional-grade terminal for modern investors. 
-                Real-time data, AI-powered analysis, and institutional metrics—simplified.
+                Fundamental stock analysis with 432 institutional metrics and AI, so retail investors can make decisions like professionals.
               </p>
             </div>
 
