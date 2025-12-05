@@ -1,0 +1,6 @@
+export { Nav } from './Nav'
+export { Hero } from './Hero'
+export { Product } from './Product'
+export { Workflows } from './Workflows'
+export { Pricing } from './Pricing'
+export { Footer } from './Footer'
