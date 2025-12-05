@@ -442,11 +442,11 @@ LENGTH & STYLE REQUIREMENTS - CRITICAL
 ═══════════════════════════════════════════════════════════════
 
 **MANDATORY LENGTH:**
-- Target: 9-11 pages when converted to PDF
-- Target: 6,000-8,000 words minimum
-- Each section MUST have 4-6 detailed paragraphs (not bullet points)
+- Target: 5-7 pages when converted to PDF
+- Target: 2,500-3,000 words
+- Each section MUST have 3-4 detailed paragraphs (not bullet points)
 - Write in flowing, professional prose - NOT lists or bullet points
-- Each paragraph should be 100-150 words
+- Each paragraph should be 80-100 words
 
 **WRITING STYLE:**
 - Write complete, detailed paragraphs
@@ -479,9 +479,9 @@ REPORT STRUCTURE - WRITE ALL 11 SECTIONS IN FULL
 # ${stockData.symbol} INSTITUTIONAL EQUITY RESEARCH REPORT
 **${stockData.companyName}** | ${stockData.sector} | ${new Date().toISOString().split('T')[0]}
 
-Write a COMPREHENSIVE research report with these 11 sections. Each section needs 4-6 detailed paragraphs:
+Write a COMPREHENSIVE research report with these 11 sections. Each section needs 3-4 detailed paragraphs:
 
-## 0. Executive Summary (4-5 paragraphs)
+## 0. Executive Summary (3-4 paragraphs)
 Write a comprehensive executive summary covering:
 - Data coverage assessment and any limitations
 - High-level business quality snapshot with key metrics
@@ -490,7 +490,7 @@ Write a comprehensive executive summary covering:
 - Risk tone and central investment question
 - Professional classification (quality compounder, cyclical value, growth stock, etc.)
 
-## 1. Company Overview & Business Model (5-6 paragraphs)
+## 1. Company Overview & Business Model (3-4 paragraphs)
 Write detailed analysis of:
 - Complete description of what the company does
 - Revenue drivers and how the company makes money
@@ -499,7 +499,7 @@ Write detailed analysis of:
 - Cyclicality and economic sensitivity
 - Customer types, end-markets, and competitive positioning
 
-## 2. Macroeconomic & Industry Context (4-5 paragraphs)
+## 2. Macroeconomic & Industry Context (3-4 paragraphs)
 Write thorough analysis of:
 - Current macroeconomic backdrop affecting this company
 - Interest rate, growth, and inflation impact on operations
@@ -507,7 +507,7 @@ Write thorough analysis of:
 - Moat potential and barriers to entry
 - 5-year sector outlook and trends
 
-## 3. Quality, Profitability & Efficiency Analysis (5-6 paragraphs)
+## 3. Quality, Profitability & Efficiency Analysis (3-4 paragraphs)
 Write in-depth analysis of:
 - Gross margin analysis and trends (cite the ${((stockData.metrics.grossMargin || 0) * 100).toFixed(1)}% figure)
 - Operating margin analysis (cite the ${((stockData.metrics.operatingMargin || 0) * 100).toFixed(1)}% figure)
@@ -517,7 +517,7 @@ Write in-depth analysis of:
 - DuPont decomposition and efficiency metrics
 - Earnings quality indicators and sustainability
 
-## 4. Growth Profile (4-5 paragraphs)
+## 4. Growth Profile (3-4 paragraphs)
 Write comprehensive analysis of:
 - Revenue growth trajectory and sustainability
 - Earnings and EPS growth analysis
@@ -526,7 +526,7 @@ Write comprehensive analysis of:
 - Capital requirements for future growth
 - Growth sustainability assessment
 
-## 5. Balance Sheet, Leverage & Liquidity (5-6 paragraphs)
+## 5. Balance Sheet, Leverage & Liquidity (3-4 paragraphs)
 Write detailed analysis of:
 - Debt-to-Equity ratio analysis (cite the ${(stockData.metrics.debtToEquity || 0).toFixed(2)}x figure)
 - Current ratio analysis (cite the ${(stockData.metrics.currentRatio || 0).toFixed(2)} figure)
@@ -536,7 +536,7 @@ Write detailed analysis of:
 - Working capital efficiency
 - Financial flexibility and refinancing risk assessment
 
-## 6. Cash Flows & Capital Allocation (4-5 paragraphs)
+## 6. Cash Flows & Capital Allocation (3-4 paragraphs)
 Write thorough analysis of:
 - Operating cash flow quality (cite the $${((stockData.metrics.operatingCashflow || 0) / 1e9).toFixed(2)}B figure)
 - Free cash flow generation (cite the $${((stockData.metrics.freeCashflow || 0) / 1e9).toFixed(2)}B figure)
@@ -545,7 +545,7 @@ Write thorough analysis of:
 - Shareholder return policy assessment
 - Investment capacity and flexibility
 
-## 7. Valuation Analysis (5-6 paragraphs)
+## 7. Valuation Analysis (3-4 paragraphs)
 Write comprehensive valuation analysis:
 - P/E ratio analysis and context (cite the ${stockData.metrics.pe || 'N/A'} figure)
 - Price-to-Book assessment if available
@@ -555,7 +555,7 @@ Write comprehensive valuation analysis:
 - Historical valuation context
 - Relative valuation considerations (qualitative only)
 
-## 8. Risk Assessment & Portfolio Perspective (4-5 paragraphs)
+## 8. Risk Assessment & Portfolio Perspective (3-4 paragraphs)
 Write detailed risk analysis:
 - Beta and market risk exposure
 - Volatility characteristics
@@ -565,7 +565,7 @@ Write detailed risk analysis:
 - Portfolio fit considerations
 - Position sizing perspective
 
-## 9. Accounting Quality & Sector KPIs (4-5 paragraphs)
+## 9. Accounting Quality & Sector KPIs (3-4 paragraphs)
 Write thorough analysis of:
 - Revenue recognition policies and quality
 - Effective tax rate analysis
@@ -574,7 +574,7 @@ Write thorough analysis of:
 - Accounting red flags or concerns (if any)
 - Financial statement quality assessment
 
-## 10. Investment Synthesis (5-6 paragraphs)
+## 10. Investment Synthesis (3-4 paragraphs)
 Write comprehensive conclusion:
 - Summary of key strengths with specific metrics
 - Summary of key weaknesses with specific metrics
@@ -610,11 +610,11 @@ LENGTH & STYLE REQUIREMENTS - CRITICAL
 ═══════════════════════════════════════════════════════════════
 
 **MANDATORY LENGTH:**
-- Target: 7-9 pages when converted to PDF
-- Target: 4,000-6,000 words minimum
-- Each section MUST have 3-5 detailed paragraphs
+- Target: 4-6 pages when converted to PDF
+- Target: 2,000-3,000 words
+- Each section MUST have 2-3 detailed paragraphs
 - Write in flowing, friendly prose - explain everything clearly
-- Each paragraph should be 80-120 words
+- Each paragraph should be 80-100 words
 
 **WRITING STYLE:**
 - Use simple, everyday language
