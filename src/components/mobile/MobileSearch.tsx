@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X, TrendingUp, TrendingDown, Clock, ArrowRight, Flame, Monitor, BarChart3, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
+import { useBodyScrollLock } from '@/lib/hooks'
 
 interface MobileSearchProps {
   onSearch?: (query: string) => void
@@ -31,17 +32,8 @@ export function MobileSearch({
     }
   }, [isOpen])
 
-  // Lock body scroll when search is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isOpen])
+  // Lock body scroll when search is open (uses counter-based approach for multiple overlays)
+  useBodyScrollLock(isOpen)
 
   const handleSearch = (searchQuery: string) => {
     if (searchQuery.trim()) {
@@ -76,7 +68,7 @@ export function MobileSearch({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-[#030508]"
+            className="fixed inset-0 z-[70] bg-[#030508] flex flex-col"
           >
             {/* Header */}
             <div className="sticky top-0 z-10 bg-[#030508] border-b border-white/[0.06] safe-top">
@@ -112,8 +104,8 @@ export function MobileSearch({
               </div>
             </div>
 
-            {/* Content */}
-            <div className="overflow-y-auto h-[calc(100vh-80px)] pb-safe">
+            {/* Content - use flex-1 to fill remaining space instead of hardcoded height */}
+            <div className="flex-1 overflow-y-auto pb-safe">
               {/* Quick Actions */}
               {!query && (
                 <div className="px-4 py-4">

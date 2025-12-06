@@ -54,7 +54,7 @@ export function IOSInstallPrompt() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed bottom-4 left-4 right-4 z-[9999] mx-auto max-w-md"
+          className="fixed bottom-20 left-4 right-4 z-40 mx-auto max-w-md safe-bottom"
         >
           <div className="relative rounded-2xl bg-[#0d1117]/95 backdrop-blur-xl border border-white/[0.08] shadow-2xl overflow-hidden">
             {/* Gradient accent */}
