@@ -23,9 +23,10 @@ export const SUBSCRIPTION_PLANS: Record<PlanId, SubscriptionPlan> = {
     description: 'Perfect for getting started',
     price: 0,
     yearlyPrice: 0,
-    credits: 50,
+    credits: 120,
     features: [
-      '50 credits on signup',
+      '120 credits on signup (20 welcome + 100 monthly)',
+      '100 free credits every month',
       'Basic market overview',
       '5 watchlist symbols',
       'Core metrics access',

@@ -10,7 +10,7 @@ import {
   creditTransactions,
   userSubscriptions,
 } from '@/lib/db/schema'
-import { eq, and, gte, lte, desc } from 'drizzle-orm'
+import { eq, and, gte, lte, desc, or, ne } from 'drizzle-orm'
 import { SUBSCRIPTION_PLANS, type PlanId } from './plans'
 import { addCredits } from '@/lib/credits'
 
@@ -169,7 +169,10 @@ export async function getActiveSubscription(
   const subscription = await db.query.userSubscriptions.findFirst({
     where: and(
       eq(userSubscriptions.userId, userId),
-      // Status is active or trial
+      or(
+        eq(userSubscriptions.status, 'active'),
+        eq(userSubscriptions.status, 'trial')
+      )
     ),
     orderBy: [desc(userSubscriptions.createdAt)],
   })
