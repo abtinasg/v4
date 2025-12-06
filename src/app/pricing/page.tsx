@@ -23,9 +23,9 @@ const subscriptionPlans = [
     name: 'Free',
     price: 0,
     description: 'Perfect for getting started',
-    credits: 50,
+    credits: 70,
     features: [
-      '50 credits on signup',
+      '70 credits on signup',
       'Basic market overview',
       '5 watchlist symbols',
       'Core metrics access',

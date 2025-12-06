@@ -94,6 +94,17 @@ const socialProof = [
   { name: 'Sarah M.', role: 'Day Trader', text: 'Finally, institutional-level data without the Bloomberg price tag.', rating: 5 },
   { name: 'Michael K.', role: 'Portfolio Manager', text: 'The AI reports save me hours of research every week.', rating: 5 },
   { name: 'David L.', role: 'Retail Investor', text: 'I feel like I have a team of analysts working for me.', rating: 5 },
+  { name: 'Jennifer W.', role: 'Hedge Fund Analyst', text: 'Switched from Bloomberg. Same quality data at 1% of the cost.', rating: 5 },
+  { name: 'Robert T.', role: 'Financial Advisor', text: 'My clients are impressed with the professional reports I generate.', rating: 5 },
+  { name: 'Alex K.', role: 'Crypto Investor', text: 'The DCF models helped me find undervalued stocks before anyone else.', rating: 5 },
+]
+
+// What you can do with 70 credits
+const creditUsage = [
+  { action: '7 Full Stock Analysis', credits: 10, icon: '📊' },
+  { action: '2 AI-Powered Reports', credits: 25, icon: '🤖' },
+  { action: '1 DCF Valuation + Analysis', credits: 45, icon: '💰' },
+  { action: '70 Stock Searches', credits: 1, icon: '🔍' },
 ]
 
 export default function PromoPage() {
@@ -111,10 +122,10 @@ export default function PromoPage() {
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-white animate-pulse" />
             <span className="text-sm font-medium text-white hidden sm:block">
-              Limited Time: Get 50 free credits on signup!
+              Limited Time: Get 70 free credits on signup!
             </span>
             <span className="text-sm font-medium text-white sm:hidden">
-              50 free credits!
+              70 free credits!
             </span>
           </div>
           <Link
@@ -290,21 +301,106 @@ export default function PromoPage() {
         </div>
       </section>
 
-      {/* Social Proof Section */}
+      {/* Bloomberg Comparison Section */}
       <section className="relative py-20 bg-[#0a0a0d]">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Loved by investors worldwide
+              Bloomberg-Level Analysis.
+              <span className="text-emerald-400"> 99% Less Cost.</span>
             </h2>
-            <p className="text-zinc-400">See why thousands of investors trust Deepin for their research.</p>
+            <p className="text-zinc-400">Why pay $25,000/year when you can get the same insights for free?</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Bloomberg */}
+            <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20">
+              <div className="text-lg font-semibold text-red-400 mb-4">Bloomberg Terminal</div>
+              <div className="text-4xl font-bold text-white mb-2">$25,000<span className="text-lg text-zinc-500">/year</span></div>
+              <ul className="space-y-2 text-sm text-zinc-400">
+                <li className="flex items-center gap-2">
+                  <span className="text-red-400">✕</span> Expensive contracts
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-red-400">✕</span> Complex interface
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-red-400">✕</span> Requires training
+                </li>
+              </ul>
+            </div>
+
+            {/* Deepin */}
+            <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 relative">
+              <div className="absolute -top-3 right-4 px-3 py-1 bg-emerald-500 text-black text-xs font-bold rounded-full">
+                SAVE 99%
+              </div>
+              <div className="text-lg font-semibold text-emerald-400 mb-4">Deepin Terminal</div>
+              <div className="text-4xl font-bold text-white mb-2">$0<span className="text-lg text-zinc-500"> to start</span></div>
+              <ul className="space-y-2 text-sm text-zinc-400">
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-400">✓</span> 70 free credits on signup
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-400">✓</span> Intuitive modern UI
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-400">✓</span> AI-powered insights
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* What 70 Credits Gets You */}
+      <section className="relative py-20 bg-gradient-to-b from-[#0a0a0d] to-[#09090B]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              What Can You Do With
+              <span className="text-blue-400"> 70 Free Credits?</span>
+            </h2>
+            <p className="text-zinc-400">Your free credits go a long way. Here's what you can analyze:</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {creditUsage.map((item, index) => (
+              <div key={index} className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-center hover:bg-white/[0.04] transition-colors">
+                <div className="text-3xl mb-3">{item.icon}</div>
+                <div className="text-2xl font-bold text-white mb-1">{item.action.split(' ')[0]}</div>
+                <div className="text-sm text-zinc-400">{item.action.split(' ').slice(1).join(' ')}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <Link
+              href="/sign-up"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-full transition-colors"
+            >
+              Get Your 70 Free Credits
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="relative py-20 bg-[#09090B]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Trusted by 10,000+ Investors
+            </h2>
+            <p className="text-zinc-400">From day traders to hedge fund analysts, see why they switched to Deepin.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {socialProof.map((review, index) => (
               <div
                 key={index}
-                className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]"
+                className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-colors"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(review.rating)].map((_, i) => (
@@ -334,7 +430,7 @@ export default function PromoPage() {
             ⏰ Limited Time Offer
           </h2>
           <p className="text-zinc-300 mb-6">
-            Sign up now and get <span className="text-blue-400 font-bold">50 free credits</span> to analyze any stock. Offer expires in:
+            Sign up now and get <span className="text-blue-400 font-bold">70 free credits</span> to analyze any stock. Offer expires in:
           </p>
           <div className="flex justify-center mb-8">
             <CountdownTimer />
@@ -370,7 +466,7 @@ export default function PromoPage() {
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
           <p className="mt-4 text-sm text-zinc-500">
-            No credit card required • 50 free credits • Cancel anytime
+            No credit card required • 70 free credits • Cancel anytime
           </p>
         </div>
       </section>
@@ -380,7 +476,7 @@ export default function PromoPage() {
         <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <img src="/logo.jpeg" alt="Deepin" className="h-6 w-6 rounded-lg" />
-            <span className="text-sm text-zinc-500">© 2024 Deepin. All rights reserved.</span>
+            <span className="text-sm text-zinc-500">© 2025 Deepin. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-zinc-500">
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>

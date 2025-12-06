@@ -180,7 +180,7 @@ export function TerminalPro() {
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </a>
           <p className="text-sm text-zinc-500 mt-4">
-            No credit card required · Start with 50 free credits
+            No credit card required · Start with 70 free credits
           </p>
         </div>
       </div>
