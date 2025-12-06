@@ -34,28 +34,28 @@ export function BottomNavigation() {
       </div>
 
       {/* Safe area padding for iOS */}
-      <div className="relative flex items-center justify-around px-1 h-16 pb-[env(safe-area-inset-bottom)]">
+      <div className="relative flex items-end justify-around px-1 h-16 pb-[env(safe-area-inset-bottom)]">
         {navItems.map((item, index) => {
           // Fix: Use exact match for /dashboard, prefix match with / for other routes
           const isActive = item.href === '/dashboard'
             ? pathname === '/dashboard'
             : pathname === item.href || pathname.startsWith(item.href + '/')
           const Icon = item.icon
-          const isCenter = index === 2 // Make watchlist center/featured
+          const isCenter = index === 2 // Make portfolio center/featured
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "relative flex flex-col items-center justify-center py-2 transition-all active:scale-95",
-                isCenter ? "w-14 -mt-3" : "flex-1"
+                "relative flex flex-col items-center justify-end pb-2 transition-all active:scale-95",
+                isCenter ? "w-14" : "flex-1"
               )}
             >
-              {/* Center FAB style for watchlist */}
+              {/* Center FAB style for portfolio */}
               {isCenter ? (
                 <div className={cn(
-                  "relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                  "relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all -mb-1",
                   isActive 
                     ? "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg" 
                     : "bg-white/10 border border-white/10"

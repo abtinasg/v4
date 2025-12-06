@@ -324,7 +324,7 @@ export async function POST(request: NextRequest) {
     
     // 9. Handle streaming or non-streaming response
     if (stream) {
-      // Streaming response
+      // Streaming response with tool calling support
       const sseEncoder = createSSEEncoder()
       const selectedModel = model || DEFAULT_MODEL
       
@@ -337,9 +337,63 @@ export async function POST(request: NextRequest) {
               modelName: getModelDisplayName(selectedModel)
             })))
             
+            // First, make a non-streaming call to check if AI wants to use tools
+            let currentMessages = [...aiMessages]
+            let iterations = 0
+            const MAX_TOOL_ITERATIONS = 3
+
+            // Check for tool calls first
+            while (iterations < MAX_TOOL_ITERATIONS) {
+              iterations++
+              
+              const response = await client.chatWithFallback({
+                model: selectedModel,
+                messages: currentMessages,
+                maxTokens: 4096,
+                temperature: 0.7,
+                tools: AI_TOOLS,
+                toolChoice: 'auto',
+              })
+
+              const choice = response.choices[0]
+              
+              // Check if AI wants to call tools
+              if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
+                console.log(`[Chat Stream] AI requested ${choice.message.tool_calls.length} tool calls`)
+                
+                // Add assistant's tool call message
+                currentMessages.push({
+                  role: 'assistant',
+                  content: choice.message.content || '',
+                })
+
+                // Execute each tool and add results
+                for (const toolCall of choice.message.tool_calls) {
+                  const args = JSON.parse(toolCall.function.arguments)
+                  console.log(`[Chat Stream] Executing tool: ${toolCall.function.name}`, args)
+                  
+                  const result = await executeAITool(toolCall.function.name, args)
+                  const formattedResult = formatToolResult(toolCall.function.name, result)
+                  
+                  // Add tool result as user message
+                  currentMessages.push({
+                    role: 'user',
+                    content: `[Tool Result for ${toolCall.function.name}]: ${formattedResult}`,
+                  })
+                }
+                
+                // Continue the loop to check for more tool calls
+                continue
+              }
+              
+              // No tool calls, now stream the response
+              break
+            }
+
+            // Now stream the final response
             const generator = client.streamWithFallback({
               model: selectedModel,
-              messages: aiMessages,
+              messages: currentMessages,
               maxTokens: 4096,
               temperature: 0.7,
             })

@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { watchlistQueries, userQueries } from '@/lib/db/queries'
+import { checkPlanLimit } from '@/lib/subscriptions'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -50,6 +51,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (watchlist.userId !== user.id) {
       return NextResponse.json(
         { error: 'Forbidden' },
+        { status: 403 }
+      )
+    }
+
+    // Check plan limit for watchlist symbols
+    const allWatchlists = await watchlistQueries.getByUserId(user.id)
+    const totalSymbols = allWatchlists.reduce((sum, wl) => sum + (wl.items?.length || 0), 0)
+    const limitCheck = await checkPlanLimit(user.id, 'watchlistSymbols', totalSymbols)
+    
+    if (!limitCheck.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Watchlist limit reached',
+          code: 'PLAN_LIMIT_REACHED',
+          limit: limitCheck.limit,
+          current: totalSymbols,
+          message: `You have reached the maximum of ${limitCheck.limit} watchlist symbols on your current plan. Upgrade to add more.`
+        },
         { status: 403 }
       )
     }

@@ -9,3 +9,11 @@ export {
   type CreditErrorResponse,
   type CreditErrorDetails,
 } from './use-credit-error';
+export { 
+  useSubscription,
+  triggerSubscriptionRefresh,
+  SUBSCRIPTION_UPDATE_EVENT,
+  type SubscriptionData,
+  type SubscriptionPlan,
+} from './use-subscription';
+export { usePlanLimits } from './use-plan-limits';

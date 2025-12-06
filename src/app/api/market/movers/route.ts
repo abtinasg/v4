@@ -44,7 +44,7 @@ const ALL_SYMBOLS = [
   // Streaming & Media
   'NFLX', 'DIS', 'CMCSA', 'WBD', 'PARA',
   // Payments & Fintech
-  'V', 'MA', 'PYPL', 'SQ', 'COIN',
+  'V', 'MA', 'PYPL', 'COIN',
   // Airlines & Travel
   'UAL', 'DAL', 'AAL', 'LUV', 'BA',
   // Retail

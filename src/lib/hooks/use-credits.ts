@@ -67,19 +67,34 @@ export function useCredits() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // دریافت اطلاعات کردیت
-  const fetchCredits = useCallback(async () => {
+  // دریافت اطلاعات کردیت با retry برای PWA
+  const fetchCredits = useCallback(async (retryCount = 0) => {
     try {
       const response = await fetch('/api/credits')
       const data = await response.json()
       
       if (data.success) {
         setCredits(data.data)
+        setError(null)
       } else {
-        setError(data.error)
+        // Retry up to 3 times with exponential backoff
+        if (retryCount < 3) {
+          setTimeout(() => {
+            fetchCredits(retryCount + 1)
+          }, Math.pow(2, retryCount) * 1000) // 1s, 2s, 4s
+        } else {
+          setError(data.error)
+        }
       }
     } catch (err) {
-      setError('Failed to fetch credits')
+      // Retry on network errors (important for PWA first load)
+      if (retryCount < 3) {
+        setTimeout(() => {
+          fetchCredits(retryCount + 1)
+        }, Math.pow(2, retryCount) * 1000)
+      } else {
+        setError('Failed to fetch credits')
+      }
     }
   }, [])
 

@@ -55,6 +55,7 @@ export async function checkTrialEligibility(userId: string): Promise<boolean> {
 
 /**
  * Start a free trial for a subscription plan
+ * Only Pro plan ($29) supports free trial
  */
 export async function startFreeTrial(
   userId: string,
@@ -68,9 +69,9 @@ export async function startFreeTrial(
     throw new Error('User is not eligible for a free trial')
   }
 
-  // Free plan doesn't have trials
-  if (planId === 'free' || plan.trialDays === 0) {
-    throw new Error('This plan does not have a free trial')
+  // Only Pro plan has free trial (14 days)
+  if (planId !== 'pro' || plan.trialDays === 0) {
+    throw new Error('Only Pro plan has a free trial option')
   }
 
   const now = new Date()
@@ -282,4 +283,68 @@ export async function processMonthlySubscription(
     .where(eq(userSubscriptions.id, subscription.id))
 
   return true
+}
+
+/**
+ * Get user's effective plan ID (considering trial)
+ */
+export async function getUserPlanId(userId: string): Promise<PlanId> {
+  const subscription = await getActiveSubscription(userId)
+  
+  if (!subscription) {
+    return 'free'
+  }
+  
+  // Trial users get the trial plan benefits
+  return subscription.planId
+}
+
+/**
+ * Check if user has a specific feature based on their plan
+ */
+export async function checkPlanFeature(
+  userId: string,
+  feature: 'export' | 'apiAccess' | 'prioritySupport' | 'customIntegrations'
+): Promise<boolean> {
+  const { PLAN_LIMITS } = await import('@/lib/credits/config')
+  const planId = await getUserPlanId(userId)
+  const limits = PLAN_LIMITS[planId]
+  
+  switch (feature) {
+    case 'export':
+      return limits.exportEnabled
+    case 'apiAccess':
+      return limits.apiAccessEnabled
+    case 'prioritySupport':
+      return limits.prioritySupport
+    case 'customIntegrations':
+      return limits.customIntegrations
+    default:
+      return false
+  }
+}
+
+/**
+ * Check if user can add more items based on plan limit
+ */
+export async function checkPlanLimit(
+  userId: string,
+  limitType: 'watchlistSymbols' | 'portfolios' | 'alerts' | 'aiReportsPerMonth',
+  currentCount: number
+): Promise<{ allowed: boolean; limit: number; remaining: number }> {
+  const { PLAN_LIMITS, isUnlimited } = await import('@/lib/credits/config')
+  const planId = await getUserPlanId(userId)
+  const limits = PLAN_LIMITS[planId]
+  const limit = limits[limitType]
+  
+  if (isUnlimited(limit)) {
+    return { allowed: true, limit: -1, remaining: -1 }
+  }
+  
+  const remaining = Math.max(0, limit - currentCount)
+  return { 
+    allowed: currentCount < limit, 
+    limit, 
+    remaining 
+  }
 }

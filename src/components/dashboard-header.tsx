@@ -4,6 +4,7 @@ import { UserButton } from '@clerk/nextjs'
 import { Search, Bell, LayoutDashboard, Terminal } from 'lucide-react'
 import { CreditBadge } from '@/components/credits'
 import { CreditModal } from '@/components/credits'
+import { SubscriptionBadge } from '@/components/subscription'
 
 export function DashboardHeader() {
   return (
@@ -19,6 +20,8 @@ export function DashboardHeader() {
         {/* Left: Title */}
         <div className="flex items-center gap-4">
           <h2 className="text-[15px] font-medium text-white/90 tracking-[-0.01em] leading-[1.4]">Dashboard</h2>
+          {/* Subscription Badge */}
+          <SubscriptionBadge size="sm" showTrialDays={true} />
         </div>
         
         {/* Right: Actions */}

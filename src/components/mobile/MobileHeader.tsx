@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Bell, X, Loader2 } from 'lucide-react'
-import { CreditBadge } from '@/components/credits'
+import { CreditBadge, CreditModal } from '@/components/credits'
+import { useBodyScrollLock } from '@/lib/hooks'
 
 interface MobileHeaderProps {
   showSearch?: boolean
@@ -14,10 +15,14 @@ interface MobileHeaderProps {
 
 export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isCreditModalOpen, setIsCreditModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [hasNotifications] = useState(true)
+
+  // Lock body scroll when search is open
+  useBodyScrollLock(isSearchOpen)
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query)
@@ -67,13 +72,13 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              {/* Credits - link to pricing */}
-              <Link 
-                href="/pricing"
+              {/* Credits - opens Credit Modal */}
+              <button 
+                onClick={() => setIsCreditModalOpen(true)}
                 className="flex items-center h-9 px-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.12] active:scale-95 transition-transform"
               >
                 <CreditBadge showIcon size="sm" className="border-0 bg-transparent p-0 text-[12px]" />
-              </Link>
+              </button>
 
               {/* Search */}
               {showSearch && (
@@ -224,6 +229,12 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Credit Modal */}
+      <CreditModal 
+        open={isCreditModalOpen} 
+        onOpenChange={setIsCreditModalOpen} 
+      />
     </>
   )
 }

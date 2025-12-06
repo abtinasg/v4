@@ -23,9 +23,10 @@ const subscriptionPlans = [
     name: 'Free',
     price: 0,
     description: 'Perfect for getting started',
-    credits: 50,
+    credits: 120,
     features: [
-      '50 credits on signup',
+      '120 credits on signup',
+      '100 free credits every month',
       'Basic market overview',
       '5 watchlist symbols',
       'Core metrics access',
@@ -48,6 +49,7 @@ const subscriptionPlans = [
       'Real-time alerts',
       'Priority support',
       'API access',
+      '14-day free trial',
     ],
     trialDays: 14,
     isPopular: true,
@@ -67,7 +69,7 @@ const subscriptionPlans = [
       'Export to Excel/PDF',
       'Dedicated support',
     ],
-    trialDays: 14,
+    trialDays: 0,
     isPopular: false,
   },
   {
@@ -85,7 +87,7 @@ const subscriptionPlans = [
       'SLA guarantee',
       'On-premise option',
     ],
-    trialDays: 14,
+    trialDays: 0,
     isPopular: false,
   },
 ]

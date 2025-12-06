@@ -69,7 +69,7 @@ export const SUBSCRIPTION_PLANS: Record<PlanId, SubscriptionPlan> = {
       'Export to Excel/PDF',
       'Dedicated support',
     ],
-    trialDays: 14,
+    trialDays: 0, // No free trial for Premium
   },
   enterprise: {
     id: 'enterprise',
@@ -87,7 +87,7 @@ export const SUBSCRIPTION_PLANS: Record<PlanId, SubscriptionPlan> = {
       'SLA guarantee',
       'On-premise option',
     ],
-    trialDays: 14,
+    trialDays: 0, // No free trial for Enterprise
   },
 }
 

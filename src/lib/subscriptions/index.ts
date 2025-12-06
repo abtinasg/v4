@@ -19,6 +19,9 @@ export {
   isTrialExpired,
   getSubscriptionCredits,
   processMonthlySubscription,
+  getUserPlanId,
+  checkPlanFeature,
+  checkPlanLimit,
   type UserSubscription,
   type CreateSubscriptionParams,
 } from './service'

@@ -93,6 +93,81 @@ export const CREDIT_CONFIG = {
   maxCreditBalance: 100000,
 }
 
+// Plan-specific limitations
+export type PlanLimits = {
+  watchlistSymbols: number
+  portfolios: number
+  alerts: number
+  aiReportsPerMonth: number
+  exportEnabled: boolean
+  apiAccessEnabled: boolean
+  teamMembers: number
+  customIntegrations: boolean
+  prioritySupport: boolean
+  dedicatedAccountManager: boolean
+}
+
+export const PLAN_LIMITS: Record<'free' | 'pro' | 'premium' | 'enterprise', PlanLimits> = {
+  free: {
+    watchlistSymbols: 5,
+    portfolios: 1,
+    alerts: 3,
+    aiReportsPerMonth: 2,
+    exportEnabled: false,
+    apiAccessEnabled: false,
+    teamMembers: 1,
+    customIntegrations: false,
+    prioritySupport: false,
+    dedicatedAccountManager: false,
+  },
+  pro: {
+    watchlistSymbols: -1, // Unlimited
+    portfolios: 3,
+    alerts: 20,
+    aiReportsPerMonth: 50,
+    exportEnabled: false,
+    apiAccessEnabled: true,
+    teamMembers: 1,
+    customIntegrations: false,
+    prioritySupport: true,
+    dedicatedAccountManager: false,
+  },
+  premium: {
+    watchlistSymbols: -1, // Unlimited
+    portfolios: -1, // Unlimited
+    alerts: -1, // Unlimited
+    aiReportsPerMonth: -1, // Unlimited
+    exportEnabled: true,
+    apiAccessEnabled: true,
+    teamMembers: 1,
+    customIntegrations: false,
+    prioritySupport: true,
+    dedicatedAccountManager: true,
+  },
+  enterprise: {
+    watchlistSymbols: -1, // Unlimited
+    portfolios: -1, // Unlimited
+    alerts: -1, // Unlimited
+    aiReportsPerMonth: -1, // Unlimited
+    exportEnabled: true,
+    apiAccessEnabled: true,
+    teamMembers: -1, // Unlimited
+    customIntegrations: true,
+    prioritySupport: true,
+    dedicatedAccountManager: true,
+  },
+}
+
+// Helper to check if a limit is unlimited
+export function isUnlimited(limit: number): boolean {
+  return limit === -1
+}
+
+// Helper to get user's plan limits
+export function getPlanLimits(planId: 'free' | 'pro' | 'premium' | 'enterprise'): PlanLimits {
+  return PLAN_LIMITS[planId]
+}
+
 // Endpoints that require credits
 export const CREDIT_REQUIRED_ENDPOINTS: Record<string, CreditAction> = {
   '/api/stock/search': 'stock_search',

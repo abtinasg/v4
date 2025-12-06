@@ -164,20 +164,44 @@ export const AddStockModal = memo(function AddStockModal({
     }, 300)
   }, [handleSearch])
 
-  // Add stock handler
-  const handleAddStock = useCallback((stock: SearchResult) => {
+  // Add stock handler - calls API then updates local store
+  const handleAddStock = useCallback(async (stock: SearchResult) => {
     if (!targetWatchlistId) return
 
-    addStock(targetWatchlistId, stock.symbol, stock.name)
-    setAddedSymbols((prev) => new Set(prev).add(stock.symbol))
+    try {
+      // Call API to add stock (with plan limit check)
+      const response = await fetch(`/api/watchlists/${targetWatchlistId}/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol: stock.symbol }),
+      })
 
-    // Save to recent searches
-    const updated = [
-      stock,
-      ...recentSearches.filter((s) => s.symbol !== stock.symbol),
-    ].slice(0, 5)
-    setRecentSearches(updated)
-    localStorage.setItem('recent-stock-searches', JSON.stringify(updated))
+      const data = await response.json()
+
+      if (!response.ok) {
+        // Check if it's a plan limit error
+        if (data.code === 'PLAN_LIMIT_REACHED') {
+          alert(data.message || `You've reached the maximum watchlist symbols for your plan. Upgrade to add more.`)
+          return
+        }
+        throw new Error(data.error || 'Failed to add stock')
+      }
+
+      // Update local store on success
+      addStock(targetWatchlistId, stock.symbol, stock.name)
+      setAddedSymbols((prev) => new Set(prev).add(stock.symbol))
+
+      // Save to recent searches
+      const updated = [
+        stock,
+        ...recentSearches.filter((s) => s.symbol !== stock.symbol),
+      ].slice(0, 5)
+      setRecentSearches(updated)
+      localStorage.setItem('recent-stock-searches', JSON.stringify(updated))
+    } catch (error) {
+      console.error('Error adding stock:', error)
+      alert(error instanceof Error ? error.message : 'Failed to add stock')
+    }
   }, [targetWatchlistId, addStock, recentSearches])
 
   // Check if stock is already in watchlist
