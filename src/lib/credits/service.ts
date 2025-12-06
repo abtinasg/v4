@@ -139,6 +139,7 @@ export async function checkCredits(
 
 /**
  * Deduct credits from user account
+ * Uses atomic UPDATE to prevent race conditions
  */
 export async function deductCredits(
   userId: string,
@@ -152,29 +153,48 @@ export async function deductCredits(
   }
 ): Promise<CreditDeductResult> {
   const requiredCredits = CREDIT_COSTS[action]
-  
-  // Get or initialize user credits
-  const userCreditRecord = await getUserCredits(userId)
-  const currentBalance = parseFloat(userCreditRecord?.balance || '0')
-  
-  if (currentBalance < requiredCredits) {
+
+  // Ensure user credit record exists
+  await getUserCredits(userId)
+
+  // Get current balance for transaction record
+  const currentBalanceNum = await getUserCreditBalance(userId)
+
+  if (currentBalanceNum < requiredCredits) {
     return {
       success: false,
-      newBalance: currentBalance,
-      message: `Insufficient credits. Required: ${requiredCredits}, Available: ${currentBalance}`,
+      newBalance: currentBalanceNum,
+      message: `Insufficient credits. Required: ${requiredCredits}, Available: ${currentBalanceNum}`,
     }
   }
-  
-  const newBalance = currentBalance - requiredCredits
-  
-  // Update balance
-  await db.update(userCredits)
-    .set({ 
-      balance: String(newBalance),
+
+  // Atomic update: only deduct if balance is still sufficient
+  // This prevents race conditions where two requests could both pass the check
+  const result = await db.update(userCredits)
+    .set({
+      balance: sql`(${userCredits.balance}::numeric - ${requiredCredits})::text`,
       updatedAt: new Date(),
     })
-    .where(eq(userCredits.userId, userId))
-  
+    .where(
+      and(
+        eq(userCredits.userId, userId),
+        sql`${userCredits.balance}::numeric >= ${requiredCredits}`
+      )
+    )
+    .returning()
+
+  // If no rows were updated, another request consumed the credits
+  if (result.length === 0) {
+    const newBalanceCheck = await getUserCreditBalance(userId)
+    return {
+      success: false,
+      newBalance: newBalanceCheck,
+      message: `Insufficient credits. Required: ${requiredCredits}, Available: ${newBalanceCheck}`,
+    }
+  }
+
+  const newBalance = parseFloat(result[0].balance)
+
   // Record transaction
   const [transaction] = await db.insert(creditTransactions).values({
     userId,
@@ -182,11 +202,11 @@ export async function deductCredits(
     type: 'usage',
     action,
     description: `Credit used for ${action}`,
-    balanceBefore: String(currentBalance),
+    balanceBefore: String(currentBalanceNum),
     balanceAfter: String(newBalance),
     metadata,
   }).returning()
-  
+
   return {
     success: true,
     newBalance,
@@ -196,6 +216,7 @@ export async function deductCredits(
 
 /**
  * Add credits to user account
+ * Uses atomic UPDATE to ensure correct balance even with concurrent requests
  */
 export async function addCredits(
   userId: string,
@@ -214,22 +235,26 @@ export async function addCredits(
 ): Promise<CreditAddResult> {
   // Ensure credit record exists
   await getUserCredits(userId)
-  
+
+  // Get current balance for transaction record
   const currentBalance = await getUserCreditBalance(userId)
-  const newBalance = Math.min(
-    currentBalance + amount,
-    CREDIT_CONFIG.maxCreditBalance
-  )
-  
-  // Update balance
-  await db.update(userCredits)
-    .set({ 
-      balance: String(newBalance),
-      lifetimeCredits: sql`${userCredits.lifetimeCredits}::numeric + ${amount}`,
+
+  // Atomic update: add credits and cap at max balance
+  const result = await db.update(userCredits)
+    .set({
+      balance: sql`LEAST((${userCredits.balance}::numeric + ${amount}), ${CREDIT_CONFIG.maxCreditBalance})::text`,
+      lifetimeCredits: sql`(${userCredits.lifetimeCredits}::numeric + ${amount})::text`,
       updatedAt: new Date(),
     })
     .where(eq(userCredits.userId, userId))
-  
+    .returning()
+
+  if (result.length === 0) {
+    throw new Error('Failed to add credits - user record not found')
+  }
+
+  const newBalance = parseFloat(result[0].balance)
+
   // Record transaction
   const [transaction] = await db.insert(creditTransactions).values({
     userId,
@@ -240,7 +265,7 @@ export async function addCredits(
     balanceAfter: String(newBalance),
     metadata,
   }).returning()
-  
+
   return {
     success: true,
     newBalance,
@@ -366,23 +391,53 @@ export async function getCreditStats(userId: string) {
 
 /**
  * Check and reset monthly credits if needed
+ * Uses atomic UPDATE to prevent duplicate monthly resets
  */
 export async function checkAndResetMonthlyCredits(userId: string): Promise<boolean> {
   const credits = await getUserCredits(userId)
-  
+
   if (!credits) return false
-  
+
   const lastReset = new Date(credits.lastFreeCreditsReset)
   const now = new Date()
-  
-  // If new month started, reset
+
+  // Check if new month started
   if (
-    lastReset.getMonth() !== now.getMonth() ||
-    lastReset.getFullYear() !== now.getFullYear()
+    lastReset.getMonth() === now.getMonth() &&
+    lastReset.getFullYear() === now.getFullYear()
   ) {
-    await resetMonthlyCredits(userId)
+    return false
+  }
+
+  // Calculate the start of current month for atomic comparison
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+  // Atomic update: only update lastFreeCreditsReset if it's before current month
+  // This prevents duplicate resets if multiple requests hit at the same time
+  const result = await db.update(userCredits)
+    .set({
+      freeCreditsUsed: '0',
+      lastFreeCreditsReset: now,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(userCredits.userId, userId),
+        sql`${userCredits.lastFreeCreditsReset} < ${currentMonthStart}`
+      )
+    )
+    .returning()
+
+  // If update succeeded (wasn't already reset this month), add credits
+  if (result.length > 0) {
+    await addCredits(
+      userId,
+      CREDIT_CONFIG.monthlyFreeCredits,
+      'monthly_reset',
+      'Monthly free credits reset'
+    )
     return true
   }
-  
+
   return false
 }
