@@ -23,6 +23,7 @@ import {
   Briefcase,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useBodyScrollLock } from '@/lib/hooks'
 
 // Sidebar context for global state
 interface SidebarContextType {
@@ -76,17 +77,8 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isMobileOpen])
 
-  // Lock body scroll when mobile sidebar is open
-  useEffect(() => {
-    if (isMobileOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isMobileOpen])
+  // Lock body scroll when mobile sidebar is open (uses counter-based approach for multiple overlays)
+  useBodyScrollLock(isMobileOpen)
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed, toggleSidebar, isMobileOpen, setIsMobileOpen, toggleMobileSidebar }}>

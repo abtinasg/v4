@@ -26,18 +26,20 @@ export function BottomNavigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden h-[calc(4rem+env(safe-area-inset-bottom))]">
       {/* Glass backdrop with blur */}
       <div className="absolute inset-0 bg-[#070A0F]/95 backdrop-blur-2xl border-t border-white/[0.08]">
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/[0.02] to-transparent" />
       </div>
-      
+
       {/* Safe area padding for iOS */}
-      <div className="relative flex items-center justify-around px-1 pt-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
+      <div className="relative flex items-center justify-around px-1 h-16 pb-[env(safe-area-inset-bottom)]">
         {navItems.map((item, index) => {
-          const isActive = pathname === item.href || 
-            (item.href !== '/dashboard' && pathname.startsWith(item.href))
+          // Fix: Use exact match for /dashboard, prefix match with / for other routes
+          const isActive = item.href === '/dashboard'
+            ? pathname === '/dashboard'
+            : pathname === item.href || pathname.startsWith(item.href + '/')
           const Icon = item.icon
           const isCenter = index === 2 // Make watchlist center/featured
 

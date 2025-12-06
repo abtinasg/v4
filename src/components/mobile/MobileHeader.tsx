@@ -144,13 +144,13 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -16, opacity: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="relative bg-[#0c0e14]/98 backdrop-blur-xl pt-[env(safe-area-inset-top)] h-full"
+              className="relative bg-[#0c0e14]/98 backdrop-blur-xl pt-[env(safe-area-inset-top)] h-full flex flex-col"
             >
               {/* Top highlight */}
               <div className="absolute inset-x-0 top-[env(safe-area-inset-top)] h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
               
               {/* Search Input */}
-              <div className="flex items-center gap-4 px-5 h-16 border-b border-white/[0.06]">
+              <div className="flex-shrink-0 flex items-center gap-4 px-5 h-16 border-b border-white/[0.06]">
                 <Search className="w-5 h-5 text-white/30 flex-shrink-0" strokeWidth={1.5} />
                 <input
                   type="text"
@@ -173,8 +173,8 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
                 </button>
               </div>
 
-              {/* Search Results */}
-              <div className="overflow-y-auto h-[calc(100%-4rem)] pb-[env(safe-area-inset-bottom)]">
+              {/* Search Results - use flex-1 instead of hardcoded height */}
+              <div className="flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
                 {searchResults.length > 0 ? (
                   <div className="p-4 space-y-0.5">
                     {searchResults.map((result: any) => (
