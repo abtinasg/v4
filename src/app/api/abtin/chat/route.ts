@@ -15,11 +15,12 @@ import { parseBasicAuth, verifyAbtinCredentials, createAuthChallenge } from '@/l
 import { OpenRouterClient, ChatMessage, OpenRouterError } from '@/lib/ai/openrouter'
 
 // Available AI models for the psychologist
+// Using actual available models from OpenRouter
 const PSYCHOLOGIST_MODELS = {
-  'google/gemini-3-pro-preview': 'Google Gemini 3 Pro',
   'openai/gpt-5.1': 'OpenAI GPT-5.1',
-  'anthropic/claude-opus-4.5': 'Anthropic Claude Opus 4.5',
-  'deepseek/deepseek-chat-v3-0324': 'DeepSeek Chat V3',
+  'anthropic/claude-sonnet-4.5': 'Anthropic Claude Sonnet 4.5',
+  'anthropic/claude-3.5-sonnet': 'Anthropic Claude 3.5 Sonnet',
+  'openai/gpt-4o': 'OpenAI GPT-4o',
 } as const
 
 type PsychologistModel = keyof typeof PSYCHOLOGIST_MODELS
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
     const { messages, mode, model } = validation.data
     
     // 3. Select model (default to first available)
-    const selectedModel = model || 'google/gemini-3-pro-preview'
+    const selectedModel = model || 'openai/gpt-5.1'
     
     // 4. Build AI messages with system prompt
     const systemPrompt = SYSTEM_PROMPTS[mode]

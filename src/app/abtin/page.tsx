@@ -2,11 +2,11 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Brain, Zap, MessageSquare, Send, StopCircle, Lock, Sparkles } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 type Mode = 'brainstorm' | 'debate'
-type Model = 'google/gemini-3-pro-preview' | 'openai/gpt-5.1' | 'anthropic/claude-opus-4.5' | 'deepseek/deepseek-chat-v3-0324'
+type Model = 'openai/gpt-5.1' | 'anthropic/claude-sonnet-4.5' | 'anthropic/claude-3.5-sonnet' | 'openai/gpt-4o'
 
 interface Message {
   id: string
@@ -16,10 +16,10 @@ interface Message {
 }
 
 const MODELS: { value: Model; label: string }[] = [
-  { value: 'google/gemini-3-pro-preview', label: 'Google Gemini 3 Pro' },
   { value: 'openai/gpt-5.1', label: 'OpenAI GPT-5.1' },
-  { value: 'anthropic/claude-opus-4.5', label: 'Anthropic Claude Opus 4.5' },
-  { value: 'deepseek/deepseek-chat-v3-0324', label: 'DeepSeek Chat V3' },
+  { value: 'anthropic/claude-sonnet-4.5', label: 'Anthropic Claude Sonnet 4.5' },
+  { value: 'anthropic/claude-3.5-sonnet', label: 'Anthropic Claude 3.5 Sonnet' },
+  { value: 'openai/gpt-4o', label: 'OpenAI GPT-4o' },
 ]
 
 const MODE_INFO = {
@@ -45,7 +45,7 @@ export default function AbtinPage() {
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
   const [mode, setMode] = useState<Mode>('brainstorm')
-  const [model, setModel] = useState<Model>('google/gemini-3-pro-preview')
+  const [model, setModel] = useState<Model>('openai/gpt-5.1')
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
@@ -91,7 +91,7 @@ export default function AbtinPage() {
           abortControllerRef.current?.abort()
         }
       }
-    } catch (error) {
+    } catch {
       // If we get a network error during streaming, check if auth was successful
       const storedAuth = sessionStorage.getItem('abtin_auth')
       if (storedAuth) {
@@ -196,19 +196,19 @@ export default function AbtinPage() {
                 return updated
               })
             }
-          } catch (e) {
+          } catch {
             // Skip malformed JSON
           }
         }
       }
-    } catch (error: any) {
-      if (error.name === 'AbortError') return
+    } catch (error: unknown) {
+      if ((error as Error).name === 'AbortError') return
       
       setMessages(prev => {
         const updated = [...prev]
         const lastMsg = updated[updated.length - 1]
         if (lastMsg.role === 'assistant') {
-          lastMsg.content = `Error: ${error.message || 'An error occurred'}`
+          lastMsg.content = `Error: ${(error as Error).message || 'An error occurred'}`
         }
         return updated
       })
@@ -303,8 +303,6 @@ export default function AbtinPage() {
   }
 
   // Main chat interface
-  const ModeIcon = MODE_INFO[mode].icon
-
   return (
     <div className="min-h-screen bg-[#0c0e14] flex flex-col">
       {/* Header */}
@@ -400,7 +398,7 @@ export default function AbtinPage() {
                 </div>
                 <h3 className="text-lg font-medium text-white mb-2">Ready to explore your thoughts?</h3>
                 <p className="text-white/40 text-sm text-center max-w-md">
-                  Choose a mode and start a conversation. I'm here to help you think creatively or critically.
+                  Choose a mode and start a conversation. I&apos;m here to help you think creatively or critically.
                 </p>
               </div>
             ) : (
