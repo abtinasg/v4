@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
         JSON.stringify({ error: validation.error }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       )
-    }}
+    }
     
     const { messages, mode, model, models, multiModel } = validation.data
     
