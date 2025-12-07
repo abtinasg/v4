@@ -66,39 +66,26 @@ export default function AbtinPage() {
     // Create Basic Auth credentials
     const credentials = btoa(`${username}:${password}`)
     
-    // Test authentication by making a simple request
+    // Verify authentication using dedicated auth endpoint
     try {
-      const response = await fetch('/api/abtin/chat', {
+      const response = await fetch('/api/abtin/auth', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Basic ${credentials}`,
         },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: 'Hello' }],
-          mode: 'brainstorm',
-        }),
       })
       
-      if (response.ok || response.status === 401) {
-        if (response.status === 401) {
-          setAuthError('Invalid username or password')
-        } else {
-          // Store credentials in sessionStorage
-          sessionStorage.setItem('abtin_auth', credentials)
-          setIsAuthenticated(true)
-          // Abort the test request
-          abortControllerRef.current?.abort()
-        }
-      }
-    } catch {
-      // If we get a network error during streaming, check if auth was successful
-      const storedAuth = sessionStorage.getItem('abtin_auth')
-      if (storedAuth) {
+      if (response.status === 401) {
+        setAuthError('Invalid username or password')
+      } else if (response.ok) {
+        // Store credentials in sessionStorage
+        sessionStorage.setItem('abtin_auth', credentials)
         setIsAuthenticated(true)
       } else {
         setAuthError('Authentication failed. Please try again.')
       }
+    } catch {
+      setAuthError('Authentication failed. Please try again.')
     }
   }
 

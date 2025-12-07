@@ -7,7 +7,7 @@
  * 
  * Authentication: Basic Auth (username/password from env)
  * Modes: brainstorm, debate
- * Models: google/gemini-3-pro-preview, openai/gpt-5.1, anthropic/claude-opus-4.5, deepseek/deepseek-chat-v3-0324
+ * Models: openai/gpt-5.1, anthropic/claude-sonnet-4.5, anthropic/claude-3.5-sonnet, openai/gpt-4o
  */
 
 import { NextRequest } from 'next/server'

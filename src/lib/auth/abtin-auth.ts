@@ -12,8 +12,13 @@ export interface AbtinAuthResult {
  * Verify Abtin section credentials
  */
 export function verifyAbtinCredentials(username: string, password: string): AbtinAuthResult {
-  const expectedUsername = process.env.ABTIN_USERNAME || 'abtin'
-  const expectedPassword = process.env.ABTIN_PASSWORD || 'abtin123'
+  const expectedUsername = process.env.ABTIN_USERNAME
+  const expectedPassword = process.env.ABTIN_PASSWORD
+
+  if (!expectedUsername || !expectedPassword) {
+    console.error('[Abtin Auth] ABTIN_USERNAME and ABTIN_PASSWORD must be set in environment variables')
+    return { authenticated: false, error: 'Authentication not configured' }
+  }
 
   if (username === expectedUsername && password === expectedPassword) {
     return { authenticated: true }
