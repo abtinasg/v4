@@ -104,24 +104,26 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
               </Link>
 
               {/* User */}
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: 'w-9 h-9 ring-2 ring-white/[0.08] ring-offset-2 ring-offset-[#0a0c10]',
-                    userButtonPopoverCard: 'bg-[#12141a] border border-white/[0.08] shadow-2xl shadow-black/40 rounded-2xl',
-                    userButtonPopoverActionButton: 'hover:bg-white/[0.06] text-white/80 rounded-xl',
-                    userButtonPopoverActionButtonText: 'text-white/80 font-normal',
-                    userButtonPopoverActionButtonIcon: 'text-white/50',
-                    userButtonPopoverFooter: 'hidden',
-                    userPreviewMainIdentifier: 'text-white font-medium',
-                    userPreviewSecondaryIdentifier: 'text-white/60',
-                    userPreview: 'border-b border-white/[0.06] pb-3 mb-1',
-                    userPreviewAvatarBox: 'w-11 h-11',
-                    userPreviewTextContainer: 'gap-0.5',
-                  }
-                }}
-              />
+              <div className="flex items-center">
+                <UserButton
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: 'w-8 h-8 ring-1 ring-white/[0.08]',
+                      userButtonPopoverCard: 'bg-[#12141a] border border-white/[0.08] shadow-2xl shadow-black/40 rounded-2xl',
+                      userButtonPopoverActionButton: 'hover:bg-white/[0.06] text-white/80 rounded-xl',
+                      userButtonPopoverActionButtonText: 'text-white/80 font-normal',
+                      userButtonPopoverActionButtonIcon: 'text-white/50',
+                      userButtonPopoverFooter: 'hidden',
+                      userPreviewMainIdentifier: 'text-white font-medium',
+                      userPreviewSecondaryIdentifier: 'text-white/60',
+                      userPreview: 'border-b border-white/[0.06] pb-3 mb-1',
+                      userPreviewAvatarBox: 'w-11 h-11',
+                      userPreviewTextContainer: 'gap-0.5',
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -149,7 +151,7 @@ export function MobileHeader({ showSearch = true, title }: MobileHeaderProps) {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -16, opacity: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="relative bg-[#0c0e14]/98 backdrop-blur-xl pt-[env(safe-area-inset-top)] h-full flex flex-col"
+              className="relative bg-[#0a0c10] pt-[env(safe-area-inset-top)] h-full flex flex-col"
             >
               {/* Top highlight */}
               <div className="absolute inset-x-0 top-[env(safe-area-inset-top)] h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
