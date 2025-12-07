@@ -118,9 +118,9 @@ export default function AbtinPage() {
       const messageHistory = messages.slice(-10).map(m => ({
         role: m.role,
         content: m.content,
-        modelName: m.modelName,
+        ...(m.modelName && { modelName: m.modelName }),
       }))
-      messageHistory.push({ role: 'user', content, modelName: undefined })
+      messageHistory.push({ role: 'user', content })
 
       // Multi-model mode: send to multiple models
       if (isMultiModel && selectedModels.length > 1) {
@@ -216,7 +216,7 @@ export default function AbtinPage() {
           body: JSON.stringify({
             messages: messageHistory,
             mode,
-            model: isMultiModel ? selectedModels[0] : model,
+            model,
           }),
           signal: abortControllerRef.current.signal,
         })
@@ -440,8 +440,9 @@ export default function AbtinPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
-                  setIsMultiModel(!isMultiModel)
-                  if (!isMultiModel && selectedModels.length === 0) {
+                  const newMultiModel = !isMultiModel
+                  setIsMultiModel(newMultiModel)
+                  if (newMultiModel && selectedModels.length === 0) {
                     setSelectedModels([model])
                   }
                 }}

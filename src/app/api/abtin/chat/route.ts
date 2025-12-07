@@ -170,12 +170,11 @@ export async function POST(request: NextRequest) {
     
     const validation = validateRequest(body)
     if (!validation.valid) {
-      const errorMsg = validation.error
       return new Response(
-        JSON.stringify({ error: errorMsg }),
+        JSON.stringify({ error: validation.error }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       )
-    }
+    }}
     
     const { messages, mode, model, models, multiModel } = validation.data
     
@@ -232,7 +231,7 @@ export async function POST(request: NextRequest) {
                 const generator = client.streamWithFallback({
                   model: selectedModel,
                   messages: aiMessages,
-                  maxTokens: 2048, // Shorter responses for multi-model
+                  maxTokens: 2048, // Shorter responses for multi-model to prevent context overflow and maintain conversation flow
                   temperature: mode === 'brainstorm' ? 0.9 : 0.7,
                 })
                 
