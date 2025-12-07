@@ -120,7 +120,7 @@ export default function AbtinPage() {
         content: m.content,
         modelName: m.modelName,
       }))
-      messageHistory.push({ role: 'user', content })
+      messageHistory.push({ role: 'user', content, modelName: undefined })
 
       // Multi-model mode: send to multiple models
       if (isMultiModel && selectedModels.length > 1) {

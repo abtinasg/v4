@@ -312,7 +312,86 @@ console.error('Abtin Chat API error:', error)
 ### Troubleshooting Guide
 See `ABTIN_QUICKSTART.md` for common issues and solutions.
 
+## 🤝 Multi-Model Collaboration (New Feature)
+
+### Overview
+Abtin now supports multi-model collaboration where multiple AI models can brainstorm together or debate with each other.
+
+### Architecture
+
+```
+User Question
+     ↓
+Backend receives models[] array
+     ↓
+For each model:
+  1. Build context with previous responses
+  2. Add model labels to context
+  3. Stream model response
+  4. Label response in frontend
+     ↓
+User sees responses from all models
+```
+
+### Key Components
+
+**Frontend State:**
+```typescript
+- isMultiModel: boolean           // Toggle for multi-model mode
+- selectedModels: Model[]         // Array of selected models
+- messages with modelName         // Track which model said what
+```
+
+**Backend Processing:**
+```typescript
+- Multi-model system prompts      // Specialized for collaboration
+- Sequential model responses      // Each model sees previous responses
+- Model name labeling             // Track response sources
+- Shorter token limits (2048)     // Keep responses concise
+```
+
+### System Prompts
+
+**Multi-Model Brainstorm:**
+- Build on other models' ideas
+- Acknowledge previous contributions
+- Keep responses concise (2-4 paragraphs)
+- Collaborative tone
+
+**Multi-Model Debate:**
+- Challenge other models' arguments
+- Present counter-perspectives
+- Keep responses focused (2-4 paragraphs)
+- Respectful but rigorous
+
+### Data Flow
+
+```
+1. User enables multi-model mode
+2. Selects multiple models (2+)
+3. Sends message
+4. Backend processes sequentially:
+   - Model 1 responds
+   - Model 2 sees Model 1's response, responds
+   - Model 3 sees Models 1-2's responses, responds
+   - And so on...
+5. Frontend displays each with label
+```
+
+### UI Enhancements
+
+- **Multi-Model Toggle**: Enable/disable collaborative mode
+- **Model Checkboxes**: Select which models participate
+- **Model Name Labels**: Show which model generated each response
+- **Sequential Display**: Models appear one after another
+
 ## 📈 Future Enhancement Ideas
+
+### Implemented Features
+- [x] Multi-model collaboration (brainstorm & debate)
+- [x] Model name labeling in responses
+- [x] Sequential model processing
+- [x] Specialized multi-model system prompts
 
 ### Potential Features
 - [ ] Conversation persistence (database)
@@ -324,6 +403,9 @@ See `ABTIN_QUICKSTART.md` for common issues and solutions.
 - [ ] Multi-language support
 - [ ] Conversation templates
 - [ ] Analytics dashboard
+- [ ] Parallel model processing
+- [ ] Adjustable turn order
+- [ ] Model voting/ranking
 
 ### Technical Improvements
 - [ ] HTTP-only cookie authentication
@@ -335,6 +417,7 @@ See `ABTIN_QUICKSTART.md` for common issues and solutions.
 
 ---
 
-**Architecture Version**: 1.0
+**Architecture Version**: 1.1
 **Last Updated**: December 2024
 **Status**: Production Ready ✅
+**Latest**: Multi-Model Collaboration Added 🎉

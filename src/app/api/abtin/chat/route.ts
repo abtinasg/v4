@@ -170,8 +170,9 @@ export async function POST(request: NextRequest) {
     
     const validation = validateRequest(body)
     if (!validation.valid) {
+      const errorMsg = validation.error
       return new Response(
-        JSON.stringify({ error: validation.error }),
+        JSON.stringify({ error: errorMsg }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       )
     }
