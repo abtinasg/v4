@@ -7,7 +7,7 @@
  * 
  * Authentication: Basic Auth (username/password from env)
  * Modes: brainstorm, debate
- * Models: openai/gpt-5.1, anthropic/claude-sonnet-4.5, anthropic/claude-3.5-sonnet, openai/gpt-4o
+ * Models: openai/gpt-5.1, anthropic/claude-sonnet-4.5, google/gemini-3-pro-preview, deepseek/deepseek-chat-v3-0324
  */
 
 import { NextRequest } from 'next/server'
@@ -19,8 +19,8 @@ import { OpenRouterClient, ChatMessage, OpenRouterError } from '@/lib/ai/openrou
 const PSYCHOLOGIST_MODELS = {
   'openai/gpt-5.1': 'OpenAI GPT-5.1',
   'anthropic/claude-sonnet-4.5': 'Anthropic Claude Sonnet 4.5',
-  'anthropic/claude-3.5-sonnet': 'Anthropic Claude 3.5 Sonnet',
-  'openai/gpt-4o': 'OpenAI GPT-4o',
+  'google/gemini-3-pro-preview': 'Google Gemini 3 Pro',
+  'deepseek/deepseek-chat-v3-0324': 'DeepSeek Chat V3',
 } as const
 
 type PsychologistModel = keyof typeof PSYCHOLOGIST_MODELS

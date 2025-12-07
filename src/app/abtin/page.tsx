@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 type Mode = 'brainstorm' | 'debate'
-type Model = 'openai/gpt-5.1' | 'anthropic/claude-sonnet-4.5' | 'anthropic/claude-3.5-sonnet' | 'openai/gpt-4o'
+type Model = 'openai/gpt-5.1' | 'anthropic/claude-sonnet-4.5' | 'google/gemini-3-pro-preview' | 'deepseek/deepseek-chat-v3-0324'
 
 interface Message {
   id: string
@@ -19,8 +19,8 @@ interface Message {
 const MODELS: { value: Model; label: string }[] = [
   { value: 'openai/gpt-5.1', label: 'OpenAI GPT-5.1' },
   { value: 'anthropic/claude-sonnet-4.5', label: 'Anthropic Claude Sonnet 4.5' },
-  { value: 'anthropic/claude-3.5-sonnet', label: 'Anthropic Claude 3.5 Sonnet' },
-  { value: 'openai/gpt-4o', label: 'OpenAI GPT-4o' },
+  { value: 'google/gemini-3-pro-preview', label: 'Google Gemini 3 Pro' },
+  { value: 'deepseek/deepseek-chat-v3-0324', label: 'DeepSeek Chat V3' },
 ]
 
 const MODE_INFO = {
