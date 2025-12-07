@@ -172,13 +172,13 @@ export async function deductCredits(
   // This prevents race conditions where two requests could both pass the check
   const result = await db.update(userCredits)
     .set({
-      balance: sql`(${userCredits.balance}::numeric - ${requiredCredits})::text`,
+      balance: sql`${userCredits.balance} - ${requiredCredits}`,
       updatedAt: new Date(),
     })
     .where(
       and(
         eq(userCredits.userId, userId),
-        sql`${userCredits.balance}::numeric >= ${requiredCredits}`
+        sql`${userCredits.balance} >= ${requiredCredits}`
       )
     )
     .returning()
