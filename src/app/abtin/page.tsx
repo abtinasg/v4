@@ -13,6 +13,7 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+  modelName?: string // Track which model generated this message
 }
 
 const MODELS: { value: Model; label: string }[] = [
@@ -46,6 +47,8 @@ export default function AbtinPage() {
   const [authError, setAuthError] = useState('')
   const [mode, setMode] = useState<Mode>('brainstorm')
   const [model, setModel] = useState<Model>('openai/gpt-5.1')
+  const [selectedModels, setSelectedModels] = useState<Model[]>(['openai/gpt-5.1']) // Multi-model support
+  const [isMultiModel, setIsMultiModel] = useState(false) // Toggle for multi-model mode
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
@@ -109,82 +112,161 @@ export default function AbtinPage() {
     setInputValue('')
     setIsStreaming(true)
 
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: '',
-      timestamp: new Date(),
-    }
-
-    setMessages(prev => [...prev, assistantMessage])
-
     abortControllerRef.current = new AbortController()
 
     try {
       const messageHistory = messages.slice(-10).map(m => ({
         role: m.role,
         content: m.content,
+        ...(m.modelName && { modelName: m.modelName }),
       }))
       messageHistory.push({ role: 'user', content })
 
-      const response = await fetch('/api/abtin/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${credentials}`,
-        },
-        body: JSON.stringify({
-          messages: messageHistory,
-          mode,
-          model,
-        }),
-        signal: abortControllerRef.current.signal,
-      })
+      // Multi-model mode: send to multiple models
+      if (isMultiModel && selectedModels.length > 1) {
+        const response = await fetch('/api/abtin/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Basic ${credentials}`,
+          },
+          body: JSON.stringify({
+            messages: messageHistory,
+            mode,
+            models: selectedModels, // Send array of models
+            multiModel: true,
+          }),
+          signal: abortControllerRef.current.signal,
+        })
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          setIsAuthenticated(false)
-          sessionStorage.removeItem('abtin_auth')
-          throw new Error('Authentication expired. Please login again.')
+        if (!response.ok) {
+          if (response.status === 401) {
+            setIsAuthenticated(false)
+            sessionStorage.removeItem('abtin_auth')
+            throw new Error('Authentication expired. Please login again.')
+          }
+          throw new Error(`Request failed: ${response.status}`)
         }
-        throw new Error(`Request failed: ${response.status}`)
-      }
 
-      const reader = response.body?.getReader()
-      if (!reader) throw new Error('Response body not readable')
+        const reader = response.body?.getReader()
+        if (!reader) throw new Error('Response body not readable')
 
-      const decoder = new TextDecoder()
-      let buffer = ''
+        const decoder = new TextDecoder()
+        let buffer = ''
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
 
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
 
-        for (const line of lines) {
-          const trimmed = line.trim()
-          if (!trimmed || trimmed === 'data: [DONE]') continue
-          if (!trimmed.startsWith('data: ')) continue
+          for (const line of lines) {
+            const trimmed = line.trim()
+            if (!trimmed || trimmed === 'data: [DONE]') continue
+            if (!trimmed.startsWith('data: ')) continue
 
-          try {
-            const data = JSON.parse(trimmed.slice(6))
-            if (data.error) throw new Error(data.error)
-            if (data.modelName) setCurrentModelName(data.modelName)
-            if (data.content) {
-              setMessages(prev => {
-                const updated = [...prev]
-                const lastMsg = updated[updated.length - 1]
-                if (lastMsg.role === 'assistant') {
-                  lastMsg.content += data.content
-                }
-                return updated
-              })
+            try {
+              const data = JSON.parse(trimmed.slice(6))
+              if (data.error) throw new Error(data.error)
+              
+              if (data.newMessage) {
+                // Add a new message for a new model
+                setMessages(prev => [...prev, {
+                  id: data.messageId,
+                  role: 'assistant',
+                  content: data.content || '',
+                  timestamp: new Date(),
+                  modelName: data.modelName,
+                }])
+              } else if (data.content) {
+                // Update existing message
+                setMessages(prev => {
+                  const updated = [...prev]
+                  const msgIndex = updated.findIndex(m => m.id === data.messageId)
+                  if (msgIndex !== -1 && updated[msgIndex].role === 'assistant') {
+                    updated[msgIndex].content += data.content
+                  }
+                  return updated
+                })
+              }
+            } catch {
+              // Skip malformed JSON
             }
-          } catch {
-            // Skip malformed JSON
+          }
+        }
+      } else {
+        // Single model mode (original behavior)
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: '',
+          timestamp: new Date(),
+        }
+
+        setMessages(prev => [...prev, assistantMessage])
+
+        const response = await fetch('/api/abtin/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Basic ${credentials}`,
+          },
+          body: JSON.stringify({
+            messages: messageHistory,
+            mode,
+            model,
+          }),
+          signal: abortControllerRef.current.signal,
+        })
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            setIsAuthenticated(false)
+            sessionStorage.removeItem('abtin_auth')
+            throw new Error('Authentication expired. Please login again.')
+          }
+          throw new Error(`Request failed: ${response.status}`)
+        }
+
+        const reader = response.body?.getReader()
+        if (!reader) throw new Error('Response body not readable')
+
+        const decoder = new TextDecoder()
+        let buffer = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+
+          for (const line of lines) {
+            const trimmed = line.trim()
+            if (!trimmed || trimmed === 'data: [DONE]') continue
+            if (!trimmed.startsWith('data: ')) continue
+
+            try {
+              const data = JSON.parse(trimmed.slice(6))
+              if (data.error) throw new Error(data.error)
+              if (data.modelName) setCurrentModelName(data.modelName)
+              if (data.content) {
+                setMessages(prev => {
+                  const updated = [...prev]
+                  const lastMsg = updated[updated.length - 1]
+                  if (lastMsg.role === 'assistant') {
+                    lastMsg.content += data.content
+                    lastMsg.modelName = data.modelName
+                  }
+                  return updated
+                })
+              }
+            } catch {
+              // Skip malformed JSON
+            }
           }
         }
       }
@@ -202,7 +284,7 @@ export default function AbtinPage() {
     } finally {
       setIsStreaming(false)
     }
-  }, [messages, mode, model, isStreaming])
+  }, [messages, mode, model, isStreaming, isMultiModel, selectedModels])
 
   const handleStop = () => {
     abortControllerRef.current?.abort()
@@ -322,7 +404,7 @@ export default function AbtinPage() {
       {/* Controls */}
       <div className="border-b border-white/[0.05] bg-white/[0.01]">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             {/* Mode Selection */}
             <div>
               <label className="block text-sm text-white/60 mb-2">Mode</label>
@@ -354,22 +436,106 @@ export default function AbtinPage() {
               <p className="text-xs text-white/40 mt-2">{MODE_INFO[mode].description}</p>
             </div>
 
-            {/* Model Selection */}
-            <div>
-              <label className="block text-sm text-white/60 mb-2">AI Model</label>
-              <select
-                value={model}
-                onChange={(e) => setModel(e.target.value as Model)}
+            {/* Multi-Model Toggle */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const newMultiModel = !isMultiModel
+                  setIsMultiModel(newMultiModel)
+                  if (newMultiModel && selectedModels.length === 0) {
+                    setSelectedModels([model])
+                  }
+                }}
                 disabled={isStreaming}
-                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 disabled:opacity-50"
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-lg border transition-all text-sm',
+                  isMultiModel
+                    ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-500/30 border-2'
+                    : 'bg-white/[0.02] border-white/[0.08] hover:bg-white/[0.04]',
+                  isStreaming && 'opacity-50 cursor-not-allowed'
+                )}
               >
-                {MODELS.map((m) => (
-                  <option key={m.value} value={m.value} className="bg-[#0c0e14]">
-                    {m.label}
-                  </option>
-                ))}
-              </select>
+                <Brain className={cn('w-4 h-4', isMultiModel ? 'text-purple-400' : 'text-white/40')} />
+                <span className={cn('font-medium', isMultiModel ? 'text-white' : 'text-white/60')}>
+                  Multi-Model Collaboration
+                </span>
+              </button>
+              {isMultiModel && (
+                <span className="text-xs text-white/40">
+                  {mode === 'brainstorm' 
+                    ? 'Models will build on each other\'s ideas' 
+                    : 'Models will debate and challenge each other'}
+                </span>
+              )}
             </div>
+
+            {/* Model Selection */}
+            {isMultiModel ? (
+              <div>
+                <label className="block text-sm text-white/60 mb-2">
+                  Select Models (check all that should participate)
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {MODELS.map((m) => {
+                    const isSelected = selectedModels.includes(m.value)
+                    return (
+                      <button
+                        key={m.value}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedModels(selectedModels.filter(sm => sm !== m.value))
+                          } else {
+                            setSelectedModels([...selectedModels, m.value])
+                          }
+                        }}
+                        disabled={isStreaming}
+                        className={cn(
+                          'flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm text-left',
+                          isSelected
+                            ? 'bg-violet-500/20 border-violet-500/40 border-2'
+                            : 'bg-white/[0.02] border-white/[0.08] hover:bg-white/[0.04]',
+                          isStreaming && 'opacity-50 cursor-not-allowed'
+                        )}
+                      >
+                        <div className={cn(
+                          'w-4 h-4 rounded border-2 flex items-center justify-center',
+                          isSelected ? 'bg-violet-500 border-violet-500' : 'border-white/20'
+                        )}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
+                        <span className={cn('font-medium', isSelected ? 'text-white' : 'text-white/60')}>
+                          {m.label}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-white/40 mt-2">
+                  {selectedModels.length} model{selectedModels.length !== 1 ? 's' : ''} selected
+                  {selectedModels.length < 2 && ' (select at least 2 for collaboration)'}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm text-white/60 mb-2">AI Model</label>
+                <select
+                  value={model}
+                  onChange={(e) => setModel(e.target.value as Model)}
+                  disabled={isStreaming}
+                  className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 disabled:opacity-50"
+                >
+                  {MODELS.map((m) => (
+                    <option key={m.value} value={m.value} className="bg-[#0c0e14]">
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -405,15 +571,22 @@ export default function AbtinPage() {
                     </div>
                   )}
                   
-                  <div
-                    className={cn(
-                      'max-w-[80%] px-4 py-3 rounded-2xl',
-                      msg.role === 'user'
-                        ? 'bg-violet-500/20 text-white border border-violet-500/30'
-                        : 'bg-white/[0.03] text-white/90 border border-white/[0.08]'
+                  <div className="flex flex-col gap-1 max-w-[80%]">
+                    {msg.role === 'assistant' && msg.modelName && (
+                      <div className="text-xs text-white/40 px-2">
+                        {msg.modelName}
+                      </div>
                     )}
-                  >
-                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                    <div
+                      className={cn(
+                        'px-4 py-3 rounded-2xl',
+                        msg.role === 'user'
+                          ? 'bg-violet-500/20 text-white border border-violet-500/30'
+                          : 'bg-white/[0.03] text-white/90 border border-white/[0.08]'
+                      )}
+                    >
+                      <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                    </div>
                   </div>
                 </motion.div>
               ))

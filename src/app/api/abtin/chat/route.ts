@@ -30,9 +30,12 @@ interface ChatRequest {
   messages: Array<{
     role: 'user' | 'assistant'
     content: string
+    modelName?: string
   }>
   mode: PsychologistMode
   model?: PsychologistModel
+  models?: PsychologistModel[]
+  multiModel?: boolean
 }
 
 // System prompts for different modes
@@ -58,6 +61,31 @@ Your approach should be warm, encouraging, and focused on generating as many ide
 6. Maintain a balanced, objective stance while being thought-provoking
 
 Your approach should be intellectually rigorous but respectful, helping users refine their thinking through constructive challenge and deeper analysis.`,
+}
+
+// Multi-model system prompts - when models collaborate
+const MULTI_MODEL_SYSTEM_PROMPTS = {
+  brainstorm: `You are an experienced psychologist participating in a collaborative brainstorming session with other AI models. Your role is to:
+
+1. Build upon and expand ideas presented by other models
+2. Bring your unique perspective and approach to the discussion
+3. Acknowledge good points made by others before adding your contribution
+4. Encourage divergent thinking and explore new angles
+5. Connect ideas in creative ways
+6. Keep responses concise but insightful (2-4 paragraphs max)
+
+Be collaborative and constructive. Reference what others have said and add value to the collective brainstorming process.`,
+
+  debate: `You are an experienced psychologist participating in a structured debate with other AI models. Your role is to:
+
+1. Critically analyze arguments presented by other models
+2. Present counter-arguments or alternative perspectives
+3. Challenge assumptions respectfully and rigorously
+4. Support your points with logical reasoning
+5. Acknowledge valid points while maintaining your position
+6. Keep responses focused and well-structured (2-4 paragraphs max)
+
+Be intellectually rigorous but respectful. Engage directly with points made by other models to create a dynamic, thought-provoking debate.`,
 }
 
 function validateRequest(body: unknown): { valid: true; data: ChatRequest } | { valid: false; error: string } {
@@ -148,12 +176,114 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    const { messages, mode, model } = validation.data
+    const { messages, mode, model, models, multiModel } = validation.data
     
-    // 3. Select model (default to first available)
+    // 5. Initialize OpenRouter client
+    const client = new OpenRouterClient()
+    
+    // 6. Stream response
+    const sseEncoder = createSSEEncoder()
+    
+    // Check if multi-model mode is enabled
+    if (multiModel && models && models.length > 1) {
+      // Multi-model collaboration mode
+      const streamResponse = new ReadableStream({
+        async start(controller) {
+          try {
+            const systemPrompt = MULTI_MODEL_SYSTEM_PROMPTS[mode]
+            
+            // Each model takes a turn responding
+            for (const selectedModel of models) {
+              const messageId = `${Date.now()}-${selectedModel}`
+              
+              // Build context with previous conversation
+              const aiMessages: ChatMessage[] = [
+                { role: 'system', content: systemPrompt },
+              ]
+              
+              // Add conversation history (including other model responses)
+              for (const msg of messages) {
+                if (msg.role === 'assistant' && msg.modelName) {
+                  // Include which model said what for context
+                  aiMessages.push({
+                    role: msg.role,
+                    content: `[${msg.modelName}]: ${msg.content}`
+                  })
+                } else {
+                  aiMessages.push({
+                    role: msg.role,
+                    content: msg.content
+                  })
+                }
+              }
+              
+              // Signal new message from this model
+              controller.enqueue(sseEncoder.encode(JSON.stringify({ 
+                newMessage: true,
+                messageId,
+                model: selectedModel,
+                modelName: PSYCHOLOGIST_MODELS[selectedModel],
+                mode: mode
+              })))
+              
+              // Stream this model's response
+              try {
+                const generator = client.streamWithFallback({
+                  model: selectedModel,
+                  messages: aiMessages,
+                  maxTokens: 2048, // Shorter responses for multi-model to prevent context overflow and maintain conversation flow
+                  temperature: mode === 'brainstorm' ? 0.9 : 0.7,
+                })
+                
+                for await (const chunk of generator) {
+                  controller.enqueue(sseEncoder.encode(JSON.stringify({ 
+                    messageId,
+                    content: chunk,
+                    modelName: PSYCHOLOGIST_MODELS[selectedModel]
+                  })))
+                }
+              } catch (error) {
+                const errorMessage = error instanceof OpenRouterError 
+                  ? error.message 
+                  : `Error from ${PSYCHOLOGIST_MODELS[selectedModel]}`
+                
+                controller.enqueue(sseEncoder.encode(JSON.stringify({ 
+                  messageId,
+                  content: `\n\n[Error: ${errorMessage}]`,
+                  modelName: PSYCHOLOGIST_MODELS[selectedModel]
+                })))
+              }
+              
+              // Small delay between models for better UX
+              await new Promise(resolve => setTimeout(resolve, 500))
+            }
+            
+            controller.enqueue(sseEncoder.encodeDone())
+            controller.close()
+          } catch (error) {
+            const errorMessage = error instanceof OpenRouterError 
+              ? error.message 
+              : 'An error occurred while generating the responses'
+            
+            controller.enqueue(sseEncoder.encodeError(errorMessage))
+            controller.close()
+          }
+        }
+      })
+      
+      return new Response(streamResponse, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        }
+      })
+    }
+    
+    // Single model mode (original behavior)
     const selectedModel = model || 'openai/gpt-5.1'
     
-    // 4. Build AI messages with system prompt
+    // Build AI messages with system prompt
     const systemPrompt = SYSTEM_PROMPTS[mode]
     const aiMessages: ChatMessage[] = [
       { role: 'system', content: systemPrompt },
@@ -166,12 +296,6 @@ export async function POST(request: NextRequest) {
         content: msg.content
       })
     }
-    
-    // 5. Initialize OpenRouter client
-    const client = new OpenRouterClient()
-    
-    // 6. Stream response
-    const sseEncoder = createSSEEncoder()
     
     const streamResponse = new ReadableStream({
       async start(controller) {
