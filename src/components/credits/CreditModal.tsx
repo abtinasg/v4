@@ -71,11 +71,16 @@ export function CreditModal({
     </Button>
   )
   
+  // If controlled mode (open prop is provided), don't render trigger
+  const isControlled = open !== undefined
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || defaultTrigger}
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          {trigger || defaultTrigger}
+        </DialogTrigger>
+      )}
       
       <DialogContent className={cn(
         'max-w-4xl max-h-[90vh] overflow-hidden flex flex-col',
