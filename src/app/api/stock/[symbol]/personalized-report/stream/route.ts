@@ -224,37 +224,93 @@ export async function POST(
       });
     }
 
-    // Check for pending report
+    // Check for pending/generating report
     const pendingReport = await aiReportQueries.getPending(user.id, upperSymbol, 'personalized');
     if (pendingReport) {
-      // Return current progress
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        start(controller) {
-          const metadata = {
-            type: 'metadata',
-            symbol: upperSymbol,
-            reportId: pendingReport.id,
-            status: pendingReport.status,
-            resuming: true,
-          };
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
-          
-          if (pendingReport.content) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: pendingReport.content })}\n\n`));
-          }
-          
-          controller.close();
-        },
-      });
+      // Check if the report has been generating for too long (stale)
+      const reportAge = Date.now() - (pendingReport.updatedAt?.getTime() || pendingReport.createdAt?.getTime() || 0);
+      const isStale = reportAge > 2 * 60 * 1000; // 2 minutes
+      
+      if (isStale && pendingReport.content && pendingReport.content.length > 500) {
+        // If report is stale but has significant content, mark as completed and return it
+        console.log(`[PersonalizedStream] Marking stale report as completed for ${upperSymbol}`);
+        await aiReportQueries.update(pendingReport.id, {
+          status: 'completed',
+          content: pendingReport.content,
+        });
+        
+        // Return the saved content as a cached report
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            const metadata = {
+              type: 'metadata',
+              symbol: upperSymbol,
+              companyName: pendingReport.companyName,
+              cached: true,
+              reportId: pendingReport.id,
+              recovered: true, // Indicate this was recovered from a partial save
+              ...pendingReport.metadata,
+            };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
+            
+            const content = pendingReport.content || '';
+            const chunkSize = 100;
+            for (let i = 0; i < content.length; i += chunkSize) {
+              const chunk = content.slice(i, i + chunkSize);
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: chunk })}\n\n`));
+            }
+            
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          },
+        });
 
-      return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-        },
-      });
+        return new Response(stream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        });
+      } else if (isStale) {
+        // If stale with little/no content, delete and regenerate
+        console.log(`[PersonalizedStream] Deleting stale incomplete report for ${upperSymbol}`);
+        await aiReportQueries.update(pendingReport.id, {
+          status: 'failed',
+          error: 'Generation timed out',
+        });
+        // Continue to generate a new report
+      } else {
+        // Report is still being generated (not stale), return current progress
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            const metadata = {
+              type: 'metadata',
+              symbol: upperSymbol,
+              reportId: pendingReport.id,
+              status: pendingReport.status,
+              resuming: true,
+            };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
+            
+            if (pendingReport.content) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: pendingReport.content })}\n\n`));
+            }
+            
+            controller.close();
+          },
+        });
+
+        return new Response(stream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        });
+      }
     }
 
     // Get risk assessment
@@ -413,6 +469,8 @@ export async function POST(
     // Create streaming response
     const encoder = new TextEncoder();
     let fullContent = '';
+    let lastSaveLength = 0;
+    const SAVE_THRESHOLD = 500; // Save every 500 characters
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -467,6 +525,17 @@ export async function POST(
                   if (content) {
                     fullContent += content;
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content })}\n\n`));
+                    
+                    // Incrementally save content to database every SAVE_THRESHOLD characters
+                    // This ensures content is preserved even if user closes the page
+                    if (fullContent.length - lastSaveLength >= SAVE_THRESHOLD) {
+                      lastSaveLength = fullContent.length;
+                      // Don't await to avoid blocking the stream
+                      aiReportQueries.update(reportRecord.id, {
+                        status: 'generating',
+                        content: fullContent,
+                      }).catch(err => console.error('[PersonalizedStream] Incremental save error:', err));
+                    }
                   }
                 } catch (e) {
                   // Skip invalid JSON
@@ -476,13 +545,20 @@ export async function POST(
           }
         } catch (error) {
           console.error('[PersonalizedStream] Stream error:', error);
-          // Mark report as failed
+          // Mark report as failed but save partial content
           await aiReportQueries.update(reportRecord.id, {
             status: 'failed',
             error: error instanceof Error ? error.message : 'Stream error',
             content: fullContent,
           });
         } finally {
+          // Final save if we have content that wasn't saved yet
+          if (fullContent.length > lastSaveLength) {
+            await aiReportQueries.update(reportRecord.id, {
+              status: 'generating',
+              content: fullContent,
+            }).catch(err => console.error('[PersonalizedStream] Final save error:', err));
+          }
           controller.close();
         }
       },

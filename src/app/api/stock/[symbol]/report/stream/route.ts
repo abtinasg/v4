@@ -126,37 +126,92 @@ export async function POST(
       });
     }
 
-    // Check for pending report
+    // Check for pending/generating report
     const pendingReport = await aiReportQueries.getPending(user.id, upperSymbol, audienceType);
     if (pendingReport) {
-      // Return current progress
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        start(controller) {
-          const metadata = {
-            type: 'metadata',
-            symbol: upperSymbol,
-            reportId: pendingReport.id,
-            status: pendingReport.status,
-            resuming: true,
-          };
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
-          
-          if (pendingReport.content) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: pendingReport.content })}\n\n`));
-          }
-          
-          controller.close();
-        },
-      });
+      // Check if the report has been generating for too long (stale)
+      const reportAge = Date.now() - (pendingReport.updatedAt?.getTime() || pendingReport.createdAt?.getTime() || 0);
+      const isStale = reportAge > 2 * 60 * 1000; // 2 minutes
+      
+      if (isStale && pendingReport.content && pendingReport.content.length > 500) {
+        // If report is stale but has significant content, mark as completed and return it
+        console.log(`[StreamReport] Marking stale report as completed for ${upperSymbol}`);
+        await aiReportQueries.update(pendingReport.id, {
+          status: 'completed',
+          content: pendingReport.content,
+        });
+        
+        // Return the saved content as a cached report
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            const metadata = {
+              type: 'metadata',
+              symbol: upperSymbol,
+              companyName: pendingReport.companyName,
+              cached: true,
+              reportId: pendingReport.id,
+              recovered: true, // Indicate this was recovered from a partial save
+            };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
+            
+            const content = pendingReport.content || '';
+            const chunkSize = 100;
+            for (let i = 0; i < content.length; i += chunkSize) {
+              const chunk = content.slice(i, i + chunkSize);
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: chunk })}\n\n`));
+            }
+            
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          },
+        });
 
-      return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-        },
-      });
+        return new Response(stream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        });
+      } else if (isStale) {
+        // If stale with little/no content, delete and regenerate
+        console.log(`[StreamReport] Deleting stale incomplete report for ${upperSymbol}`);
+        await aiReportQueries.update(pendingReport.id, {
+          status: 'failed',
+          error: 'Generation timed out',
+        });
+        // Continue to generate a new report
+      } else {
+        // Report is still being generated (not stale), return current progress
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            const metadata = {
+              type: 'metadata',
+              symbol: upperSymbol,
+              reportId: pendingReport.id,
+              status: pendingReport.status,
+              resuming: true,
+            };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(metadata)}\n\n`));
+            
+            if (pendingReport.content) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content: pendingReport.content })}\n\n`));
+            }
+            
+            controller.close();
+          },
+        });
+
+        return new Response(stream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        });
+      }
     }
 
     if (!process.env.OPENROUTER_API_KEY) {
