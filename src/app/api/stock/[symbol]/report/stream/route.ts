@@ -310,6 +310,8 @@ End with: _"Analysis based solely on data provided by Deep; not investment advic
     // Create streaming response
     const encoder = new TextEncoder();
     let fullContent = '';
+    let lastSaveLength = 0;
+    const SAVE_THRESHOLD = 500; // Save every 500 characters
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -362,6 +364,17 @@ End with: _"Analysis based solely on data provided by Deep; not investment advic
                   if (content) {
                     fullContent += content;
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content })}\n\n`));
+                    
+                    // Incrementally save content to database every SAVE_THRESHOLD characters
+                    // This ensures content is preserved even if user closes the page
+                    if (fullContent.length - lastSaveLength >= SAVE_THRESHOLD) {
+                      lastSaveLength = fullContent.length;
+                      // Don't await to avoid blocking the stream
+                      aiReportQueries.update(reportRecord.id, {
+                        status: 'generating',
+                        content: fullContent,
+                      }).catch(err => console.error('[StreamReport] Incremental save error:', err));
+                    }
                   }
                 } catch (e) {
                   // Skip invalid JSON
@@ -371,13 +384,20 @@ End with: _"Analysis based solely on data provided by Deep; not investment advic
           }
         } catch (error) {
           console.error('[StreamReport] Stream error:', error);
-          // Mark report as failed
+          // Mark report as failed but save partial content
           await aiReportQueries.update(reportRecord.id, {
             status: 'failed',
             error: error instanceof Error ? error.message : 'Stream error',
             content: fullContent, // Save partial content
           });
         } finally {
+          // Final save if we have content that wasn't saved yet
+          if (fullContent.length > lastSaveLength) {
+            await aiReportQueries.update(reportRecord.id, {
+              status: 'generating',
+              content: fullContent,
+            }).catch(err => console.error('[StreamReport] Final save error:', err));
+          }
           controller.close();
         }
       },
