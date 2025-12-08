@@ -27,22 +27,79 @@ export interface AuthResult {
 }
 
 /**
- * Hash password using Web Crypto API
+ * Hash password using Web Crypto API with PBKDF2
+ * NOTE: For production, consider using bcrypt, scrypt, or argon2
+ * This implementation uses PBKDF2 with 100,000 iterations and random salt
  */
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const salt = crypto.getRandomValues(new Uint8Array(16))
+  
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  )
+  
+  const hashBuffer = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    keyMaterial,
+    256
+  )
+  
   const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  const saltArray = Array.from(salt)
+  
+  // Store salt + hash together (first 16 bytes are salt, rest is hash)
+  return saltArray.concat(hashArray).map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 /**
  * Verify password against hash
  */
-async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password)
-  return passwordHash === hash
+async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  try {
+    // Extract salt from stored hash (first 32 hex chars = 16 bytes)
+    const saltHex = storedHash.slice(0, 32)
+    const salt = new Uint8Array(
+      saltHex.match(/.{2}/g)!.map(byte => parseInt(byte, 16))
+    )
+    
+    const encoder = new TextEncoder()
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(password),
+      'PBKDF2',
+      false,
+      ['deriveBits']
+    )
+    
+    const hashBuffer = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 100000,
+        hash: 'SHA-256',
+      },
+      keyMaterial,
+      256
+    )
+    
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const saltArray = Array.from(salt)
+    const computedHash = saltArray.concat(hashArray).map(b => b.toString(16).padStart(2, '0')).join('')
+    
+    return computedHash === storedHash
+  } catch {
+    return false
+  }
 }
 
 /**

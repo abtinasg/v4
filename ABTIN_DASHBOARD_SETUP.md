@@ -152,22 +152,23 @@ Navigate to `http://localhost:3000/abtin` and login with the credentials you cre
 
 ### Current Implementation
 
-✅ Password hashing (SHA-256)
-✅ JWT session tokens
-✅ HTTP-only cookies
-✅ Rate limiting on login
-✅ Authentication logging
+✅ Password hashing (PBKDF2 with 100,000 iterations and random salt)
+✅ JWT session tokens (24-hour expiry)
+✅ HTTP-only secure cookies
+✅ Rate limiting on login (5 attempts per 5 minutes)
+✅ Authentication logging with IP tracking
 ✅ SQL injection protection (via Drizzle ORM)
 
 ### Recommendations for Production
 
 1. **HTTPS Only** - Ensure all traffic is over HTTPS
-2. **Stronger Hashing** - Consider bcrypt or argon2 instead of SHA-256
+2. **Consider Stronger Hashing** - For even better security, consider bcrypt or argon2
 3. **CSRF Protection** - Add CSRF tokens for state-changing operations
 4. **Session Refresh** - Implement token refresh mechanism
 5. **2FA** - Add two-factor authentication option
 6. **Backup Strategy** - Regular database backups
 7. **Monitoring** - Set up alerts for suspicious login patterns
+8. **Audit Logs** - Regularly review `abtin_auth_logs` for suspicious activity
 
 ## File Structure
 

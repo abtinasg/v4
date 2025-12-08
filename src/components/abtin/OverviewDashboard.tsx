@@ -27,7 +27,18 @@ interface Task {
 }
 
 export default function OverviewDashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [stats, setStats] = useState<DashboardStats>({
+    tasks: {
+      total: 0,
+      pending: 0,
+      completed: 0,
+      todayCount: 0,
+    },
+    chat: {
+      totalSessions: 0,
+      totalMessages: 0,
+    },
+  })
   const [recentTasks, setRecentTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -43,7 +54,7 @@ export default function OverviewDashboard() {
         const tasksData = await tasksRes.json()
         setRecentTasks(tasksData.tasks.slice(0, 5))
         setStats(prev => ({
-          ...prev!,
+          ...prev,
           tasks: {
             total: tasksData.statistics.total,
             pending: tasksData.statistics.pending,
@@ -62,7 +73,7 @@ export default function OverviewDashboard() {
           0
         )
         setStats(prev => ({
-          ...prev!,
+          ...prev,
           chat: {
             totalSessions: sessionsData.sessions.length,
             totalMessages,
@@ -128,13 +139,13 @@ export default function OverviewDashboard() {
             </Link>
           </div>
           <h3 className="text-2xl font-bold text-white mb-1">
-            {stats?.tasks.todayCount || 0}
+            {stats.tasks.todayCount}
           </h3>
           <p className="text-sm text-white/60">Today's Tasks</p>
           <div className="mt-4 flex gap-2 text-xs">
-            <span className="text-yellow-400">{stats?.tasks.pending || 0} pending</span>
+            <span className="text-yellow-400">{stats.tasks.pending} pending</span>
             <span className="text-white/40">•</span>
-            <span className="text-green-400">{stats?.tasks.completed || 0} completed</span>
+            <span className="text-green-400">{stats.tasks.completed} completed</span>
           </div>
         </motion.div>
 
@@ -157,11 +168,11 @@ export default function OverviewDashboard() {
             </Link>
           </div>
           <h3 className="text-2xl font-bold text-white mb-1">
-            {stats?.chat.totalSessions || 0}
+            {stats.chat.totalSessions}
           </h3>
           <p className="text-sm text-white/60">Chat Conversations</p>
           <div className="mt-4 flex gap-2 text-xs">
-            <span className="text-purple-400">{stats?.chat.totalMessages || 0} total messages</span>
+            <span className="text-purple-400">{stats.chat.totalMessages} total messages</span>
           </div>
         </motion.div>
 
@@ -178,7 +189,7 @@ export default function OverviewDashboard() {
             </div>
           </div>
           <h3 className="text-2xl font-bold text-white mb-1">
-            {stats?.tasks.total
+            {stats.tasks.total
               ? Math.round((stats.tasks.completed / stats.tasks.total) * 100)
               : 0}%
           </h3>
@@ -188,7 +199,7 @@ export default function OverviewDashboard() {
               className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all"
               style={{
                 width: `${
-                  stats?.tasks.total
+                  stats.tasks.total
                     ? (stats.tasks.completed / stats.tasks.total) * 100
                     : 0
                 }%`,
