@@ -79,6 +79,22 @@ export const OPENROUTER_MODELS = {
     outputCost: 0.055,
     contextWindow: 131072,
     description: 'Very cheap fallback model'
+  },
+  // Google Gemini 3 Pro Preview
+  'google/gemini-3-pro-preview': {
+    name: 'Gemini 3 Pro Preview',
+    inputCost: 3.5,
+    outputCost: 10.5,
+    contextWindow: 1000000,
+    description: 'Google advanced reasoning model'
+  },
+  // DeepSeek Chat V3
+  'deepseek/deepseek-chat-v3-0324': {
+    name: 'DeepSeek Chat V3',
+    inputCost: 0.27,
+    outputCost: 1.1,
+    contextWindow: 64000,
+    description: 'DeepSeek cost-effective reasoning'
   }
 } as const
 
