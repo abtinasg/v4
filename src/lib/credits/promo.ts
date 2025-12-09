@@ -163,16 +163,16 @@ export async function redeemPromoCode(
   if (userCredit) {
     await db.update(userCredits)
       .set({
-        balance: String(newBalance),
-        lifetimeCredits: String(Number(userCredit.lifetimeCredits) + creditsToAward),
+        balance: newBalance.toString(),
+        lifetimeCredits: (Number(userCredit.lifetimeCredits) + creditsToAward).toString(),
         updatedAt: new Date(),
       })
       .where(eq(userCredits.userId, userId))
   } else {
     await db.insert(userCredits).values({
       userId,
-      balance: String(creditsToAward),
-      lifetimeCredits: String(creditsToAward),
+      balance: creditsToAward.toString(),
+      lifetimeCredits: creditsToAward.toString(),
     })
   }
   

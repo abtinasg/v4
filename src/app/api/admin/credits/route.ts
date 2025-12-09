@@ -190,17 +190,17 @@ export async function POST(request: NextRequest) {
         // Create new credit record
         await db.insert(userCredits).values({
           userId,
-          balance: String(newBalance),
-          lifetimeCredits: amount > 0 ? String(amount) : '0',
+          balance: newBalance.toString(),
+          lifetimeCredits: amount > 0 ? amount.toString() : '0',
         })
       } else {
         // Update existing
         await db
           .update(userCredits)
           .set({
-            balance: String(newBalance),
+            balance: newBalance.toString(),
             lifetimeCredits: amount > 0 
-              ? String(Number(currentCredit[0].lifetimeCredits) + Number(amount))
+              ? (Number(currentCredit[0].lifetimeCredits) + Number(amount)).toString()
               : currentCredit[0].lifetimeCredits,
             updatedAt: new Date(),
           })
@@ -282,14 +282,14 @@ export async function POST(request: NextRequest) {
           if (currentCredit.length === 0) {
             await db.insert(userCredits).values({
               userId,
-              balance: String(newBalance),
-              lifetimeCredits: amount > 0 ? String(amount) : '0',
+              balance: newBalance.toString(),
+              lifetimeCredits: amount > 0 ? amount.toString() : '0',
             })
           } else {
             await db
               .update(userCredits)
               .set({
-                balance: String(newBalance),
+                balance: newBalance.toString(),
                 updatedAt: new Date(),
               })
               .where(eq(userCredits.userId, userId))

@@ -105,9 +105,10 @@ export async function POST(request: NextRequest) {
       const periodEnd = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000)
       
       // Store payment record - use type assertion for extended metadata
+      // Note: packageId is null for subscription payments (not a credit package purchase)
       const paymentData = {
         userId: user.id,
-        packageId: `subscription_${planId}`, // Use plan-based packageId
+        packageId: null, // null for subscription payments
         provider: 'nowpayments' as const,
         externalInvoiceId: invoice.id,
         orderId,

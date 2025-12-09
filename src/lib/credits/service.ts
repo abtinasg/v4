@@ -87,8 +87,8 @@ export async function initializeUserCredits(userId: string) {
   // Create credit record
   const [newCredits] = await db.insert(userCredits).values({
     userId,
-    balance: String(initialCredits),
-    lifetimeCredits: String(initialCredits),
+    balance: initialCredits.toString(),
+    lifetimeCredits: initialCredits.toString(),
     freeCreditsUsed: '0',
     lastFreeCreditsReset: new Date(),
   }).returning()
@@ -242,8 +242,8 @@ export async function addCredits(
   // Atomic update: add credits and cap at max balance
   const result = await db.update(userCredits)
     .set({
-      balance: sql`LEAST((${userCredits.balance}::numeric + ${amount}), ${CREDIT_CONFIG.maxCreditBalance})::text`,
-      lifetimeCredits: sql`(${userCredits.lifetimeCredits}::numeric + ${amount})::text`,
+      balance: sql`LEAST((${userCredits.balance} + ${amount}), ${CREDIT_CONFIG.maxCreditBalance})`,
+      lifetimeCredits: sql`${userCredits.lifetimeCredits} + ${amount}`,
       updatedAt: new Date(),
     })
     .where(eq(userCredits.userId, userId))

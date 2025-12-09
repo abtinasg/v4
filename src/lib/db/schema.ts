@@ -675,7 +675,7 @@ export const paymentProviderEnum = pgEnum('payment_provider', [
 export const cryptoPayments = pgTable('crypto_payments', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  packageId: text('package_id').notNull().references(() => creditPackages.id),
+  packageId: text('package_id').references(() => creditPackages.id),
   
   // Payment Provider Info
   provider: paymentProviderEnum('provider').notNull().default('nowpayments'),
