@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
             'purchase',
             `Crypto payment - Order: ${payload.order_id}`,
             {
-              packageId: payment.packageId,
+              packageId: payment.packageId ?? undefined,
               orderId: payload.order_id,
               paymentId: payload.payment_id.toString(),
               payCurrency: payload.pay_currency,
