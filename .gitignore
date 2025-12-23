@@ -39,3 +39,7 @@ next-env.d.ts
 
 # Drizzle
 drizzle
+
+# Backup files
+*.backup
+*-old.*
