@@ -1,5 +1,0 @@
-export { CloudNav } from './CloudNav'
-export { CloudHero } from './CloudHero'
-export { CloudFeatures } from './CloudFeatures'
-export { CloudPricing } from './CloudPricing'
-export { CloudFooter } from './CloudFooter'
