@@ -1,13 +1,6 @@
-import { CloudNav, CloudHero, CloudFeatures, CloudPricing, CloudFooter } from '@/components/cloud'
+import { notFound } from 'next/navigation'
 
 export default function CloudPage() {
-  return (
-    <main className="min-h-screen bg-[#09090B] text-white antialiased">
-      <CloudNav />
-      <CloudHero />
-      <CloudFeatures />
-      <CloudPricing />
-      <CloudFooter />
-    </main>
-  );
+  // Route disabled: return 404 to remove /cloud from public site
+  notFound()
 }
