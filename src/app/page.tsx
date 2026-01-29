@@ -14,7 +14,6 @@ export default function Page() {
       <Pricing />
       <Contact />
       <Footer />
-      <Link href="/journals" className="btn">Go to Journal Filter Tool</Link>
     </main>
   )
 }
