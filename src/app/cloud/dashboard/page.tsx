@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { 
   Search, 
   Bell, 
@@ -19,7 +19,19 @@ import {
   MoreVertical,
   Plus,
   PlayCircle,
-  MoreHorizontal
+  MoreHorizontal,
+  BookOpen,    // Added for Research
+  Users,       // Added for Research
+  PenTool,     // Added for Research
+  Library,     // Added for Research
+  FlaskConical,// Added for Research
+  Quote,       // Added for Research
+  History,     // Added for Research
+  ChevronDown, // Added for Workspace
+  Share2,      // Added for Workspace
+  Upload,
+  Loader2,
+  X
 } from 'lucide-react'
 import {
   BarChart,
@@ -31,32 +43,154 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts'
+import { UserButton, useUser } from '@clerk/nextjs'
+import { UploadDropzone } from '@/lib/uploadthing'
+
+interface Workspace {
+  id: string
+  name: string
+  role: 'owner' | 'admin' | 'editor' | 'viewer'
+  memberCount: number
+  storageUsed: number
+  description?: string
+}
+
+interface CloudFile {
+  id: string
+  name: string
+  fileType: string
+  size: number
+  uploadthingUrl: string
+  uploaderEmail?: string
+  createdAt: string
+  updatedAt: string
+}
 
 export default function CloudDashboard() {
-  const [activeTab, setActiveTab] = useState('Dashboard')
+  const { user, isLoaded: isUserLoaded } = useUser()
+  const [activeTab, setActiveTab] = useState('Research Hub')
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([])
+  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null)
+  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false)
+  const [files, setFiles] = useState<CloudFile[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<'editor' | 'viewer'>('editor')
+  const [newWorkspaceName, setNewWorkspaceName] = useState('')
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false)
 
-  // Sidebar Menu Items
+  // Fetch workspaces
+  const fetchWorkspaces = useCallback(async () => {
+    try {
+      const res = await fetch('/api/cloud/workspaces')
+      if (res.ok) {
+        const data = await res.json()
+        setWorkspaces(data.workspaces)
+        if (data.workspaces.length > 0 && !currentWorkspace) {
+          setCurrentWorkspace(data.workspaces[0])
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching workspaces:', error)
+    }
+  }, [currentWorkspace])
+
+  // Fetch files for current workspace
+  const fetchFiles = useCallback(async () => {
+    if (!currentWorkspace) return
+    try {
+      const res = await fetch(`/api/cloud/workspaces/${currentWorkspace.id}/files`)
+      if (res.ok) {
+        const data = await res.json()
+        setFiles(data.files)
+      }
+    } catch (error) {
+      console.error('Error fetching files:', error)
+    }
+  }, [currentWorkspace])
+
+  useEffect(() => {
+    if (isUserLoaded && user) {
+      fetchWorkspaces().finally(() => setIsLoading(false))
+    }
+  }, [isUserLoaded, user, fetchWorkspaces])
+
+  useEffect(() => {
+    if (currentWorkspace) {
+      fetchFiles()
+    }
+  }, [currentWorkspace, fetchFiles])
+
+  // Create new workspace
+  const createWorkspace = async () => {
+    if (!newWorkspaceName.trim()) return
+    setIsCreatingWorkspace(true)
+    try {
+      const res = await fetch('/api/cloud/workspaces', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newWorkspaceName }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setWorkspaces(prev => [{ ...data.workspace, role: 'owner', memberCount: 1 }, ...prev])
+        setCurrentWorkspace({ ...data.workspace, role: 'owner', memberCount: 1 })
+        setNewWorkspaceName('')
+        setShowNewWorkspaceModal(false)
+      }
+    } catch (error) {
+      console.error('Error creating workspace:', error)
+    } finally {
+      setIsCreatingWorkspace(false)
+    }
+  }
+
+  // Invite member
+  const inviteMember = async () => {
+    if (!inviteEmail.trim() || !currentWorkspace) return
+    try {
+      const res = await fetch(`/api/cloud/workspaces/${currentWorkspace.id}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+      })
+      if (res.ok) {
+        setInviteEmail('')
+        setShowShareModal(false)
+        fetchWorkspaces()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to invite member')
+      }
+    } catch (error) {
+      console.error('Error inviting member:', error)
+    }
+  }
+
+  // Sidebar Menu Items - Optimized for Research Teams
   const menuItems = [
-    { icon: LayoutGrid, label: 'Dashboard' },
-    { icon: FolderOpen, label: 'All Files' },
-    { icon: MessageSquare, label: 'Shared' },
-    { icon: Star, label: 'Favorites' },
-    { icon: Clock, label: 'Recent' },
-    { icon: FileCheck, label: 'Request' },
-    { icon: ImageIcon, label: 'Pictures' },
-    { icon: Video, label: 'Videos' },
-    { icon: FileText, label: 'Documents' },
-    { icon: FileCheck, label: 'Signed' },
+    { icon: LayoutGrid, label: 'Research Hub' },      // Renamed from Dashboard
+    { icon: BookOpen, label: 'My Papers' },           // New
+    { icon: Users, label: 'Team Collaboration' },     // New
+    { icon: Library, label: 'Reference Library' },    // New
+    { icon: FlaskConical, label: 'Datasets' },        // New
+    { icon: MessageSquare, label: 'Peer Reviews' },   // Renamed from Shared
+    { icon: Clock, label: 'Recent Work' },            // Update
+    { icon: History, label: 'Version History' },      // New
+    { icon: FileCheck, label: 'Submissions' },        // New
   ]
 
-  // Chart Data
+  // Chart Data - Citations/Impact
   const chartData = [
-    { name: 'JAN', value: 15 },
-    { name: 'FEB', value: 35 },
-    { name: 'MAR', value: 45 },
-    { name: 'APR', value: 60 },
-    { name: 'MAY', value: 45 },
-    { name: 'JUN', value: 35 },
+    { name: 'JAN', value: 12, label: 'Citations' },
+    { name: 'FEB', value: 18, label: 'Citations' },
+    { name: 'MAR', value: 25, label: 'Citations' },
+    { name: 'APR', value: 45, label: 'Citations' },
+    { name: 'MAY', value: 38, label: 'Citations' },
+    { name: 'JUN', value: 52, label: 'Citations' },
   ]
 
   return (
@@ -65,14 +199,61 @@ export default function CloudDashboard() {
       {/* LEFT SIDEBAR */}
       <aside className="w-64 bg-white border-r border-slate-100 flex-shrink-0 flex flex-col justify-between p-6">
         <div>
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-10 px-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
-              M
-            </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-indigo-800">
-              MY CLOUD
-            </span>
+          {/* Logo / Workspace Switcher */}
+          <div className="relative mb-8">
+            <button 
+              onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
+              className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md shadow-indigo-200">
+                  {currentWorkspace?.name?.charAt(0) || 'R'}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-slate-500 font-medium">Workspace</p>
+                  <p className="text-sm font-bold text-slate-900 truncate max-w-[120px]">{currentWorkspace?.name || 'Select Workspace'}</p>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showWorkspaceMenu ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Workspace Dropdown */}
+            {showWorkspaceMenu && (
+              <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="p-2 border-b border-slate-50">
+                  <p className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">My Researches</p>
+                  {workspaces.map((ws) => (
+                    <button
+                      key={ws.id}
+                      onClick={() => {
+                        setCurrentWorkspace(ws)
+                        setShowWorkspaceMenu(false)
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+                        currentWorkspace?.id === ws.id 
+                          ? 'bg-indigo-50 text-indigo-700 font-medium' 
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="truncate">{ws.name}</span>
+                      {currentWorkspace?.id === ws.id && <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="p-2">
+                  <button 
+                    onClick={() => {
+                      setShowWorkspaceMenu(false)
+                      setShowNewWorkspaceModal(true)
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors font-medium"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create New Workspace
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Navigation */}
@@ -122,16 +303,26 @@ export default function CloudDashboard() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Search Files..." 
+                placeholder="Search Papers, Citations, Authors..." 
                 className="w-full h-11 pl-12 pr-4 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
           </div>
           
           <div className="flex items-center gap-6">
-             <button className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
-                <Filter className="w-4 h-4" />
-                Filter
+             <button 
+               onClick={() => setShowUploadModal(true)}
+               className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-600 hover:shadow-emerald-300 transition-all"
+             >
+                <Upload className="w-4 h-4" />
+                Upload File
+             </button>
+             <button 
+               onClick={() => setShowShareModal(true)}
+               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300 transition-all"
+             >
+                <Share2 className="w-4 h-4" />
+                Share Workspace
              </button>
              <div className="h-8 w-[1px] bg-slate-200 mx-2" />
              <button className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors">
@@ -140,30 +331,37 @@ export default function CloudDashboard() {
              </button>
              <div className="flex items-center gap-3 pl-2">
                 <div className="w-10 h-10 rounded-xl bg-slate-200 overflow-hidden">
-                   <img src="https://ui-avatars.com/api/?name=AR+Shakir&background=0D8ABC&color=fff" alt="User" />
+                   {user?.imageUrl ? (
+                     <img src={user.imageUrl} alt="User" />
+                   ) : (
+                     <div className="w-full h-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                       {user?.firstName?.[0] || 'U'}
+                     </div>
+                   )}
                 </div>
                 <div className="hidden lg:block text-sm">
-                   <p className="font-bold text-slate-900">AR Shakir</p>
-                   <p className="text-slate-400 text-xs">shakir260@gmail.com</p>
+                   <p className="font-bold text-slate-900">{user?.fullName || 'Researcher'}</p>
+                   <p className="text-slate-400 text-xs">{user?.primaryEmailAddress?.emailAddress || 'researcher@lab.edu'}</p>
                 </div>
+                <UserButton />
              </div>
           </div>
         </header>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-8">
-           {/* Top Folders */}
+           {/* Top Folders - Research Categories */}
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
               {[
-                { label: 'Design', files: '17 files', size: '12 GB', color: 'bg-indigo-600', icon: 'bg-indigo-100 text-indigo-600' },
-                { label: 'Documents', files: '14 files', size: '2 GB', color: 'bg-teal-400', icon: 'bg-teal-50 text-teal-400' },
-                { label: 'Music', files: '1,200 files', size: '24 GB', color: 'bg-orange-400', icon: 'bg-orange-50 text-orange-400' },
-                { label: 'Images', files: '270 files', size: '14 GB', color: 'bg-rose-400', icon: 'bg-rose-50 text-rose-400' },
+                { label: 'Active Drafts', files: '3 papers', size: 'In Progress', color: 'bg-indigo-600', icon: 'bg-indigo-100 text-indigo-600', iconComp: PenTool },
+                { label: 'Datasets', files: '12 sets', size: '4.2 GB', color: 'bg-teal-400', icon: 'bg-teal-50 text-teal-400', iconComp: FlaskConical },
+                { label: 'References', files: '1,240 items', size: 'Zotero Sync', color: 'bg-orange-400', icon: 'bg-orange-50 text-orange-400', iconComp: BookOpen },
+                { label: 'Published', files: '8 papers', size: 'Archive', color: 'bg-rose-400', icon: 'bg-rose-50 text-rose-400', iconComp: Star },
               ].map((folder) => (
                  <div key={folder.label} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-50 hover:shadow-md transition-shadow cursor-pointer group">
                     <div className="flex justify-between items-start mb-6">
                        <div className={`w-12 h-12 ${folder.icon} rounded-2xl flex items-center justify-center`}>
-                          <FolderOpen className="w-6 h-6" fill="currentColor" />
+                          <folder.iconComp className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />
                        </div>
                        <button className="text-slate-300 hover:text-slate-600">
                           <MoreVertical className="w-5 h-5" />
@@ -181,43 +379,57 @@ export default function CloudDashboard() {
               ))}
            </div>
 
-            {/* Quick Access */}
+            {/* Quick Access - Latest Research Work */}
            <div className="mb-10">
-              <h2 className="text-lg font-bold text-slate-800 mb-6">Quick Access</h2>
+              <h2 className="text-lg font-bold text-slate-800 mb-6">Continue Working</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 {/* Image Card */}
+                 {/* Latex/Paper Card */}
                  <div className="bg-white p-3 pb-4 rounded-3xl shadow-sm border border-slate-50 group cursor-pointer hover:shadow-md transition-all">
                     <div className="h-40 bg-slate-100 rounded-2xl mb-4 overflow-hidden relative">
-                       {/* Placeholder for image */}
-                       <div className="absolute inset-0 bg-indigo-50 flex items-center justify-center">
-                          <ImageIcon className="w-10 h-10 text-indigo-200" />
+                       <div className="absolute inset-0 bg-indigo-50 flex items-center justify-center flex-col p-6">
+                          <div className="text-[10px] text-slate-400 font-mono w-full mb-1">main.tex</div>
+                          <div className="w-full h-2 bg-indigo-200 rounded-sm mb-2" />
+                          <div className="w-full h-2 bg-slate-200 rounded-sm mb-2" />
+                          <div className="w-3/4 h-2 bg-slate-200 rounded-sm mb-2" />
+                          <div className="w-full h-2 bg-indigo-200 rounded-sm blur-[1px]" />
                        </div>
                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-indigo-600 flex items-center gap-1">
-                          <ImageIcon className="w-3 h-3" />
-                          JPG
+                          <FileText className="w-3 h-3" />
+                          LaTeX
+                       </div>
+                       <div className="absolute bottom-3 right-3 text-[10px] text-slate-500 bg-white/50 px-2 py-1 rounded-md">
+                         Just now
                        </div>
                     </div>
                     <div className="px-2">
-                       <h4 className="font-bold text-slate-800 text-sm mb-1">Building Image.jpeg</h4>
+                       <h4 className="font-bold text-slate-800 text-sm mb-1">Deep Learning in Finance.tex</h4>
+                       <p className="text-xs text-slate-400">IEEE Access Template</p>
                     </div>
                  </div>
 
-                 {/* Video Card */}
+                 {/* Dataset/Analysis Card */}
                  <div className="bg-white p-3 pb-4 rounded-3xl shadow-sm border border-slate-50 group cursor-pointer hover:shadow-md transition-all">
                     <div className="h-40 bg-slate-100 rounded-2xl mb-4 overflow-hidden relative">
-                       <div className="absolute inset-0 bg-rose-50 flex items-center justify-center">
-                          <Video className="w-10 h-10 text-rose-200" />
+                       <div className="absolute inset-0 bg-emerald-50 flex items-center justify-center">
+                          <div className="flex gap-1 items-end h-16">
+                            <div className="w-3 h-8 bg-emerald-300 rounded-sm" />
+                            <div className="w-3 h-12 bg-emerald-400 rounded-sm" />
+                            <div className="w-3 h-6 bg-emerald-300 rounded-sm" />
+                            <div className="w-3 h-14 bg-emerald-500 rounded-sm" />
+                            <div className="w-3 h-10 bg-emerald-400 rounded-sm" />
+                          </div>
                        </div>
                        <button className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity">
                           <PlayCircle className="w-12 h-12 text-white drop-shadow-lg" />
                        </button>
                     </div>
                     <div className="px-2">
-                       <h4 className="font-bold text-slate-800 text-sm mb-1">Product Video.mp4</h4>
+                       <h4 className="font-bold text-slate-800 text-sm mb-1">Market_Validation_Q4.csv</h4>
+                       <p className="text-xs text-slate-400">Python Analysis Ready</p>
                     </div>
                  </div>
 
-                 {/* Doc Card */}
+                 {/* Grant Proposal Card */}
                  <div className="bg-white p-3 pb-4 rounded-3xl shadow-sm border border-slate-50 group cursor-pointer hover:shadow-md transition-all">
                     <div className="h-40 bg-slate-100 rounded-2xl mb-4 overflow-hidden relative">
                        <div className="absolute inset-0 bg-blue-50 flex items-center justify-center flex-col gap-2 p-6">
@@ -232,7 +444,8 @@ export default function CloudDashboard() {
                        </div>
                     </div>
                     <div className="px-2">
-                       <h4 className="font-bold text-slate-800 text-sm mb-1">Customers.pdf</h4>
+                       <h4 className="font-bold text-slate-800 text-sm mb-1">NSF_Grant_Draft_Final.pdf</h4>
+                       <p className="text-xs text-slate-400">Pending Review</p>
                     </div>
                  </div>
               </div>
@@ -242,45 +455,75 @@ export default function CloudDashboard() {
               {/* Recently Uploaded */}
               <div>
                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-bold text-slate-800">Recently Uploaded</h2>
+                    <h2 className="text-lg font-bold text-slate-800">Recent Materials</h2>
                  </div>
                  <div className="space-y-4">
-                    {[
-                       { name: 'Marcus Family.jpg', date: '10 oct, 10:23pm', size: '12 MB', icon: ImageIcon, color: 'bg-indigo-100 text-indigo-600' },
-                       { name: 'Project Specs.pdf', date: '10 oct, 10:23pm', size: '2 MB', icon: FileText, color: 'bg-rose-100 text-rose-500' },
-                       { name: 'Holiday Video.mp4', date: '11 oct, 09:15pm', size: '124 MB', icon: Video, color: 'bg-teal-100 text-teal-600' },
-                       { name: 'Client Meeting.mp3', date: '12 oct, 11:00am', size: '45 MB', icon: MessageSquare, color: 'bg-orange-100 text-orange-500' },
-                    ].map((file, i) => (
-                       <div key={i} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-50 hover:shadow-sm transition-shadow">
-                          <div className="flex items-center gap-4">
-                             <div className={`w-12 h-12 ${file.color} rounded-full flex items-center justify-center`}>
-                                <file.icon className="w-6 h-6" />
-                             </div>
-                             <div>
-                                <h4 className="font-bold text-slate-800 text-sm">{file.name}</h4>
-                                <p className="text-xs text-slate-400 font-medium">{file.date}</p>
-                             </div>
-                          </div>
-                          <span className="text-xs font-bold text-slate-500">{file.size}</span>
-                       </div>
-                    ))}
+                    {files.length > 0 ? files.slice(0, 4).map((file) => {
+                       const getFileIcon = (type: string) => {
+                         if (type.includes('pdf')) return { icon: FileText, color: 'bg-rose-100 text-rose-600' }
+                         if (type.includes('image')) return { icon: ImageIcon, color: 'bg-purple-100 text-purple-600' }
+                         if (type.includes('csv') || type.includes('excel') || type.includes('spreadsheet')) return { icon: FlaskConical, color: 'bg-emerald-100 text-emerald-600' }
+                         if (type.includes('word') || type.includes('document')) return { icon: FileText, color: 'bg-blue-100 text-blue-600' }
+                         return { icon: FileText, color: 'bg-slate-100 text-slate-600' }
+                       }
+                       const { icon: FileIcon, color } = getFileIcon(file.fileType)
+                       const formatSize = (bytes: number) => {
+                         if (bytes < 1024) return `${bytes} B`
+                         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+                         return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+                       }
+                       const formatDate = (date: string) => {
+                         const d = new Date(date)
+                         const now = new Date()
+                         const diff = now.getTime() - d.getTime()
+                         const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+                         if (days === 0) return `Today, ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+                         if (days === 1) return `Yesterday, ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+                         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                       }
+                       return (
+                         <div key={file.id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-50 hover:shadow-sm transition-shadow">
+                            <div className="flex items-center gap-4">
+                               <div className={`w-12 h-12 ${color} rounded-full flex items-center justify-center`}>
+                                  <FileIcon className="w-6 h-6" />
+                               </div>
+                               <div>
+                                  <h4 className="font-bold text-slate-800 text-sm truncate max-w-[200px]">{file.name}</h4>
+                                  <p className="text-xs text-slate-400 font-medium">{formatDate(file.createdAt)}</p>
+                               </div>
+                            </div>
+                            <span className="text-xs font-bold text-slate-500">{formatSize(file.size)}</span>
+                         </div>
+                       )
+                    }) : (
+                      <div className="text-center py-8 text-slate-400">
+                        <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p className="text-sm">No files uploaded yet</p>
+                        <button 
+                          onClick={() => setShowUploadModal(true)}
+                          className="mt-4 px-4 py-2 bg-indigo-100 text-indigo-600 rounded-xl text-sm font-medium hover:bg-indigo-200 transition-colors"
+                        >
+                          Upload your first file
+                        </button>
+                      </div>
+                    )}
                  </div>
               </div>
 
-               {/* File Manager Section (Folders) */}
+               {/* Project Folders */}
               <div>
                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-bold text-slate-800">File Manager</h2>
+                    <h2 className="text-lg font-bold text-slate-800">Projects in {currentWorkspace?.name || 'Workspace'}</h2>
                     <button className="text-slate-400 hover:text-indigo-600">
                        <MoreHorizontal className="w-6 h-6" />
                     </button>
                  </div>
                  <div className="grid grid-cols-2 gap-4">
                     {[
-                       { name: 'My Folder', date: 'created Jun 23, 2023', color: 'bg-indigo-50 text-indigo-600' },
-                       { name: 'Agreements', date: 'created Jun 23, 2023', color: 'bg-orange-50 text-orange-600' },
-                       { name: 'Other Folder', date: 'created Jun 23, 2023', color: 'bg-rose-50 text-rose-600' },
-                       { name: 'Blueprints', date: 'created Jun 23, 2023', color: 'bg-teal-50 text-teal-600' },
+                       { name: 'PhD Thesis', date: 'Updated 2h ago', color: 'bg-indigo-50 text-indigo-600' },
+                       { name: 'AI Finance Paper', date: 'Updated yesterday', color: 'bg-orange-50 text-orange-600' },
+                       { name: 'Lab Data 2024', date: 'Updated Oct 20', color: 'bg-emerald-50 text-emerald-600' },
+                       { name: 'Grant Application', date: 'Updated Oct 15', color: 'bg-blue-50 text-blue-600' },
                     ].map((folder, i) => (
                        <div key={i} className={`p-6 ${folder.color} rounded-3xl flex flex-col justify-between h-32 cursor-pointer hover:opacity-80 transition-opacity`}>
                           <div className="flex justify-between items-start">
@@ -295,7 +538,7 @@ export default function CloudDashboard() {
                     ))}
                  </div>
                  <button className="w-full mt-4 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-2xl transition-colors">
-                    Open File Manager
+                    View All Projects
                  </button>
               </div>
            </div>
@@ -306,7 +549,7 @@ export default function CloudDashboard() {
       <aside className="w-80 bg-white border-l border-slate-100 flex-shrink-0 flex flex-col p-8 overflow-y-auto">
          {/* Chart Section */}
          <div className="mb-10">
-            <h3 className="font-bold text-slate-800 text-lg mb-6">Usage Stats</h3>
+            <h3 className="font-bold text-slate-800 text-lg mb-6">Research Impact</h3>
             <div className="h-64 w-full">
                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
@@ -346,16 +589,16 @@ export default function CloudDashboard() {
             </div>
          </div>
 
-         {/* Shared Folders */}
+         {/* Shared Folders / Co-Authors */}
          <div className="flex-1">
-            <h3 className="font-bold text-slate-800 text-lg mb-6">Shared Folders</h3>
+            <h3 className="font-bold text-slate-800 text-lg mb-6">Co-Authors & Reviewers</h3>
             <div className="space-y-4 mb-8">
                {[
-                  { name: 'Sketch Files', share: 'Shared with: mike@...', icon: ImageIcon },
-                  { name: 'AutoCad Drawings', share: 'Shared with: shakir@...', icon: FolderOpen },
-                  { name: 'Master Spreadsheets', share: 'Shared with: john@...', icon: FileText },
-                  { name: 'Design Comps', share: 'Shared with: kelvin@...', icon: ImageIcon },
-                  { name: 'Final Revisions', share: 'Shared with: saim@...', icon: FileCheck },
+                  { name: 'Dr. Sarah Chen', share: 'Lead Researcher', icon: Users },
+                  { name: 'James Miller', share: 'PhD Candidate', icon: Users },
+                  { name: 'Dr. Emily Wilson', share: 'External Reviewer', icon: MessageSquare },
+                  { name: 'Review Board A', share: 'Pending Approval', icon: FileCheck },
+                  { name: 'Grant Committee', share: 'NSF Proposal', icon: BookOpen },
                ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4 group cursor-pointer">
                      <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
@@ -365,24 +608,180 @@ export default function CloudDashboard() {
                         <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-indigo-600 transition-colors">{item.name}</h4>
                         <p className="text-xs text-slate-400">{item.share}</p>
                      </div>
-                     <span className="text-[10px] font-bold text-slate-400">10 oct</span>
+                     <span className="text-[10px] font-bold text-slate-400">Online</span>
                   </div>
                ))}
             </div>
          </div>
 
-         {/* Promo */}
+         {/* Promo / Action */}
          <div className="mt-auto bg-[#4f46e5] rounded-3xl p-6 relative overflow-hidden text-white">
              {/* Abstract Shapes */}
              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
              
-             <h4 className="font-bold text-lg mb-2 relative z-10">Invite 2 friends and get <br/> 5 GB extra space.</h4>
-             <button className="mt-4 px-6 py-3 bg-white text-indigo-600 text-sm font-bold rounded-xl hover:bg-indigo-50 transition-colors relative z-10">
-                Invite Now!
+             <h4 className="font-bold text-lg mb-2 relative z-10">Submission Deadline <br/> Approaching</h4>
+             <p className="text-indigo-200 text-xs mb-4 relative z-10">IEEE Conference submission due in 4 days.</p>
+             <button className="mt-2 px-6 py-3 bg-white text-indigo-600 text-sm font-bold rounded-xl hover:bg-indigo-50 transition-colors relative z-10 w-full mb-2">
+                Submit Paper
+             </button>
+             <button className="px-6 py-3 bg-indigo-700/50 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors relative z-10 w-full">
+                Review Guidelines
              </button>
          </div>
       </aside>
+
+      {/* Upload Modal */}
+      {showUploadModal && currentWorkspace && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-lg mx-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900">Upload Files</h3>
+              <button 
+                onClick={() => setShowUploadModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="mb-4">
+              <p className="text-sm text-slate-500 mb-4">
+                Upload research files, datasets, or documents to <strong>{currentWorkspace.name}</strong>
+              </p>
+              <UploadDropzone
+                endpoint="researchFileUploader"
+                headers={{ 
+                  'x-workspace-id': currentWorkspace.id 
+                }}
+                onClientUploadComplete={(res) => {
+                  console.log('Upload complete:', res)
+                  fetchFiles()
+                  setShowUploadModal(false)
+                }}
+                onUploadError={(error) => {
+                  console.error('Upload error:', error)
+                  alert(`Upload failed: ${error.message}`)
+                }}
+                appearance={{
+                  container: "border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:border-indigo-400 transition-colors",
+                  label: "text-slate-600 hover:text-indigo-600",
+                  allowedContent: "text-slate-400 text-xs",
+                  button: "bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6 py-2 ut-uploading:bg-indigo-400"
+                }}
+              />
+            </div>
+            <p className="text-xs text-slate-400 text-center">
+              Supports PDF, DOCX, LaTeX, CSV, Excel, and more (up to 64MB)
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && currentWorkspace && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-lg mx-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900">Share Workspace</h3>
+              <button 
+                onClick={() => setShowShareModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-sm text-slate-500 mb-6">
+              Invite collaborators to <strong>{currentWorkspace.name}</strong>
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="colleague@university.edu"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Role</label>
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as 'editor' | 'viewer')}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                >
+                  <option value="editor">Editor - Can upload and edit files</option>
+                  <option value="viewer">Viewer - Can only view files</option>
+                </select>
+              </div>
+              <button
+                onClick={inviteMember}
+                disabled={!inviteEmail.trim()}
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors"
+              >
+                Send Invitation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Workspace Modal */}
+      {showNewWorkspaceModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-lg mx-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900">Create New Workspace</h3>
+              <button 
+                onClick={() => setShowNewWorkspaceModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-sm text-slate-500 mb-6">
+              Create a new research workspace to organize your projects
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Workspace Name</label>
+                <input
+                  type="text"
+                  value={newWorkspaceName}
+                  onChange={(e) => setNewWorkspaceName(e.target.value)}
+                  placeholder="e.g., PhD Thesis 2024"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                />
+              </div>
+              <button
+                onClick={createWorkspace}
+                disabled={!newWorkspaceName.trim() || isCreatingWorkspace}
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                {isCreatingWorkspace ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Workspace'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <p className="text-slate-600 font-medium">Loading your research workspace...</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

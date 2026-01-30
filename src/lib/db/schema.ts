@@ -1074,3 +1074,235 @@ export type NewAiReport = typeof aiReports.$inferInsert
 // Contact Messages Types
 export type ContactMessage = typeof contactMessages.$inferSelect
 export type NewContactMessage = typeof contactMessages.$inferInsert
+
+// ==================== RESEARCH CLOUD TABLES ====================
+
+// Workspace Role Enum
+export const workspaceRoleEnum = pgEnum('workspace_role', ['owner', 'admin', 'editor', 'viewer'])
+
+// File Type Enum for Research
+export const cloudFileTypeEnum = pgEnum('cloud_file_type', ['paper', 'dataset', 'reference', 'figure', 'presentation', 'code', 'other'])
+
+// ==================== CLOUD WORKSPACES TABLE ====================
+export const cloudWorkspaces = pgTable('cloud_workspaces', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  ownerId: text('owner_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  isPublic: boolean('is_public').default(false).notNull(),
+  coverImage: text('cover_image'),
+  tags: jsonb('tags').$type<string[]>().default([]),
+  settings: jsonb('settings').$type<{
+    allowComments?: boolean
+    allowDownload?: boolean
+    defaultFileVisibility?: 'private' | 'team' | 'public'
+  }>().default({}),
+  storageUsed: integer('storage_used').default(0).notNull(), // in bytes
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  ownerIdIdx: index('cloud_workspaces_owner_id_idx').on(table.ownerId),
+  nameIdx: index('cloud_workspaces_name_idx').on(table.name),
+}))
+
+// ==================== CLOUD WORKSPACE MEMBERS TABLE ====================
+export const cloudWorkspaceMembers = pgTable('cloud_workspace_members', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  workspaceId: text('workspace_id').notNull().references(() => cloudWorkspaces.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: workspaceRoleEnum('role').notNull().default('viewer'),
+  invitedBy: text('invited_by').references(() => users.id),
+  invitedAt: timestamp('invited_at', { withTimezone: true }).defaultNow().notNull(),
+  joinedAt: timestamp('joined_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  workspaceIdIdx: index('cloud_workspace_members_workspace_id_idx').on(table.workspaceId),
+  userIdIdx: index('cloud_workspace_members_user_id_idx').on(table.userId),
+  workspaceUserIdx: uniqueIndex('cloud_workspace_members_workspace_user_idx').on(table.workspaceId, table.userId),
+}))
+
+// ==================== CLOUD FOLDERS TABLE ====================
+export const cloudFolders = pgTable('cloud_folders', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  workspaceId: text('workspace_id').notNull().references(() => cloudWorkspaces.id, { onDelete: 'cascade' }),
+  parentId: text('parent_id'),  // Self-referencing for nested folders
+  name: varchar('name', { length: 255 }).notNull(),
+  color: varchar('color', { length: 7 }), // Hex color for UI
+  createdBy: text('created_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  workspaceIdIdx: index('cloud_folders_workspace_id_idx').on(table.workspaceId),
+  parentIdIdx: index('cloud_folders_parent_id_idx').on(table.parentId),
+}))
+
+// ==================== CLOUD FILES TABLE ====================
+export const cloudFiles = pgTable('cloud_files', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  workspaceId: text('workspace_id').notNull().references(() => cloudWorkspaces.id, { onDelete: 'cascade' }),
+  folderId: text('folder_id').references(() => cloudFolders.id, { onDelete: 'set null' }),
+  
+  // File metadata
+  name: varchar('name', { length: 500 }).notNull(),
+  description: text('description'),
+  fileType: cloudFileTypeEnum('file_type').notNull().default('other'),
+  mimeType: varchar('mime_type', { length: 255 }),
+  extension: varchar('extension', { length: 20 }),
+  size: integer('size').notNull(), // in bytes
+  
+  // UploadThing data
+  uploadthingKey: varchar('uploadthing_key', { length: 255 }).notNull(),
+  uploadthingUrl: text('uploadthing_url').notNull(),
+  
+  // Versioning
+  version: integer('version').default(1).notNull(),
+  previousVersionId: text('previous_version_id'),
+  
+  // Research-specific metadata
+  metadata: jsonb('metadata').$type<{
+    authors?: string[]
+    doi?: string
+    journal?: string
+    year?: number
+    keywords?: string[]
+    abstract?: string
+    citations?: number
+  }>().default({}),
+  
+  // Permissions
+  isPublic: boolean('is_public').default(false).notNull(),
+  
+  // Tracking
+  uploadedBy: text('uploaded_by').notNull().references(() => users.id),
+  lastAccessedAt: timestamp('last_accessed_at', { withTimezone: true }),
+  downloadCount: integer('download_count').default(0).notNull(),
+  
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  workspaceIdIdx: index('cloud_files_workspace_id_idx').on(table.workspaceId),
+  folderIdIdx: index('cloud_files_folder_id_idx').on(table.folderId),
+  fileTypeIdx: index('cloud_files_file_type_idx').on(table.fileType),
+  uploadedByIdx: index('cloud_files_uploaded_by_idx').on(table.uploadedBy),
+  nameIdx: index('cloud_files_name_idx').on(table.name),
+}))
+
+// ==================== CLOUD FILE COMMENTS TABLE ====================
+export const cloudFileComments = pgTable('cloud_file_comments', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  fileId: text('file_id').notNull().references(() => cloudFiles.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  parentId: text('parent_id'), // For threaded comments
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  fileIdIdx: index('cloud_file_comments_file_id_idx').on(table.fileId),
+  userIdIdx: index('cloud_file_comments_user_id_idx').on(table.userId),
+}))
+
+// ==================== CLOUD ACTIVITY LOG TABLE ====================
+export const cloudActivityLog = pgTable('cloud_activity_log', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  workspaceId: text('workspace_id').notNull().references(() => cloudWorkspaces.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  action: varchar('action', { length: 50 }).notNull(), // upload, download, delete, rename, share, comment
+  targetType: varchar('target_type', { length: 50 }).notNull(), // file, folder, workspace
+  targetId: text('target_id').notNull(),
+  targetName: varchar('target_name', { length: 500 }),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  workspaceIdIdx: index('cloud_activity_log_workspace_id_idx').on(table.workspaceId),
+  userIdIdx: index('cloud_activity_log_user_id_idx').on(table.userId),
+  createdAtIdx: index('cloud_activity_log_created_at_idx').on(table.createdAt),
+}))
+
+// ==================== CLOUD RELATIONS ====================
+export const cloudWorkspacesRelations = relations(cloudWorkspaces, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [cloudWorkspaces.ownerId],
+    references: [users.id],
+  }),
+  members: many(cloudWorkspaceMembers),
+  folders: many(cloudFolders),
+  files: many(cloudFiles),
+  activities: many(cloudActivityLog),
+}))
+
+export const cloudWorkspaceMembersRelations = relations(cloudWorkspaceMembers, ({ one }) => ({
+  workspace: one(cloudWorkspaces, {
+    fields: [cloudWorkspaceMembers.workspaceId],
+    references: [cloudWorkspaces.id],
+  }),
+  user: one(users, {
+    fields: [cloudWorkspaceMembers.userId],
+    references: [users.id],
+  }),
+  inviter: one(users, {
+    fields: [cloudWorkspaceMembers.invitedBy],
+    references: [users.id],
+  }),
+}))
+
+export const cloudFoldersRelations = relations(cloudFolders, ({ one, many }) => ({
+  workspace: one(cloudWorkspaces, {
+    fields: [cloudFolders.workspaceId],
+    references: [cloudWorkspaces.id],
+  }),
+  parent: one(cloudFolders, {
+    fields: [cloudFolders.parentId],
+    references: [cloudFolders.id],
+  }),
+  files: many(cloudFiles),
+  creator: one(users, {
+    fields: [cloudFolders.createdBy],
+    references: [users.id],
+  }),
+}))
+
+export const cloudFilesRelations = relations(cloudFiles, ({ one, many }) => ({
+  workspace: one(cloudWorkspaces, {
+    fields: [cloudFiles.workspaceId],
+    references: [cloudWorkspaces.id],
+  }),
+  folder: one(cloudFolders, {
+    fields: [cloudFiles.folderId],
+    references: [cloudFolders.id],
+  }),
+  uploader: one(users, {
+    fields: [cloudFiles.uploadedBy],
+    references: [users.id],
+  }),
+  comments: many(cloudFileComments),
+}))
+
+export const cloudFileCommentsRelations = relations(cloudFileComments, ({ one }) => ({
+  file: one(cloudFiles, {
+    fields: [cloudFileComments.fileId],
+    references: [cloudFiles.id],
+  }),
+  user: one(users, {
+    fields: [cloudFileComments.userId],
+    references: [users.id],
+  }),
+}))
+
+// ==================== CLOUD TYPES ====================
+export type CloudWorkspace = typeof cloudWorkspaces.$inferSelect
+export type NewCloudWorkspace = typeof cloudWorkspaces.$inferInsert
+
+export type CloudWorkspaceMember = typeof cloudWorkspaceMembers.$inferSelect
+export type NewCloudWorkspaceMember = typeof cloudWorkspaceMembers.$inferInsert
+
+export type CloudFolder = typeof cloudFolders.$inferSelect
+export type NewCloudFolder = typeof cloudFolders.$inferInsert
+
+export type CloudFile = typeof cloudFiles.$inferSelect
+export type NewCloudFile = typeof cloudFiles.$inferInsert
+
+export type CloudFileComment = typeof cloudFileComments.$inferSelect
+export type NewCloudFileComment = typeof cloudFileComments.$inferInsert
+
+export type CloudActivityLog = typeof cloudActivityLog.$inferSelect
+export type NewCloudActivityLog = typeof cloudActivityLog.$inferInsert
