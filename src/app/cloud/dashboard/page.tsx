@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { QRCodeSVG } from 'qrcode.react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { 
   Search, 
   Bell, 
@@ -31,7 +33,33 @@ import {
   Share2,      // Added for Workspace
   Upload,
   Loader2,
-  X
+  X,
+  // New icons for Papers & Collaboration
+  Eye,
+  Download,
+  Trash2,
+  Edit3,
+  Calendar,
+  Tag,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle,
+  Send,
+  Award,
+  TrendingUp,
+  Activity,
+  UserPlus,
+  Mail,
+  QrCode,
+  Crown,
+  Shield,
+  UserCheck,
+  GitBranch,
+  MessageCircle,
+  FileUp,
+  Sparkles,
+  Target,
+  Zap
 } from 'lucide-react'
 import {
   BarChart,
@@ -74,6 +102,422 @@ interface WorkspaceMember {
   invitedBy?: string
   invitedAt?: string
   joinedAt?: string
+}
+
+// ==================== SUB-COMPONENTS ====================
+
+const MyPapersContent = ({ 
+  files, 
+  setShowUploadModal, 
+  currentWorkspace 
+}: { 
+  files: any[], 
+  setShowUploadModal: (show: boolean) => void,
+  currentWorkspace: any 
+}) => {
+  const [filter, setFilter] = useState('all')
+  const [sort, setSort] = useState('newest')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
+
+  // Filter papers only
+  const papers = files.filter(f => 
+    f.fileType === 'paper' || 
+    f.name.endsWith('.pdf') || 
+    f.name.endsWith('.tex') || 
+    f.name.endsWith('.docx')
+  )
+
+  const getFilteredPapers = () => {
+    let result = [...papers]
+    if (filter === 'drafts') result = result.filter(p => !p.name.toLowerCase().includes('final'))
+    if (filter === 'submitted') result = result.filter(p => p.name.toLowerCase().includes('final'))
+    
+    if (sort === 'newest') result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    if (sort === 'oldest') result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    if (sort === 'name') result.sort((a, b) => a.name.localeCompare(b.name))
+    
+    return result
+  }
+
+  const filteredPapers = getFilteredPapers()
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
+            <FileText className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Papers</p>
+            <h3 className="text-2xl font-bold text-slate-900">{papers.length}</h3>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Submitted</p>
+            <h3 className="text-2xl font-bold text-slate-900">
+              {papers.filter(p => p.name.toLowerCase().includes('final')).length}
+            </h3>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center">
+            <Edit3 className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Drafts in Progress</p>
+            <h3 className="text-2xl font-bold text-slate-900">
+              {papers.filter(p => !p.name.toLowerCase().includes('final')).length}
+            </h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            All Papers
+          </button>
+          <button 
+            onClick={() => setFilter('drafts')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === 'drafts' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            Drafts
+          </button>
+          <button 
+            onClick={() => setFilter('submitted')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === 'submitted' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            Submitted
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl">
+            <button 
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              <MoreVertical className="w-4 h-4 rotate-90" />
+            </button>
+            <button 
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <select 
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="px-4 py-2 bg-slate-50 border-none rounded-xl text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="name">Name (A-Z)</option>
+          </select>
+
+          <button 
+            onClick={() => setShowUploadModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            New Paper
+          </button>
+        </div>
+      </div>
+
+      {/* Papers List/Grid */}
+      {filteredPapers.length > 0 ? (
+        <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-3"}>
+          {filteredPapers.map((paper) => (
+            <div 
+              key={paper.id} 
+              className={`bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-md transition-all group relative overflow-hidden ${
+                viewMode === 'grid' ? 'p-6 rounded-3xl flex flex-col h-64' : 'p-4 rounded-2xl flex items-center justify-between'
+              }`}
+            >
+              <div className={`flex ${viewMode === 'grid' ? 'flex-col flex-1' : 'items-center gap-4 flex-1'}`}>
+                <div className={`
+                  ${viewMode === 'grid' ? 'w-12 h-12 mb-4' : 'w-10 h-10'} 
+                  rounded-xl flex items-center justify-center 
+                  ${paper.name.endsWith('.pdf') ? 'bg-rose-50 text-rose-500' : 
+                    paper.name.endsWith('.tex') ? 'bg-slate-100 text-slate-700' : 
+                    'bg-indigo-50 text-indigo-500'}
+                `}>
+                  <FileText className={viewMode === 'grid' ? 'w-6 h-6' : 'w-5 h-5'} />
+                </div>
+                
+                <div className="min-w-0 flex-1">
+                  <h4 className={`font-bold text-slate-900 truncate ${viewMode === 'grid' ? 'text-lg mb-2' : 'text-sm'}`}>
+                    {paper.name}
+                  </h4>
+                  <p className="text-xs text-slate-400 flex items-center gap-2">
+                    <Clock className="w-3 h-3" />
+                    {new Date(paper.createdAt).toLocaleDateString()}
+                    <span className="w-1 h-1 rounded-full bg-slate-300" />
+                    {(paper.size / (1024 * 1024)).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+
+              {viewMode === 'grid' && (
+                 <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
+                    <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-wide">
+                      {paper.name.includes('final') ? 'Ready' : 'Draft'}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <a href={paper.uploadthingUrl} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <Eye className="w-4 h-4" />
+                      </a>
+                      <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
+                 </div>
+              )}
+
+              {viewMode === 'list' && (
+                <div className="flex items-center gap-4">
+                  <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
+                    paper.name.includes('final') ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'
+                  }`}>
+                      {paper.name.includes('final') ? 'Ready' : 'Draft'}
+                  </span>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <a 
+                      href={paper.uploadthingUrl} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      title="View PDF"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </a>
+                    <a 
+                      href={paper.uploadthingUrl} 
+                      download
+                      className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      title="Download"
+                    >
+                      <Download className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 border-dashed">
+          <FileText className="w-16 h-16 mx-auto mb-4 text-slate-200" />
+          <h3 className="text-lg font-bold text-slate-900 mb-2">No Papers Found</h3>
+          <p className="text-slate-500 max-w-xs mx-auto mb-6">
+            Upload your research papers, drafts, or LaTeX files to get started.
+          </p>
+          <button 
+            onClick={() => setShowUploadModal(true)}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
+          >
+            Upload First Paper
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const TeamCollaborationContent = ({ 
+  members, 
+  currentWorkspace,
+  setShowShareModal,
+  user
+}: { 
+  members: any[], 
+  currentWorkspace: any,
+  setShowShareModal: (show: boolean) => void,
+  user: any
+}) => {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Team Header */}
+      <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-violet-900 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold border border-white/10">
+                Workspace Team
+              </span>
+              <span className="flex items-center gap-1 text-indigo-200 text-xs font-medium">
+                <Shield className="w-3 h-3" />
+                Secure Environment
+              </span>
+            </div>
+            <h2 className="text-3xl font-bold mb-2">Research Team</h2>
+            <p className="text-indigo-200 max-w-md">
+              Manage collaborators, assign roles, and track contributions in {currentWorkspace?.name}.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+             <div className="flex -space-x-3">
+                {members.slice(0, 4).map((m, i) => (
+                  <div key={m.id} className="w-10 h-10 rounded-full border-2 border-indigo-900 bg-indigo-800 flex items-center justify-center text-xs font-bold">
+                    {m.email?.charAt(0).toUpperCase()}
+                  </div>
+                ))}
+                {members.length > 4 && (
+                  <div className="w-10 h-10 rounded-full border-2 border-indigo-900 bg-white text-indigo-900 flex items-center justify-center text-xs font-bold">
+                    +{members.length - 4}
+                  </div>
+                )}
+             </div>
+             <button
+               onClick={() => setShowShareModal(true)}
+               className="flex items-center gap-2 px-5 py-3 bg-white text-indigo-900 rounded-xl font-bold shadow-lg shadow-black/10 hover:bg-indigo-50 transition-all"
+             >
+               <UserPlus className="w-4 h-4" />
+               Invite Member
+             </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Members List */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-slate-800 text-lg">Active Members</h3>
+            <div className="flex gap-2">
+              <button className="p-2 text-slate-400 hover:text-indigo-600 bg-white hover:bg-slate-50 rounded-xl border border-slate-100 transition-all">
+                <Search className="w-4 h-4" />
+              </button>
+              <button className="p-2 text-slate-400 hover:text-indigo-600 bg-white hover:bg-slate-50 rounded-xl border border-slate-100 transition-all">
+                <Filter className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {members.map((member) => (
+               <div key={member.id} className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-4 hover:shadow-md transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-600 font-bold text-lg relative">
+                    {member.email?.charAt(0).toUpperCase()}
+                    {member.role === 'owner' && (
+                      <div className="absolute -top-1 -right-1 bg-amber-400 text-white p-0.5 rounded-full">
+                        <Crown className="w-3 h-3" fill="currentColor" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-bold text-slate-900">{member.email}</h4>
+                      {member.userId === user?.id && (
+                        <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-bold">YOU</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className={`font-medium ${
+                        member.role === 'owner' ? 'text-amber-600' : 
+                        member.role === 'admin' ? 'text-purple-600' :
+                        member.role === 'editor' ? 'text-indigo-600' : 'text-slate-500'
+                      }`}>
+                        {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                      </span>
+                      <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                      <span className="text-slate-400">Joined {new Date(member.joinedAt || Date.now()).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                      <MessageCircle className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </div>
+               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Team Activity Feed */}
+        <div className="bg-white rounded-3xl border border-slate-100 p-6 h-fit">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-slate-800">Recent Activity</h3>
+            <span className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+              Live
+            </span>
+          </div>
+          
+          <div className="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+            {/* Mocked Feed Items */}
+            <div className="relative pl-10">
+               <div className="absolute left-0 top-0 w-10 h-10 flex items-center justify-center bg-white border-4 border-white rounded-full z-10">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <FileUp className="w-4 h-4" />
+                  </div>
+               </div>
+               <div>
+                  <p className="text-sm font-bold text-slate-800">New Paper Uploaded</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    <span className="font-medium text-slate-700">Sarah Chen</span> uploaded <span className="text-indigo-600">analysis_v2.pdf</span>
+                  </p>
+                  <span className="text-[10px] text-slate-400 mt-2 block">2 hours ago</span>
+               </div>
+            </div>
+
+            <div className="relative pl-10">
+               <div className="absolute left-0 top-0 w-10 h-10 flex items-center justify-center bg-white border-4 border-white rounded-full z-10">
+                  <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <UserPlus className="w-4 h-4" />
+                  </div>
+               </div>
+               <div>
+                  <p className="text-sm font-bold text-slate-800">New Member Joined</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    <span className="font-medium text-slate-700">Dr. Kline</span> joined the workspace
+                  </p>
+                  <span className="text-[10px] text-slate-400 mt-2 block">Yesterday</span>
+               </div>
+            </div>
+
+            <div className="relative pl-10">
+               <div className="absolute left-0 top-0 w-10 h-10 flex items-center justify-center bg-white border-4 border-white rounded-full z-10">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+               </div>
+               <div>
+                  <p className="text-sm font-bold text-slate-800">Milestone Reached</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    <span className="font-medium text-slate-700">Your Team</span> has achieved a new milestone
+                  </p>
+                  <span className="text-[10px] text-slate-400 mt-2 block">3 days ago</span>
+               </div>
+            </div>
+          </div>
+          
+          <button className="w-full mt-6 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs transition-colors">
+            View All History
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function CloudDashboard() {
@@ -390,6 +834,25 @@ export default function CloudDashboard() {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-8">
+           {activeTab === 'My Papers' && (
+              <MyPapersContent 
+                files={files} 
+                setShowUploadModal={setShowUploadModal}
+                currentWorkspace={currentWorkspace} 
+              />
+           )}
+           
+           {activeTab === 'Team Collaboration' && (
+              <TeamCollaborationContent 
+                members={members} 
+                currentWorkspace={currentWorkspace} 
+                setShowShareModal={setShowShareModal}
+                user={user}
+              />
+           )}
+           
+           {activeTab === 'Research Hub' && (
+             <>
            {/* Top Folders - Research Categories */}
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
               {(() => {
@@ -605,6 +1068,26 @@ export default function CloudDashboard() {
                  </button>
               </div>
            </div>
+           </>
+         )}
+
+         {activeTab === 'Reference Library' && (
+            <ReferenceLibrary 
+              files={files} 
+              workspaceId={currentWorkspace?.id || ''} 
+              onUpload={() => setShowUploadModal(true)}
+              onDelete={deleteFile}
+            />
+         )}
+
+         {activeTab === 'Datasets' && (
+            <Datasets 
+              files={files} 
+              workspaceId={currentWorkspace?.id || ''} 
+              onUpload={() => setShowUploadModal(true)}
+              onDelete={deleteFile}
+            />
+         )}
         </div>
       </main>
 
@@ -871,6 +1354,422 @@ export default function CloudDashboard() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ==================== SUB-COMPONENTS ====================
+
+const MyPapersContent = ({ 
+  files, 
+  setShowUploadModal, 
+  currentWorkspace 
+}: { 
+  files: any[], // using any to avoid type check issues if interfaces are not perfectly matched
+  setShowUploadModal: (show: boolean) => void,
+  currentWorkspace: any 
+}) => {
+  const [filter, setFilter] = useState('all')
+  const [sort, setSort] = useState('newest')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
+
+  // Filter papers only
+  const papers = files.filter(f => 
+    f.fileType === 'paper' || 
+    f.name.endsWith('.pdf') || 
+    f.name.endsWith('.tex') || 
+    f.name.endsWith('.docx')
+  )
+
+  const getFilteredPapers = () => {
+    let result = [...papers]
+    if (filter === 'drafts') result = result.filter(p => !p.name.toLowerCase().includes('final'))
+    if (filter === 'submitted') result = result.filter(p => p.name.toLowerCase().includes('final'))
+    
+    if (sort === 'newest') result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    if (sort === 'oldest') result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    if (sort === 'name') result.sort((a, b) => a.name.localeCompare(b.name))
+    
+    return result
+  }
+
+  const filteredPapers = getFilteredPapers()
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
+            <FileText className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Papers</p>
+            <h3 className="text-2xl font-bold text-slate-900">{papers.length}</h3>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Submitted</p>
+            <h3 className="text-2xl font-bold text-slate-900">
+              {papers.filter(p => p.name.toLowerCase().includes('final')).length}
+            </h3>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center">
+            <Edit3 className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Drafts in Progress</p>
+            <h3 className="text-2xl font-bold text-slate-900">
+              {papers.filter(p => !p.name.toLowerCase().includes('final')).length}
+            </h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            All Papers
+          </button>
+          <button 
+            onClick={() => setFilter('drafts')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === 'drafts' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            Drafts
+          </button>
+          <button 
+            onClick={() => setFilter('submitted')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === 'submitted' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            Submitted
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl">
+            <button 
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              <MoreVertical className="w-4 h-4 rotate-90" />
+            </button>
+            <button 
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <select 
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="px-4 py-2 bg-slate-50 border-none rounded-xl text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500/20"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="name">Name (A-Z)</option>
+          </select>
+
+          <button 
+            onClick={() => setShowUploadModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            New Paper
+          </button>
+        </div>
+      </div>
+
+      {/* Papers List/Grid */}
+      {filteredPapers.length > 0 ? (
+        <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-3"}>
+          {filteredPapers.map((paper) => (
+            <div 
+              key={paper.id} 
+              className={`bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-md transition-all group relative overflow-hidden ${
+                viewMode === 'grid' ? 'p-6 rounded-3xl flex flex-col h-64' : 'p-4 rounded-2xl flex items-center justify-between'
+              }`}
+            >
+              <div className={`flex ${viewMode === 'grid' ? 'flex-col flex-1' : 'items-center gap-4 flex-1'}`}>
+                <div className={`
+                  ${viewMode === 'grid' ? 'w-12 h-12 mb-4' : 'w-10 h-10'} 
+                  rounded-xl flex items-center justify-center 
+                  ${paper.name.endsWith('.pdf') ? 'bg-rose-50 text-rose-500' : 
+                    paper.name.endsWith('.tex') ? 'bg-slate-100 text-slate-700' : 
+                    'bg-indigo-50 text-indigo-500'}
+                `}>
+                  <FileText className={viewMode === 'grid' ? 'w-6 h-6' : 'w-5 h-5'} />
+                </div>
+                
+                <div className="min-w-0 flex-1">
+                  <h4 className={`font-bold text-slate-900 truncate ${viewMode === 'grid' ? 'text-lg mb-2' : 'text-sm'}`}>
+                    {paper.name}
+                  </h4>
+                  <p className="text-xs text-slate-400 flex items-center gap-2">
+                    <Clock className="w-3 h-3" />
+                    {new Date(paper.createdAt).toLocaleDateString()}
+                    <span className="w-1 h-1 rounded-full bg-slate-300" />
+                    {(paper.size / (1024 * 1024)).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+
+              {viewMode === 'grid' && (
+                 <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
+                    <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-wide">
+                      {paper.name.includes('final') ? 'Ready' : 'Draft'}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <a href={paper.uploadthingUrl} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <Eye className="w-4 h-4" />
+                      </a>
+                      <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
+                 </div>
+              )}
+
+              {viewMode === 'list' && (
+                <div className="flex items-center gap-4">
+                  <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
+                    paper.name.includes('final') ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'
+                  }`}>
+                      {paper.name.includes('final') ? 'Ready' : 'Draft'}
+                  </span>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <a 
+                      href={paper.uploadthingUrl} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      title="View PDF"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </a>
+                    <a 
+                      href={paper.uploadthingUrl} 
+                      download
+                      className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      title="Download"
+                    >
+                      <Download className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 border-dashed">
+          <FileText className="w-16 h-16 mx-auto mb-4 text-slate-200" />
+          <h3 className="text-lg font-bold text-slate-900 mb-2">No Papers Found</h3>
+          <p className="text-slate-500 max-w-xs mx-auto mb-6">
+            Upload your research papers, drafts, or LaTeX files to get started.
+          </p>
+          <button 
+            onClick={() => setShowUploadModal(true)}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
+          >
+            Upload First Paper
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const TeamCollaborationContent = ({ 
+  members, 
+  currentWorkspace,
+  setShowShareModal,
+  user
+}: { 
+  members: any[], 
+  currentWorkspace: any,
+  setShowShareModal: (show: boolean) => void,
+  user: any
+}) => {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Team Header */}
+      <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-violet-900 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold border border-white/10">
+                Workspace Team
+              </span>
+              <span className="flex items-center gap-1 text-indigo-200 text-xs font-medium">
+                <Shield className="w-3 h-3" />
+                Secure Environment
+              </span>
+            </div>
+            <h2 className="text-3xl font-bold mb-2">Research Team</h2>
+            <p className="text-indigo-200 max-w-md">
+              Manage collaborators, assign roles, and track contributions in {currentWorkspace?.name}.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+             <div className="flex -space-x-3">
+                {members.slice(0, 4).map((m, i) => (
+                  <div key={m.id} className="w-10 h-10 rounded-full border-2 border-indigo-900 bg-indigo-800 flex items-center justify-center text-xs font-bold">
+                    {m.email?.charAt(0).toUpperCase()}
+                  </div>
+                ))}
+                {members.length > 4 && (
+                  <div className="w-10 h-10 rounded-full border-2 border-indigo-900 bg-white text-indigo-900 flex items-center justify-center text-xs font-bold">
+                    +{members.length - 4}
+                  </div>
+                )}
+             </div>
+             <button
+               onClick={() => setShowShareModal(true)}
+               className="flex items-center gap-2 px-5 py-3 bg-white text-indigo-900 rounded-xl font-bold shadow-lg shadow-black/10 hover:bg-indigo-50 transition-all"
+             >
+               <UserPlus className="w-4 h-4" />
+               Invite Member
+             </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Members List */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-slate-800 text-lg">Active Members</h3>
+            <div className="flex gap-2">
+              <button className="p-2 text-slate-400 hover:text-indigo-600 bg-white hover:bg-slate-50 rounded-xl border border-slate-100 transition-all">
+                <Search className="w-4 h-4" />
+              </button>
+              <button className="p-2 text-slate-400 hover:text-indigo-600 bg-white hover:bg-slate-50 rounded-xl border border-slate-100 transition-all">
+                <Filter className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {members.map((member) => (
+               <div key={member.id} className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-4 hover:shadow-md transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-600 font-bold text-lg relative">
+                    {member.email?.charAt(0).toUpperCase()}
+                    {member.role === 'owner' && (
+                      <div className="absolute -top-1 -right-1 bg-amber-400 text-white p-0.5 rounded-full">
+                        <Crown className="w-3 h-3" fill="currentColor" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-bold text-slate-900">{member.email}</h4>
+                      {member.userId === user?.id && (
+                        <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-bold">YOU</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className={`font-medium ${
+                        member.role === 'owner' ? 'text-amber-600' : 
+                        member.role === 'admin' ? 'text-purple-600' :
+                        member.role === 'editor' ? 'text-indigo-600' : 'text-slate-500'
+                      }`}>
+                        {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                      </span>
+                      <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                      <span className="text-slate-400">Joined {new Date(member.joinedAt || Date.now()).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                      <MessageCircle className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </div>
+               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Team Activity Feed */}
+        <div className="bg-white rounded-3xl border border-slate-100 p-6 h-fit">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-slate-800">Recent Activity</h3>
+            <span className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+              Live
+            </span>
+          </div>
+          
+          <div className="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+            {/* Mocked Feed Items */}
+            <div className="relative pl-10">
+               <div className="absolute left-0 top-0 w-10 h-10 flex items-center justify-center bg-white border-4 border-white rounded-full z-10">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <FileUp className="w-4 h-4" />
+                  </div>
+               </div>
+               <div>
+                  <p className="text-sm font-bold text-slate-800">New Paper Uploaded</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    <span className="font-medium text-slate-700">Sarah Chen</span> uploaded <span className="text-indigo-600">analysis_v2.pdf</span>
+                  </p>
+                  <span className="text-[10px] text-slate-400 mt-2 block">2 hours ago</span>
+               </div>
+            </div>
+
+            <div className="relative pl-10">
+               <div className="absolute left-0 top-0 w-10 h-10 flex items-center justify-center bg-white border-4 border-white rounded-full z-10">
+                  <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <UserPlus className="w-4 h-4" />
+                  </div>
+               </div>
+               <div>
+                  <p className="text-sm font-bold text-slate-800">New Member Joined</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    <span className="font-medium text-slate-700">Dr. Kline</span> joined the workspace
+                  </p>
+                  <span className="text-[10px] text-slate-400 mt-2 block">Yesterday</span>
+               </div>
+            </div>
+
+            <div className="relative pl-10">
+               <div className="absolute left-0 top-0 w-10 h-10 flex items-center justify-center bg-white border-4 border-white rounded-full z-10">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+               </div>
+               <div>
+                  <p className="text-sm font-bold text-slate-800">Milestone Reached</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    <span className="font-medium text-slate-700">Your Team</span> has achieved a new milestone
+                  </p>
+                  <span className="text-[10px] text-slate-400 mt-2 block">3 days ago</span>
+               </div>
+            </div>
+          </div>
+          
+          <button className="w-full mt-6 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs transition-colors">
+            View All History
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
