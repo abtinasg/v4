@@ -995,6 +995,169 @@ export const contactMessages = pgTable('contact_messages', {
   createdAtIdx: index('contact_messages_created_at_idx').on(table.createdAt),
 }))
 
+// ==================== ABTIN ENUMS ====================
+export const abtinChatModeEnum = pgEnum('abtin_chat_mode', ['brainstorm', 'debate'])
+export const abtinTaskPriorityEnum = pgEnum('abtin_task_priority', ['low', 'medium', 'high', 'urgent'])
+export const abtinTaskStatusEnum = pgEnum('abtin_task_status', ['pending', 'in_progress', 'completed', 'cancelled'])
+
+// ==================== ABTIN USERS TABLE ====================
+// Separate user management for Abtin section with Basic Auth
+export const abtinUsers = pgTable('abtin_users', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  username: varchar('username', { length: 100 }).notNull().unique(),
+  passwordHash: text('password_hash').notNull(), // Hashed password
+  email: varchar('email', { length: 255 }),
+  fullName: varchar('full_name', { length: 255 }),
+  isActive: boolean('is_active').default(true).notNull(),
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  usernameIdx: index('abtin_users_username_idx').on(table.username),
+  isActiveIdx: index('abtin_users_is_active_idx').on(table.isActive),
+}))
+
+// ==================== ABTIN CHAT SESSIONS TABLE ====================
+// Manages multiple chat conversations (like ChatGPT)
+export const abtinChatSessions = pgTable('abtin_chat_sessions', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  abtinUserId: text('abtin_user_id').notNull().references(() => abtinUsers.id, { onDelete: 'cascade' }),
+  title: varchar('title', { length: 255 }).notNull().default('New Chat'),
+  mode: abtinChatModeEnum('mode').notNull().default('brainstorm'),
+  model: varchar('model', { length: 100 }).notNull().default('openai/gpt-5.1'),
+  isPinned: boolean('is_pinned').default(false).notNull(),
+  lastMessageAt: timestamp('last_message_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('abtin_chat_sessions_user_id_idx').on(table.abtinUserId),
+  lastMessageAtIdx: index('abtin_chat_sessions_last_message_at_idx').on(table.lastMessageAt),
+  isPinnedIdx: index('abtin_chat_sessions_is_pinned_idx').on(table.isPinned),
+}))
+
+// ==================== ABTIN CHAT MESSAGES TABLE ====================
+// Stores all messages for persistent chat history
+export const abtinChatMessages = pgTable('abtin_chat_messages', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sessionId: text('session_id').notNull().references(() => abtinChatSessions.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 20 }).notNull(), // 'user' or 'assistant'
+  content: text('content').notNull(),
+  modelName: varchar('model_name', { length: 100 }), // Which model generated this (for assistant messages)
+  metadata: jsonb('metadata').$type<{
+    tokens?: number
+    responseTime?: number
+    model?: string
+  }>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  sessionIdIdx: index('abtin_chat_messages_session_id_idx').on(table.sessionId),
+  roleIdx: index('abtin_chat_messages_role_idx').on(table.role),
+  createdAtIdx: index('abtin_chat_messages_created_at_idx').on(table.createdAt),
+}))
+
+// ==================== ABTIN DAILY TASKS TABLE ====================
+// Task management and daily planning
+export const abtinDailyTasks = pgTable('abtin_daily_tasks', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  abtinUserId: text('abtin_user_id').notNull().references(() => abtinUsers.id, { onDelete: 'cascade' }),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  priority: abtinTaskPriorityEnum('priority').notNull().default('medium'),
+  status: abtinTaskStatusEnum('status').notNull().default('pending'),
+  category: varchar('category', { length: 100 }),
+  tags: jsonb('tags').$type<string[]>().default([]),
+  dueDate: timestamp('due_date', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  estimatedMinutes: integer('estimated_minutes'),
+  actualMinutes: integer('actual_minutes'),
+  reminderAt: timestamp('reminder_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('abtin_daily_tasks_user_id_idx').on(table.abtinUserId),
+  statusIdx: index('abtin_daily_tasks_status_idx').on(table.status),
+  priorityIdx: index('abtin_daily_tasks_priority_idx').on(table.priority),
+  dueDateIdx: index('abtin_daily_tasks_due_date_idx').on(table.dueDate),
+  categoryIdx: index('abtin_daily_tasks_category_idx').on(table.category),
+}))
+
+// ==================== ABTIN USER SETTINGS TABLE ====================
+// Personalized preferences for Abtin dashboard
+export const abtinUserSettings = pgTable('abtin_user_settings', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  abtinUserId: text('abtin_user_id').notNull().references(() => abtinUsers.id, { onDelete: 'cascade' }).unique(),
+  defaultChatMode: abtinChatModeEnum('default_chat_mode').default('brainstorm'),
+  defaultModel: varchar('default_model', { length: 100 }).default('openai/gpt-5.1'),
+  theme: themeEnum('theme').default('dark').notNull(),
+  dashboardLayout: jsonb('dashboard_layout').$type<{
+    sidebarCollapsed?: boolean
+    activeSections?: string[]
+    widgetOrder?: string[]
+  }>().default({}),
+  notifications: jsonb('notifications').$type<{
+    taskReminders?: boolean
+    chatNotifications?: boolean
+    dailySummary?: boolean
+  }>().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('abtin_user_settings_user_id_idx').on(table.abtinUserId),
+}))
+
+// ==================== ABTIN AUTH LOGS TABLE ====================
+// Track authentication attempts for security
+export const abtinAuthLogs = pgTable('abtin_auth_logs', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  username: varchar('username', { length: 100 }).notNull(),
+  ipAddress: varchar('ip_address', { length: 45 }).notNull(),
+  userAgent: text('user_agent'),
+  success: boolean('success').notNull(),
+  failureReason: varchar('failure_reason', { length: 255 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  usernameIdx: index('abtin_auth_logs_username_idx').on(table.username),
+  ipAddressIdx: index('abtin_auth_logs_ip_address_idx').on(table.ipAddress),
+  successIdx: index('abtin_auth_logs_success_idx').on(table.success),
+  createdAtIdx: index('abtin_auth_logs_created_at_idx').on(table.createdAt),
+}))
+
+// ==================== ABTIN RELATIONS ====================
+export const abtinUsersRelations = relations(abtinUsers, ({ many, one }) => ({
+  chatSessions: many(abtinChatSessions),
+  dailyTasks: many(abtinDailyTasks),
+  settings: one(abtinUserSettings),
+}))
+
+export const abtinChatSessionsRelations = relations(abtinChatSessions, ({ one, many }) => ({
+  user: one(abtinUsers, {
+    fields: [abtinChatSessions.abtinUserId],
+    references: [abtinUsers.id],
+  }),
+  messages: many(abtinChatMessages),
+}))
+
+export const abtinChatMessagesRelations = relations(abtinChatMessages, ({ one }) => ({
+  session: one(abtinChatSessions, {
+    fields: [abtinChatMessages.sessionId],
+    references: [abtinChatSessions.id],
+  }),
+}))
+
+export const abtinDailyTasksRelations = relations(abtinDailyTasks, ({ one }) => ({
+  user: one(abtinUsers, {
+    fields: [abtinDailyTasks.abtinUserId],
+    references: [abtinUsers.id],
+  }),
+}))
+
+export const abtinUserSettingsRelations = relations(abtinUserSettings, ({ one }) => ({
+  user: one(abtinUsers, {
+    fields: [abtinUserSettings.abtinUserId],
+    references: [abtinUsers.id],
+  }),
+}))
+
 // ==================== TYPE EXPORTS ====================
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -1074,3 +1237,17 @@ export type NewAiReport = typeof aiReports.$inferInsert
 // Contact Messages Types
 export type ContactMessage = typeof contactMessages.$inferSelect
 export type NewContactMessage = typeof contactMessages.$inferInsert
+
+// Abtin Types
+export type AbtinUser = typeof abtinUsers.$inferSelect
+export type NewAbtinUser = typeof abtinUsers.$inferInsert
+export type AbtinChatSession = typeof abtinChatSessions.$inferSelect
+export type NewAbtinChatSession = typeof abtinChatSessions.$inferInsert
+export type AbtinChatMessage = typeof abtinChatMessages.$inferSelect
+export type NewAbtinChatMessage = typeof abtinChatMessages.$inferInsert
+export type AbtinDailyTask = typeof abtinDailyTasks.$inferSelect
+export type NewAbtinDailyTask = typeof abtinDailyTasks.$inferInsert
+export type AbtinUserSettings = typeof abtinUserSettings.$inferSelect
+export type NewAbtinUserSettings = typeof abtinUserSettings.$inferInsert
+export type AbtinAuthLog = typeof abtinAuthLogs.$inferSelect
+export type NewAbtinAuthLog = typeof abtinAuthLogs.$inferInsert
