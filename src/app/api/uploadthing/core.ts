@@ -118,8 +118,6 @@ export const ourFileRouter = {
     "text/csv": { maxFileSize: "256MB", maxFileCount: 5 },
     "application/json": { maxFileSize: "128MB", maxFileCount: 5 },
     "application/zip": { maxFileSize: "512MB", maxFileCount: 2 },
-    "application/x-hdf": { maxFileSize: "512MB", maxFileCount: 2 },
-    "application/parquet": { maxFileSize: "256MB", maxFileCount: 5 },
   })
     .middleware(async ({ req }) => {
       const { userId: clerkId } = await auth();
