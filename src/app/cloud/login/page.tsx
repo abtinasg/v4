@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useSignIn } from '@clerk/nextjs'
 import { 
   Cloud, 
   FileText, 
@@ -23,17 +25,56 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 export default function CloudLoginPage() {
+  const { isLoaded, signIn, setActive } = useSignIn()
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isLoaded) return
     setIsLoading(true)
-    // Simulate login
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsLoading(false)
+    setError('')
+    
+    try {
+      const result = await signIn.create({
+        identifier: email,
+        password,
+      })
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId })
+        router.push('/cloud/dashboard')
+      } else {
+        console.log("Login incomplete", result)
+      }
+    } catch (err: any) {
+      console.error(err)
+      setError(err.errors?.[0]?.longMessage || 'Something went wrong')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const signInWithGoogle = () => {
+    if (!isLoaded) return
+    signIn.authenticateWithRedirect({
+      strategy: 'oauth_google',
+      redirectUrl: '/sso-callback',
+      redirectUrlComplete: '/cloud/dashboard',
+    })
+  }
+
+  const signInWithGithub = () => {
+    if (!isLoaded) return
+    signIn.authenticateWithRedirect({
+      strategy: 'oauth_github',
+      redirectUrl: '/sso-callback',
+      redirectUrlComplete: '/cloud/dashboard',
+    })
   }
 
   const features = [
@@ -195,6 +236,7 @@ export default function CloudLoginPage() {
           <div className="space-y-3">
             <Button
               variant="outline"
+              onClick={signInWithGoogle}
               className="w-full h-12 bg-white hover:bg-slate-50 border-slate-200 text-slate-700 font-medium rounded-xl"
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -220,6 +262,7 @@ export default function CloudLoginPage() {
 
             <Button
               variant="outline"
+              onClick={signInWithGithub}
               className="w-full h-12 bg-white hover:bg-slate-50 border-slate-200 text-slate-700 font-medium rounded-xl"
             >
               <Github className="w-5 h-5 mr-3" />
@@ -239,6 +282,11 @@ export default function CloudLoginPage() {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-3 text-sm text-red-500 bg-red-50 rounded-lg border border-red-100">
+                {error}
+              </div>
+            )}
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-slate-700">
                 Email address
