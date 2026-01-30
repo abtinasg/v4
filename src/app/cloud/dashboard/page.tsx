@@ -66,6 +66,16 @@ interface CloudFile {
   updatedAt: string
 }
 
+interface WorkspaceMember {
+  id: string
+  userId: string
+  role: 'owner' | 'admin' | 'editor' | 'viewer'
+  email?: string
+  invitedBy?: string
+  invitedAt?: string
+  joinedAt?: string
+}
+
 export default function CloudDashboard() {
   const { user, isLoaded: isUserLoaded } = useUser()
   const [activeTab, setActiveTab] = useState('Research Hub')
@@ -76,6 +86,7 @@ export default function CloudDashboard() {
   const [showShareModal, setShowShareModal] = useState(false)
   const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false)
   const [files, setFiles] = useState<CloudFile[]>([])
+  const [members, setMembers] = useState<WorkspaceMember[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<'editor' | 'viewer'>('editor')
@@ -112,6 +123,20 @@ export default function CloudDashboard() {
     }
   }, [currentWorkspace])
 
+  // Fetch members for current workspace
+  const fetchMembers = useCallback(async () => {
+    if (!currentWorkspace) return
+    try {
+      const res = await fetch(`/api/cloud/workspaces/${currentWorkspace.id}/members`)
+      if (res.ok) {
+        const data = await res.json()
+        setMembers(data.members)
+      }
+    } catch (error) {
+      console.error('Error fetching members:', error)
+    }
+  }, [currentWorkspace])
+
   useEffect(() => {
     if (isUserLoaded && user) {
       fetchWorkspaces().finally(() => setIsLoading(false))
@@ -121,8 +146,9 @@ export default function CloudDashboard() {
   useEffect(() => {
     if (currentWorkspace) {
       fetchFiles()
+      fetchMembers()
     }
-  }, [currentWorkspace, fetchFiles])
+  }, [currentWorkspace, fetchFiles, fetchMembers])
 
   // Create new workspace
   const createWorkspace = async () => {
@@ -280,13 +306,27 @@ export default function CloudDashboard() {
 
         {/* Storage Info */}
         <div className="mt-8 px-2">
-          <div className="flex justify-between items-end mb-2">
-            <span className="text-sm font-bold text-slate-900">25.32 GB used</span>
-          </div>
-          <span className="text-xs text-slate-400 font-medium">79% used - 6.64 GB free</span>
-          <div className="h-2 w-full bg-slate-100 rounded-full mt-3 overflow-hidden">
-            <div className="h-full w-[79%] bg-gradient-to-r from-rose-400 to-rose-500 rounded-full" />
-          </div>
+          {(() => {
+            const MAX_STORAGE = 32 * 1024 * 1024 * 1024 // 32 GB in bytes
+            const usedBytes = currentWorkspace?.storageUsed || 0
+            const usedGB = (usedBytes / (1024 * 1024 * 1024)).toFixed(2)
+            const freeGB = ((MAX_STORAGE - usedBytes) / (1024 * 1024 * 1024)).toFixed(2)
+            const usedPercent = Math.min(100, Math.round((usedBytes / MAX_STORAGE) * 100))
+            return (
+              <>
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-sm font-bold text-slate-900">{usedGB} GB used</span>
+                </div>
+                <span className="text-xs text-slate-400 font-medium">{usedPercent}% used - {freeGB} GB free</span>
+                <div className="h-2 w-full bg-slate-100 rounded-full mt-3 overflow-hidden">
+                  <div 
+                    className={`h-full bg-gradient-to-r ${usedPercent > 80 ? 'from-rose-400 to-rose-500' : 'from-indigo-400 to-indigo-500'} rounded-full`}
+                    style={{ width: `${usedPercent}%` }}
+                  />
+                </div>
+              </>
+            )
+          })()}
           
           <button className="mt-8 w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2">
             Add More Space
@@ -352,31 +392,54 @@ export default function CloudDashboard() {
         <div className="flex-1 overflow-y-auto p-8">
            {/* Top Folders - Research Categories */}
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-              {[
-                { label: 'Active Drafts', files: '3 papers', size: 'In Progress', color: 'bg-indigo-600', icon: 'bg-indigo-100 text-indigo-600', iconComp: PenTool },
-                { label: 'Datasets', files: '12 sets', size: '4.2 GB', color: 'bg-teal-400', icon: 'bg-teal-50 text-teal-400', iconComp: FlaskConical },
-                { label: 'References', files: '1,240 items', size: 'Zotero Sync', color: 'bg-orange-400', icon: 'bg-orange-50 text-orange-400', iconComp: BookOpen },
-                { label: 'Published', files: '8 papers', size: 'Archive', color: 'bg-rose-400', icon: 'bg-rose-50 text-rose-400', iconComp: Star },
-              ].map((folder) => (
-                 <div key={folder.label} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-50 hover:shadow-md transition-shadow cursor-pointer group">
-                    <div className="flex justify-between items-start mb-6">
-                       <div className={`w-12 h-12 ${folder.icon} rounded-2xl flex items-center justify-center`}>
-                          <folder.iconComp className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />
-                       </div>
-                       <button className="text-slate-300 hover:text-slate-600">
-                          <MoreVertical className="w-5 h-5" />
-                       </button>
-                    </div>
-                    <h3 className="font-bold text-slate-800 text-lg mb-4">{folder.label}</h3>
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                       <span className="text-slate-400">{folder.files}</span>
-                       <span className="text-slate-900">{folder.size}</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full mt-4 overflow-hidden">
-                       <div className={`h-full w-1/2 ${folder.color} rounded-full opacity-80`} />
-                    </div>
-                 </div>
-              ))}
+              {(() => {
+                // Calculate file stats
+                const pdfCount = files.filter(f => f.fileType === 'paper' || f.name.endsWith('.pdf') || f.name.endsWith('.tex')).length
+                const datasetCount = files.filter(f => f.fileType === 'dataset' || f.name.endsWith('.csv') || f.name.endsWith('.xlsx') || f.name.endsWith('.json')).length
+                const referenceCount = files.filter(f => f.fileType === 'reference').length
+                const otherCount = files.filter(f => !['paper', 'dataset', 'reference'].includes(f.fileType)).length
+                
+                const formatSize = (bytes: number) => {
+                  if (bytes < 1024) return `${bytes} B`
+                  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+                  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+                  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
+                }
+                
+                const pdfSize = files.filter(f => f.fileType === 'paper' || f.name.endsWith('.pdf')).reduce((acc, f) => acc + f.size, 0)
+                const datasetSize = files.filter(f => f.fileType === 'dataset' || f.name.endsWith('.csv') || f.name.endsWith('.xlsx')).reduce((acc, f) => acc + f.size, 0)
+                
+                const categories = [
+                  { label: 'Papers & Drafts', files: `${pdfCount} files`, size: pdfCount > 0 ? formatSize(pdfSize) : 'Empty', color: 'bg-indigo-600', icon: 'bg-indigo-100 text-indigo-600', iconComp: PenTool, count: pdfCount },
+                  { label: 'Datasets', files: `${datasetCount} sets`, size: datasetCount > 0 ? formatSize(datasetSize) : 'Empty', color: 'bg-teal-400', icon: 'bg-teal-50 text-teal-400', iconComp: FlaskConical, count: datasetCount },
+                  { label: 'References', files: `${referenceCount} items`, size: 'Library', color: 'bg-orange-400', icon: 'bg-orange-50 text-orange-400', iconComp: BookOpen, count: referenceCount },
+                  { label: 'All Files', files: `${files.length} total`, size: formatSize(files.reduce((acc, f) => acc + f.size, 0)), color: 'bg-rose-400', icon: 'bg-rose-50 text-rose-400', iconComp: Star, count: files.length },
+                ]
+                
+                return categories.map((folder) => (
+                   <div key={folder.label} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-50 hover:shadow-md transition-shadow cursor-pointer group">
+                      <div className="flex justify-between items-start mb-6">
+                         <div className={`w-12 h-12 ${folder.icon} rounded-2xl flex items-center justify-center`}>
+                            <folder.iconComp className="w-6 h-6" fill="currentColor" fillOpacity={0.2} />
+                         </div>
+                         <button className="text-slate-300 hover:text-slate-600">
+                            <MoreVertical className="w-5 h-5" />
+                         </button>
+                      </div>
+                      <h3 className="font-bold text-slate-800 text-lg mb-4">{folder.label}</h3>
+                      <div className="flex items-center justify-between text-xs font-semibold">
+                         <span className="text-slate-400">{folder.files}</span>
+                         <span className="text-slate-900">{folder.size}</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-100 rounded-full mt-4 overflow-hidden">
+                         <div 
+                           className={`h-full ${folder.color} rounded-full opacity-80`}
+                           style={{ width: `${files.length > 0 ? Math.min(100, (folder.count / files.length) * 100) : 0}%` }}
+                         />
+                      </div>
+                   </div>
+                ))
+              })()}
            </div>
 
             {/* Quick Access - Latest Research Work */}
@@ -591,26 +654,52 @@ export default function CloudDashboard() {
 
          {/* Shared Folders / Co-Authors */}
          <div className="flex-1">
-            <h3 className="font-bold text-slate-800 text-lg mb-6">Co-Authors & Reviewers</h3>
+            <h3 className="font-bold text-slate-800 text-lg mb-6">Team Members ({members.length})</h3>
             <div className="space-y-4 mb-8">
-               {[
-                  { name: 'Dr. Sarah Chen', share: 'Lead Researcher', icon: Users },
-                  { name: 'James Miller', share: 'PhD Candidate', icon: Users },
-                  { name: 'Dr. Emily Wilson', share: 'External Reviewer', icon: MessageSquare },
-                  { name: 'Review Board A', share: 'Pending Approval', icon: FileCheck },
-                  { name: 'Grant Committee', share: 'NSF Proposal', icon: BookOpen },
-               ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 group cursor-pointer">
-                     <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                        <item.icon className="w-5 h-5" />
-                     </div>
-                     <div className="flex-1">
-                        <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-indigo-600 transition-colors">{item.name}</h4>
-                        <p className="text-xs text-slate-400">{item.share}</p>
-                     </div>
-                     <span className="text-[10px] font-bold text-slate-400">Online</span>
-                  </div>
-               ))}
+               {members.length > 0 ? members.map((member) => {
+                  const getRoleLabel = (role: string) => {
+                    switch (role) {
+                      case 'owner': return 'Owner'
+                      case 'admin': return 'Admin'
+                      case 'editor': return 'Editor'
+                      case 'viewer': return 'Viewer'
+                      default: return role
+                    }
+                  }
+                  const getRoleColor = (role: string) => {
+                    switch (role) {
+                      case 'owner': return 'text-indigo-600'
+                      case 'admin': return 'text-purple-600'
+                      case 'editor': return 'text-emerald-600'
+                      case 'viewer': return 'text-slate-500'
+                      default: return 'text-slate-400'
+                    }
+                  }
+                  return (
+                    <div key={member.id} className="flex items-center gap-4 group cursor-pointer">
+                       <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                          <Users className="w-5 h-5" />
+                       </div>
+                       <div className="flex-1">
+                          <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-indigo-600 transition-colors">
+                            {member.email || 'Unknown'}
+                          </h4>
+                          <p className={`text-xs font-medium ${getRoleColor(member.role)}`}>{getRoleLabel(member.role)}</p>
+                       </div>
+                    </div>
+                  )
+               }) : (
+                 <div className="text-center py-6 text-slate-400">
+                   <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                   <p className="text-sm">No team members yet</p>
+                   <button 
+                     onClick={() => setShowShareModal(true)}
+                     className="mt-3 px-4 py-2 bg-indigo-100 text-indigo-600 rounded-xl text-xs font-medium hover:bg-indigo-200 transition-colors"
+                   >
+                     Invite collaborators
+                   </button>
+                 </div>
+               )}
             </div>
          </div>
 
