@@ -35,39 +35,47 @@
     --ring: 222.2 84% 4.9%;
     --radius: 0.75rem;
     
-    /* ===== PREMIUM FINTECH DESIGN SYSTEM ===== */
-    /* Inspired by: Robinhood, Public.com, Finary, Koyfin */
+    /* ===== DEEPIN FINANCE ENTERPRISE DESIGN SYSTEM ===== */
+    /* Premium institutional-grade dark theme */
+    /* Aligned with DeepinHQ rebrand: calm, precise, professional */
     
-    /* Canvas & Surface Colors */
-    --canvas: #04060A;
-    --surface-0: #080B10;
-    --surface-1: #0C1017;
-    --surface-2: #12161E;
-    --surface-3: #181D26;
+    /* Canvas & Surface Colors - Enterprise dark (not pure black) */
+    --canvas: #0D0F12;           /* Deep charcoal base */
+    --surface-0: #13161A;        /* Primary surface */
+    --surface-1: #191C21;        /* Elevated surface */
+    --surface-2: #1F2328;        /* Card/modal surface */
+    --surface-3: #262A30;        /* Hover/active states */
     
-    /* Accent Colors */
-    --accent-cyan: #00C9E4;
-    --accent-violet: #9B87F5;
-    --accent-emerald: #10B981;
-    --accent-rose: #F43F5E;
-    --accent-amber: #F59E0B;
+    /* Brand Accent - Deepin orange (restrained) */
+    --accent-primary: #E67E22;   /* Deepin orange - primary actions only */
+    --accent-secondary: #F39C12; /* Lighter variant */
+    --accent-muted: rgba(230, 126, 34, 0.15);
     
-    /* Text Hierarchy */
+    /* Supporting Colors - Low saturation, institutional */
+    --accent-cyan: #4ECDC4;      /* Info/links */
+    --accent-violet: #9B87F5;    /* AI/insights */
+    --accent-emerald: #27AE60;   /* Positive/success */
+    --accent-rose: #E74C3C;      /* Negative/warning */
+    --accent-amber: #F1C40F;     /* Caution */
+    
+    /* Text Hierarchy - Strong contrast */
     --text-primary: rgba(255, 255, 255, 0.95);
-    --text-secondary: rgba(255, 255, 255, 0.64);
-    --text-tertiary: rgba(255, 255, 255, 0.40);
-    --text-muted: rgba(255, 255, 255, 0.24);
+    --text-secondary: rgba(255, 255, 255, 0.72);
+    --text-tertiary: rgba(255, 255, 255, 0.48);
+    --text-muted: rgba(255, 255, 255, 0.32);
     
-    /* Borders - Subtle alpha-based */
-    --border-subtle: rgba(255, 255, 255, 0.04);
-    --border-default: rgba(255, 255, 255, 0.06);
-    --border-emphasis: rgba(255, 255, 255, 0.10);
+    /* Borders - Subtle with depth */
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    --border-default: rgba(255, 255, 255, 0.08);
+    --border-emphasis: rgba(255, 255, 255, 0.12);
+    --border-accent: rgba(230, 126, 34, 0.3);
     
     /* Premium Shadows */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
-    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.35);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.18);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.22);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.28);
+    --shadow-glow: 0 0 40px rgba(230, 126, 34, 0.08);
     
     /* Spacing Scale (4px base) */
     --space-1: 4px;
@@ -81,20 +89,20 @@
     --space-12: 48px;
     --space-16: 64px;
     
-    /* Border Radius */
+    /* Border Radius - Pill/rounded (DeepinHQ alignment) */
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
-    --radius-xl: 20px;
+    --radius-xl: 24px;
     --radius-full: 9999px;
     
     /* Legacy support */
-    --cyan: #00C9E4;
+    --cyan: #4ECDC4;
     --violet: #9B87F5;
-    --green: #10B981;
-    --red: #F43F5E;
-    --card-bg: rgba(12, 16, 23, 0.5);
-    --card-glass: rgba(12, 16, 23, 0.5);
+    --green: #27AE60;
+    --red: #E74C3C;
+    --card-bg: rgba(19, 22, 26, 0.8);
+    --card-glass: rgba(19, 22, 26, 0.6);
   }
 
   .dark {
