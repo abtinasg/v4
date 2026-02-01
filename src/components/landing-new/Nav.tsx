@@ -9,6 +9,7 @@ const navLinks = [
   { name: 'Workflows', href: '#workflows' },
   { name: 'Metrics', href: '#metrics' },
   { name: 'Pricing', href: '#pricing' },
+  { name: 'Contact', href: '#contact' },
 ]
 
 export function Nav() {
